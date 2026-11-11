@@ -8,5 +8,5 @@ the Template Model Builder (TMB) framework.
 
 ``` r
 # You can install drcTMB from GitHub by
-pak::pak("daniel-gerhard/drcTMB")
+pak::pak("EmilSkindersoe/gcTMB")
 ```
