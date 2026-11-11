@@ -8,3 +8,4 @@
 ^CLAUDE\.md$
 ^vignettes/.*\.html$
 ^vignettes/.*\.pdf$
+^TODO\.md$

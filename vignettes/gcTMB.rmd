@@ -214,13 +214,22 @@ genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
 predict(fitp, newdata = genotypes, type = "parameters", random = FALSE)
 ```
 
-The curves of the plants, with their predicted random asymptotes, and the population curves of the genotypes (`random = FALSE`), the fixed effects, with 95% confidence intervals. For Poisson models, the confidence intervals of the mean are computed on the log scale, so that they stay positive.
+All the counts with the fitted curve of each plant, with its predicted random asymptote:
 
-```{r, fig.width = 7, fig.height = 5}
+```{r, fig.width = 6, fig.height = 4}
 days <- seq(61, 79, 0.25)
-# a curve for each plant
 ndp <- merge(unique(FabaCounts23[, c("Tube_ID", "Genotype")]), data.frame(DAS = days))
 ndp$fit <- predict(fitp, newdata = ndp)
+ggplot(FabaCounts23, aes(x = DAS, y = pods, colour = Genotype)) +
+  geom_point() +
+  geom_line(data = ndp, aes(y = fit, group = Tube_ID)) +
+  labs(x = "Days after sowing", y = "Number of pods", colour = "Genotype") +
+  theme_minimal()
+```
+
+By genotype, the curves of the plants together with the population curves of the genotypes (`random = FALSE`), the fixed effects, with 95% confidence intervals. For Poisson models, the confidence intervals of the mean are computed on the log scale, so that they stay positive.
+
+```{r, fig.width = 7, fig.height = 5}
 # the population curve of each genotype
 ndg <- merge(genotypes, data.frame(DAS = days))
 ndg <- cbind(ndg, predict(fitp, newdata = ndg, random = FALSE, interval = "confidence"))
