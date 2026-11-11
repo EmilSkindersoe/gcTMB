@@ -6,3 +6,5 @@
 ^README-.*\.png$
 ^data-raw$
 ^CLAUDE\.md$
+^vignettes/.*\.html$
+^vignettes/.*\.pdf$

@@ -1,7 +1,10 @@
 ---
 title: "gcTMB"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output:
+  rmarkdown::html_vignette: default
+  rmarkdown::pdf_document:
+    fig_crop: false
 vignette: >
   %\VignetteIndexEntry{gcTMB}
   %\VignetteEngine{knitr::rmarkdown}
@@ -11,7 +14,11 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  dpi = 150,
+  fig.retina = 2,
+  fig.align = "center",
+  out.width = "100%"
 )
 ```
 
