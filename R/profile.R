@@ -1,4 +1,4 @@
-#' Likelihood profiles of a drmTMB model
+#' Likelihood profiles of a gcTMB model
 #'
 #' Profiles the (marginal) log-likelihood for single parameters by fixing the parameter at a sequence
 #' of values and re-optimising all other parameters, using \code{\link[TMB]{tmbprofile}}. With random
@@ -12,27 +12,27 @@
 #' transformed for terms with two random effects, as their parameter determines the correlation
 #' only then. If the profile of a log standard deviation does not reach the cutoff at low values,
 #' the likelihood is flat towards zero and the lower limit of the standard deviation is 0.
-#' Bounds given by \code{lower} and \code{upper} in \code{\link{drmTMB}} are used for the profiled
+#' Bounds given by \code{lower} and \code{upper} in \code{\link{gcTMB}} are used for the profiled
 #' coefficient, but not when re-optimising the other coefficients.
 #'
 #' The cutoff of the deviance is the quantile of the chi-square distribution with one degree of
 #' freedom. For gaussian and lognormal models without random effects and small-sample inference (see
-#' \code{\link{drmTMB}}), the cutoff of the coefficients b1-b5 is F-based instead,
+#' \code{\link{gcTMB}}), the cutoff of the coefficients b1-b5 is F-based instead,
 #' sum(w) log(1 + F/(n - p)) with the quantile F of the F distribution with 1 and n - p degrees of
 #' freedom, which gives the intervals of a t-test of each coefficient, as profile intervals of nls.
 #'
-#' @param fitted a drmTMB object
-#' @param parm parameters to profile, names or positions in \code{coef(fitted)}. Default are the
+#' @param fitted A gcTMB object, the result of \code{\link{gcTMB}}.
+#' @param parm Character or integer vector, or NULL. Parameters to profile, names or positions in \code{coef(fitted)}. Default are the
 #'   estimated coefficients b1-b5, without the variance parameters.
-#' @param level the highest confidence level the profiles are computed for: each profile extends until
+#' @param level Numeric between 0 and 1. The highest confidence level the profiles are computed for: each profile extends until
 #'   the deviance from the maximum exceeds the cutoff (see Details). For confint and plot, the confidence level of the intervals and of the cutoff line.
-#' @param trace logical, print the progress of \code{\link[TMB]{tmbprofile}}
-#' @param progress logical, show a progress bar over the profiled parameters
-#' @param object,x a profile.drmTMB object
-#' @param ... further arguments passed to \code{\link[TMB]{tmbprofile}}, e.g. \code{ystep}; ignored by
+#' @param trace Logical. Print the progress of \code{\link[TMB]{tmbprofile}}
+#' @param progress Logical. Show a progress bar over the profiled parameters
+#' @param object,x A profile.gcTMB object, the result of \code{profile}.
+#' @param ... Further arguments passed to \code{\link[TMB]{tmbprofile}}, e.g. \code{ystep}; ignored by
 #'   the confint and plot methods
 #'
-#' @return profile returns a profile.drmTMB object, a list with a data frame for each parameter with
+#' @return profile returns a profile.gcTMB object, a list with a data frame for each parameter with
 #'   the parameter values (\code{par}) and the deviance from the maximum (\code{deviance}), i.e. twice
 #'   the difference of the negative log-likelihoods. confint returns a matrix of confidence intervals.
 #'   plot returns a ggplot object (package ggplot2) with a panel for each parameter, showing the
@@ -40,9 +40,14 @@
 #'   estimate (dotted).
 #' @export
 #'
-#' @name profile.drmTMB
-#' @aliases profile.drmTMB confint.profile.drmTMB plot.profile.drmTMB
-profile.drmTMB <- function(fitted, parm=NULL, level=0.99, trace=FALSE, progress=interactive(), ...){
+#' @examples
+#' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+#' pr <- profile(fit, progress=FALSE)
+#' confint(pr)
+#' plot(pr)
+#' @name profile.gcTMB
+#' @aliases profile.gcTMB confint.profile.gcTMB plot.profile.gcTMB
+profile.gcTMB <- function(fitted, parm=NULL, level=0.99, trace=FALSE, progress=interactive(), ...){
   est <- coef(fitted)
   pn <- names(est)
   nb <- sum(!fitted$fix)
@@ -54,7 +59,7 @@ profile.drmTMB <- function(fitted, parm=NULL, level=0.99, trace=FALSE, progress=
   }
   if (any(parm < 1 | parm > length(est))) stop("parm must select estimated parameters of coef(fitted).")
 
-  # range of the profiled parameter: the bounds of drmTMB (infinite for the variance parameters)
+  # range of the profiled parameter: the bounds of gcTMB (infinite for the variance parameters)
   lower <- if (is.null(fitted$lower)) rep(-Inf, length(est)) else fitted$lower
   upper <- if (is.null(fitted$upper)) rep(Inf, length(est)) else fitted$upper
 
@@ -72,13 +77,13 @@ profile.drmTMB <- function(fitted, parm=NULL, level=0.99, trace=FALSE, progress=
   attr(prof, "estimates") <- est[parm]
   attr(prof, "corr2") <- corr2names(fitted)
   attr(prof, "cutoff") <- cutoffattr(fitted, parm <= nb)
-  class(prof) <- "profile.drmTMB"
+  class(prof) <- "profile.gcTMB"
   prof
 }
 
-#' @rdname profile.drmTMB
+#' @rdname profile.gcTMB
 #' @export
-confint.profile.drmTMB <- function(object, parm=NULL, level=0.95, ...){
+confint.profile.gcTMB <- function(object, parm=NULL, level=0.95, ...){
   if (is.null(parm)) parm <- names(object)
   if (is.numeric(parm)) parm <- names(object)[parm]
   est <- attr(object, "estimates")
@@ -141,9 +146,9 @@ corr2names <- function(fit){
   }))
 }
 
-#' @rdname profile.drmTMB
+#' @rdname profile.gcTMB
 #' @export
-plot.profile.drmTMB <- function(x, level=0.95, ...){
+plot.profile.gcTMB <- function(x, level=0.95, ...){
   nm <- names(x)
   d <- do.call(rbind, lapply(nm, function(n) data.frame(parameter=n, par=x[[n]]$par, deviance=x[[n]]$deviance)))
   d$parameter <- factor(d$parameter, levels=nm)
@@ -157,7 +162,7 @@ plot.profile.drmTMB <- function(x, level=0.95, ...){
     ggplot2::labs(x=NULL, y="Deviance")
 }
 
-# columns of the profile data used in the aesthetics of plot.profile.drmTMB
+# columns of the profile data used in the aesthetics of plot.profile.gcTMB
 utils::globalVariables(c("par", "deviance", "cutoff"))
 
 # cutoff of the profile deviance for confidence level level: the chi-square quantile with one degree
@@ -170,7 +175,7 @@ profcutoff <- function(level, fit=NULL){
 }
 
 # what a profile needs for its cutoffs: the fit's residual degrees of freedom and sum of weights,
-# and which profiled parameters use them (coefficients and effective doses, not variance parameters)
+# and which profiled parameters use them (coefficients and times, not variance parameters)
 cutoffattr <- function(fit, small){
   if (is.null(fit$rdf)) return(NULL)
   list(rdf=fit$rdf, sumw=sum(fit$obj$env$data$w), small=small)
@@ -184,49 +189,43 @@ profcutoffs <- function(object, level){
   cut
 }
 
-#' Likelihood profiles of effective doses
+#' Likelihood profiles of times to reach a level of the asymptote
 #'
-#' Profiles the (marginal) log-likelihood for effective doses estimated by \code{\link{ed}}. At each
-#' value of an effective dose, the model is reparameterised: the effective dose is a function of b3,
-#' b4 and b5 that can be solved for b4, so one coefficient of b4 is computed from the effective dose
-#' and the other coefficients, which are re-optimised.
+#' Profiles the (marginal) log-likelihood for the times estimated by \code{\link{timeto}}. At each
+#' value of a time, the model is reparameterised: the time b2 + b3 Finv(q) can be solved for b2, so one
+#' coefficient of b2 is computed from the time and the other coefficients, which are re-optimised.
 #'
-#' The dose at the peak of a hormesis curve (\code{\link{peak}}) is profiled in the same way, as b4
-#' follows from the peak dose and the other parameters; profiles are not available for the response at
-#' the peak.
+#' The profiles are for the times of the population curves, without the random effects; the
+#' variation between groups (\code{random=TRUE} in \code{\link{timeto}}) and the residual variation are
+#' not included. Gaussian models without random effects use the F-based cutoff of
+#' \code{\link{profile.gcTMB}} by default.
 #'
-#' The profiles are for the effective doses of the population curves, without the random effects;
-#' the variation between groups (\code{random=TRUE} in \code{\link{ed}}) and the residual variation are
-#' not included. For the models on the log-dose scale and the models without b3, the effective doses
-#' are profiled on the log scale. Gaussian models without random effects use the F-based cutoff of
-#' \code{\link{profile.drmTMB}} by default.
+#' @param fitted A timetoTMB object, the result of \code{\link{timeto}}.
+#' @param parm Character or integer vector, or NULL. Times to profile, names or positions in \code{coef(fitted)}; default all
+#' @param level Numeric between 0 and 1. The highest confidence level the profiles are computed for.
+#' @param maxit Integer. Maximum number of steps in each direction
+#' @param progress Logical. Show a progress bar over the profiled times
+#' @param ... Not used.
 #'
-#' @param fitted an edTMB object
-#' @param parm effective doses to profile, names or positions in \code{coef(fitted)}; default all
-#' @param level the highest confidence level the profiles are computed for
-#' @param maxit maximum number of steps in each direction
-#' @param progress logical, show a progress bar over the profiled effective doses
-#' @param ... ignored
+#' @examples
+#' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+#' pr <- profile(timeto(fit, respLev=c(10, 90)), progress=FALSE)
+#' confint(pr)
+#' plot(pr)
 #'
-#' @return a profile.edTMB object, which has the confint and plot methods of
-#'   \code{\link{profile.drmTMB}}
+#' @return a profile.timetoTMB object, which has the confint and plot methods of
+#'   \code{\link{profile.gcTMB}}
 #' @export
-profile.edTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress=interactive(), ...){
+profile.timetoTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress=interactive(), ...){
   fit <- fitted$fit
-  if (is.null(fit)) stop("compute the effective doses again with ed() to profile them.")
+  if (is.null(fit)) stop("compute the times again with timeto() to profile them.")
   est <- coef(fitted)
   if (is.null(parm)) parm <- seq_along(est)
   if (is.character(parm)) parm <- match(parm, names(est))
-  if (any(is.na(parm))) stop("unknown effective doses in parm.")
-  if (any(edflag(fitted, "conditional")[parm])) stop("profiles are not available for effective doses of fitted groups.")
-  if (anyNA(est[parm])) stop("the effective doses ", paste(names(est)[parm][is.na(est[parm])], collapse=", "), " are NA.")
+  if (any(is.na(parm))) stop("unknown times in parm.")
+  if (any(timetoflag(fitted, "conditional")[parm])) stop("profiles are not available for the times of fitted groups.")
+  if (anyNA(est[parm])) stop("the times ", paste(names(est)[parm][is.na(est[parm])], collapse=", "), " are NA.")
   absolute <- identical(fitted$type, "absolute")
-  peak <- identical(fitted$type, "peak")
-  isbmd <- identical(fitted$type, "bmd")
-  if (isbmd && !bmdprofile(fitted, parm)) stop("profiles are not available for marginal BMDs averaged over random effects, or for the BMDs of the ", fit$model, " model: its response at dose zero depends on b4.")
-  pv0 <- fit$start
-  pv0[!fit$fix] <- fit$opt$par[seq_len(sum(!fit$fix))]
-  if (peak && any(unlist(fitted$q[parm]) == 2)) stop("profiles are not available for the response at the peak.")
 
   obj <- fit$obj
   # keep the state of the TMB object, as tmbprofile does
@@ -237,9 +236,7 @@ profile.edTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress=int
   obj$env$tracemgc <- FALSE
 
   mod <- modelindex(fit$model)
-  m <- drcmodel(mod)
   lnk <- linkindex(fit$link)
-  logscale <- !(m$b4 %in% "location")
   free <- which(!fit$fix)
   nf <- length(free)
   par0 <- fit$opt$par
@@ -249,268 +246,164 @@ profile.edTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress=int
   # bounds of the fit
   lo <- if (is.null(fit$lower)) rep(-Inf, length(par0)) else fit$lower
   up <- if (is.null(fit$upper)) rep(Inf, length(par0)) else fit$upper
-  # free coefficients of the polynomial of the multistage model (b3-b5), in the parameter vector
-  msfree <- c(rep(1:5, sapply(fit$Xs, ncol))[free] %in% 3:5, rep(FALSE, length(par0) - nf))
-  # free coefficients of the rate b3 of the nec model
-  b3free <- c(rep(1:5, sapply(fit$Xs, ncol))[free] == 3, rep(FALSE, length(par0) - nf))
-  # log residual standard deviation, for BMDs in standard deviations
-  ils <- which(names(par0) == "log_sigma")
-  lsval <- function(par) if (length(ils) > 0) par[[ils]] else 0
+  # the parameter computed from the time: b2
+  ps <- 2
+  oth <- setdiff(1:5, ps)
 
   pb <- progressbar(length(parm), progress)
   prof <- lapply(parm, function(i){
     L <- fitted$linfct[[i]]
     q <- fitted$q[[i]]
-    # the parameter computed from the effective dose: b4, or for the multistage model the coefficient
-    # of the polynomial with the largest term at the effective dose, which is away from its bound 0
-    ps <- 4
-    if (m$ed %in% "polynomial"){
-      lp0 <- as.vector(L %*% pv0)
-      ps <- 2 + which.max(lp0[3:5] * est[[i]]^(1:3) * sapply(3:5, function(j) any(L[j, free] != 0)))
-    }
-    # its coefficient computed from the effective dose: free, with the largest weight
-    w4 <- L[ps, free]
-    if (all(w4 == 0)) stop("the effective dose ", names(est)[i], " does not depend on an estimated coefficient of b", ps, ".")
-    kp <- which.max(abs(w4))
+    # the coefficient of b2 computed from the time: free, with the largest weight
+    w2 <- L[ps, free]
+    if (all(w2 == 0)) stop("the time ", names(est)[i], " does not depend on an estimated coefficient of b2.")
+    kp <- which.max(abs(w2))
     k <- free[kp]
-    if (any(L[setdiff(3:5, ps), k] != 0)) stop("the coefficient ", fit$coefnames[k], " of b", ps, " must not enter ", paste("b", setdiff(3:5, ps), sep="", collapse=" or "), " in linfct.")
-    if ((absolute || isbmd || m$ed %in% "hormesis") && (L[1, k] != 0 || L[2, k] != 0)) stop("the coefficient ", fit$coefnames[k], " of b4 must not enter b1 or b2 in linfct.")
+    if (any(L[3:5, k] != 0)) stop("the coefficient ", fit$coefnames[k], " of b2 must not enter b3 in linfct.")
+    if (absolute && L[1, k] != 0) stop("the coefficient ", fit$coefnames[k], " of b2 must not enter b1 in linfct.")
 
-    # full parameter vector from the reduced one (without coefficient k) at effective dose ed
+    # full parameter vector from the reduced one (without coefficient k)
     pvfull <- function(par){
       pv <- fit$start
       pv[free] <- par[seq_len(nf)]
       pv
     }
-    # level of F at the effective dose; for BMDs from the response at dose zero and the log residual
-    # standard deviation ls
-    qlev <- function(lpv, ls) if (isbmd) bmdlevel(fit, fitted$bmd[[i]], lpv, ls) else edq(fit, q, lpv, absolute)
-    # b4 (parameter ps) on the scale of its coefficients, from b1, b2 (absolute effective doses, BMDs,
-    # hormesis models), b3 and b5 in lpv; for peaks, ed is the dose of the peak
-    b4fun <- function(ed, lpv, ls=0){
+    # b2 on the scale of its coefficients, from b3 (and b1 for absolute times) in lpv, at time tt
+    b2fun <- function(tt, lpv){
       b <- linkpars(lnk, lpv)
-      if (m$ed %in% "polynomial") return(linkfun(lnk[ps], msbeta(qlev(lpv, ls), ed, b, ps)))
-      b4 <- if (peak && !is.null(m$peak)) m$peak$b4(ed, b)
-            else if (peak) peakb4(mod, ed, b[3], hormc(fit, lpv), fit$alpha)
-            else edb4(mod, qlev(lpv, ls), ed, b[3], b[5], hormc(fit, lpv), fit$alpha, smoothwidth(fit$smooth))
-      linkfun(lnk[4], b4)
+      qf <- timeq(fit, q, lpv, absolute)
+      linkfun(lnk[ps], tt - b[3] * gcmodel(mod)$Finv(qf))
     }
-    expand <- function(x, ed){
+    expand <- function(x, tt){
       par <- append(x, 0, after=kp - 1)
       pv <- pvfull(par)
       lpv <- as.vector(L %*% pv)
-      b4 <- b4fun(ed, lpv, lsval(par))
-      par[kp] <- (b4 - sum(L[ps, -k] * pv[-k])) / L[ps, k]
+      b2 <- b2fun(tt, lpv)
+      par[kp] <- (b2 - sum(L[ps, -k] * pv[-k])) / L[ps, k]
       list(par=par, lpv=lpv)
     }
     # derivatives of the full parameter vector w.r.t. the reduced one: coefficient k depends on the
-    # other coefficients of b4 and, through the effective dose, on b3 and b5, and for absolute
-    # effective doses and BMDs on b1 and b2, and for BMDs in standard deviations on the log residual
-    # standard deviation
-    jacobian <- function(e, ed){
+    # other coefficients of b2 and, through the time, on b3, and for absolute times on b1
+    jacobian <- function(e, tt){
       h <- 1e-6
-      ls <- lsval(e$par)
-      oth <- setdiff(1:5, ps)
       d <- sapply(oth, function(j){
         hj <- replace(numeric(5), j, h)
-        (b4fun(ed, e$lpv + hj, ls) - b4fun(ed, e$lpv - hj, ls)) / (2*h)
+        (b2fun(tt, e$lpv + hj) - b2fun(tt, e$lpv - hj)) / (2*h)
       })
       J <- diag(length(par0))[, -kp, drop=FALSE]
       J[kp, seq_len(nf - 1)] <- ((colSums(d * L[oth, free, drop=FALSE]) - L[ps, free]) / L[ps, k])[-kp]
-      if (isbmd && fitted$bmd[[i]]$def %in% c("sd", "logsd") && length(ils) > 0){
-        J[kp, ils - 1] <- (b4fun(ed, e$lpv, ls + h) - b4fun(ed, e$lpv, ls - h)) / (2*h) / L[ps, k]
-      }
       J
     }
-    # hormesis models: the effective dose is on the decreasing part of the curve, above the peak;
-    # curves that reach the level of the effective dose at ed before their peak are left out, and
-    # for peaks, curves with a minimum at ed
-    fn <- function(x, ed){
-      e <- expand(x, ed)
-      # the computed coefficient within its bounds
+    fn <- function(x, tt){
+      e <- expand(x, tt)
+      # the computed coefficient within its bounds, and finite: absolute times need a response
+      # between zero and the asymptote
       if (!isTRUE(e$par[kp] >= lo[kp] && e$par[kp] <= up[kp])) return(Inf)
-      if (m$ed %in% "hormesis"){
-        d <- hormderivs(fit, as.vector(L %*% pvfull(e$par)), ed)
-        if (!isTRUE(if (peak) d[2] < 0 else d[1] < 0)) return(Inf)
-      }
       obj$fn(e$par)
     }
-    gr <- function(x, ed){
-      e <- expand(x, ed)
-      as.vector(obj$gr(e$par) %*% jacobian(e, ed))
+    gr <- function(x, tt){
+      e <- expand(x, tt)
+      as.vector(obj$gr(e$par) %*% jacobian(e, tt))
     }
     # the Hessian at the estimates, transformed to the reduced parameters, as a fixed approximation:
     # far fewer iterations than quasi-Newton steps from scratch
-    he <- if (is.null(Hfull)) NULL else function(x, ed){
-      J <- jacobian(expand(x, ed), ed)
+    he <- if (is.null(Hfull)) NULL else function(x, tt){
+      J <- jacobian(expand(x, tt), tt)
       t(J) %*% Hfull %*% J
     }
 
-    # steps of a fifth of the standard error, on the log scale for positive effective doses
-    e0 <- est[[i]]
-    se <- sqrt(fitted$variance[i, i])
-    tr <- if (logscale) log else identity
-    itr <- if (logscale) exp else identity
-    step <- (if (logscale) se/e0 else se) / 5
+    # steps of a fifth of the standard error
+    t0 <- est[[i]]
+    step <- sqrt(fitted$variance[i, i]) / 5
     side <- function(dir){
       x <- par0[-kp]
       out <- NULL
       for (it in seq_len(maxit)){
-        ed <- itr(tr(e0) + dir*it*step)
-        # multistage: if the other coefficients of the polynomial make the computed one negative, start
-        # with them at 0, where it is positive
-        if (m$ed %in% "polynomial" && !is.finite(fn(x, ed))) x[msfree[-kp]] <- 0
-        # nec: if the threshold computed from a small effective dose is below its bound, increase the
-        # rate b3, which moves the threshold towards the effective dose
-        if (m$b4 %in% "threshold") for (j in 1:30){
-          if (is.finite(fn(x, ed))) break
-          x[b3free[-kp]] <- 2*x[b3free[-kp]]
-        }
-        # the profile ends where the parameterisation fails, e.g. an absolute effective dose whose
-        # response approaches an asymptote
-        o <- tryCatch(suppressWarnings(nlminb(x, fn, gr, he, ed=ed, lower=lo[-kp], upper=up[-kp])), error=function(e) NULL)
-        if (is.null(o)) break
+        tt <- t0 + dir*it*step
+        # the profile ends where the parameterisation fails, e.g. an absolute time whose response
+        # approaches the asymptote
+        o <- tryCatch(suppressWarnings(nlminb(x, fn, gr, he, tt=tt, lower=lo[-kp], upper=up[-kp])), error=function(e) NULL)
+        if (is.null(o) || !is.finite(o$objective)) break
         x <- o$par
-        out <- rbind(out, data.frame(par=ed, deviance=2*(o$objective - nllmin)))
+        out <- rbind(out, data.frame(par=tt, deviance=2*(o$objective - nllmin)))
         if (out$deviance[nrow(out)] > cutoff) break
       }
       out
     }
-    d <- rbind(side(-1), data.frame(par=e0, deviance=0), side(1))
+    d <- rbind(side(-1), data.frame(par=t0, deviance=0), side(1))
     pb$tick()
     d[order(d$par), ]
   })
   pb$close()
   names(prof) <- names(est)[parm]
   attr(prof, "estimates") <- est[parm]
-  attr(prof, "logscale") <- setNames(rep(logscale, length(parm)), names(est)[parm])
   attr(prof, "cutoff") <- cutoffattr(fit, rep(TRUE, length(parm)))
-  class(prof) <- c("profile.edTMB", "profile.drmTMB")
+  class(prof) <- c("profile.timetoTMB", "profile.gcTMB")
   prof
 }
 
-# first and second derivatives of F (1 + c5 g) w.r.t. the log dose at dose ed, for a hormesis curve
-# with parameters lpv (b1-b5 on the scale of the linear predictors), as in hormpeak of the template
-hormderivs <- function(fit, lpv, ed){
-  hm <- drcmodel(fit$model)$hormesis
-  b <- linkpars(linkindex(fit$link), lpv)
-  b3 <- b[3]
-  b4 <- b[4]
-  c5 <- hormc(fit, lpv)
-  Fx <- plogis(b3*(log(ed) - log(b4)))
-  g <- hm$g(ed, fit$alpha)
-  dg <- hm$dg(ed, fit$alpha)
-  d2g <- hm$d2g(ed, fit$alpha)
-  dF <- b3*Fx*(1 - Fx)
-  d2F <- b3*dF*(1 - 2*Fx)
-  h <- 1 + c5*g
-  c(dF*h + Fx*c5*dg, d2F*h + 2*dF*c5*dg + Fx*c5*d2g)
-}
-
-# b4 of a hormesis curve with its peak at dose pk, given b3, c5 and alpha: the derivative of
-# F (1 + c5 g) w.r.t. the log dose is zero, b3 (1 - F) (1 + c5 g) + c5 g' = 0, which gives F of the
-# loglogistic model at the peak
-peakb4 <- function(mod, pk, b3, c5, alpha){
-  hm <- drcmodel(mod)$hormesis
-  g <- hm$g(pk, alpha)
-  dg <- hm$dg(pk, alpha)
-  edb4(modelindex("loglogistic"), 1 + c5*dg/(b3*(1 + c5*g)), pk, b3, 1)
-}
-
-# coefficient pb (3-5) of the polynomial of a multistage curve with effective dose ed at level q of
-# F, given the other coefficients in b (b1-b5)
-msbeta <- function(q, ed, b, pb){
-  oth <- setdiff(3:5, pb)
-  (-log(1 - q) - sum(b[oth] * ed^(oth - 2))) / ed^(pb - 2)
-}
-
-# effective dose, or dose or response at the peak, of entry i of the edTMB object for the curve
-# parameters lpv (b1-b5 on the scale of the linear predictors); NA if not defined
-edvalue <- function(object, i, lpv, par=NULL){
+# time of entry i of the timetoTMB object for the curve parameters lpv (b1-b5 on the scale of the linear
+# predictors); NA if the curve does not reach the level
+timevalue <- function(object, i, lpv){
   fit <- object$fit
-  if (identical(object$type, "bmd")){
-    bp <- bmdpars(fit, par)
-    return(bmdvalue(fit, object$bmd[[i]], lpv, bp$theta, bp$ls))
-  }
-  mod <- modelindex(fit$model)
   b <- linkpars(linkindex(fit$link), lpv)
-  if (identical(object$type, "peak")){
-    pk <- drcmodel(mod)$peak
-    s <- if (!is.null(pk)) log(pk$dose(b)) else hormpeak(mod, b[3], b[4], hormc(fit, lpv), fit$alpha)
-    if (object$q[[i]] == 1) return(exp(s))
-    return(drcmeanR(mod, exp(s), b[1], b[2], b[3], b[4], b[5], fit$alpha))
-  }
-  q <- edq(fit, object$q[[i]], lpv, identical(object$type, "absolute"))
-  if (!is.finite(q) || q <= 0 || q > 1 || (q == 1 && !(drcmodel(mod)$ed %in% "hormesis"))) return(NA)
-  edfun(mod, q, b[3], b[4], b[5], hormc(fit, lpv), fit$alpha, smoothwidth(fit$smooth))
+  q <- timeq(fit, object$q[[i]], lpv, identical(object$type, "absolute"))
+  if (!is.finite(q) || q <= 0 || q >= 1) return(NA)
+  gctimeR(modelindex(fit$model), q, b[2], b[3])
 }
 
-# effective dose from b3, b4 and b5 at level q of F (residual zero), as drced in the TMB template: b4
-# times h of drcmodels, or b4 plus h for a location or threshold b4; for the hormesis models from c5, b5
-# relative to the difference of the asymptotes, and alpha, and for the multistage model from the
-# polynomial, found numerically
-edfun <- function(mod, q, b3, b4, b5, c5=0, alpha=NULL, smooth=0){
-  m <- drcmodel(mod)
-  if (m$ed %in% "hormesis") return(exp(hormroot(mod, q, b3, b4, c5, alpha)))
-  if (m$ed %in% "polynomial") return(msroot(q, c(b3, b4, b5)))
-  h <- m$edh(q, b3, b5, smooth)
-  if (m$b4 %in% c("location", "threshold")) b4 + h else b4 * h
-}
-
-# b4 of a curve with effective dose ed, given b3 and b5: the inverse of edfun; for the hormesis
-# models, F of the loglogistic model is q/(1 + c5 g(ed)) at the effective dose
-edb4 <- function(mod, q, ed, b3, b5, c5=0, alpha=NULL, smooth=0){
-  m <- drcmodel(mod)
-  if (m$ed %in% "hormesis") return(edb4(modelindex("loglogistic"), q/(1 + c5*hormg(mod, ed, alpha)), ed, b3, 1))
-  h <- m$edh(q, b3, b5, smooth)
-  if (m$b4 %in% c("location", "threshold")) ed - h else ed / h
-}
-
-#' Confidence intervals for drmTMB models and effective doses
+#' Confidence intervals for gcTMB models and times to reach a level of the asymptote
 #'
 #' Profile likelihood intervals (default), Wald intervals, or parametric bootstrap intervals for the
-#' coefficients and variance parameters of a drmTMB model, or for effective doses estimated by
-#' \code{\link{ed}}.
+#' coefficients and variance parameters of a gcTMB model, or for the times estimated by
+#' \code{\link{timeto}}.
 #'
 #' Standard deviations of the random effects, the residual standard deviation and the precision are
 #' reported on their natural scale; Wald intervals for them are computed on the log scale. The
 #' correlation of a term with two random effects is reported as a correlation; the parameters of
 #' larger correlation matrices on the unconstrained scale of \code{coef}.
 #'
-#' For benchmark doses of \code{\link{bmd}}, profile intervals are available for BMDs that are not averaged
-#' over random effects; marginal BMDs that are averaged over random effects have Wald and bootstrap
-#' intervals. The BMDL is the lower limit at \code{level=0.90}.
-#'
-#' Profile and bootstrap intervals for effective doses are for the population curves, and bootstrap
-#' intervals also for the curves of fitted groups (\code{newdata} in \code{\link{ed}}), with the random
-#' effects of the groups drawn from their conditional distribution at each bootstrap fit; for these,
-#' profile intervals are not available and Wald intervals are returned with a message. Effective
-#' doses computed with \code{random=TRUE} for random effect terms without a fitted group, or with
+#' Profile and bootstrap intervals for the times are for the population curves, and bootstrap
+#' intervals also for the curves of fitted groups (\code{newdata} in \code{\link{timeto}}), with the
+#' random effects of the groups drawn from their conditional distribution at each bootstrap fit; for
+#' these, profile intervals are not available and Wald intervals are returned with a message. Times
+#' computed with \code{random=TRUE} for random effect terms without a fitted group, or with
 #' \code{residual=TRUE}, include further variation in their standard errors; for these, Wald intervals
 #' are returned with a message.
 #' Bootstrap intervals need many fits of the model; with random effects this can take several minutes.
-#' Computing profiles can take a while for models with random effects; see \code{\link{profile.drmTMB}}
-#' and \code{\link{profile.edTMB}}, whose results can be reused with \code{confint}.
+#' Computing profiles can take a while for models with random effects; see \code{\link{profile.gcTMB}}
+#' and \code{\link{profile.timetoTMB}}, whose results can be reused with \code{confint}.
 #'
-#' @param object a drmTMB or edTMB object
-#' @param parm parameters or effective doses, names or positions in \code{coef(object)}; default all
-#' @param level the confidence level
-#' @param method "profile" for profile likelihood intervals, "wald" for Wald intervals, or "boot" for
+#' @param object A gcTMB object (\code{\link{gcTMB}}) or a timetoTMB object (\code{\link{timeto}}).
+#' @param parm Character or integer vector, or NULL. Parameters or times, names or positions in \code{coef(object)}; default all
+#' @param level Numeric between 0 and 1. The confidence level
+#' @param method Character string. "profile" for profile likelihood intervals, "wald" for Wald intervals, or "boot" for
 #'   percentile intervals of a parametric bootstrap: responses are simulated from the fitted model
-#'   (with new random effects, see \code{\link{simulate.drmTMB}}) and the model is fitted again to each,
+#'   (with new random effects, see \code{\link{simulate.gcTMB}}) and the model is fitted again to each,
 #'   starting at the estimates. Fits that do not converge are left out, with a message.
-#' @param nsim number of bootstrap simulations
-#' @param seed an optional seed for the random number generator of the bootstrap
-#' @param boot a bootstrap sample of the model from \code{\link{bootstrap}}, used instead of new
+#' @param nsim Integer. Number of bootstrap simulations
+#' @param seed Integer or NULL. An optional seed for the random number generator of the bootstrap
+#' @param boot A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from \code{\link{bootstrap}}, used instead of new
 #'   simulations; implies \code{method="boot"}
-#' @param ... further arguments passed to \code{\link{profile.drmTMB}}, \code{\link{profile.edTMB}} or
+#' @param ... Further arguments passed to \code{\link{profile.gcTMB}}, \code{\link{profile.timetoTMB}} or
 #'   \code{\link{bootstrap}}, e.g. \code{progress=FALSE}
 #'
 #' @return a matrix with the lower and upper confidence limits
 #' @export
-#' @name confint.drmTMB
-#' @aliases confint.drmTMB confint.edTMB
-confint.drmTMB <- function(object, parm=NULL, level=0.95, method=c("profile", "wald", "boot"), nsim=500, seed=NULL, boot=NULL, ...){
+#' @examples
+#' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+#' confint(fit)
+#' confint(fit, method="wald")
+#' confint(timeto(fit, respLev=c(10, 50, 90)))
+#' \donttest{
+#' # parametric bootstrap, reused for the times
+#' bt <- bootstrap(fit, nsim=200, seed=1, progress=FALSE)
+#' confint(fit, boot=bt)
+#' confint(timeto(fit, respLev=c(10, 50, 90)), boot=bt)
+#' }
+#' @name confint.gcTMB
+#' @aliases confint.gcTMB confint.timetoTMB
+confint.gcTMB <- function(object, parm=NULL, level=0.95, method=c("profile", "wald", "boot"), nsim=500, seed=NULL, boot=NULL, ...){
   method <- if (!is.null(boot)) "boot" else match.arg(method)
   est <- coef(object)
   if (is.null(parm)) parm <- seq_along(est)
@@ -527,40 +420,28 @@ confint.drmTMB <- function(object, parm=NULL, level=0.95, method=c("profile", "w
   natscale(cbind(est[parm] - z*se, est[parm] + z*se), names(est)[parm], corr2names(object), level)
 }
 
-#' @rdname confint.drmTMB
+#' @rdname confint.gcTMB
 #' @export
-confint.edTMB <- function(object, parm=NULL, level=0.95, method=c("profile", "wald", "boot"), nsim=500, seed=NULL, boot=NULL, ...){
+confint.timetoTMB <- function(object, parm=NULL, level=0.95, method=c("profile", "wald", "boot"), nsim=500, seed=NULL, boot=NULL, ...){
   method <- if (!is.null(boot)) "boot" else match.arg(method)
   est <- coef(object)
   if (is.null(parm)) parm <- seq_along(est)
   if (is.character(parm)) parm <- match(parm, names(est))
-  if (any(is.na(parm))) stop("unknown effective doses in parm.")
+  if (any(is.na(parm))) stop("unknown times in parm.")
   if (method %in% c("profile", "boot")){
     fit <- object$fit
     if (is.null(fit)){
-      message("Wald intervals: compute the effective doses again with ed() for ", method, " intervals.")
+      message("Wald intervals: compute the times again with timeto() for ", method, " intervals.")
       method <- "wald"
-    } else if (any(edflag(object, "newvar")[parm]) || isTRUE(object$residual)){
-      message("Wald intervals: ", method, " intervals are only available for population effective doses, ",
-              "ed(..., random=FALSE, residual=FALSE), or effective doses of fitted groups.")
+    } else if (any(timetoflag(object, "newvar")[parm]) || isTRUE(object$residual)){
+      message("Wald intervals: ", method, " intervals are only available for population times, ",
+              "timeto(..., random=FALSE, residual=FALSE), or times of fitted groups.")
       method <- "wald"
-    } else if (method == "profile" && identical(object$type, "bmd") && !bmdprofile(object, parm)){
-      message("Wald intervals: profile intervals are not available for marginal BMDs averaged over random effects, ",
-              "or for models whose response at dose zero depends on b4; use method=\"boot\" for bootstrap intervals.")
-      method <- "wald"
-    } else if (method == "profile" && any(edflag(object, "conditional")[parm])){
-      message("Wald intervals: profile intervals are not available for effective doses of fitted groups; ",
+    } else if (method == "profile" && any(timetoflag(object, "conditional")[parm])){
+      message("Wald intervals: profile intervals are not available for the times of fitted groups; ",
               "use method=\"boot\" for bootstrap intervals.")
       method <- "wald"
     }
-  }
-  # the response at the peak has no profile: Wald intervals
-  if (method == "profile" && identical(object$type, "peak") && any(unlist(object$q[parm]) == 2)){
-    message("Wald intervals for the response at the peak: profile intervals are not available.")
-    resp <- unlist(object$q[parm]) == 2
-    ci <- confint(object, parm=parm, level=level, method="wald")
-    if (any(!resp)) ci[!resp, ] <- confint(object, parm=parm[!resp], level=level, method="profile", ...)
-    return(ci)
   }
   if (method == "profile"){
     message("Computing profile confidence intervals ...")
@@ -569,21 +450,21 @@ confint.edTMB <- function(object, parm=NULL, level=0.95, method=c("profile", "wa
   if (method == "boot"){
     fit <- object$fit
     # parameters of the bootstrap fits, with random effects of the fitted groups drawn from their
-    # conditional distribution at each fit for effective doses of fitted groups
-    draws <- bootdraws(fit, getboot(fit, boot, nsim, seed, ...), any(edflag(object, "conditional")[parm]))
+    # conditional distribution at each fit for the times of fitted groups
+    draws <- bootdraws(fit, getboot(fit, boot, nsim, seed, ...), any(timetoflag(object, "conditional")[parm]))
     r <- fit$obj$env$random
     nb <- sum(!fit$fix)
-    # effective doses of each bootstrap fit
-    eds <- sapply(parm, function(i){
+    # times of each bootstrap fit
+    tms <- sapply(parm, function(i){
       apply(draws, 2, function(par){
         pv <- fit$start
         pv[!fit$fix] <- par[seq_len(nb)]
         lpv <- as.vector(object$linfct[[i]] %*% pv)
         if (isTRUE(object$conditional[[i]])) lpv <- lpv + as.vector(object$uweights[[i]] %*% par[r])
-        edvalue(object, i, lpv, par)
+        timevalue(object, i, lpv)
       })
     })
-    ci <- t(apply(matrix(eds, ncol=length(parm)), 2, quantile, probs=c((1 - level)/2, (1 + level)/2), na.rm=TRUE, names=FALSE))
+    ci <- t(apply(matrix(tms, ncol=length(parm)), 2, quantile, probs=c((1 - level)/2, (1 + level)/2), na.rm=TRUE, names=FALSE))
     dimnames(ci) <- list(names(est)[parm], paste(format(100*c((1 - level)/2, (1 + level)/2), trim=TRUE, scientific=FALSE, digits=3), "%"))
     return(ci)
   }
@@ -594,10 +475,10 @@ confint.edTMB <- function(object, parm=NULL, level=0.95, method=c("profile", "wa
   ci
 }
 
-# logical flags of the effective doses of an edTMB object: conditional (on the random effects of
-# fitted groups) or newvar (with the variance of the random effects of a new group); for objects
-# without them, newvar for all effective doses with random=TRUE and random effects
-edflag <- function(object, flag){
+# logical flags of the times of a timetoTMB object: conditional (on the random effects of fitted
+# groups) or newvar (with the variance of the random effects of a new group); for objects without
+# them, newvar for all times with random=TRUE and random effects
+timetoflag <- function(object, flag){
   f <- object[[flag]]
   if (!is.null(f)) return(f)
   n <- length(object$estimates)

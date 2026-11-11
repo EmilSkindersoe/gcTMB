@@ -1,6 +1,6 @@
-#' Diagnostic plots for drmTMB models
+#' Diagnostic plots for gcTMB models
 #'
-#' Residuals against the fitted values, residuals against the dose, a normal QQ plot of the
+#' Residuals against the fitted values, residuals against time, a normal QQ plot of the
 #' residuals, and normal QQ plots of the predicted random effects, drawn as ggplot2 graphs on one
 #' page.
 #'
@@ -9,45 +9,46 @@
 #' uniformly within the jump of the distribution function at each observation, and \code{seed}
 #' makes the plots reproducible. For \code{type="response"}, the QQ plot line goes through the
 #' quartiles. A lowess smoother (red) shows trends of the residuals against the fitted values and
-#' the dose.
-#'
-#' For the models on the log-dose scale, the dose axis is logarithmic; observations at dose zero are
-#' drawn left of the smallest positive dose, separated by a dashed line.
+#' time.
 #'
 #' The QQ plots of the random effects (\code{which=4}) show the predicted random effects of each
 #' parameter and grouping factor. They are shrunk towards zero, so their spread is smaller than the
 #' estimated standard deviation, and with few groups they say little about the normality of the
 #' random effects.
 #'
-#' @param x a drmTMB object
-#' @param which the plots to draw: 1 residuals against fitted values, 2 residuals against dose, 3
+#' @param x A gcTMB object, the result of \code{\link{gcTMB}}.
+#' @param which Integer vector, a subset of 1:4. The plots to draw: 1 residuals against fitted values, 2 residuals against time, 3
 #'   normal QQ plot of the residuals, 4 normal QQ plots of the predicted random effects (models with
 #'   random effects only)
-#' @param type residual type, see \code{\link{residuals.drmTMB}}: "quantile" (default), "pearson" or
+#' @param type Character string. Residual type, see \code{\link{residuals.gcTMB}}: "quantile" (default), "pearson" or
 #'   "response"
-#' @param random if TRUE, residuals and fitted values include the predicted random effects
-#' @param logdose logarithmic dose axis; by default for the models on the log-dose scale
-#'   (loglogistic, weibull1, weibull2, lognormal)
-#' @param ncol number of columns of the page
-#' @param seed seed for the randomised quantile residuals
-#' @param draw if FALSE, the graphs are returned without drawing them
-#' @param ... not used
+#' @param random Logical. If TRUE, residuals and fitted values include the predicted random effects
+#' @param ncol Integer or NULL. Number of columns of the page
+#' @param seed Integer or NULL. Seed for the randomised quantile residuals
+#' @param draw Logical. If FALSE, the graphs are returned without drawing them
+#' @param ... Not used.
 #'
-#' @return a list of ggplot objects, invisibly, named fitted, dose, qq and ranef, for changing or
+#' @examples
+#' fit <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=FabaHeights25)
+#' plot(fit, which=1:4, seed=1)
+#' # a single graph, changed
+#' p <- plot(fit, which=2, draw=FALSE)
+#' p$time + ggplot2::labs(x="Days after sowing")
+#'
+#' @return a list of ggplot objects, invisibly, named fitted, time, qq and ranef, for changing or
 #'   drawing single graphs
 #' @export
-plot.drmTMB <- function(x, which=1:3, type=c("quantile", "pearson", "response"), random=TRUE, logdose=NULL, ncol=NULL, seed=NULL, draw=TRUE, ...){
+plot.gcTMB <- function(x, which=1:3, type=c("quantile", "pearson", "response"), random=TRUE, ncol=NULL, seed=NULL, draw=TRUE, ...){
   type <- match.arg(type)
   if (!all(which %in% 1:4)) stop("which must be a subset of 1:4.")
   if (4 %in% which && length(x$reterms) == 0){
     if (length(which) == 1) stop("the model has no random effects.")
     which <- setdiff(which, 4)
   }
-  if (is.null(logdose)) logdose <- drcmodel(x$model)$logdose
   if (!is.null(seed)) set.seed(seed)
 
   res <- residuals(x, type=type, random=random)
-  d <- data.frame(fitted=fitted(x, random=random), dose=as.vector(x$obj$env$data$x), res=res)
+  d <- data.frame(fitted=fitted(x, random=random), time=as.vector(x$obj$env$data$x), res=res)
   ylab <- switch(type, quantile="Quantile residuals", pearson="Pearson residuals", response="Residuals")
 
   plots <- list()
@@ -55,7 +56,7 @@ plot.drmTMB <- function(x, which=1:3, type=c("quantile", "pearson", "response"),
     plots$fitted <- residplot(d, "fitted", ylab) + ggplot2::labs(x="Fitted values", title="Residuals vs fitted")
   }
   if (2 %in% which){
-    plots$dose <- residplot(d, "dose", ylab, logdose=logdose) + ggplot2::labs(x="Dose", title="Residuals vs dose")
+    plots$time <- residplot(d, "time", ylab) + ggplot2::labs(x="Time", title="Residuals vs time")
   }
   if (3 %in% which){
     plots$qq <- qqplot(data.frame(res=res), identity=type != "response") +
@@ -70,38 +71,15 @@ plot.drmTMB <- function(x, which=1:3, type=c("quantile", "pearson", "response"),
   invisible(plots)
 }
 
-# residuals against a variable, with a lowess smoother; zero doses left of the positive doses on a
-# log axis
-residplot <- function(d, var, ylab, logdose=FALSE){
+# residuals against a variable, with a lowess smoother
+residplot <- function(d, var, ylab){
   d$xv <- d[[var]]
-  zero <- logdose && any(d$xv == 0)
-  if (logdose){
-    xp <- d$xv[d$xv > 0]
-    if (length(xp) == 0) stop("all doses are zero; use logdose=FALSE.")
-    # dose zero at a gap of a fifth of the range of the positive doses, at least half a decade
-    gap <- max(0.2*diff(log10(range(xp))), 0.5)
-    x0 <- 10^(log10(min(xp)) - gap)
-    d$xv[d$xv == 0] <- x0
-  }
   p <- ggplot2::ggplot(d, ggplot2::aes(x=xv, y=res)) +
     ggplot2::geom_hline(yintercept=0, colour="grey50") +
     ggplot2::geom_point(alpha=0.7)
   if (length(unique(d$xv)) >= 3){
-    lw <- as.data.frame(lowess(if (logdose) log10(d$xv) else d$xv, d$res))
-    if (logdose) lw$x <- 10^lw$x
-    if (zero) lw <- lw[lw$x > x0, ]
+    lw <- as.data.frame(lowess(d$xv, d$res))
     p <- p + ggplot2::geom_line(data=lw, ggplot2::aes(x=x, y=y), colour="red")
-  }
-  if (logdose){
-    ux <- sort(unique(xp))
-    br <- if (length(ux) <= 8) ux else 10^(floor(log10(min(ux))):ceiling(log10(max(ux))))
-    lab <- format(br, trim=TRUE, drop0trailing=TRUE)
-    if (zero){
-      br <- c(x0, br)
-      lab <- c("0", lab)
-      p <- p + ggplot2::geom_vline(xintercept=sqrt(x0*min(xp)), linetype="dashed", colour="grey50")
-    }
-    p <- p + ggplot2::scale_x_log10(breaks=br, labels=lab)
   }
   p + ggplot2::labs(y=ylab) + ggplot2::theme_bw()
 }

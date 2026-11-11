@@ -2,44 +2,51 @@
 % Please edit documentation in R/boot.R
 \name{bootstrap}
 \alias{bootstrap}
-\alias{print.bootstrap.drmTMB}
-\alias{confint.bootstrap.drmTMB}
-\title{Parametric bootstrap of a drmTMB model}
+\alias{print.bootstrap.gcTMB}
+\alias{confint.bootstrap.gcTMB}
+\title{Parametric bootstrap of a gcTMB model}
 \usage{
 bootstrap(object, nsim = 500, seed = NULL, progress = interactive())
 
-\method{print}{bootstrap.drmTMB}(x, digits = max(3L, getOption("digits") - 3L), ...)
+\method{print}{bootstrap.gcTMB}(x, digits = max(3L, getOption("digits") - 3L), ...)
 
-\method{confint}{bootstrap.drmTMB}(object, parm = NULL, level = 0.95, ...)
+\method{confint}{bootstrap.gcTMB}(object, parm = NULL, level = 0.95, ...)
 }
 \arguments{
-\item{object}{a drmTMB object}
+\item{object}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
-\item{nsim}{number of simulations}
+\item{nsim}{Integer. Number of simulations}
 
-\item{seed}{an optional seed for the random number generator}
+\item{seed}{Integer or NULL. An optional seed for the random number generator}
 
-\item{progress}{logical, show a progress bar}
+\item{progress}{Logical. Show a progress bar}
 
-\item{x}{a bootstrap.drmTMB object}
+\item{x}{A bootstrap.gcTMB object, the result of \code{bootstrap}.}
 
-\item{digits}{number of significant digits in the printed output}
+\item{digits}{Integer. Number of significant digits in the printed output}
 
-\item{...}{ignored}
+\item{...}{Not used.}
 
-\item{parm}{parameters, names or positions in \code{coef}; default all}
+\item{parm}{Character or integer vector. Parameters, names or positions in \code{coef}; default all}
 
-\item{level}{the confidence level}
+\item{level}{Numeric between 0 and 1. The confidence level}
 }
 \value{
-bootstrap returns a bootstrap.drmTMB object, a list with the estimates of \code{coef(object)}
+bootstrap returns a bootstrap.gcTMB object, a list with the estimates of \code{coef(object)}
 for each simulation (\code{estimates}, a matrix with NA rows for fits that did not converge), the
 fitted model (\code{fit}), and \code{nsim} and \code{seed}. confint returns percentile intervals
-of the parameters, on the scale of \code{\link{confint.drmTMB}}.
+of the parameters, on the scale of \code{\link{confint.gcTMB}}.
 }
 \description{
 Simulates responses from the fitted model, with new random effects (see
-\code{\link{simulate.drmTMB}}), and fits the model again to each simulated response, with the iteration limits of the fit (\code{control} in \code{\link{drmTMB}}), starting at the
+\code{\link{simulate.gcTMB}}), and fits the model again to each simulated response, with the iteration limits of the fit (\code{control} in \code{\link{gcTMB}}), starting at the
 estimates. The bootstrap sample can be used for confidence intervals of the model parameters and of
-effective doses, see \code{\link{confint.drmTMB}}, without fitting the models again.
+the times of \code{\link{timeto}}, see \code{\link{confint.gcTMB}}, without fitting the models again.
+}
+\examples{
+fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+bt <- bootstrap(fit, nsim=50, seed=1, progress=FALSE)
+bt
+confint(bt)
+
 }

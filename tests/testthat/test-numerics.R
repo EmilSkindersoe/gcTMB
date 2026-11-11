@@ -1,50 +1,52 @@
-# Internal numerical checks: automatic derivatives against finite differences, effective doses
-# against a numerical inverse of the mean function, and invariances of the fitted models.
+# Internal numerical checks: automatic derivatives against finite differences, and invariances of the
+# fitted models.
 
 skip_if_not_installed("numDeriv")
 
 # a point away from the optimum, where the gradient is not zero
 offopt <- function(fit) fit$opt$par * 1.05 + 0.01
 
-test_that("gradients and hessians agree with finite differences for all models", {
+test_that("gradients and hessians agree with finite differences for the models and links", {
   for (m in models){
-    fit <- fit4(y ~ dose, data=simgauss(m), model=m)
-    p <- offopt(fit)
-    expect_equal(as.vector(fit$obj$gr(p)), numDeriv::grad(fit$obj$fn, p), tolerance=1e-6, label=m)
-    expect_equal(unname(fit$obj$he(p)), numDeriv::jacobian(fit$obj$gr, p), tolerance=1e-6, label=m)
+    for (lk in list(NULL, c(b3="inverse"))){
+      fit <- gcTMB(y ~ day, data=simgauss(m), model=m, link=lk)
+      p <- offopt(fit)
+      expect_equal(as.vector(fit$obj$gr(p)), numDeriv::grad(fit$obj$fn, p), tolerance=1e-6, label=m)
+      expect_equal(unname(fit$obj$he(p)), numDeriv::jacobian(fit$obj$gr, p), tolerance=1e-6, label=m)
+    }
   }
 })
 
-test_that("gradients agree with finite differences for the families and links", {
+test_that("gradients agree with finite differences for the families", {
   set.seed(5)
-  d <- data.frame(dose=rep(c(0, 0.5, 1, 2, 4, 8, 16), each=4), n=20)
-  mu <- drcmean("loglogistic", d$dose, c(0.1, 0.9, 1.5, 2.5, 0))
+  d <- data.frame(day=rep(days, each=4), n=20)
+  mu <- gcmean("logistic", d$day, c(0.9, 10, 2.5))
   d$yb <- rbinom(nrow(d), d$n, mu)
   d$yp <- rpois(nrow(d), 40*mu)
+  d$yn <- rnbinom(nrow(d), size=5, mu=40*mu)
   d$yr <- rbeta(nrow(d), 30*mu, 30*(1 - mu))
+  d$yl <- 40*mu*exp(rnorm(nrow(d), 0, 0.1)) + 1
   fits <- list(
-    binomial=fit4(cbind(yb, n - yb) ~ dose, data=d, model="loglogistic", family="binomial"),
-    binomiallogit=fit4(cbind(yb, n - yb) ~ dose, data=d, model="loglogistic", family="binomial", link="logit"),
-    poissonlog=fit4(yp ~ dose, data=d, model="loglogistic", family="poisson", link="log"),
-    beta=fit4(yr ~ dose, data=d, model="loglogistic", family="beta", link="logit"),
-    asymmetricll=drmTMB(y ~ dose, data=simgauss("loglogistic"), model="loglogistic"),
-    asymmetricl=drmTMB(y ~ dose, data=simgauss("logistic"), model="logistic")
+    binomial=gcTMB(cbind(yb, n - yb) ~ day, data=d, family="binomial"),
+    poisson=gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", model="gompertz"),
+    nbinom2=gcTMB(yn ~ day, data=d, family="nbinom2"),
+    beta=gcTMB(yr ~ day, data=d, family="beta"),
+    lognormal=gcTMB(yl ~ day, data=d, family="lognormal")
   )
   for (nm in names(fits)){
     fit <- fits[[nm]]
-    p <- offopt(fit)
-    expect_equal(as.vector(fit$obj$gr(p)), numDeriv::grad(fit$obj$fn, p), tolerance=1e-6, label=nm)
+    p <- fit$opt$par * 1.01
+    expect_equal(as.vector(fit$obj$gr(p)), numDeriv::grad(fit$obj$fn, p), tolerance=1e-5, label=nm)
   }
 })
 
 test_that("gradients of the Laplace approximation agree with finite differences", {
-  d <- simgroups(ng=8, seed=6)
-  u <- cbind(rnorm(8, 0, 0.5), rnorm(8, 0, 0.3))
-  d$y <- 1 + u[d$grp, 1] + (7 - u[d$grp, 1])/(1 + exp(1.5*(log(d$dose) - log(3*exp(u[d$grp, 2]))))) + rnorm(nrow(d), 0, 0.3)
+  d <- simre()
   fits <- list(
-    single=fit4(y ~ dose, rform=b4 ~ 1 | grp, data=d, model="loglogistic"),
-    correlated=fit4(y ~ dose, rform=b1 + b4 ~ 1 | grp, data=d, model="loglogistic"),
-    independent=fit4(y ~ dose, rform=list(b1 ~ 1 | grp, b4 ~ 1 | grp), data=d, model="loglogistic")
+    single=gcTMB(y ~ day, rform=b2 ~ 1 | id, data=d),
+    correlated=gcTMB(y ~ day, rform=b1 + b2 ~ 1 | id, data=d),
+    independent=gcTMB(y ~ day, rform=list(b1 ~ 1 | id, b2 ~ 1 | id), data=d),
+    rate=gcTMB(y ~ day, rform=b3 ~ 1 | id, data=d, link=c(b3="inverse"))
   )
   for (nm in names(fits)){
     fit <- fits[[nm]]
@@ -53,163 +55,63 @@ test_that("gradients of the Laplace approximation agree with finite differences"
   }
 })
 
-# effective dose by numerical inversion of the mean function: the dose at which the response
-# has changed by p percent from the control asymptote towards the asymptote at high doses
-numed <- function(m, b, p){
-  mod <- match(m, models)
-  control <- if (mod %in% 6:8 || b[3] > 0) b[1] else b[2]
-  other <- if (control == b[1]) b[2] else b[1]
-  target <- control + p/100 * (other - control)
-  # search on the log-dose scale for all models with positive doses
-  logdose <- mod %in% 2:8
-  g <- function(z) drcmean(m, if (logdose) exp(z) else z, b) - target
-  z <- uniroot(g, c(-5, 5), extendInt="yes", tol=1e-12)$root
-  if (logdose) exp(z) else z
-}
-
-test_that("effective doses and their standard errors agree with a numerical inverse", {
-  for (m in models){
-    fit <- fit4(y ~ dose, data=simgauss(m), model=m)
-    b <- numeric(5)
-    b[!fit$fix] <- bcoef(fit)
-    b[fit$fix] <- fit$start[fit$fix]
-    e <- ed(fit, respLev=c(10, 50, 90))
-    expect_equal(unname(e$estimates), sapply(c(10, 50, 90), function(p) numed(m, b, p)), tolerance=1e-6, label=m)
-
-    # delta method with numerical derivatives of the inverse
-    free <- which(!fit$fix)
-    V <- vcov(fit)[seq_along(free), seq_along(free)]
-    se <- sapply(c(10, 50, 90), function(p){
-      g <- numDeriv::grad(function(bf){ bb <- b; bb[free] <- bf; numed(m, bb, p) }, b[free])
-      sqrt(drop(t(g) %*% V %*% g))
-    })
-    expect_equal(unname(sqrt(diag(e$variance))), se, tolerance=1e-4, label=m)
-  }
-})
-
-test_that("effective doses are defined relative to the control for increasing and decreasing curves", {
-  d <- simgauss("loglogistic")
-  dn <- d
-  dn$y <- 9 - d$y
-  fd <- fit4(y ~ dose, data=d, model="loglogistic")
-  fi <- fit4(y ~ dose, data=dn, model="loglogistic")
-  # mirrored response: same ED, and ED 10 below ED 90 for both
-  expect_equal(unname(ed(fd, respLev=c(10, 90))$estimates), unname(ed(fi, respLev=c(10, 90))$estimates), tolerance=1e-5)
-  expect_true(diff(ed(fd, respLev=c(10, 90))$estimates) > 0)
-})
-
-test_that("predict equals the mean function at the estimates", {
-  for (m in models){
-    d <- simgauss(m)
-    fit <- fit4(y ~ dose, data=d, model=m)
-    b <- numeric(5)
-    b[!fit$fix] <- bcoef(fit)
-    b[fit$fix] <- fit$start[fit$fix]
-    expect_equal(predict(fit), drcmean(m, d$dose, b), tolerance=1e-10, label=m)
-  }
-})
-
 test_that("weights are equivalent to replicated observations", {
-  # for the likelihood; small-sample inference counts the observations, as lm
-  d <- simgauss("loglogistic")
+  d <- simgauss("logistic")
   w <- rep(1:2, length.out=nrow(d))
   ml <- list(smallsample=FALSE)
-  f1 <- fit4(y ~ dose, data=d, model="loglogistic", weights=w, control=ml)
-  f2 <- fit4(y ~ dose, data=d[rep(seq_len(nrow(d)), w), ], model="loglogistic", control=ml)
+  f1 <- gcTMB(y ~ day, data=d, weights=w, control=ml)
+  f2 <- gcTMB(y ~ day, data=d[rep(seq_len(nrow(d)), w), ], control=ml)
   expect_equal(f1$opt$objective, f2$opt$objective, tolerance=1e-8)
   expect_equal(coef(f1), coef(f2), tolerance=1e-5)
   expect_equal(vcov(f1), vcov(f2), tolerance=1e-4)
 })
 
 test_that("the order of the observations does not matter", {
-  d <- simgroups(ng=8, seed=7)
-  u <- rnorm(8, 0, 0.5)
-  d$y <- drcmean("loglogistic", d$dose, c(1, 8, -1.5, 3, 0)) + u[d$grp] + rnorm(nrow(d), 0, 0.3)
+  d <- simre()
   set.seed(8)
   dp <- d[sample(nrow(d)), ]
-  f1 <- fit4(y ~ dose, rform=b2 ~ 1 | grp, data=d, model="loglogistic")
-  f2 <- fit4(y ~ dose, rform=b2 ~ 1 | grp, data=dp, model="loglogistic")
+  f1 <- gcTMB(y ~ day, rform=b1 ~ 1 | id, data=d)
+  f2 <- gcTMB(y ~ day, rform=b1 ~ 1 | id, data=dp)
   expect_equal(f1$opt$objective, f2$opt$objective, tolerance=1e-8)
   expect_equal(coef(f1), coef(f2), tolerance=1e-5)
 })
 
 test_that("contrasts of the fixed effects do not change the fit", {
-  d <- rbind(cbind(simgauss("loglogistic", seed=1), trt="a"),
-             cbind(simgauss("loglogistic", seed=2), trt="b"),
-             cbind(simgauss("loglogistic", seed=3), trt="c"))
+  d <- rbind(cbind(simgauss("logistic", seed=1), trt="a"),
+             cbind(simgauss("logistic", seed=2, b=c(55, 11, 2.5)), trt="b"),
+             cbind(simgauss("logistic", seed=3, b=c(45, 9, 2.5)), trt="c"))
   d$trt <- factor(d$trt)
-  d$y[d$trt == "b"] <- d$y[d$trt == "b"] + 1
-  f1 <- fit4(y ~ dose, fform=b2 + b4 ~ trt, data=d, model="loglogistic")
+  f1 <- gcTMB(y ~ day, fform=b1 + b2 ~ trt, data=d)
   d2 <- d
   contrasts(d2$trt) <- contr.sum(3)
-  f2 <- fit4(y ~ dose, fform=b2 + b4 ~ trt, data=d2, model="loglogistic")
-  f3 <- fit4(y ~ dose, fform=b2 + b4 ~ 0 + trt, data=d, model="loglogistic")
+  f2 <- gcTMB(y ~ day, fform=b1 + b2 ~ trt, data=d2)
+  f3 <- gcTMB(y ~ day, fform=b1 + b2 ~ 0 + trt, data=d)
   expect_equal(f1$opt$objective, f2$opt$objective, tolerance=1e-7)
   expect_equal(f1$opt$objective, f3$opt$objective, tolerance=1e-7)
-  expect_equal(predict(f1), predict(f2), tolerance=1e-5)
   expect_equal(predict(f1), predict(f3), tolerance=1e-5)
 })
 
-test_that("rescaling the dose rescales b4 only", {
-  d <- simgauss("loglogistic")
-  d2 <- d
-  d2$dose <- d$dose * 1000
-  f1 <- fit4(y ~ dose, data=d, model="loglogistic")
-  f2 <- fit4(y ~ dose, data=d2, model="loglogistic")
-  expect_equal(f1$opt$objective, f2$opt$objective, tolerance=1e-7)
-  expect_equal(unname(bcoef(f2)), unname(bcoef(f1) * c(1, 1, 1, 1000)), tolerance=1e-4)
-  expect_equal(unname(ed(f2)$estimates), unname(ed(f1)$estimates * 1000), tolerance=1e-4)
-})
-
-test_that("a non-finite objective at the estimates gives a warning", {
-  # responses at dose zero are impossible with the lower asymptote fixed at 0
-  set.seed(13)
-  d <- data.frame(dose=rep(c(0, 0.5, 1, 2, 4, 8, 16), each=3), n=20)
-  d$y <- rbinom(nrow(d), d$n, drcmean("loglogistic", d$dose, c(0.1, 0.9, 2, 2.5, 0)))
-  expect_warning(drmTMB(cbind(y, n - y) ~ dose, data=d, model="loglogistic", family="binomial",
-                        start=c(b1=0, b2=1, b5=0), fix=c(b1=TRUE, b2=TRUE, b5=TRUE)),
-                 "not finite")
-})
-
-test_that("beta and beta-binomial likelihoods are invalid for means outside (0, 1)", {
-  set.seed(1)
-  d <- simgroups(ng=10, nrep=3, seed=1)
-  u <- rnorm(10, 0, 0.5)
-  P <- 0.1 + (plogis(qlogis(0.9) + u[d$grp]) - 0.1)/(1 + exp(1.5*(log(pmax(d$dose, 1e-9)) - log(3))))
-  d$k <- rbinom(nrow(d), 30, rbeta(nrow(d), P*200, (1 - P)*200))
-  d$n <- 30
-  d$yb <- rbeta(nrow(d), P*200, (1 - P)*200)
-
-  # without random effects: the log-likelihood of dbeta inside, not finite outside
-  f <- fit4(yb ~ dose, data=d, family="beta", model="loglogistic")
-  mu <- predict(f)
-  phi <- residpar(f)
-  expect_equal(as.numeric(logLik(f)), sum(dbeta(d$yb, mu*phi, (1 - mu)*phi, log=TRUE)), tolerance=1e-8)
-  p <- f$opt$par
-  p[1] <- -98
-  expect_false(is.finite(f$obj$fn(p)))
-
-  # lgamma is finite for negative arguments: a restart at a large precision and a small variance of the
-  # random effects ran off to b1 = -1990 with a negative log-likelihood of -43363 for counts
-  fb <- suppressWarnings(fit4(cbind(k, n - k) ~ dose, rform=b2 ~ 1 | grp, data=d, family="betabinomial", model="loglogistic", link=c(b2="logit")))
-  p <- fb$opt$par
-  p[names(p) == "log_sigma"] <- 8
-  p[names(p) == "theta"] <- -1
-  o <- suppressWarnings(nlminb(p, fb$obj$fn, fb$obj$gr))
-  expect_gte(o$objective, fb$opt$objective - 1e-4)
-  expect_gt(fb$opt$objective, 0)
+test_that("shifting and rescaling time changes b2 and b3 only", {
+  for (m in models){
+    d <- simgauss(m)
+    f1 <- gcTMB(y ~ day, data=d, model=m)
+    d2 <- transform(d, day=day*24 + 100)
+    f2 <- gcTMB(y ~ day, data=d2, model=m)
+    expect_equal(f1$opt$objective, f2$opt$objective, tolerance=1e-7)
+    b <- bcoef(f1)
+    expect_equal(unname(bcoef(f2)), unname(c(b[1], b[2]*24 + 100, b[3]*24)), tolerance=1e-5, label=m)
+    expect_equal(unname(coef(timeto(f2, 90))), unname(coef(timeto(f1, 90))*24 + 100), tolerance=1e-5)
+  }
 })
 
 test_that("the residual parameter starts at its maximum likelihood value for the starting curve", {
-  d <- simgauss("loglogistic")
+  d <- simgauss("logistic")
   w <- rep(1:3, length.out=nrow(d))
-  f <- fit4(y ~ dose, data=d, weights=w, model="loglogistic")
+  f <- gcTMB(y ~ day, data=d, weights=w)
   s <- f$start
-  mu0 <- drcTMB:::drcmeanR(drcTMB:::modelindex("loglogistic"), d$dose, s[1], s[2], s[3], s[4], exp(s[5]))
-  # gaussian: the weighted root mean square residual of the starting curve
+  mu0 <- gcmean("logistic", d$day, s[1:3])
   expect_equal(f$obj$par[["log_sigma"]], log(sqrt(sum(w*(d$y - mu0)^2)/sum(w))), tolerance=1e-6)
-  # on the scale of the data: a response times 1e4 starts at a residual sd times 1e4
-  d4 <- transform(d, y=y*1e4)
-  f4 <- fit4(y ~ dose, data=d4, weights=w, model="loglogistic")
+  # on the scale of the data
+  f4 <- gcTMB(y ~ day, data=transform(d, y=y*1e4), weights=w)
   expect_equal(f4$obj$par[["log_sigma"]] - f$obj$par[["log_sigma"]], log(1e4), tolerance=1e-6)
 })

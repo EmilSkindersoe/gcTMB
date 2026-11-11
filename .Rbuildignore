@@ -1,6 +1,7 @@
-^drcTMB\.Rproj$
+^gcTMB\.Rproj$
 ^\.Rproj\.user$
 ^\.positai$
 ^\.claude$
 ^README\.Rmd$
 ^README-.*\.png$
+^data-raw$

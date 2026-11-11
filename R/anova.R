@@ -1,9 +1,9 @@
-#' Likelihood ratio tests for drmTMB models
+#' Likelihood ratio tests for gcTMB models
 #'
 #' Compares two or more models fitted to the same data by likelihood ratio tests, e.g. a model with
 #' and without covariates in \code{fform}, with and without random effects, or a poisson and a
-#' negative binomial model. A model with \code{model="constant"} as the smaller model tests for a
-#' dose effect.
+#' negative binomial model. The test assumes nested models; the logistic and gompertz models are not
+#' nested, and are better compared by their AIC.
 #'
 #' The models are ordered by their number of parameters, and each model is compared with the
 #' previous one: the likelihood ratio statistic is twice the difference of their log-likelihoods
@@ -15,7 +15,7 @@
 #' conservative: the p-value is approximately twice the correct value for a single standard
 #' deviation.
 #'
-#' For gaussian and lognormal (on the log scale) models without random effects, \code{test="F"} gives F-tests, as drc does for
+#' For gaussian and lognormal (on the log scale) models without random effects, \code{test="F"} gives F-tests, as nls does for
 #' continuous responses: the reduction of the (weighted) residual sum of squares per additional
 #' parameter, divided by the residual mean square of the largest model, with n - p residual degrees
 #' of freedom for p coefficients b1-b5. The F-test is exact for linear models and accounts for the
@@ -29,19 +29,29 @@
 #' (1 + #\{LR* >= LR\}) / (1 + nsim). It does not rely on the chi-square distribution, which is only
 #' approximate in small samples, for parameters on the boundary (standard deviations of random effects
 #' of zero, the poisson model within the negative binomial), and for parameters that are not
-#' identified under the smaller model (e.g. the steepness and location of the curve compared with
-#' \code{model="constant"}). The chi-square p-value is shown for comparison. Each model is fitted
+#' identified under the smaller model (e.g. the correlation of random effects whose standard
+#' deviation is zero under the smaller model). The chi-square p-value is shown for comparison. Each model is fitted
 #' twice to each simulated response, starting at its estimates and at the starting values of
-#' \code{\link{drmTMB}}, and the better fit is used; simulations without a finite log-likelihood of
+#' \code{\link{gcTMB}}, and the better fit is used; simulations without a finite log-likelihood of
 #' both models are left out.
 #'
-#' @param object a drmTMB object
-#' @param ... further drmTMB objects
-#' @param test "Chisq" (default) for likelihood ratio tests, "F" for F-tests of gaussian or lognormal models
+#' @param object A gcTMB object, the result of \code{\link{gcTMB}}.
+#' @param ... Further gcTMB objects, fitted to the same data.
+#' @param test Character string. "Chisq" (default) for likelihood ratio tests, "F" for F-tests of gaussian or lognormal models
 #'   without random effects, or "boot" for parametric bootstrap likelihood ratio tests
-#' @param nsim number of simulations for \code{test="boot"}
-#' @param seed an optional seed for the random number generator, for \code{test="boot"}
-#' @param progress logical, show a progress bar for \code{test="boot"}
+#' @param nsim Integer. Number of simulations for \code{test="boot"}
+#' @param seed Integer or NULL. An optional seed for the random number generator, for \code{test="boot"}
+#' @param progress Logical. Show a progress bar for \code{test="boot"}
+#'
+#' @examples
+#' FabaHeights25$trt <- factor(FabaHeights25$Treatment)
+#' fit0 <- gcTMB(height ~ DAS, data=FabaHeights25)
+#' fit1 <- gcTMB(height ~ DAS, fform=b1 ~ trt, data=FabaHeights25)
+#' anova(fit0, fit1)
+#' anova(fit0, fit1, test="F")
+#' # random effects of the plants
+#' fit2 <- gcTMB(height ~ DAS, fform=b1 ~ trt, rform=b1 ~ 1 | plant_ID, data=FabaHeights25)
+#' anova(fit1, fit2)
 #'
 #' @return a data frame of class anova with the number of parameters (npar), AIC, BIC, log-likelihood
 #'   and deviance (minus twice the log-likelihood) of each model, and the likelihood ratio statistic
@@ -51,10 +61,10 @@
 #'   \code{test="boot"}, additionally the bootstrap p-value (Pr(boot)), with the simulated likelihood ratio
 #'   statistics of each comparison in the attribute \code{"boot"}.
 #' @export
-anova.drmTMB <- function(object, ..., test=c("Chisq", "F", "boot"), nsim=1000, seed=NULL, progress=interactive()){
+anova.gcTMB <- function(object, ..., test=c("Chisq", "F", "boot"), nsim=1000, seed=NULL, progress=interactive()){
   test <- match.arg(test)
   fits <- c(list(object), list(...))
-  if (!all(vapply(fits, inherits, logical(1), "drmTMB"))) stop("all arguments must be drmTMB objects.")
+  if (!all(vapply(fits, inherits, logical(1), "gcTMB"))) stop("all arguments must be gcTMB objects.")
   if (length(fits) < 2) stop("anova needs at least two models fitted to the same data, e.g. anova(fit0, fit1).")
   mc <- as.list(match.call())[-1]
   nm <- vapply(mc[!(names(mc) %in% c("test", "nsim", "seed", "progress"))], deparse1, character(1))
@@ -89,7 +99,7 @@ anova.drmTMB <- function(object, ..., test=c("Chisq", "F", "boot"), nsim=1000, s
     tab <- data.frame(ic, Res.Df=rdf, RSS=rss, F=fval, Df=df,
                       "Pr(>F)"=ifelse(!is.na(df) & df > 0, pf(pmax(fval, 0), df, rdf[k], lower.tail=FALSE), NA),
                       row.names=nm[ord], check.names=FALSE)
-    return(structure(tab, heading="F-tests of drmTMB models\n", class=c("anova", "data.frame")))
+    return(structure(tab, heading="F-tests of gcTMB models\n", class=c("anova", "data.frame")))
   }
 
   pval <- ifelse(!is.na(df) & df > 0, pchisq(pmax(chisq, 0), df, lower.tail=FALSE), NA)
@@ -99,7 +109,7 @@ anova.drmTMB <- function(object, ..., test=c("Chisq", "F", "boot"), nsim=1000, s
     boot <- anovaboot(fits[ord], chisq, df, nsim, seed, progress)
     tab[["Pr(boot)"]] <- vapply(boot, function(b) if (is.null(b)) NA else b$p, numeric(1))
     nok <- vapply(boot[-1], function(b) if (is.null(b)) NA else sum(!is.na(b$lr)), numeric(1))
-    heading <- paste("Parametric bootstrap likelihood ratio tests of drmTMB models\n",
+    heading <- paste("Parametric bootstrap likelihood ratio tests of gcTMB models\n",
                      "Simulations from the smaller model: ", nsim,
                      if (any(nok < nsim, na.rm=TRUE)) paste(", with finite fits:", paste(nok[!is.na(nok)], collapse=", ")),
                      "\n", sep="")
@@ -107,7 +117,7 @@ anova.drmTMB <- function(object, ..., test=c("Chisq", "F", "boot"), nsim=1000, s
     names(lrs) <- paste(nm[ord][-length(ord)], nm[ord][-1], sep=" vs ")
     return(structure(tab, heading=heading, boot=lrs, class=c("anova", "data.frame")))
   }
-  structure(tab, heading="Likelihood ratio tests of drmTMB models\n", class=c("anova", "data.frame"))
+  structure(tab, heading="Likelihood ratio tests of gcTMB models\n", class=c("anova", "data.frame"))
 }
 
 # parametric bootstrap of the likelihood ratio statistics chisq of the models fits (ordered by their
@@ -117,7 +127,7 @@ anova.drmTMB <- function(object, ..., test=c("Chisq", "F", "boot"), nsim=1000, s
 anovaboot <- function(fits, chisq, df, nsim, seed, progress){
   if (!is.null(seed)) set.seed(seed)
   ctrls <- lapply(fits, function(f){
-    control <- if (is.null(f$control)) drmTMBcontrol() else f$control
+    control <- if (is.null(f$control)) gcTMBcontrol() else f$control
     list(iter.max=control$iter.max, eval.max=control$eval.max)
   })
   c(list(NULL), lapply(seq_along(fits)[-1], function(i){

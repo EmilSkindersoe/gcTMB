@@ -1,0 +1,176 @@
+---
+title: "gcTMB"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{gcTMB}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+The package gcTMB fits growth curves over time using the Template Model Builder (TMB) framework. The curves can depend on covariates, have random effects (e.g. for repeated measurements of the same individuals), and the response can follow a range of distributions.
+
+## Growth models
+
+All models are of the form $f(t) = b_1 F\left(\frac{t - b_2}{b_3}\right)$, with a function $F$ increasing from 0 to 1 that has its largest slope at 0:
+
+* $b_1$ is the asymptote, the response approached at late times,
+* $b_2$ is the time of the maximum growth rate, the inflection point of the curve,
+* $b_3$ is the scale of the curve on the time axis, positive for an increasing curve.
+
+The parameters $b_4$ and $b_5$ are reserved for future models; they are not used and always fixed.
+
+#### logistic
+
+$$ f(t) = \frac{b_1}{1 + \exp\left(-\frac{t - b_2}{b_3}\right)} $$
+
+The curve is symmetric around $b_2$, where it reaches half of its asymptote. The maximum growth rate is $b_1 / (4 b_3)$.
+
+#### gompertz
+
+$$ f(t) = b_1 \exp\left(-\exp\left(-\frac{t - b_2}{b_3}\right)\right) $$
+
+The curve reaches $e^{-1} \approx 37\%$ of its asymptote at $b_2$, and approaches the asymptote more slowly than it leaves zero. The maximum growth rate is $b_1 / (e\, b_3)$.
+
+## The faba bean data
+
+The data set `FabaHeights25` contains the heights of 25 faba bean plants, five at each of five treatment levels, measured on eight days between 14 and 61 days after sowing (`DAS`).
+
+```{r, fig.width = 6, fig.height = 4}
+library(gcTMB)
+library(ggplot2)
+head(FabaHeights25)
+ggplot(FabaHeights25, aes(x = DAS, y = height, group = plant_ID, colour = factor(Treatment))) +
+  geom_line() +
+  geom_point() +
+  labs(x = "Days after sowing", y = "Height", colour = "Treatment") +
+  theme_bw()
+```
+
+## Fitting a growth curve
+
+The main function is `gcTMB()`, with the response and the time in the formula, and the growth model in `model`.
+
+```{r}
+fit <- gcTMB(height ~ DAS, data = FabaHeights25, model = "logistic")
+summary(fit)
+```
+
+Starting values are found from the data by a linearisation of the curve: for a given asymptote $b_1$, $F^{-1}(y / b_1) = (t - b_2)/b_3$ is linear in time, so a linear regression of the transformed mean responses on time gives $b_2$ and $b_3$. The asymptote is profiled, as the observations often do not reach it yet. `gcTMBstart()` shows the starting values; the `start` argument provides starting values for some or all of the parameters, and the `fix` argument fixes parameters at these values.
+
+```{r}
+gcTMBstart(height ~ DAS, data = FabaHeights25, model = "logistic")
+```
+
+The model is fitted by maximum likelihood. For gaussian (and lognormal) models without random effects, the inference follows `nls()` by default: the residual standard deviation is the square root of the unbiased residual variance with n - p residual degrees of freedom, and confidence and prediction intervals use t quantiles.
+
+### Model comparison
+
+The logistic and Gompertz models are not nested, but can be compared by their AIC.
+
+```{r}
+fitg <- gcTMB(height ~ DAS, data = FabaHeights25, model = "gompertz")
+AIC(fit, fitg)
+```
+
+### Predictions
+
+With `interval = "confidence"`, `predict()` adds standard errors and confidence intervals for the mean response by the delta method; with `interval = "prediction"`, the intervals are for a new observation.
+
+```{r, fig.width = 6, fig.height = 4}
+nd <- data.frame(DAS = seq(0, 80, length.out = 100))
+ci <- predict(fit, newdata = nd, interval = "confidence")
+pi <- predict(fit, newdata = nd, interval = "prediction")
+ggplot(FabaHeights25, aes(x = DAS, y = height)) +
+  geom_ribbon(data = cbind(nd, pi), aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "blue", alpha = 0.1) +
+  geom_ribbon(data = cbind(nd, ci), aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "blue", alpha = 0.25) +
+  geom_line(data = cbind(nd, ci), aes(x = DAS, y = fit), colour = "blue") +
+  geom_point() +
+  labs(x = "Days after sowing", y = "Height") +
+  theme_bw()
+```
+
+### Scale or rate
+
+With the inverse link for $b_3$, `link = c(b3 = "inverse")`, the coefficient of $b_3$ is the rate $1/b_3$. Without covariates and random effects on $b_3$ the fit is the same; with them, covariates and random effects act additively on the rate instead of the scale.
+
+```{r}
+fitr <- gcTMB(height ~ DAS, data = FabaHeights25, link = c(b3 = "inverse"))
+coef(fitr)
+1 / coef(fit)[["b3:(Intercept)"]]
+```
+
+### Diagnostics
+
+`plot()` draws residuals against the fitted values and against time, and a normal QQ plot. The repeated measurements of the same plants are not independent; the random effects below account for that.
+
+```{r, fig.width = 7, fig.height = 5}
+plot(fit, seed = 1)
+```
+
+## Time to reach a level of the asymptote
+
+`timeto()` gives the times at which a curve reaches a percentage of its asymptote, $b_2 + b_3 F^{-1}(p/100)$, with standard errors by automatic differentiation. With `type = "absolute"`, the times at which the curve reaches given responses, here a height of 50.
+
+```{r}
+tt <- timeto(fit, respLev = c(10, 50, 90))
+tt
+timeto(fit, respLev = 50, type = "absolute")
+```
+
+`confint()` gives profile likelihood intervals by default, `method = "wald"` Wald intervals and `method = "boot"` parametric bootstrap intervals.
+
+```{r, message = FALSE}
+confint(tt)
+confint(tt, method = "wald")
+```
+
+## Covariates and random effects
+
+Covariates on the parameters are given by `fform`, e.g. `b1 + b2 ~ trt` for effects of the treatment on the asymptote and the time of the maximum growth rate. Random effects are given by `rform`, e.g. `b1 + b2 ~ 1 | plant_ID` for correlated random effects of each plant on the asymptote and the time of the maximum growth rate, which account for the repeated measurements of the plants.
+
+```{r}
+FabaHeights25$trt <- factor(FabaHeights25$Treatment)
+fitre <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)
+summary(fitre)
+```
+
+Likelihood ratio tests by `anova()` compare nested models, here with and without the treatment effects.
+
+```{r}
+fitre0 <- gcTMB(height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)
+anova(fitre0, fitre)
+```
+
+`predict()` gives the curves of the fitted plants with their predicted random effects (`random = TRUE`), or the population curves of the treatments (`random = FALSE`); `timeto()` with `newdata` gives the times of the curves of each row.
+
+```{r, fig.width = 6, fig.height = 4}
+nd <- unique(FabaHeights25[, c("plant_ID", "trt")])
+nd <- merge(nd, data.frame(DAS = seq(14, 61, 1)))
+nd$fit <- predict(fitre, newdata = nd)
+ggplot(FabaHeights25, aes(x = DAS, y = height, colour = trt)) +
+  geom_point() +
+  geom_line(data = nd, aes(y = fit, group = plant_ID)) +
+  labs(x = "Days after sowing", y = "Height", colour = "Treatment") +
+  theme_bw()
+timeto(fitre, respLev = 90, newdata = data.frame(trt = levels(FabaHeights25$trt)), random = FALSE)
+```
+
+## Non-normal responses
+
+The `family` argument gives the distribution of the response: "gaussian", "lognormal", "poisson", "nbinom2", "nbinom1", "binomial", "betabinomial" or "beta". The data set `FabaCounts23` contains the numbers of pods of 22 faba bean plants of six genotypes, counted between 61 and 79 days after sowing. A Poisson model with an asymptote for each genotype and a random asymptote for each plant:
+
+```{r}
+fitp <- gcTMB(pods ~ DAS, fform = b1 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+              family = "poisson")
+summary(fitp)
+predict(fitp, newdata = data.frame(Genotype = sort(unique(FabaCounts23$Genotype))),
+        type = "parameters", random = FALSE)
+```

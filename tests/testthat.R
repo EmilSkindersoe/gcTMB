@@ -1,4 +1,4 @@
 library(testthat)
-library(drcTMB)
+library(gcTMB)
 
-test_check("drcTMB")
+test_check("gcTMB")

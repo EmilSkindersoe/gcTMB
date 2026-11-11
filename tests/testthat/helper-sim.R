@@ -1,83 +1,65 @@
-# Simulated data sets shared by the tests. All simulations use the drcTMB parameterisation,
-# f(x) = b1 + (b2 - b1) F(x), via the mean function of the package.
+# Simulated data sets shared by the tests. All simulations use the gcTMB parameterisation,
+# f(t) = b1 F((t - b2) / b3), via the mean function of the package.
 
-models <- c("logistic", "loglogistic", "weibull1", "weibull2", "lognormal",
-            "michaelismenten", "asymptoticregression", "exponentialdecay", "gompertz")
+models <- c("logistic", "gompertz")
 
-# mean function for model name m and parameters b = c(b1, ..., b5), with b5 on the scale of its link (the
-# log of the asymmetry of logistic and loglogistic)
-drcmean <- function(m, x, b){
-  b5 <- if (m %in% c("logistic", "loglogistic")) exp(b[5]) else b[5]
-  drcTMB:::drcmeanR(match(m, models), x, b[1], b[2], b[3], b[4], b5)
+# mean function for model name m and parameters b = c(b1, b2, b3)
+gcmean <- function(m, t, b){
+  gcTMB:::gcmeanR(match(m, models), t, b[1], b[2], b[3], 0, 0)
 }
 
-# true parameters and doses for a well-identified curve of each model
-truepars <- list(
-  logistic             = list(b=c(1, 8, 1.2, 5, 0),      dose=0:10),
-  loglogistic          = list(b=c(1, 8, -1.5, 3, 0),     dose=c(0, 0.5, 1, 2, 4, 8, 16, 32)),
-  weibull1             = list(b=c(1, 8, -1.2, 4, 0),     dose=c(0, 0.5, 1, 2, 4, 8, 16, 32)),
-  weibull2             = list(b=c(1, 8, -1, 2, 0),       dose=c(0, 0.5, 1, 2, 4, 8, 16, 32)),
-  lognormal            = list(b=c(1, 8, -1, 3, 0),       dose=c(0, 0.5, 1, 2, 4, 8, 16, 32)),
-  michaelismenten      = list(b=c(1, 8, 0, 3, 0),        dose=c(0, 0.5, 1, 2, 4, 8, 16, 32)),
-  asymptoticregression = list(b=c(1, 8, 0, 4, 0),        dose=c(0, 0.5, 1, 2, 4, 8, 16, 32)),
-  exponentialdecay     = list(b=c(8, 0.5, 0, 4, 0),      dose=c(0, 0.5, 1, 2, 4, 8, 16, 32)),
-  gompertz             = list(b=c(1, 8, 0.9, 4.5, 0),    dose=0:10)
+# inverse of F of each model
+Finv <- list(logistic=function(q) qlogis(q), gompertz=function(q) -log(-log(q)))
+
+# the same curves written out, for nls and nlme
+formulas <- list(
+  logistic=y ~ b1/(1 + exp(-(day - b2)/b3)),
+  gompertz=y ~ b1*exp(-exp(-(day - b2)/b3))
 )
 
-# gaussian data with nrep replicates per dose
-simgauss <- function(m, nrep=4, sd=0.4, seed=1){
+# true parameters (asymptote, time of the maximum growth rate, scale) and observation times
+truepars <- c(50, 10, 2.5)
+days <- seq(0, 24, 2)
+
+# gaussian data with nrep replicates per time
+simgauss <- function(m, nrep=3, sd=1.5, seed=1, b=truepars, times=days){
   set.seed(seed)
-  tp <- truepars[[m]]
-  d <- data.frame(dose=rep(tp$dose, each=nrep))
-  d$y <- drcmean(m, d$dose, tp$b) + rnorm(nrow(d), 0, sd)
+  d <- data.frame(day=rep(times, each=nrep))
+  d$y <- gcmean(m, d$day, b) + rnorm(nrow(d), 0, sd)
   d
 }
 
-# grouped data: ng groups, every dose in every group, nrep replicates
-simgroups <- function(dose=c(0, 0.5, 1, 2, 4, 8, 16), ng=10, nrep=2, seed=1){
+# grouped data: ng groups (individuals), every time in every group, nrep replicates
+simgroups <- function(times=days, ng=10, nrep=1, seed=1){
   set.seed(seed)
-  d <- expand.grid(rep=seq_len(nrep), dose=dose, grp=factor(seq_len(ng)))
+  d <- expand.grid(rep=seq_len(nrep), day=times, id=factor(seq_len(ng)))
   d$rep <- NULL
   d
 }
 
-# fit wrapper for the four-parameter versions of logistic and loglogistic (b5 fixed at 0)
-fit4 <- function(..., start=c(b5=0), fix=c(b5=TRUE)){
-  drmTMB(..., start=start, fix=fix)
+# grouped gaussian data with random effects on b1 and b2
+simre <- function(m="logistic", ng=12, sd1=5, sd2=1, sd=1, seed=3, b=truepars){
+  d <- simgroups(ng=ng, seed=seed)
+  u1 <- rnorm(ng, 0, sd1)
+  u2 <- rnorm(ng, 0, sd2)
+  d$y <- gcTMB:::gcmodel(match(m, models))$F((d$day - b[2] - u2[d$id])/b[3]) * (b[1] + u1[d$id]) + rnorm(nrow(d), 0, sd)
+  d
 }
 
-# drmTMB coefficients without the variance parameters
+# gcTMB coefficients without the variance parameters
 bcoef <- function(fit){
   cf <- coef(fit)
   cf[grepl("^b[1-5]:", names(cf))]
 }
 
-# reference standard errors of the effective doses of a drc fit, independent of the derivatives of
-# drc's edfct (wrong for several models in drc 4.0-3): delta method with numerical derivatives of
-# drc's ED value and drc's covariance matrix
-drcedse <- function(fit, respLev, ...){
-  p <- coef(fit)
-  vapply(respLev, function(r){
-    g <- numDeriv::grad(function(q) fit$fct$edfct(q, r, reference="control", type="relative", ...)[[1]], p)
-    sqrt(drop(t(g) %*% vcov(fit) %*% g))
-  }, numeric(1))
+# nls fit of model m to the faba bean heights of the package (FabaHeights25)
+fabanls <- function(m, d=FabaHeights25){
+  fo <- list(logistic=height ~ b1/(1 + exp(-(DAS - b2)/b3)),
+             gompertz=height ~ b1*exp(-exp(-(DAS - b2)/b3)))[[m]]
+  nls(fo, data=d, start=list(b1=120, b2=30, b3=15))
 }
 
-# peak of a drc fit by numerical maximisation of drc's model function, on the log-dose scale
-# (MAX of drc 4.0-3 is wrong for BC.5)
-drcpeak <- function(fit, range=c(-10, 5)){
-  p <- coef(fit)
-  fm <- function(x) fit$fct$fct(x, matrix(p, nrow=length(x), ncol=length(p), byrow=TRUE))
-  o <- optimize(function(lx) -fm(exp(lx)), range, tol=1e-12)
-  c(exp(o$minimum), -o$objective)
-}
-
-# grouped gaussian data with random effects on the upper asymptote and log b4
-simbmdgroups <- function(seed=3){
-  set.seed(seed)
-  d <- simgroups(ng=12)
-  u2 <- rnorm(12, 0, 0.8)
-  u4 <- rnorm(12, 0, 0.5)
-  d$y <- with(d, 1 + (8 + u2[grp] - 1)/(1 + exp(1.5*(log(pmax(dose, 1e-12)) - log(3) - u4[grp])))) + rnorm(nrow(d), 0, 0.3)
-  d
+# nls fit of model m at the true parameters
+nlsfit <- function(m, d, start=truepars){
+  nls(formulas[[m]], data=d, start=list(b1=start[1], b2=start[2], b3=start[3]))
 }

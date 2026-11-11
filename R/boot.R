@@ -1,32 +1,38 @@
-#' Parametric bootstrap of a drmTMB model
+#' Parametric bootstrap of a gcTMB model
 #'
 #' Simulates responses from the fitted model, with new random effects (see
-#' \code{\link{simulate.drmTMB}}), and fits the model again to each simulated response, with the iteration limits of the fit (\code{control} in \code{\link{drmTMB}}), starting at the
+#' \code{\link{simulate.gcTMB}}), and fits the model again to each simulated response, with the iteration limits of the fit (\code{control} in \code{\link{gcTMB}}), starting at the
 #' estimates. The bootstrap sample can be used for confidence intervals of the model parameters and of
-#' effective doses, see \code{\link{confint.drmTMB}}, without fitting the models again.
+#' the times of \code{\link{timeto}}, see \code{\link{confint.gcTMB}}, without fitting the models again.
 #'
-#' @param object a drmTMB object
-#' @param nsim number of simulations
-#' @param seed an optional seed for the random number generator
-#' @param progress logical, show a progress bar
-#' @param x a bootstrap.drmTMB object
-#' @param digits number of significant digits in the printed output
-#' @param parm parameters, names or positions in \code{coef}; default all
-#' @param level the confidence level
-#' @param ... ignored
+#' @param object A gcTMB object, the result of \code{\link{gcTMB}}.
+#' @param nsim Integer. Number of simulations
+#' @param seed Integer or NULL. An optional seed for the random number generator
+#' @param progress Logical. Show a progress bar
+#' @param x A bootstrap.gcTMB object, the result of \code{bootstrap}.
+#' @param digits Integer. Number of significant digits in the printed output
+#' @param parm Character or integer vector. Parameters, names or positions in \code{coef}; default all
+#' @param level Numeric between 0 and 1. The confidence level
+#' @param ... Not used.
 #'
-#' @return bootstrap returns a bootstrap.drmTMB object, a list with the estimates of \code{coef(object)}
+#' @examples
+#' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+#' bt <- bootstrap(fit, nsim=50, seed=1, progress=FALSE)
+#' bt
+#' confint(bt)
+#'
+#' @return bootstrap returns a bootstrap.gcTMB object, a list with the estimates of \code{coef(object)}
 #'   for each simulation (\code{estimates}, a matrix with NA rows for fits that did not converge), the
 #'   fitted model (\code{fit}), and \code{nsim} and \code{seed}. confint returns percentile intervals
-#'   of the parameters, on the scale of \code{\link{confint.drmTMB}}.
+#'   of the parameters, on the scale of \code{\link{confint.gcTMB}}.
 #' @export
-#' @aliases bootstrap print.bootstrap.drmTMB confint.bootstrap.drmTMB
+#' @aliases bootstrap print.bootstrap.gcTMB confint.bootstrap.gcTMB
 bootstrap <- function(object, nsim=500, seed=NULL, progress=interactive()){
-  if (!inherits(object, "drmTMB")) stop("object must be a drmTMB object.")
+  if (!inherits(object, "gcTMB")) stop("object must be a gcTMB object.")
   sims <- simulate(object, nsim=nsim, seed=seed)
   pars <- object$obj$env$parList(object$opt$par)
   # iteration limits of the fit
-  control <- if (is.null(object$control)) drmTMBcontrol() else object$control
+  control <- if (is.null(object$control)) gcTMBcontrol() else object$control
   ctrl <- list(iter.max=control$iter.max, eval.max=control$eval.max)
   pb <- progressbar(nsim, progress)
   est <- t(sapply(sims, function(y){
@@ -41,13 +47,14 @@ bootstrap <- function(object, nsim=500, seed=NULL, progress=interactive()){
   nfail <- sum(is.na(est[, 1]))
   if (nfail > 0) message(nfail, " of ", nsim, " bootstrap fits did not converge and are left out.")
   res <- list(estimates=est, fit=object, nsim=nsim, seed=seed)
-  class(res) <- "bootstrap.drmTMB"
+  class(res) <- "bootstrap.gcTMB"
   res
 }
 
 #' @rdname bootstrap
+#' @method print bootstrap.gcTMB
 #' @export
-print.bootstrap.drmTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...){
+print.bootstrap.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...){
   est <- x$estimates
   ok <- !is.na(est[, 1])
   cat("Parametric bootstrap: ", sum(ok), " of ", x$nsim, " fits converged\n\n", sep="")
@@ -60,7 +67,7 @@ print.bootstrap.drmTMB <- function(x, digits=max(3L, getOption("digits") - 3L), 
 
 #' @rdname bootstrap
 #' @export
-confint.bootstrap.drmTMB <- function(object, parm=NULL, level=0.95, ...){
+confint.bootstrap.gcTMB <- function(object, parm=NULL, level=0.95, ...){
   est <- coef(object$fit)
   if (is.null(parm)) parm <- seq_along(est)
   if (is.character(parm)) parm <- match(parm, names(est))
@@ -83,8 +90,8 @@ refitopt <- function(fit, y, pars, ctrl){
 }
 
 # minimum negative log-likelihood of the model for a simulated response y: the better of the fits
-# starting at the estimates and at the starting values of drmTMB for y, as parameters that are not
-# identified under a smaller model (e.g. b3 and b4 for a flat curve) often lead the fit from the
+# starting at the estimates and at the starting values of gcTMB for y, as parameters that are not
+# identified under a smaller model (e.g. b2 and b3 for a flat curve) often lead the fit from the
 # estimates to a worse local optimum; NA if neither fit gives a finite value
 refitnll <- function(fit, y, ctrl){
   env <- fit$obj$env
@@ -113,7 +120,7 @@ getboot <- function(fit, boot, nsim, seed, progress=interactive(), ...){
     message("Computing bootstrap confidence intervals (", nsim, " simulations) ...")
     return(bootstrap(fit, nsim=nsim, seed=seed, progress=progress))
   }
-  if (!inherits(boot, "bootstrap.drmTMB")) stop("boot must be the result of bootstrap().")
+  if (!inherits(boot, "bootstrap.gcTMB")) stop("boot must be the result of bootstrap().")
   if (!identical(coef(boot$fit), coef(fit)) || !identical(boot$fit$call, fit$call)) stop("boot is a bootstrap sample of a different model.")
   boot
 }
