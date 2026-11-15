@@ -1,11 +1,14 @@
 # Simulated data sets shared by the tests. All simulations use the gcTMB parameterisation,
-# f(t) = b1 F((t - b2) / b3), via the mean function of the package.
+# f(t) = b1 F(z(t)), via the mean function of the package. Most tests loop over the location-scale
+# models, f(t) = b1 F((t - b2) / b3); the hill and weibull models on the log time axis are tested in
+# test-hillweibull.R.
 
 models <- c("logistic", "gompertz")
+allmodels <- c("logistic", "gompertz", "hill", "weibull")
 
 # mean function for model name m and parameters b = c(b1, b2, b3)
 gcmean <- function(m, t, b){
-  gcTMB:::gcmeanR(match(m, models), t, b[1], b[2], b[3], 0, 0)
+  gcTMB:::gcmeanR(match(m, allmodels), t, b[1], b[2], b[3], 0, 1)
 }
 
 # inverse of F of each model
@@ -14,7 +17,9 @@ Finv <- list(logistic=function(q) qlogis(q), gompertz=function(q) -log(-log(q)))
 # the same curves written out, for nls and nlme
 formulas <- list(
   logistic=y ~ b1/(1 + exp(-(day - b2)/b3)),
-  gompertz=y ~ b1*exp(-exp(-(day - b2)/b3))
+  gompertz=y ~ b1*exp(-exp(-(day - b2)/b3)),
+  hill=y ~ b1/(1 + (b2/day)^b3),
+  weibull=y ~ b1*(1 - exp(-(b3 - 1)/b3*(day/b2)^b3))
 )
 
 # true parameters (asymptote, time of the maximum growth rate, scale) and observation times

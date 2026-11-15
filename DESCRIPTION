@@ -1,17 +1,19 @@
 Package: gcTMB
 Title: Fitting Growth Curves Using the Template Model Builder
-Version: 0.0.0.9000
+Version: 0.1.0.9000
 Authors@R: 
     person("Emil", "Skindersoe", , "e.skindersoe@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0000-2172-1614"))
 Description: Fits non-linear growth curves over time, optionally with
     covariates on the parameters and random effects, by maximum likelihood
     using the Template Model Builder ('TMB'), with the Laplace approximation
-    for the random effects. The logistic and Gompertz growth models are
-    available, parameterised by the asymptote, the time of the maximum growth
-    rate and a scale (or rate) parameter, and the response can follow a
-    Gaussian, lognormal, Poisson, binomial, beta, beta-binomial or negative
-    binomial distribution. The times at which the curves reach a level of
+    for the random effects. The logistic, Gompertz, Hill and Weibull
+    growth models are available, parameterised by the asymptote, a time (of
+    the maximum growth rate or of half the asymptote) and a scale, slope or
+    shape parameter, optionally truncated at a
+    threshold time before which the response is zero, and the response can
+    follow a Gaussian, lognormal, Poisson, binomial, beta, beta-binomial or
+    negative binomial distribution. The times at which the curves reach a level of
     their asymptote and their standard errors are derived by automatic
     differentiation.
 License: GPL (>=2)

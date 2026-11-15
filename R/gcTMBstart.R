@@ -4,24 +4,31 @@
 #' which can be inspected, modified, and passed to the \code{start} argument of \code{\link{gcTMB}}.
 #'
 #' Method "lm" linearises the growth curve: for a given asymptote b1, the mean response at each
-#' time t, relative to b1, gives Finv(y/b1) = (t - b2)/b3, with the inverse Finv of the function F
-#' of the model (qlogis for logistic, -log(-log(q)) for gompertz). A linear regression of Finv(y/b1)
-#' on the time gives b3 as the inverse of the slope and b2 as the time at which the line crosses zero;
-#' with b2 or b3 given in \code{start}, only the other one is estimated. The observed responses
+#' time t, relative to b1, gives Finv(y/b1) = z(t), with the inverse Finv of the function F of the
+#' model (qlogis for logistic and hill, -log(-log(q)) for gompertz, log(-log(1 - q)) for weibull) and
+#' the transformed time z(t) (see \code{\link{gcTMB}}), which is linear in the time t (logistic,
+#' gompertz) or in log(t) (hill, weibull). A linear regression of Finv(y/b1) on t or log(t) gives b2 and
+#' b3 from its intercept and slope, e.g. b3 as the inverse of the slope and b2 as the time at which the
+#' line crosses zero for the logistic model; with b2 or b3 given in \code{start}, only the other one is
+#' estimated. The weibull shape b3 starts at least at 1.1. The observed responses
 #' often do not reach the asymptote yet, so b1 is profiled: for asymptotes from just above the
 #' largest mean response to four times it, the linearised fit gives b2 and b3, b1 is refitted by least
 #' squares for this curve, and the asymptote with the smallest residual sum of squares is used.
 #' Mean responses below 1\% or above 99\% of the asymptote carry little information about the
 #' linearised curve and are left out. With covariates in \code{fform}, the pooled starting value of
 #' each parameter is projected onto its design matrix, giving the intercept or each group the pooled
-#' value and contrasts a value of zero. The reserved parameters b4 and b5 start at 0.
+#' value and contrasts a value of zero. The threshold b4, fixed at 0 by default, starts when estimated where the curve
+#' without truncation reaches 1\% of its asymptote; for the count families also before the first
+#' time with a positive count, and for the lognormal and beta families before all times, as positive
+#' responses are impossible before the threshold. The asymmetry b5 starts at 1, the symmetric curve,
+#' with which b2 and b3 are linearised unless b5 is given in start; b4 without truncation starts at 0.
 #'
 #' Method "grid" evaluates the negative log-likelihood (without random effects) at all
 #' combinations of a grid of parameter values and returns the best grid point; parameters
 #' not included in the grid start at the values of method "lm".
 #' Without bounds in \code{gsl} and \code{gsu}, default ranges are used for b2 (the time range
-#' extended by a quarter at both ends) and b3 (the sign of the "lm" starting value, with 1/4 to 4
-#' times its value, log-spaced; on the scale of its link). Default ranges are only used for parameters
+#' extended by a quarter at both ends, positive with the log link) and b3 (the sign of the "lm"
+#' starting value, with 1/4 to 4 times its value, log-spaced; on the scale of its link). Default ranges are only used for parameters
 #' with a single coefficient in \code{fform}; the asymptote b1 is only included in the grid with
 #' user-specified bounds.
 #'
@@ -29,10 +36,11 @@
 #' @param fform Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1). A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.
 #' @param data Data frame. Observations with missing values in the variables of the model or in the weights are left out.
 #' @param start Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced.
-#' @param fix Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The reserved parameters b4 and b5, which the models do not use, are always fixed, at 0 unless given in start.
+#' @param fix Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1 unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.
 #' @param weights Numeric vector or NULL. Weights, one for each row of data.
 #' @param family Character string. The distribution of the response, see \code{\link{gcTMB}}.
-#' @param model Character string. The growth model: "logistic" or "gompertz".
+#' @param model Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "normal", "gamma" or "linear", see \code{\link{gcTMB}}.
+#' @param truncated Logical. If TRUE (default), the curve is truncated at a threshold b4, by default fixed at 0, see \code{\link{gcTMB}}.
 #' @param link Named character vector or NULL. Links of the parameters b1-b5, see \code{\link{gcTMB}}.
 #' @param method Character string. One of "lm" or "grid".
 #' @param gsl Numeric vector or NULL. Lower bounds for the grid search, same length as start, on the scale of the coefficients (the rate 1/b3 for b3 with the inverse link); NA (or NULL) for the default range.
@@ -48,11 +56,11 @@
 #' gcTMBstart(height ~ DAS, data=FabaHeights25, method="grid", gsn=c(1, 10, 10, 1, 1))
 #' @export
 #'
-gcTMBstart <- function(form, fform=NULL, data, start=NULL, fix=NULL, weights=NULL, family="gaussian", model="logistic", link=NULL, method="lm", gsl=NULL, gsu=NULL, gsn=NULL){
-  dd <- gcTMBdata(form, fform=fform, data=data, weights=weights, family=family, model=model, link=link)
+gcTMBstart <- function(form, fform=NULL, data, start=NULL, fix=NULL, weights=NULL, family="gaussian", model="logistic", truncated=TRUE, link=NULL, method="lm", gsl=NULL, gsu=NULL, gsn=NULL){
+  dd <- gcTMBdata(form, fform=fform, data=data, weights=weights, family=family, model=model, truncated=truncated, link=link)
   start <- parvector(start, dd$npi, NA, "start")
-  fix <- parvector(fix, dd$npi, FALSE, "fix")
-  fix[dd$npi %in% unusedpars(dd$mod)] <- TRUE
+  fix <- defaultfix(fix, dd$npi)
+  fix[dd$npi %in% unusedpars(dd$mod, dd$trunc)] <- TRUE
   sv <- gcTMBstartvals(dd, start, fix, method=method, gsl=gsl, gsu=gsu, gsn=gsn)
   names(sv) <- coefnames(dd$Xs)
   sv
@@ -60,7 +68,8 @@ gcTMBstart <- function(form, fform=NULL, data, start=NULL, fix=NULL, weights=NUL
 
 
 # model data shared by gcTMB and gcTMBstart
-gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="gaussian", model="logistic", link=NULL){
+gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="gaussian", model="logistic", truncated=TRUE, link=NULL){
+  if (!is.logical(truncated) || length(truncated) != 1 || is.na(truncated)) stop("truncated must be TRUE or FALSE.")
   fform <- fforms(fform)
   if (is.null(weights)) weights <- rep(1, nrow(data))
   if (length(weights) != nrow(data)) stop("weights must have one entry for each row of data.")
@@ -112,10 +121,12 @@ gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="
   # random effects
   re <- reterms(rform, data)
   rpars <- unlist(lapply(re$terms, function(tm) tm$pars))
-  unused <- intersect(unusedpars(mod), rpars)
-  if (length(unused) > 0) stop("The ", model, " model does not use ", paste("b", unused, sep="", collapse=", "), "; remove it from rform.")
+  # the linear model is not truncated
+  truncated <- truncated && !islinear(mod)
+  unused <- intersect(unusedpars(mod, truncated), rpars)
+  if (length(unused) > 0) stop("The ", if (truncated) "truncated ", model, " model does not use ", paste("b", unused, sep="", collapse=", "), "; remove it from rform.")
 
-  list(y=y, x=mf[,2], w=weights, bn=bn, fam=fam, mod=mod, lnk=lnk, re=re,
+  list(y=y, x=mf[,2], w=weights, bn=bn, fam=fam, mod=mod, trunc=truncated, lnk=lnk, re=re,
        Xs=Xs, fform=fform, fterms=fterms, npars=npars, npi=rep(1:5, npars),
        family=family, model=model, link=link, data=data)
 }
@@ -138,14 +149,16 @@ gcTMBstartvals <- function(dd, start, fix, method="lm", gsl=NULL, gsu=NULL, gsn=
 }
 
 
-# starting values from the linearised growth curve, Finv(y / b1) = (t - b2) / b3, profiled over the
-# asymptote b1
+# starting values from the linearised growth curve, Finv(y / b1) = z(t), linear in t or log(t),
+# profiled over the asymptote b1
 lmstart <- function(dd, start, fix){
   npi <- dd$npi
   m <- gcmodel(dd$mod)
   # parameters with a given starting value, and their values on the original scale
   kn <- sapply(1:3, function(i) fix[npi == i][1] | !is.na(start[npi == i][1]))
   kv <- sapply(1:3, function(i) if (kn[i]) linkfun(dd$lnk[i], start[npi == i][1], inverse=TRUE) else NA)
+  # asymmetry b5: its starting value, otherwise the symmetric curve
+  a <- if (!is.na(start[npi == 5][1])) linkfun(dd$lnk[5], start[npi == 5][1], inverse=TRUE) else 1
 
   # response on the mean scale, aggregated by time; geometric means for the medians of lognormal responses
   if (dd$family %in% c("binomial", "betabinomial") & any(dd$bn > 0)){
@@ -164,52 +177,116 @@ lmstart <- function(dd, start, fix){
   trange <- if (length(td) > 1) diff(range(td)) else 1
   increasing <- length(td) < 2 || yd[length(yd)] >= yd[1]
 
-  # b2 and b3 from the linearised curve for a given asymptote b1; fallbacks for too few points
+  # b2 and b3 from the linearised curve for a given asymptote b1, Finv(y / b1) = a + c h(t) with the
+  # time h(t) = t or log(t) of the model; fallbacks for too few points
+  b3range <- if (is.na(m$b3)) NULL else switch(m$b3, shape=c(1.001, 50), slope=if (increasing) c(0.05, 50) else c(-50, -0.05), NULL)
   linfit <- function(b1){
     q <- yd / b1
-    use <- is.finite(q) & q > 0.01 & q < 0.99
+    use <- is.finite(q) & q > 0.01 & q < 0.99 & (!m$logtime | td > 0)
     t <- td[use]
-    z <- m$Finv(q[use])
+    if (isTRUE(m$shapeF)) return(shapefit(q[use], t, b1))
+    h <- m$h(t)
+    z <- Ginv(m, q[use], a)
     b2 <- kv[2]
     b3 <- kv[3]
     if (!kn[2] && kn[3]){
-      if (length(t) > 0) b2 <- mean(t - b3 * z)
-    } else if (kn[2] && !kn[3]){
-      # z = (t - b2) / b3: slope 1/b3 through the origin
-      if (length(t) > 0 && any(t != b2)) b3 <- 1 / (sum((t - b2) * z) / sum((t - b2)^2))
+      cs <- m$cslope(b3)
+      if (length(t) > 0) b2 <- m$fromline(mean(z - cs * h), cs)[1]
+    } else if (kn[2] && !kn[3] && length(t) > 0){
+      if (!m$logtime){
+        # z = (t - b2) / b3: slope 1/b3 through the origin
+        if (any(t != b2)) b3 <- 1 / (sum((t - b2) * z) / sum((t - b2)^2))
+      } else {
+        b3 <- optimize(function(b) sum((z - m$z(t, b2, b))^2), b3range)$minimum
+      }
     } else if (!kn[2] && !kn[3] && length(unique(t)) >= 2){
-      cf <- coefficients(lm(z ~ t))
-      b3 <- 1 / cf[[2]]
-      b2 <- -cf[[1]] * b3
+      cf <- coefficients(lm(z ~ h))
+      cs <- cf[[2]]
+      # the weibull shape is larger than 1
+      if (identical(m$b3, "shape") && cs < 1.1) cs <- 1.1
+      p <- suppressWarnings(m$fromline(mean(z - cs * h), cs))
+      b2 <- p[1]
+      b3 <- p[2]
     }
-    # fallbacks: a scale of an eighth of the time range in the direction of the data, and the time
-    # at which the response is closest to half the asymptote
-    if (!is.finite(b3) || b3 == 0) b3 <- (if (increasing) 1 else -1) * trange / 8
-    if (!is.finite(b2)) b2 <- td[which.min(abs(yd / b1 - 0.5))]
+    # fallbacks: a scale of an eighth of the time range in the direction of the data (a slope or
+    # shape of 2), and the time at which the response is closest to half the asymptote
+    if (!is.finite(b3) || b3 == 0){
+      b3 <- switch(m$b3, shape=2, slope=if (increasing) 2 else -2, (if (increasing) 1 else -1) * trange / 8)
+    }
+    if (!is.finite(b2) || (m$logtime && b2 <= 0)){
+      tp <- if (m$logtime) td > 0 else rep(TRUE, length(td))
+      b2 <- if (any(tp)) td[tp][which.min(abs(yd[tp] / b1 - 0.5))] else 1
+    }
     c(b2, b3)
   }
+  # models whose F depends on the shape b3 (gamma): for each shape of a grid, b2 from the linearised
+  # curve z = t (b3 - 1) / b2 through the origin; the shape with the smallest residual sum of squares of
+  # the fractions q of the asymptote
+  shapefit <- function(q, t, b1){
+    if (length(t) == 0) return(c(if (kn[2]) kv[2] else td[which.min(abs(yd / b1 - 0.5))], if (kn[3]) kv[3] else 2))
+    shapes <- if (kn[3]) kv[3] else exp(seq(log(1.2), log(40), length.out=30))
+    fits <- lapply(shapes, function(sh){
+      z <- Ginv(m, q, a, sh)
+      b2 <- if (kn[2]) kv[2] else (sh - 1) / (sum(t * z) / sum(t^2))
+      list(b=c(b2, sh), rss=sum((q - exp(logG(m, m$z(t, b2, sh), a, sh)))^2))
+    })
+    rss <- vapply(fits, function(f) f$rss, numeric(1))
+    fits[[if (all(!is.finite(rss))) 1 else which.min(rss)]]$b
+  }
 
-  # candidate asymptotes, from just above the response furthest from zero to four times it
-  ymax <- yd[which.max(abs(yd))]
-  if (ymax == 0) ymax <- 1
-  b1grid <- if (kn[1]) kv[1] else ymax * exp(seq(log(1.01), log(4), length.out=40))
-  b1grid <- vapply(b1grid, function(b) linkrange(b, dd$family), numeric(1))
-  cand <- lapply(unique(b1grid), function(b1){
-    p <- linfit(b1)
-    Fz <- m$F((td - p[1]) / p[2])
-    # the asymptote by least squares for this curve, unless given
-    if (!kn[1] && sum(Fz^2) > 0) b1 <- linkrange(sum(yd * Fz) / sum(Fz^2), dd$family)
-    list(b=c(b1, p), rss=sum((yd - b1 * Fz)^2))
-  })
-  rss <- vapply(cand, function(cd) cd$rss, numeric(1))
-  best <- cand[[if (all(!is.finite(rss))) 1 else which.min(rss)]]$b
+  if (islinear(dd$mod)){
+    # the linear model: least squares, unless given
+    cf <- if (length(td) > 1) coefficients(lm(yd ~ td)) else c(yd[1], 0)
+    best <- c(if (kn[1]) kv[1] else cf[[2]], if (kn[2]) kv[2] else cf[[1]], 0)
+  } else {
+    # candidate asymptotes, from just above the response furthest from zero to four times it
+    ymax <- yd[which.max(abs(yd))]
+    if (ymax == 0) ymax <- 1
+    b1grid <- if (kn[1]) kv[1] else ymax * exp(seq(log(1.01), log(4), length.out=40))
+    b1grid <- vapply(b1grid, function(b) linkrange(b, dd$family), numeric(1))
+    cand <- lapply(unique(b1grid), function(b1){
+      p <- linfit(b1)
+      Fz <- suppressWarnings(gcmeanR(dd$mod, td, 1, p[1], p[2], 0, a))
+      # the asymptote by least squares for this curve, unless given
+      if (!kn[1] && all(is.finite(Fz)) && sum(Fz^2) > 0) b1 <- linkrange(sum(yd * Fz) / sum(Fz^2), dd$family)
+      list(b=c(b1, p), rss=sum((yd - b1 * Fz)^2))
+    })
+    rss <- vapply(cand, function(cd) cd$rss, numeric(1))
+    best <- cand[[if (all(!is.finite(rss))) 1 else which.min(rss)]]$b
+  }
 
-  pooled <- c(linkfun(dd$lnk[1], best[1]), linkfun(dd$lnk[2], best[2]), linkfun(dd$lnk[3], best[3]), 0, 0)
+  # threshold of a truncated curve, when it is estimated without a starting value (by default, it is
+  # fixed at 0): where the curve without truncation reaches 1% of its asymptote; for the families with
+  # a positive response before the threshold impossible, also before the first time with a positive
+  # count (count families) or before all times (lognormal, beta)
+  b4 <- 0
+  if (isTRUE(dd$trunc) && any(!fix[npi == 4] & is.na(start[npi == 4]))){
+    b4 <- suppressWarnings(gctimeR(dd$mod, 0.01, best[2], best[3], b5=a))
+    if (dd$family %in% c("lognormal", "beta")){
+      b4 <- min(b4, min(td) - trange / 100)
+    } else if (dd$family != "gaussian"){
+      pos <- td[yd > 0]
+      if (length(pos) > 0) b4 <- min(b4, min(pos) - trange / 100)
+    }
+    if (!is.finite(b4)) b4 <- min(td) - trange / 100
+    # models on the log time axis: a threshold up to zero does not truncate the curve, and has no
+    # gradient
+    if (m$logtime && b4 <= 0) b4 <- min(c(td[td > 0], best[2])) / 2
+  }
+  orig <- c(best, b4)
+  pooled <- c(vapply(1:4, function(i) suppressWarnings(linkfun(dd$lnk[i], orig[i])), numeric(1)), linkfun(dd$lnk[5], a))
+  # starting values outside the range of their links, e.g. a negative time with the log link
+  bad <- setdiff(which(!is.finite(pooled[1:4])), unusedpars(dd$mod, isTRUE(dd$trunc)))
+  bad <- bad[vapply(bad, function(i) any(is.na(start[npi == i]) & !fix[npi == i]), logical(1))]
+  if (length(bad) > 0) stop("the starting value of ", paste("b", bad, " (", signif(orig[bad], 4), ")", sep="", collapse=", "),
+                            " is outside the range of its ", paste(linknames[dd$lnk[bad]], collapse=", "),
+                            " link; give a starting value on the scale of the link in start, or use another link.")
   projectstart(dd, start, fix, pooled)
 }
 
 # starting values from pooled values of b1-b5: projected onto each design matrix, for the NA
-# entries of start that are not fixed
+# entries of start that are not fixed, and for the threshold b4 and the asymmetry b5 also when fixed
+# (at 0 and 1 by default)
 projectstart <- function(dd, start, fix, pooled){
   npi <- dd$npi
   for (i in 1:5){
@@ -217,7 +294,12 @@ projectstart <- function(dd, start, fix, pooled){
     X <- dd$Xs[[i]]
     cf <- qr.coef(qr(X), rep(pooled[i], nrow(X)))
     cf[is.na(cf) | abs(cf) < 1e-8 * max(abs(pooled[i]), 1)] <- 0
-    fill <- is.na(start[id]) & !fix[id]
+    fill <- is.na(start[id]) & (!fix[id] | i >= 4)
+    # b4 = 0 fixed by default has no value on the log scale
+    if (any(fill) && !is.finite(pooled[i])){
+      stop("the default b", i, " = ", linkfun(dd$lnk[i], pooled[i], inverse=TRUE), " is outside the range of its ", linknames[dd$lnk[i]],
+           " link; give its value in start, e.g. start=c(b", i, "=0), or estimate it with fix=c(b", i, "=FALSE).")
+    }
     start[id[fill]] <- cf[fill]
   }
   start[is.na(start)] <- 0
@@ -276,14 +358,27 @@ gridrange <- function(dd, start){
   if (!is.null(i2)){
     ext <- 0.25*diff(range(x))
     if (ext == 0) ext <- 1
-    rng[[i2]] <- list(lower=min(x) - ext, upper=max(x) + ext, log=FALSE)
+    lo <- min(x) - ext
+    up <- max(x) + ext
+    # log link and the models on the log time axis: positive times
+    if (dd$lnk[2] == linkindex("log") || gcmodel(dd$mod)$logtime) lo <- max(lo, min(x[x > 0], up) / 4)
+    rng[[i2]] <- list(lower=linkfun(dd$lnk[2], lo), upper=linkfun(dd$lnk[2], up), log=FALSE)
   }
   # b3: keep the sign of the starting value, between 1/4 and 4 times its value
   i3 <- single(3)
   if (!is.null(i3)){
     b3 <- start[i3]
-    if (!is.finite(b3) || b3 == 0) b3 <- 1
-    rng[[i3]] <- list(lower=b3/4, upper=b3*4, log=TRUE)
+    if (dd$lnk[3] == linkindex("log")){
+      # log link: the log of 1/4 to 4 times the scale
+      if (!is.finite(b3)) b3 <- 0
+      rng[[i3]] <- list(lower=b3 - log(4), upper=b3 + log(4), log=FALSE)
+    } else {
+      if (!is.finite(b3) || b3 == 0) b3 <- 1
+      lo <- b3/4
+      # the weibull shape is larger than 1
+      if (identical(gcmodel(dd$mod)$b3, "shape") && dd$lnk[3] == 1) lo <- max(lo, 1.01)
+      rng[[i3]] <- list(lower=lo, upper=max(b3*4, lo*4), log=TRUE)
+    }
   }
   rng
 }
@@ -301,7 +396,7 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
   vs <- if (length(re$terms) > 0) varstart(dd, start, re) else list(theta=numeric(0))
   stheta <- vs$theta
   up <- rep(0, sum(tnp*tnl))
-  dlist <- list(model="gcTMB", y=dd$y, x=dd$x, w=dd$w, bn=dd$bn, fam=dd$fam, mod=dd$mod, lnk=as.integer(dd$lnk),
+  dlist <- list(model="gcTMB", y=dd$y, x=dd$x, w=dd$w, bn=dd$bn, fam=dd$fam, mod=dd$mod, trunc=as.integer(isTRUE(dd$trunc)), lnk=as.integer(dd$lnk),
                 tnp=tnp, tnl=tnl, tpar=as.integer(unlist(lapply(re$terms, function(tm) tm$pars)) - 1),
                 tzb=if (length(re$terms) > 0) tzbvec(re$terms) else integer(0),
                 simre=1L, Z=re$Z)
@@ -374,7 +469,7 @@ varstart <- function(dd, start, re){
   eta <- matrix(eta, nrow=length(dd$y))
   meanfun <- function(eta) gcmeanR(dd$mod, dd$x, linkfun(dd$lnk[1], eta[, 1], inverse=TRUE), linkfun(dd$lnk[2], eta[, 2], inverse=TRUE),
                                     linkfun(dd$lnk[3], eta[, 3], inverse=TRUE), linkfun(dd$lnk[4], eta[, 4], inverse=TRUE),
-                                    linkfun(dd$lnk[5], eta[, 5], inverse=TRUE))
+                                    linkfun(dd$lnk[5], eta[, 5], inverse=TRUE), trunc=isTRUE(dd$trunc))
   mu <- meanfun(eta)
   # response on the scale of the mean (proportions for binomial counts), on the log scale for lognormal
   binom <- dd$family %in% c("binomial", "betabinomial")
@@ -397,6 +492,8 @@ varstart <- function(dd, start, re){
   # asymptote b1, 10% of the scale b3 for the time b2, and 10% of the linear predictor for b3
   b <- vapply(1:5, function(k) linkfun(dd$lnk[k], start[npi == k][1], inverse=TRUE), numeric(1))
   fscale <- vapply(1:5, function(k){
+    # log and logit links: 10% on the scale of the link, a relative variation for log
+    if (dd$lnk[k] %in% linkindex(c("log", "logit"))) return(0.1)
     s <- switch(k, abs(b[1]), abs(b[3]), abs(linkfun(dd$lnk[3], b[3])), abs(b[4]), abs(b[5]))
     if (!is.finite(s) || s == 0) 1 else 0.1*s
   }, numeric(1))
@@ -605,6 +702,17 @@ parvector <- function(v, npi, default, arg){
   pn <- match(names(v), paste("b", 1:5, sep=""))
   if (any(is.na(pn)) | any(duplicated(pn))) stop("the names of ", arg, " must be distinct parameter names b1-b5.")
   for (i in seq_along(v)) out[npi == pn[i]] <- v[[i]]
+  out
+}
+
+# fix as a vector with one entry per coefficient (see parvector); the threshold b4 and the asymmetry
+# b5 are fixed unless fix is an unnamed vector or names them, e.g. fix=c(b4=FALSE, b5=FALSE) to
+# estimate them
+defaultfix <- function(fix, npi){
+  out <- parvector(fix, npi, FALSE, "fix")
+  for (p in 4:5){
+    if (is.null(fix) || (!is.null(names(fix)) && !(paste("b", p, sep="") %in% names(fix)))) out[npi == p] <- TRUE
+  }
   out
 }
 

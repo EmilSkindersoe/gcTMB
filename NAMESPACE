@@ -2,9 +2,11 @@
 
 S3method(anova,gcTMB)
 S3method(coef,gcTMB)
+S3method(coef,maxrateTMB)
 S3method(coef,timetoTMB)
 S3method(confint,bootstrap.gcTMB)
 S3method(confint,gcTMB)
+S3method(confint,maxrateTMB)
 S3method(confint,profile.gcTMB)
 S3method(confint,timetoTMB)
 S3method(df.residual,gcTMB)
@@ -16,19 +18,23 @@ S3method(plot,profile.gcTMB)
 S3method(predict,gcTMB)
 S3method(print,bootstrap.gcTMB)
 S3method(print,gcTMB)
+S3method(print,maxrateTMB)
 S3method(print,summary.gcTMB)
 S3method(print,timetoTMB)
 S3method(profile,gcTMB)
+S3method(profile,maxrateTMB)
 S3method(profile,timetoTMB)
 S3method(residuals,gcTMB)
 S3method(simulate,gcTMB)
 S3method(summary,gcTMB)
 S3method(vcov,gcTMB)
+S3method(vcov,maxrateTMB)
 S3method(vcov,timetoTMB)
 export(bootstrap)
 export(gcTMB)
 export(gcTMBcontrol)
 export(gcTMBstart)
+export(maxrate)
 export(timeto)
 importFrom(Matrix,
   bdiag,
@@ -58,6 +64,7 @@ importFrom(stats,
   confint,
   cor,
   df.residual,
+  dlogis,
   fitted,
   lm,
   lm.fit,
@@ -70,6 +77,7 @@ importFrom(stats,
   na.pass,
   nlminb,
   nobs,
+  optimize,
   pbeta,
   pbinom,
   pchisq,
@@ -101,6 +109,7 @@ importFrom(stats,
   simulate,
   splinefun,
   terms,
+  uniroot,
   vcov
 )
 importFrom(utils,

@@ -9,8 +9,14 @@
   as a power of the fitted mean, or depending on time or a covariate,
   as in `nlme::varPower` / `varExp` / `varIdent`).
 
-## Later
+## Done in 0.1.0
 
-- [ ] More growth models: Hill, Weibull, and Richards (logistic with an
-  asymmetry parameter). When added, generalise the model description in the
-  vignette, README, DESCRIPTION and help pages.
+- [x] Truncation of the curves at a threshold b4 (`truncated = TRUE`).
+- [x] Log and logit links.
+- [x] Hill and Weibull growth models.
+- [x] Asymmetry parameter b5 for all models (Richards curve for the logistic model).
+- [x] Truncation is the default, with b4 fixed at 0 (`fix = c(b4 = FALSE)` estimates it,
+  `truncated = FALSE` turns it off).
+- [x] `maxrate()`: time and value of the maximum growth rate and the fraction of the
+  asymptote reached then, with Wald, profile and bootstrap intervals.
+- [x] Normal and gamma CDF growth models, and a linear model b1*t + b2 for comparison.

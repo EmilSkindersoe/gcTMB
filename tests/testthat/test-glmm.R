@@ -20,7 +20,7 @@ simbinom <- function(seed=2){
 
 test_that("binomial logistic without random effects agrees with glm", {
   d <- simbinom()
-  f <- gcTMB(cbind(y, n - y) ~ day, data=d, family="binomial", start=asym1$start, fix=asym1$fix, link=asym1$link)
+  f <- gcTMB(cbind(y, n - y) ~ day, truncated=FALSE, data=d, family="binomial", start=asym1$start, fix=asym1$fix, link=asym1$link)
   g <- glm(cbind(y, n - y) ~ day, data=d, family=binomial)
   b <- coef(g)
   expect_equal(f$opt$objective, -as.numeric(logLik(g)), tolerance=1e-7)
@@ -30,7 +30,7 @@ test_that("binomial logistic without random effects agrees with glm", {
 
 test_that("binomial logistic with random b2 agrees with glmer", {
   d <- simbinom()
-  f <- gcTMB(cbind(y, n - y) ~ day, rform=b2 ~ 1 | id, data=d, family="binomial",
+  f <- gcTMB(cbind(y, n - y) ~ day, truncated=FALSE, rform=b2 ~ 1 | id, data=d, family="binomial",
              start=asym1$start, fix=asym1$fix, link=asym1$link)
   g <- lme4::glmer(cbind(y, n - y) ~ day + (1 | id), data=d, family=binomial)
   b <- lme4::fixef(g)
@@ -46,13 +46,13 @@ test_that("beta logistic agrees with glmmTMB, with and without random effects", 
   u <- rnorm(12, 0, 0.5)
   mu <- plogis(0.3*(d$day - 10) + u[d$id])
   d$y <- rbeta(nrow(d), mu*30, (1 - mu)*30)
-  f1 <- gcTMB(y ~ day, data=d, family="beta", start=asym1$start, fix=asym1$fix, link=asym1$link)
+  f1 <- gcTMB(y ~ day, truncated=FALSE, data=d, family="beta", start=asym1$start, fix=asym1$fix, link=asym1$link)
   g1 <- glmmTMB::glmmTMB(y ~ day, data=d, family=glmmTMB::beta_family())
   b <- glmmTMB::fixef(g1)$cond
   expect_equal(f1$opt$objective, -as.numeric(logLik(g1)), tolerance=1e-6)
   expect_equal(unname(bcoef(f1)), unname(c(-b[1]/b[2], b[2])), tolerance=1e-4)
   expect_equal(unname(exp(coef(f1)["log_phi"])), sigma(g1), tolerance=1e-4)
-  f2 <- gcTMB(y ~ day, rform=b2 ~ 1 | id, data=d, family="beta", start=asym1$start, fix=asym1$fix, link=asym1$link)
+  f2 <- gcTMB(y ~ day, truncated=FALSE, rform=b2 ~ 1 | id, data=d, family="beta", start=asym1$start, fix=asym1$fix, link=asym1$link)
   g2 <- glmmTMB::glmmTMB(y ~ day + (1 | id), data=d, family=glmmTMB::beta_family())
   expect_equal(f2$opt$objective, -as.numeric(logLik(g2)), tolerance=1e-6)
 })
@@ -61,7 +61,7 @@ test_that("random asymptotes: gcTMB and nlme maximise the same exact likelihood"
   skip_if_not_installed("nlme")
   for (m in models){
     d <- simre(m, sd2=0)
-    f <- gcTMB(y ~ day, rform=b1 ~ 1 | id, data=d, model=m)
+    f <- gcTMB(y ~ day, truncated=FALSE, rform=b1 ~ 1 | id, data=d, model=m)
     n <- nlme::nlme(formulas[[m]], fixed=b1 + b2 + b3 ~ 1, random=b1 ~ 1, groups=~id, data=d,
                     start=setNames(bcoef(f), c("b1", "b2", "b3")), method="ML")
     np <- c(nlme::fixef(n), log(as.numeric(nlme::VarCorr(n)[1, 2])), log(n$sigma))
@@ -74,7 +74,7 @@ test_that("random asymptotes: gcTMB and nlme maximise the same exact likelihood"
 test_that("random times of the maximum growth rate agree approximately with nlme", {
   skip_if_not_installed("nlme")
   d <- simre(sd1=0, sd2=1.5)
-  f <- gcTMB(y ~ day, rform=b2 ~ 1 | id, data=d)
+  f <- gcTMB(y ~ day, truncated=FALSE, rform=b2 ~ 1 | id, data=d)
   n <- nlme::nlme(formulas$logistic, fixed=b1 + b2 + b3 ~ 1, random=b2 ~ 1, groups=~id, data=d,
                   start=setNames(bcoef(f), c("b1", "b2", "b3")), method="ML")
   se <- sqrt(diag(vcov(f)))[1:3]
@@ -89,7 +89,7 @@ test_that("random slopes of the asymptote agree with nlme", {
   d$x <- rep(c(-1, 1), length.out=nrow(d))
   u <- cbind(rnorm(12, 0, 4), rnorm(12, 0, 3))
   d$y <- (50 + 5*d$x + u[d$id, 1] + u[d$id, 2]*d$x)/(1 + exp(-(d$day - 10)/2.5)) + rnorm(nrow(d), 0, 1)
-  f <- gcTMB(y ~ day, fform=b1 ~ x, rform=b1 ~ x | id, data=d)
+  f <- gcTMB(y ~ day, truncated=FALSE, fform=b1 ~ x, rform=b1 ~ x | id, data=d)
   n <- nlme::nlme(y ~ b1/(1 + exp(-(day - b2)/b3)), fixed=list(b1 ~ x, b2 + b3 ~ 1), random=b1 ~ x, groups=~id, data=d,
                   start=unname(bcoef(f)), method="ML")
   expect_lte(f$opt$objective, -as.numeric(logLik(n)) + 1e-5)

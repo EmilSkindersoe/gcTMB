@@ -5,7 +5,7 @@
 \alias{gcTMB-package}
 \title{gcTMB: Fitting Growth Curves Using the Template Model Builder}
 \description{
-Fits non-linear growth curves over time, optionally with covariates on the parameters and random effects, by maximum likelihood using the Template Model Builder ('TMB'), with the Laplace approximation for the random effects. The logistic and Gompertz growth models are available, parameterised by the asymptote, the time of the maximum growth rate and a scale (or rate) parameter, and the response can follow a Gaussian, lognormal, Poisson, binomial, beta, beta-binomial or negative binomial distribution. The times at which the curves reach a level of their asymptote and their standard errors are derived by automatic differentiation.
+Fits non-linear growth curves over time, optionally with covariates on the parameters and random effects, by maximum likelihood using the Template Model Builder ('TMB'), with the Laplace approximation for the random effects. The logistic, Gompertz, Hill and Weibull growth models are available, parameterised by the asymptote, a time (of the maximum growth rate or of half the asymptote) and a scale, slope or shape parameter, optionally truncated at a threshold time before which the response is zero, and the response can follow a Gaussian, lognormal, Poisson, binomial, beta, beta-binomial or negative binomial distribution. The times at which the curves reach a level of their asymptote and their standard errors are derived by automatic differentiation.
 }
 \author{
 \strong{Maintainer}: Emil Skindersoe \email{e.skindersoe@gmail.com} (\href{https://orcid.org/0009-0000-2172-1614}{ORCID})

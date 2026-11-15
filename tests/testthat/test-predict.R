@@ -1,7 +1,7 @@
 test_that("predict equals the mean function at the estimates", {
   for (m in models){
     d <- simgauss(m)
-    f <- gcTMB(y ~ day, data=d, model=m)
+    f <- gcTMB(y ~ day, truncated=FALSE, data=d, model=m)
     expect_equal(predict(f), gcmean(m, d$day, bcoef(f)), tolerance=1e-10, label=m)
   }
 })
@@ -9,7 +9,7 @@ test_that("predict equals the mean function at the estimates", {
 test_that("standard errors equal the delta method", {
   for (m in models){
     d <- simgauss(m)
-    f <- gcTMB(y ~ day, data=d, model=m)
+    f <- gcTMB(y ~ day, truncated=FALSE, data=d, model=m)
     nd <- data.frame(day=c(0, 5, 10, 15, 30))
     p <- predict(f, newdata=nd, se.fit=TRUE)
     b <- unname(bcoef(f))
@@ -25,7 +25,7 @@ test_that("standard errors equal the delta method", {
 
 test_that("confidence and prediction intervals of gaussian models", {
   d <- simgauss("logistic")
-  f <- gcTMB(y ~ day, data=d)
+  f <- gcTMB(y ~ day, truncated=FALSE, data=d)
   nd <- data.frame(day=c(2, 10, 20))
   ci <- predict(f, newdata=nd, interval="confidence")
   pi <- predict(f, newdata=nd, interval="prediction")
@@ -37,7 +37,7 @@ test_that("confidence and prediction intervals of gaussian models", {
 
 test_that("prediction intervals for fitted groups and for new groups", {
   d <- simre()
-  f <- gcTMB(y ~ day, rform=b1 ~ 1 | id, data=d)
+  f <- gcTMB(y ~ day, truncated=FALSE, rform=b1 ~ 1 | id, data=d)
   nd <- data.frame(day=c(20, 20), id=c("1", "new"))
   p <- predict(f, newdata=nd, interval="prediction")
   vc <- gcTMB:::recov(f)[[1]]
@@ -53,7 +53,7 @@ test_that("confidence intervals stay in the range of the mean", {
   set.seed(9)
   d <- data.frame(day=rep(days, each=2), n=10)
   d$k <- rbinom(nrow(d), d$n, gcmean("logistic", d$day, c(0.9, 10, 2.5)))
-  f <- gcTMB(cbind(k, n - k) ~ day, data=d, family="binomial")
+  f <- gcTMB(cbind(k, n - k) ~ day, truncated=FALSE, data=d, family="binomial")
   ci <- predict(f, newdata=data.frame(day=c(0, 10, 24)), interval="confidence")
   expect_true(all(ci$lwr > 0 & ci$upr < 1))
   # parameter draws with b1 > 1 give no binomial observations, with a warning
@@ -65,7 +65,7 @@ test_that("predicted parameters are the coefficients, with their standard errors
   d <- rbind(cbind(simgauss("logistic", seed=1), trt="a"),
              cbind(simgauss("logistic", seed=2, b=c(60, 12, 2.5)), trt="b"))
   d$trt <- factor(d$trt)
-  f <- gcTMB(y ~ day, fform=b1 + b2 ~ trt, data=d)
+  f <- gcTMB(y ~ day, truncated=FALSE, fform=b1 + b2 ~ trt, data=d)
   nd <- data.frame(trt=c("a", "b"))
   pp <- predict(f, newdata=nd, type="parameters")
   b <- bcoef(f)
@@ -80,7 +80,7 @@ test_that("predicted parameters are the coefficients, with their standard errors
 
 test_that("bootstrap intervals of predictions", {
   d <- simgauss("logistic")
-  f <- gcTMB(y ~ day, data=d)
+  f <- gcTMB(y ~ day, truncated=FALSE, data=d)
   bt <- bootstrap(f, nsim=100, seed=1, progress=FALSE)
   nd <- data.frame(day=c(5, 10, 20))
   pb <- predict(f, newdata=nd, interval="confidence", boot=bt)

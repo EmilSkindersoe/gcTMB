@@ -192,8 +192,10 @@ profcutoffs <- function(object, level){
 #' Likelihood profiles of times to reach a level of the asymptote
 #'
 #' Profiles the (marginal) log-likelihood for the times estimated by \code{\link{timeto}}. At each
-#' value of a time, the model is reparameterised: the time b2 + b3 Finv(q) can be solved for b2, so one
-#' coefficient of b2 is computed from the time and the other coefficients, which are re-optimised.
+#' value of a time, the model is reparameterised: the time, e.g. b2 + b3 Finv(q) for the logistic
+#' model, can be solved for b2, so one coefficient of b2 is computed from the time and the other
+#' coefficients, which are re-optimised. For truncated curves, the time also depends on b2 through the
+#' threshold b4, and b2 is found numerically.
 #'
 #' The profiles are for the times of the population curves, without the random effects; the
 #' variation between groups (\code{random=TRUE} in \code{\link{timeto}}) and the residual variation are
@@ -226,6 +228,7 @@ profile.timetoTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress
   if (any(timetoflag(fitted, "conditional")[parm])) stop("profiles are not available for the times of fitted groups.")
   if (anyNA(est[parm])) stop("the times ", paste(names(est)[parm][is.na(est[parm])], collapse=", "), " are NA.")
   absolute <- identical(fitted$type, "absolute")
+  if (islinear(modelindex(fit$model))) stop("profiles of the times are not available for the linear model; use confint(..., method=\"wald\") or method=\"boot\".")
 
   obj <- fit$obj
   # keep the state of the TMB object, as tmbprofile does
@@ -236,6 +239,7 @@ profile.timetoTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress
   obj$env$tracemgc <- FALSE
 
   mod <- modelindex(fit$model)
+  trunc <- fittrunc(fit)
   lnk <- linkindex(fit$link)
   free <- which(!fit$fix)
   nf <- length(free)
@@ -272,7 +276,22 @@ profile.timetoTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress
     b2fun <- function(tt, lpv){
       b <- linkpars(lnk, lpv)
       qf <- timeq(fit, q, lpv, absolute)
-      linkfun(lnk[ps], tt - b[3] * gcmodel(mod)$Finv(qf))
+      m <- gcmodel(mod)
+      b2u <- m$b2fromz(tt, Ginv(m, qf, b[5], b[3]), b[3])
+      if (!trunc) return(linkfun(lnk[ps], b2u))
+      # truncated curve: the time depends on b2 also through the threshold, b2 is found numerically,
+      # starting from b2 of the curve without truncation; the time increases with b2. For the models on
+      # the log time axis, b2 is positive and found on the log scale.
+      if (!is.finite(qf) || qf <= 0 || qf >= 1 || !is.finite(b2u)) return(NA)
+      if (m$logtime){
+        tfun <- function(lb2) gctimeR(mod, qf, exp(lb2), b[3], b[4], b[5], trunc=TRUE) - tt
+        r <- tryCatch(exp(uniroot(tfun, log(b2u) + c(-0.1, 0.1), extendInt="upX", tol=1e-12)$root), error=function(e) NA)
+      } else {
+        tfun <- function(b2) gctimeR(mod, qf, b2, b[3], b[4], b[5], trunc=TRUE) - tt
+        r <- tryCatch(uniroot(tfun, c(b2u - abs(b[3]), b2u + abs(b[3])), extendInt="upX", tol=1e-10)$root,
+                      error=function(e) NA)
+      }
+      linkfun(lnk[ps], r)
     }
     expand <- function(x, tt){
       par <- append(x, 0, after=kp - 1)
@@ -348,8 +367,8 @@ timevalue <- function(object, i, lpv){
   fit <- object$fit
   b <- linkpars(linkindex(fit$link), lpv)
   q <- timeq(fit, object$q[[i]], lpv, identical(object$type, "absolute"))
-  if (!is.finite(q) || q <= 0 || q >= 1) return(NA)
-  gctimeR(modelindex(fit$model), q, b[2], b[3])
+  if (!is.finite(q) || (!islinear(modelindex(fit$model)) && (q <= 0 || q >= 1))) return(NA)
+  gctimeR(modelindex(fit$model), q, b[2], b[3], b[4], b[5], trunc=fittrunc(fit), b1=b[1])
 }
 
 #' Confidence intervals for gcTMB models and times to reach a level of the asymptote
@@ -439,6 +458,10 @@ confint.timetoTMB <- function(object, parm=NULL, level=0.95, method=c("profile",
       method <- "wald"
     } else if (method == "profile" && any(timetoflag(object, "conditional")[parm])){
       message("Wald intervals: profile intervals are not available for the times of fitted groups; ",
+              "use method=\"boot\" for bootstrap intervals.")
+      method <- "wald"
+    } else if (method == "profile" && islinear(modelindex(fit$model))){
+      message("Wald intervals: profile intervals are not available for the linear model; ",
               "use method=\"boot\" for bootstrap intervals.")
       method <- "wald"
     }

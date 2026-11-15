@@ -65,8 +65,8 @@ print.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...){
     print(x$call)
     cat("\n")
   }
-  cat("Model:  ", x$model, "\n", sep="")
-  cat("Family: ", x$family, ", ", linktext(x$link, x$model), "\n", sep="")
+  cat("Model:  ", x$model, trunctext(x), "\n", sep="")
+  cat("Family: ", x$family, ", ", linktext(x$link, x$model, fittrunc(x)), "\n", sep="")
 
   cat("\nCoefficients:\n")
   print.default(format(coef(x)[seq_len(sum(!x$fix))], digits=digits), print.gap=2L, quote=FALSE)
@@ -123,6 +123,8 @@ summary.gcTMB <- function(object, ...){
     } else {
       r2 <- (dat$y - dat$bn*mu)^2 / (dat$bn*mu*(1 - mu))
     }
+    # zero counts at a mean of zero (a truncated curve before its threshold)
+    r2[mu == 0 & dat$y == 0] <- 0
     rdf <- nobs(object) - attr(ll, "df")
     chisq <- sum(dat$w * r2)
     dispersion <- c(chisq=chisq, df=rdf, ratio=chisq/rdf)
@@ -143,7 +145,7 @@ summary.gcTMB <- function(object, ...){
     gr[object$opt$par <= lo & gr > 0] <- 0
     gr[object$opt$par >= up & gr < 0] <- 0
   }
-  res <- list(call=object$call, model=object$model, family=object$family, link=object$link, b3inverse=object$link[["b3"]] == "inverse",
+  res <- list(call=object$call, model=object$model, truncated=fittrunc(object), trunctext=trunctext(object), family=object$family, link=object$link, b3inverse=object$link[["b3"]] == "inverse",
               direction=direction,
               nobs=nobs(object), ntrials=if (object$family %in% c("binomial", "betabinomial")) sum(dat$bn), ngroups=ngroups,
               logLik=ll, AIC=AIC(object), BIC=BIC(object),
@@ -164,8 +166,9 @@ print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...
     print(x$call)
     cat("\n")
   }
-  cat("Model:  ", x$model, if (!is.null(x$direction)) paste(",", x$direction, "curve"), "\n", sep="")
-  cat("Family: ", x$family, ", ", linktext(x$link, x$model), "\n", sep="")
+  cat("Model:  ", x$model, if (!is.null(x$direction)) paste(",", x$direction, "curve"),
+      x$trunctext, "\n", sep="")
+  cat("Family: ", x$family, ", ", linktext(x$link, x$model, fittrunc(x)), "\n", sep="")
 
   cat("\nNumber of observations: ", x$nobs, sep="")
   if (!is.null(x$ntrials)) cat(", number of trials: ", x$ntrials, sep="")
@@ -179,6 +182,10 @@ print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...
   if (length(x$atbound) > 0) cat("At a bound: ", paste(names(x$atbound), "=", format(x$atbound, digits=digits), collapse=", "),
                                   "; the standard errors and Wald intervals do not account for the bound.\n", sep="")
   if (isTRUE(x$b3inverse)) cat("The coefficients of b3 are on the inverse scale: the rate 1/b3.\n")
+  for (lk in c("log", "logit")){
+    pl <- names(x$link)[x$link == lk]
+    if (length(pl) > 0) cat("The coefficients of ", paste(pl, collapse=", "), " are on the ", lk, " scale.\n", sep="")
+  }
   printfixed(x$fixed, digits)
   printre(x$varcor, digits)
   if (length(x$singular) > 0){
@@ -246,7 +253,10 @@ residuals.gcTMB <- function(object, type=c("pearson", "response", "quantile"), r
                 beta=mu*(1 - mu)/(1 + phi),
                 nbinom2=mu*(1 + mu/phi),
                 nbinom1=mu*(1 + phi))
-    return((y - mu)/sqrt(v) * sqrt(as.vector(dat$w)))
+    r <- (y - mu)/sqrt(v) * sqrt(as.vector(dat$w))
+    # a zero count at a mean of zero (a truncated curve before its threshold) has no variation
+    r[mu == 0 & y == 0 & object$family != "gaussian"] <- 0
+    return(r)
   }
 
   # randomised quantile residuals: normal quantiles of the fitted distribution function at the
@@ -359,7 +369,7 @@ preddata <- function(object, newdata, random, covs=FALSE){
   }
   Zp <- if (length(Zl) > 0) do.call(cbind, unlist(Zl, recursive=FALSE)) else Matrix::sparseMatrix(i=integer(0), j=integer(0), x=numeric(0), dims=c(n, 0))
   list(x=x, Xs=Xs, eta=eta, Zp=Zp, Zl=Zl, X=rl$X, newgroup=newgroup,
-       mod=modelindex(object$model), lnk=linkindex(object$link))
+       mod=modelindex(object$model), trunc=fittrunc(object), lnk=linkindex(object$link))
 }
 
 # design of the random effects of the fitted levels in newdata. For each term: Zl, a design block for
@@ -427,7 +437,7 @@ reloads <- function(tm, X){
 # mean function at the linear predictors eta of b1-b5
 predmean <- function(pd, eta){
   b <- linkpars(pd$lnk, eta)
-  as.vector(gcmeanR(pd$mod, pd$x, b[, 1], b[, 2], b[, 3], b[, 4], b[, 5]))
+  as.vector(gcmeanR(pd$mod, pd$x, b[, 1], b[, 2], b[, 3], b[, 4], b[, 5], trunc=isTRUE(pd$trunc)))
 }
 
 # standard errors of the predicted means by the delta method of TMB: the mean at the new times is
@@ -460,7 +470,9 @@ predictpars <- function(object, newdata, random, se.fit, interval, level, boot, 
   for (v in setdiff(all.vars(object$formula[[3]]), names(newdata))) newdata[[v]] <- NA
   pd <- preddata(object, newdata, random, covs=interval == "prediction")
   n <- length(pd$x)
-  used <- setdiff(1:5, unusedpars(pd$mod))
+  used <- setdiff(1:5, unusedpars(pd$mod, isTRUE(pd$trunc)))
+  # b4 and b5 only if they are not at their defaults
+  for (k in 4:5) if (atdefault(object, k)) used <- setdiff(used, k)
   pnames <- paste("b", used, sep="")
   out <- function(eta) if (scale == "link") eta else linkpars(pd$lnk, eta)
   fit <- out(pd$eta)[, used, drop=FALSE]
@@ -788,18 +800,39 @@ atbound <- function(object){
 
 # links of a fit, as text: the identity link for all parameters, or the parameters with other links
 # and the identity link for the others
-linktext <- function(link, model){
-  used <- setdiff(1:5, unusedpars(modelindex(model)))
+linktext <- function(link, model, trunc=FALSE){
+  used <- setdiff(1:5, unusedpars(modelindex(model), trunc))
   link <- link[used]
   other <- link[link != "identity"]
   if (length(other) == 0) return("identity link for all parameters")
   paste(paste(other, " link for ", names(other), sep="", collapse=", "), ", identity link for the other parameters", sep="")
 }
 
+# TRUE for a fit with the asymmetry b5 fixed at the symmetric curve, b5 = 1 for all curves (the default)
+symmetric <- function(object) atdefault(object, 5)
+
+# TRUE for a fit with all coefficients of parameter k (4 or 5) fixed at its default, b4 = 0 (the
+# truncation at t = 0) or b5 = 1 (the symmetric curve), for all curves
+atdefault <- function(object, k){
+  npi <- rep(1:5, vapply(object$Xs, ncol, integer(1)))
+  ik <- npi == k
+  if (!all(object$fix[ik])) return(FALSE)
+  b <- linkfun(linkindex(object$link[[k]]), as.vector(object$Xs[[k]] %*% object$start[ik]), inverse=TRUE)
+  all(abs(b - c(0, 1)[k - 3]) < 1e-8)
+}
+
+# description of the truncation of a fit for print and summary
+trunctext <- function(object){
+  if (!fittrunc(object)) return(NULL)
+  if (atdefault(object, 4)) ", truncated at b4 = 0" else ", truncated at the threshold b4"
+}
+
 # coefficients fixed by the user, named; the parameters the model does not use are always fixed
 userfixed <- function(object){
   npi <- as.integer(sub("^b([1-5]):.*", "\\1", object$coefnames))
-  ufix <- object$fix & !(npi %in% unusedpars(modelindex(object$model)))
+  # b4 = 0 and b5 = 1, fixed by default, are not listed
+  sym <- (npi == 4 & atdefault(object, 4)) | (npi == 5 & atdefault(object, 5))
+  ufix <- object$fix & !(npi %in% unusedpars(modelindex(object$model), fittrunc(object))) & !sym
   setNames(object$start[ufix], object$coefnames[ufix])
 }
 

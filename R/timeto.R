@@ -4,7 +4,7 @@
 #' response, with standard errors by the delta method and automatic differentiation.
 #'
 #' @param x A gcTMB object, the result of \code{\link{gcTMB}}.
-#' @param respLev Numeric vector. Levels in percent of the asymptote b1, between 0 and 100 (default 50): the time t p at which the curve reaches p percent of b1, b2 + b3 Finv(p/100) with the inverse Finv of F of the model (see \code{\link{gcTMB}}). For the logistic model, t 50 is b2. For \code{type="absolute"}, values of the response.
+#' @param respLev Numeric vector. Levels in percent of the asymptote b1, between 0 and 100 (default 50): the time t p at which the curve reaches p percent of b1, the time at which the transformed time z(t) is Finv(p/100), with the inverse Finv of F of the model (see \code{\link{gcTMB}}): b2 + b3 Finv(p/100) for the logistic and gompertz models, b2 (p/(100 - p))^(1/b3) for the hill model. For the logistic, normal and hill models without truncation, t 50 is b2. For a curve truncated at the threshold b4 (the default of \code{\link{gcTMB}}), the levels are of the truncated curve, at Finv(p/100 + (1 - p/100) F(z(b4))). For \code{type="absolute"}, values of the response; the linear model, which has no asymptote, has only these.
 #' @param linfct Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curve, with 5 rows (b1-b5) and one column for each model coefficient, or a list of such matrices; default is the identity matrix, for models without covariates in fform. Each matrix is paired with an entry of respLev.
 #' @param newdata Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to linfct; the time is not needed. With grouping variables of the random effects, the curves of fitted groups, see Details. The times are computed at each level of respLev for each row, named by the covariate and group values (or by the row names of newdata, if set).
 #' @param random Logical. If TRUE, the times of rows of newdata with fitted groups are conditional on their random effects, and for the other random effect terms, the variance-covariance matrix of the random effects is included in the standard error estimation. If FALSE, the times are for the population curves.
@@ -69,6 +69,14 @@ timeto <- function(x, respLev=50, linfct=NULL, newdata=NULL, random=TRUE, residu
   }
   if (is.null(names(linfct))) names(linfct) <- paste("lf", 1:length(linfct), sep="")
   ncf <- length(x$start)
+  # a linfct without a row for the asymmetry b5 keeps b5 of the fit, when it is a single coefficient
+  npi <- rep(1:5, vapply(x$Xs, ncol, integer(1)))
+  if (sum(npi == 5) == 1){
+    linfct <- lapply(linfct, function(L){
+      if (is.matrix(L) && nrow(L) == 5 && ncol(L) == ncf && all(L[5, ] == 0)) L[5, npi == 5] <- 1
+      L
+    })
+  }
   for (L in linfct){
     if (!is.matrix(L) || nrow(L) != 5 || ncol(L) != ncf){
       stop("each matrix in linfct must have 5 rows (b1-b5) and one column for each of the ", ncf,
@@ -76,6 +84,7 @@ timeto <- function(x, respLev=50, linfct=NULL, newdata=NULL, random=TRUE, residu
            if (is.null(newdata) && ncf > 5) " Alternatively, give the covariate values of the curves in newdata.")
     }
   }
+  if (!absolute && islinear(modelindex(x$model))) stop("the linear model has no asymptote; use type=\"absolute\" for the times at which it reaches given responses.")
   if (!absolute && any(respLev <= 0 | respLev >= 100)) stop("respLev must be between 0 and 100 percent of the asymptote.")
 
   if (residual == TRUE && x$family != "gaussian"){
@@ -125,14 +134,14 @@ timeto <- function(x, respLev=50, linfct=NULL, newdata=NULL, random=TRUE, residu
     q <- if (absolute) respLev[i] else respLev[i]/100
     ql[i] <- q
     qf <- timeq(x, q, lpv + u, absolute)
-    if (!is.finite(qf) || qf <= 0 || qf >= 1){
+    if (!is.finite(qf) || (!islinear(mod) && (qf <= 0 || qf >= 1))){
       tl[i] <- NA
       grad[i, ] <- NA
       next
     }
 
     # time and its gradient w.r.t. (b1-b5, u1-u5, r) from the gcTime TMB template
-    tobj <- MakeADFun(list(model="gcTime", mod=mod, lnk=as.integer(lnk), absolute=as.integer(absolute), q=q),
+    tobj <- MakeADFun(list(model="gcTime", mod=mod, trunc=as.integer(fittrunc(x)), lnk=as.integer(lnk), absolute=as.integer(absolute), q=q),
                       list(b=lpv, u=u, r=0),
                       ADreport=TRUE, DLL="gcTMB_TMBExports", silent=TRUE)
     tl[i] <- tobj$fn()

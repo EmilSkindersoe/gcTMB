@@ -32,8 +32,10 @@ a profile.timetoTMB object, which has the confint and plot methods of
 }
 \description{
 Profiles the (marginal) log-likelihood for the times estimated by \code{\link{timeto}}. At each
-value of a time, the model is reparameterised: the time b2 + b3 Finv(q) can be solved for b2, so one
-coefficient of b2 is computed from the time and the other coefficients, which are re-optimised.
+value of a time, the model is reparameterised: the time, e.g. b2 + b3 Finv(q) for the logistic
+model, can be solved for b2, so one coefficient of b2 is computed from the time and the other
+coefficients, which are re-optimised. For truncated curves, the time also depends on b2 through the
+threshold b4, and b2 is found numerically.
 }
 \details{
 The profiles are for the times of the population curves, without the random effects; the

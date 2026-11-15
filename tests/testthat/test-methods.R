@@ -1,5 +1,5 @@
 test_that("print shows the call, model, coefficients and variance parameters", {
-  f <- gcTMB(y ~ day, rform=b1 + b2 ~ 1 | id, data=simre())
+  f <- gcTMB(y ~ day, truncated=FALSE, rform=b1 + b2 ~ 1 | id, data=simre())
   out <- capture.output(res <- print(f))
   expect_identical(res, f)
   expect_true(any(grepl("^Call:", out)))
@@ -9,13 +9,13 @@ test_that("print shows the call, model, coefficients and variance parameters", {
   expect_true(any(grepl("^Residual standard deviation", out)))
   expect_false(any(grepl("Std. Error", out)))
   # user-fixed coefficients are listed
-  out <- capture.output(print(gcTMB(y ~ day, data=simgauss("logistic"), start=c(b1=50), fix=c(b1=TRUE))))
+  out <- capture.output(print(gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"), start=c(b1=50), fix=c(b1=TRUE))))
   expect_true(any(grepl("^Fixed: b1:\\(Intercept\\) = 50", out)))
 })
 
 test_that("logLik, AIC, BIC and nobs agree with nls (faba bean heights)", {
   d <- FabaHeights25
-  f <- gcTMB(height ~ DAS, data=d, model="gompertz")
+  f <- gcTMB(height ~ DAS, truncated=FALSE, data=d, model="gompertz")
   n <- fabanls("gompertz")
   expect_equal(as.numeric(logLik(f)), as.numeric(logLik(n)), tolerance=1e-8)
   expect_equal(attr(logLik(f), "df"), attr(logLik(n), "df"))
@@ -26,7 +26,7 @@ test_that("logLik, AIC, BIC and nobs agree with nls (faba bean heights)", {
 
 test_that("summary contains the coefficient table, sample sizes and variance components", {
   d <- simre()
-  f <- gcTMB(y ~ day, rform=list(b1 ~ 1 | id, b2 ~ 1 | id), data=d)
+  f <- gcTMB(y ~ day, truncated=FALSE, rform=list(b1 ~ 1 | id, b2 ~ 1 | id), data=d)
   s <- summary(f)
   expect_s3_class(s, "summary.gcTMB")
   expect_equal(colnames(coef(s)), c("Estimate", "Std. Error"))
@@ -47,14 +47,14 @@ test_that("summary contains the coefficient table, sample sizes and variance com
 })
 
 test_that("logLik counts the variance parameters of mixed models", {
-  f <- gcTMB(y ~ day, rform=b1 + b2 ~ 1 | id, data=simre())
+  f <- gcTMB(y ~ day, truncated=FALSE, rform=b1 + b2 ~ 1 | id, data=simre())
   # 3 coefficients, 2 standard deviations, 1 correlation, residual sd
   expect_equal(attr(logLik(f), "df"), 7)
   expect_equal(as.numeric(logLik(f)), -f$opt$objective)
 })
 
 test_that("coef names the variance parameters", {
-  f <- gcTMB(y ~ day, rform=list(b1 + b2 ~ 1 | id, b3 ~ 1 | id), data=simre(ng=20))
+  f <- gcTMB(y ~ day, truncated=FALSE, rform=list(b1 + b2 ~ 1 | id, b3 ~ 1 | id), data=simre(ng=20))
   cf <- coef(f)
   expect_equal(names(cf)[-(1:3)], c("log_sd:b1|id", "log_sd:b2|id", "corr_par:b2,b1|id", "log_sd:b3|id", "log_sigma"))
   expect_equal(rownames(vcov(f)), names(cf))
@@ -62,7 +62,7 @@ test_that("coef names the variance parameters", {
 
 test_that("fitted values and residuals", {
   d <- simre()
-  f <- gcTMB(y ~ day, rform=b1 ~ 1 | id, data=d)
+  f <- gcTMB(y ~ day, truncated=FALSE, rform=b1 ~ 1 | id, data=d)
   expect_equal(fitted(f), predict(f))
   expect_equal(fitted(f, random=FALSE), predict(f, random=FALSE))
   expect_equal(residuals(f, type="response"), d$y - predict(f))
@@ -75,7 +75,7 @@ test_that("predict uses the factor levels of the fit for new data", {
   d <- simgauss("logistic")
   d$trt <- factor(rep(c("a", "b"), length.out=nrow(d)))
   d$y <- d$y + 5*(d$trt == "b")*(d$day > 10)
-  f <- gcTMB(y ~ day, fform=b1 ~ trt, data=d)
+  f <- gcTMB(y ~ day, truncated=FALSE, fform=b1 ~ trt, data=d)
   p <- predict(f)
   i <- match(c("a", "b"), d$trt)
   nd <- data.frame(day=d$day[i], trt=factor(c("a", "b"), levels=c("b", "a")))
@@ -86,19 +86,19 @@ test_that("predict uses the factor levels of the fit for new data", {
 test_that("observations with missing values are left out", {
   d <- simgauss("logistic")
   d$w <- rep(1:2, length.out=nrow(d))
-  f <- gcTMB(y ~ day, data=d, weights=d$w)
+  f <- gcTMB(y ~ day, truncated=FALSE, data=d, weights=d$w)
   dn <- rbind(d, data.frame(day=c(NA, 1, 2), y=c(5, NA, 5), w=c(1, 1, NA)))
-  fn <- gcTMB(y ~ day, data=dn, weights=dn$w)
+  fn <- gcTMB(y ~ day, truncated=FALSE, data=dn, weights=dn$w)
   expect_equal(coef(fn), coef(f), tolerance=1e-6)
   expect_equal(nobs(fn), nrow(d))
-  expect_error(gcTMB(y ~ day, data=d, weights=1:3), "weights")
+  expect_error(gcTMB(y ~ day, truncated=FALSE, data=d, weights=1:3), "weights")
 })
 
 test_that("small-sample inference of gaussian models without random effects", {
   d <- simgauss("logistic")
   n <- nrow(d)
-  f <- gcTMB(y ~ day, data=d)
-  fml <- gcTMB(y ~ day, data=d, control=list(smallsample=FALSE))
+  f <- gcTMB(y ~ day, truncated=FALSE, data=d)
+  fml <- gcTMB(y ~ day, truncated=FALSE, data=d, control=list(smallsample=FALSE))
   expect_equal(df.residual(f), n - 3)
   expect_null(df.residual(fml))
   expect_equal(logLik(f), logLik(fml))
@@ -107,7 +107,7 @@ test_that("small-sample inference of gaussian models without random effects", {
   expect_equal(residpar(f)^2, sum(residuals(f, type="response")^2)/(n - 3))
   expect_output(print(summary(f)), paste("on", n - 3, "degrees of freedom"))
   expect_equal(timeto(f)$variance, timeto(fml)$variance*n/(n - 3))
-  expect_null(df.residual(gcTMB(y ~ day, rform=b1 ~ 1 | id, data=simre())))
+  expect_null(df.residual(gcTMB(y ~ day, truncated=FALSE, rform=b1 ~ 1 | id, data=simre())))
 })
 
 test_that("methods for the count and proportion families", {
@@ -117,9 +117,9 @@ test_that("methods for the count and proportion families", {
   d$cnt <- rnbinom(nrow(d), size=8, mu=mu)
   p <- gcmean("gompertz", d$day, c(0.8, 10, 2.5))
   d$k <- rbinom(nrow(d), d$n, rbeta(nrow(d), p*15, (1 - p)*15))
-  f2 <- gcTMB(cnt ~ day, data=d, family="nbinom2")
-  f1 <- gcTMB(cnt ~ day, data=d, family="nbinom1")
-  fp <- gcTMB(cnt ~ day, data=d, family="poisson")
+  f2 <- gcTMB(cnt ~ day, truncated=FALSE, data=d, family="nbinom2")
+  f1 <- gcTMB(cnt ~ day, truncated=FALSE, data=d, family="nbinom1")
+  fp <- gcTMB(cnt ~ day, truncated=FALSE, data=d, family="poisson")
   expect_equal(names(coef(f2))[4], "log_theta")
   expect_equal(names(coef(f1))[4], "log_phi")
   expect_lt(AIC(f2), AIC(fp))
@@ -128,8 +128,8 @@ test_that("methods for the count and proportion families", {
   expect_equal(residuals(f2), (d$cnt - mu2)/sqrt(mu2*(1 + mu2/th)))
   expect_true(all(abs(bcoef(f2) - truepars) < 3*sqrt(diag(vcov(f2)))[1:3]))
 
-  fbb <- gcTMB(cbind(k, n - k) ~ day, data=d, family="betabinomial", model="gompertz")
-  fb <- gcTMB(cbind(k, n - k) ~ day, data=d, family="binomial", model="gompertz")
+  fbb <- gcTMB(cbind(k, n - k) ~ day, truncated=FALSE, data=d, family="betabinomial", model="gompertz")
+  fb <- gcTMB(cbind(k, n - k) ~ day, truncated=FALSE, data=d, family="binomial", model="gompertz")
   expect_equal(names(coef(fbb))[4], "log_phi")
   expect_lt(AIC(fbb), AIC(fb))
   expect_true(all(abs(bcoef(fbb) - c(0.8, 10, 2.5)) < 3*sqrt(diag(vcov(fbb)))[1:3]))
@@ -146,17 +146,17 @@ test_that("lognormal responses: a nonlinear regression of log(y)", {
   d <- data.frame(day=rep(days, each=3))
   d$y <- gcmean("gompertz", d$day, truepars) * exp(rnorm(nrow(d), 0, 0.1))
   d <- d[d$y > 0, ]
-  f <- gcTMB(y ~ day, data=d, model="gompertz", family="lognormal")
+  f <- gcTMB(y ~ day, truncated=FALSE, data=d, model="gompertz", family="lognormal")
   n <- nls(log(y) ~ log(b1) - exp(-(day - b2)/b3), data=d, start=list(b1=50, b2=10, b3=2.5))
   expect_equal(unname(bcoef(f)), unname(coef(n)), tolerance=1e-5)
   expect_equal(residpar(f), summary(n)$sigma, tolerance=1e-5)
   expect_error(gcTMB(I(y - 100) ~ day, data=d, family="lognormal"), "positive response")
-  expect_error(gcTMB(y ~ day, data=d, family="beta"), "strictly between 0 and 1")
+  expect_error(gcTMB(y ~ day, truncated=FALSE, data=d, family="beta"), "strictly between 0 and 1")
 })
 
 test_that("a non-finite objective at the estimates gives a warning", {
   # positive counts at times where the fixed curve is zero
   d <- data.frame(day=c(-200, days), y=c(3, rpois(length(days), gcmean("logistic", days, truepars))))
-  expect_warning(gcTMB(y ~ day, data=d, family="poisson", start=c(b2=10, b3=0.1), fix=c(b2=TRUE, b3=TRUE)),
+  expect_warning(gcTMB(y ~ day, truncated=FALSE, data=d, family="poisson", start=c(b2=10, b3=0.1), fix=c(b2=TRUE, b3=TRUE)),
                  "not finite")
 })

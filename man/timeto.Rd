@@ -17,7 +17,7 @@ timeto(
 \arguments{
 \item{x}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
-\item{respLev}{Numeric vector. Levels in percent of the asymptote b1, between 0 and 100 (default 50): the time t p at which the curve reaches p percent of b1, b2 + b3 Finv(p/100) with the inverse Finv of F of the model (see \code{\link{gcTMB}}). For the logistic model, t 50 is b2. For \code{type="absolute"}, values of the response.}
+\item{respLev}{Numeric vector. Levels in percent of the asymptote b1, between 0 and 100 (default 50): the time t p at which the curve reaches p percent of b1, the time at which the transformed time z(t) is Finv(p/100), with the inverse Finv of F of the model (see \code{\link{gcTMB}}): b2 + b3 Finv(p/100) for the logistic and gompertz models, b2 (p/(100 - p))^(1/b3) for the hill model. For the logistic, normal and hill models without truncation, t 50 is b2. For a curve truncated at the threshold b4 (the default of \code{\link{gcTMB}}), the levels are of the truncated curve, at Finv(p/100 + (1 - p/100) F(z(b4))). For \code{type="absolute"}, values of the response; the linear model, which has no asymptote, has only these.}
 
 \item{linfct}{Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curve, with 5 rows (b1-b5) and one column for each model coefficient, or a list of such matrices; default is the identity matrix, for models without covariates in fform. Each matrix is paired with an entry of respLev.}
 

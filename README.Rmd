@@ -29,13 +29,25 @@ The vignette introduces the package with worked examples on faba bean data: [gcT
 
 ## Growth models
 
-The main function is `gcTMB()`. The models are of the form f(t) = b1 F((t - b2)/b3), with the logistic (`model = "logistic"`) or Gompertz (`model = "gompertz"`) function F:
+The main function is `gcTMB()`. The models are of the form f(t) = b1 F(z(t)), with a function F increasing from 0 to 1 and a transformed time z(t):
 
-* b1 is the asymptote approached at late times,
-* b2 is the time of the maximum growth rate (the inflection point),
-* b3 is the scale of the curve on the time axis; with `link = c(b3 = "inverse")` its coefficients are the rate 1/b3.
+| `model` | f(t) | b2 | b3 |
+|---|---|---|---|
+| `"logistic"` | b1 / (1 + exp(-(t - b2)/b3)) | inflection point | scale |
+| `"gompertz"` | b1 exp(-exp(-(t - b2)/b3)) | inflection point | scale |
+| `"hill"` | b1 / (1 + (b2/t)^b3) | time of half the asymptote | slope on the log time axis |
+| `"weibull"` | b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)) | inflection point | shape, > 1 |
+| `"normal"` | b1 Phi((t - b2)/b3) | inflection point | scale |
+| `"gamma"` | b1 P(b3, t (b3 - 1)/b2), the gamma distribution function | inflection point | shape, > 1 |
+| `"linear"` | b1 t + b2, for comparison | intercept | not used |
 
-The parameters b4 and b5 are reserved for future models. Starting values come from a linearisation of the curve, Finv(y/b1) = (t - b2)/b3, profiled over the asymptote b1.
+b1 is the asymptote approached at late times, and the slope of the linear model, which has no asymptote and is not truncated. The Hill, Weibull and gamma curves are for positive times. The links of the parameters can be chosen, e.g. `link = c(b1 = "log", b3 = "inverse")`, with the identity (default), log, logit (b1) or inverse (b3 of the logistic and Gompertz models, the rate 1/b3) links.
+
+By default, the curve is truncated at a threshold time b4, (F(z(t)) - F(z(b4)))/(1 - F(z(b4))), so that the response is zero up to b4. b4 is fixed at 0, so that the curve starts at zero at t = 0, unless estimated with `fix = c(b4 = FALSE)`; `truncated = FALSE` gives the curves without truncation.
+
+Each model has an asymmetry parameter b5 > 0, fixed at 1 (the curves above) unless estimated with `fix = c(b5 = FALSE)`: the logistic model becomes the Richards curve b1 / (1 + b5 exp(-(t - b2)/b3))^(1/b5), the Hill model b1 / (1 + (b2/t)^b3)^b5, the Weibull, normal and gamma models a power b5 of F, and the Gompertz model b1 (1 - (1 - exp(-exp(-(t - b2)/b3)))^b5), a power of its survival function.
+
+Starting values come from a linearisation of the curve, Finv(y/b1) = z(t), linear in t or log(t), profiled over the asymptote b1.
 
 ```{r}
 library(gcTMB)

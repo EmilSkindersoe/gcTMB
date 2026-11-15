@@ -7,7 +7,8 @@ template<class Type>
 Type gcTMB(objective_function<Type>* obj) {
   DATA_INTEGER(fam);
   DATA_INTEGER(mod);
-  DATA_IVECTOR(lnk);       // links of b1-b5: 1 = identity, 2 = inverse
+  DATA_INTEGER(trunc);     // 1: curve truncated at the threshold b4
+  DATA_IVECTOR(lnk);       // links of b1-b5: 1 = identity, 2 = inverse, 3 = log, 4 = logit
   DATA_IVECTOR(tnp);       // random effect terms: number of random coefficients per term
   DATA_IVECTOR(tnl);       // number of levels per term
   DATA_IVECTOR(tpar);      // parameter indices (0-4) of the random coefficients of all terms, concatenated
@@ -120,7 +121,7 @@ Type gcTMB(objective_function<Type>* obj) {
 
   Type f;
   for (int i = 0; i < n; i++){
-    f = gcmean(mod, x(i),
+    f = gcmean(mod, trunc, x(i),
                 linkinv(lnk(0), Type(Xb1(i) + Zu(i, 0))),
                 linkinv(lnk(1), Type(Xb2(i) + Zu(i, 1))),
                 linkinv(lnk(2), Type(Xb3(i) + Zu(i, 2))),
@@ -159,7 +160,7 @@ Type gcTMB(objective_function<Type>* obj) {
     vector<Type> Xpb5 = Xp5 * b5;
     vector<Type> mu(npred);
     for (int i = 0; i < npred; i++){
-      mu(i) = gcmean(mod, xp(i),
+      mu(i) = gcmean(mod, trunc, xp(i),
                       linkinv(lnk(0), Type(Xpb1(i) + Zup(i, 0))),
                       linkinv(lnk(1), Type(Xpb2(i) + Zup(i, 1))),
                       linkinv(lnk(2), Type(Xpb3(i) + Zup(i, 2))),

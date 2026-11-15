@@ -13,6 +13,7 @@ gcTMBstart(
   weights = NULL,
   family = "gaussian",
   model = "logistic",
+  truncated = TRUE,
   link = NULL,
   method = "lm",
   gsl = NULL,
@@ -29,13 +30,15 @@ gcTMBstart(
 
 \item{start}{Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced.}
 
-\item{fix}{Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The reserved parameters b4 and b5, which the models do not use, are always fixed, at 0 unless given in start.}
+\item{fix}{Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1 unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.}
 
 \item{weights}{Numeric vector or NULL. Weights, one for each row of data.}
 
 \item{family}{Character string. The distribution of the response, see \code{\link{gcTMB}}.}
 
-\item{model}{Character string. The growth model: "logistic" or "gompertz".}
+\item{model}{Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "normal", "gamma" or "linear", see \code{\link{gcTMB}}.}
+
+\item{truncated}{Logical. If TRUE (default), the curve is truncated at a threshold b4, by default fixed at 0, see \code{\link{gcTMB}}.}
 
 \item{link}{Named character vector or NULL. Links of the parameters b1-b5, see \code{\link{gcTMB}}.}
 
@@ -56,24 +59,31 @@ which can be inspected, modified, and passed to the \code{start} argument of \co
 }
 \details{
 Method "lm" linearises the growth curve: for a given asymptote b1, the mean response at each
-time t, relative to b1, gives Finv(y/b1) = (t - b2)/b3, with the inverse Finv of the function F
-of the model (qlogis for logistic, -log(-log(q)) for gompertz). A linear regression of Finv(y/b1)
-on the time gives b3 as the inverse of the slope and b2 as the time at which the line crosses zero;
-with b2 or b3 given in \code{start}, only the other one is estimated. The observed responses
+time t, relative to b1, gives Finv(y/b1) = z(t), with the inverse Finv of the function F of the
+model (qlogis for logistic and hill, -log(-log(q)) for gompertz, log(-log(1 - q)) for weibull) and
+the transformed time z(t) (see \code{\link{gcTMB}}), which is linear in the time t (logistic,
+gompertz) or in log(t) (hill, weibull). A linear regression of Finv(y/b1) on t or log(t) gives b2 and
+b3 from its intercept and slope, e.g. b3 as the inverse of the slope and b2 as the time at which the
+line crosses zero for the logistic model; with b2 or b3 given in \code{start}, only the other one is
+estimated. The weibull shape b3 starts at least at 1.1. The observed responses
 often do not reach the asymptote yet, so b1 is profiled: for asymptotes from just above the
 largest mean response to four times it, the linearised fit gives b2 and b3, b1 is refitted by least
 squares for this curve, and the asymptote with the smallest residual sum of squares is used.
 Mean responses below 1\\% or above 99\\% of the asymptote carry little information about the
 linearised curve and are left out. With covariates in \code{fform}, the pooled starting value of
 each parameter is projected onto its design matrix, giving the intercept or each group the pooled
-value and contrasts a value of zero. The reserved parameters b4 and b5 start at 0.
+value and contrasts a value of zero. The threshold b4, fixed at 0 by default, starts when estimated where the curve
+without truncation reaches 1\\% of its asymptote; for the count families also before the first
+time with a positive count, and for the lognormal and beta families before all times, as positive
+responses are impossible before the threshold. The asymmetry b5 starts at 1, the symmetric curve,
+with which b2 and b3 are linearised unless b5 is given in start; b4 without truncation starts at 0.
 
 Method "grid" evaluates the negative log-likelihood (without random effects) at all
 combinations of a grid of parameter values and returns the best grid point; parameters
 not included in the grid start at the values of method "lm".
 Without bounds in \code{gsl} and \code{gsu}, default ranges are used for b2 (the time range
-extended by a quarter at both ends) and b3 (the sign of the "lm" starting value, with 1/4 to 4
-times its value, log-spaced; on the scale of its link). Default ranges are only used for parameters
+extended by a quarter at both ends, positive with the log link) and b3 (the sign of the "lm"
+starting value, with 1/4 to 4 times its value, log-spaced; on the scale of its link). Default ranges are only used for parameters
 with a single coefficient in \code{fform}; the asymptote b1 is only included in the grid with
 user-specified bounds.
 }

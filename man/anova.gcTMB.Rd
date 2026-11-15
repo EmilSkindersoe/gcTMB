@@ -39,8 +39,8 @@ statistics of each comparison in the attribute \code{"boot"}.
 \description{
 Compares two or more models fitted to the same data by likelihood ratio tests, e.g. a model with
 and without covariates in \code{fform}, with and without random effects, or a poisson and a
-negative binomial model. The test assumes nested models; the logistic and gompertz models are not
-nested, and are better compared by their AIC.
+negative binomial model. The test assumes nested models; the growth models (logistic, gompertz, hill,
+weibull) are not nested, and are better compared by their AIC.
 }
 \details{
 The models are ordered by their number of parameters, and each model is compared with the

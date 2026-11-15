@@ -8,7 +8,8 @@
 template<class Type>
 Type gcTime(objective_function<Type>* obj) {
   DATA_INTEGER(mod);
-  DATA_IVECTOR(lnk);      // links of b1-b5: 1 = identity, 2 = inverse
+  DATA_INTEGER(trunc);    // 1: curve truncated at the threshold b4
+  DATA_IVECTOR(lnk);      // links of b1-b5: 1 = identity, 2 = inverse, 3 = log, 4 = logit
   DATA_INTEGER(absolute); // 0: q is the fraction of the asymptote, 1: q is the response
   DATA_SCALAR(q);
   PARAMETER_VECTOR(b);    // b1-b5
@@ -23,7 +24,7 @@ Type gcTime(objective_function<Type>* obj) {
   Type f5 = linkinv(lnk(4), eta(4));
   // fraction of the asymptote at which the curve reaches the response q
   Type qf = absolute == 1 ? Type(q / f1) : q;
-  Type time = gctime(mod, qf, f1, f2, f3, f4, f5, r);
+  Type time = gctime(mod, trunc, qf, f1, f2, f3, f4, f5, r);
   ADREPORT(time);
   return 0;
 }

@@ -2,7 +2,7 @@
 
 test_that("times are b2 + b3 Finv(p), with standard errors of the delta method", {
   for (m in models){
-    f <- gcTMB(y ~ day, data=simgauss(m), model=m)
+    f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss(m), model=m)
     b <- bcoef(f)
     p <- c(10, 50, 90)
     tt <- timeto(f, respLev=p)
@@ -19,22 +19,22 @@ test_that("times are b2 + b3 Finv(p), with standard errors of the delta method",
     expect_equal(predict(f, newdata=data.frame(day=coef(tt))), b[[1]]*p/100, tolerance=1e-8)
   }
   # the logistic curve reaches half of its asymptote at b2
-  f <- gcTMB(y ~ day, data=simgauss("logistic"))
+  f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
   expect_equal(unname(coef(timeto(f))), bcoef(f)[[2]])
   expect_equal(unname(vcov(timeto(f))[1, 1]), vcov(f)[2, 2])
 })
 
 test_that("times do not depend on the link of b3", {
   d <- simgauss("gompertz")
-  f <- gcTMB(y ~ day, data=d, model="gompertz")
-  fi <- gcTMB(y ~ day, data=d, model="gompertz", link=c(b3="inverse"))
+  f <- gcTMB(y ~ day, truncated=FALSE, data=d, model="gompertz")
+  fi <- gcTMB(y ~ day, truncated=FALSE, data=d, model="gompertz", link=c(b3="inverse"))
   expect_equal(coef(timeto(fi, c(5, 95))), coef(timeto(f, c(5, 95))), tolerance=1e-6)
   expect_equal(vcov(timeto(fi, c(5, 95))), vcov(timeto(f, c(5, 95))), tolerance=1e-4)
   expect_equal(suppressMessages(confint(timeto(fi, 95))), suppressMessages(confint(timeto(f, 95))), tolerance=1e-4)
 })
 
 test_that("absolute times: times at which the curve reaches a response", {
-  f <- gcTMB(y ~ day, data=simgauss("logistic"))
+  f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
   b <- bcoef(f)
   tt <- timeto(f, respLev=c(10, 40), type="absolute")
   expect_equal(names(coef(tt)), c("y=10:lf1", "y=40:lf2"))
@@ -53,7 +53,7 @@ test_that("timeto with newdata gives the times of the curve of each row", {
   d <- rbind(cbind(simgauss("logistic", seed=1), trt="a"),
              cbind(simgauss("logistic", seed=2, b=c(60, 12, 3)), trt="b"))
   d$trt <- factor(d$trt)
-  f <- gcTMB(y ~ day, fform=list(b1 ~ trt, b2 ~ trt, b3 ~ trt), data=d)
+  f <- gcTMB(y ~ day, truncated=FALSE, fform=list(b1 ~ trt, b2 ~ trt, b3 ~ trt), data=d)
   tt <- timeto(f, c(50, 90), newdata=data.frame(trt=c("a", "b")))
   expect_equal(names(coef(tt)), c("50:trt=a", "50:trt=b", "90:trt=a", "90:trt=b"))
   b <- bcoef(f)
@@ -70,7 +70,7 @@ test_that("timeto with newdata gives the times of the curve of each row", {
 
 test_that("times of fitted groups and of the population", {
   d <- simre()
-  f <- gcTMB(y ~ day, rform=b1 + b2 ~ 1 | id, data=d)
+  f <- gcTMB(y ~ day, truncated=FALSE, rform=b1 + b2 ~ 1 | id, data=d)
   # population: the fixed effects
   tp <- timeto(f, 50, random=FALSE)
   expect_equal(unname(coef(tp)), bcoef(f)[[2]])
@@ -90,7 +90,7 @@ test_that("times of fitted groups and of the population", {
 })
 
 test_that("residual variance only for the gaussian family", {
-  f <- gcTMB(y ~ day, data=simgauss("logistic"))
+  f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
   t0 <- timeto(f, 90)
   t1 <- timeto(f, 90, residual=TRUE)
   expect_equal(coef(t1), coef(t0))
@@ -98,12 +98,12 @@ test_that("residual variance only for the gaussian family", {
   set.seed(3)
   dp <- data.frame(day=rep(days, each=3))
   dp$y <- rpois(nrow(dp), gcmean("logistic", dp$day, truepars))
-  fp <- gcTMB(y ~ day, data=dp, family="poisson")
+  fp <- gcTMB(y ~ day, truncated=FALSE, data=dp, family="poisson")
   expect_error(timeto(fp, residual=TRUE), "gaussian")
 })
 
 test_that("print returns the times invisibly", {
-  f <- gcTMB(y ~ day, data=simgauss("logistic"))
+  f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
   tt <- timeto(f)
   out <- capture.output(res <- withVisible(print(tt)))
   expect_false(res$visible)
