@@ -2,7 +2,6 @@
 title: "gcTMB"
 date: "`r Sys.Date()`"
 output:
-  rmarkdown::html_vignette: default
   rmarkdown::pdf_document:
     fig_crop: false
 vignette: >
@@ -66,9 +65,9 @@ with the standard normal distribution function $\Phi$. The curve is symmetric ar
 
 #### gamma
 
-$$ f(t) = b_1 P\left(b_3, \frac{(b_3 - 1)\, t}{b_2}\right) $$
+$$ f(t) = b_1 F_\Gamma\left(t;\ b_3, \frac{b_2}{b_3 - 1}\right) $$
 
-with the regularised lower incomplete gamma function $P$, the distribution function of the gamma distribution with shape $b_3 > 1$ and scale $b_2/(b_3 - 1)$. For positive times; parameterised so that $b_2$, the mode of the gamma density, is the inflection point. The curve approaches the asymptote more slowly than it leaves zero, the more so for a small shape $b_3$, and tends to the normal curve for a large shape.
+where $F_\Gamma(t;\ k, \theta)$ is the cumulative distribution function (CDF) of the gamma distribution with shape $k$ and scale $\theta$, here the shape $b_3 > 1$ and the scale $b_2/(b_3 - 1)$. For positive times; parameterised so that $b_2$, the mode of the gamma density, is the inflection point. The curve approaches the asymptote more slowly than it leaves zero, the more so for a small shape $b_3$, and tends to the normal curve for a large shape.
 
 #### linear
 
@@ -95,7 +94,7 @@ For the curves with the default threshold $b_4 = 0$ and without asymmetry ($b_5 
 | hill | $b_2 \left(\dfrac{b_3 - 1}{b_3 + 1}\right)^{1/b_3}$ | $\dfrac{b_3 - 1}{2 b_3}$ | $\dfrac{b_1}{b_2} \dfrac{(b_3 - 1)^{1 - 1/b_3} (b_3 + 1)^{1 + 1/b_3}}{4 b_3}$ | 0 |
 | weibull | $b_2$ | $1 - \mathrm{e}^{-(b_3 - 1)/b_3}$ | $\dfrac{b_1}{b_2} (b_3 - 1) \mathrm{e}^{-(b_3 - 1)/b_3}$ | 0 |
 | normal | $b_2$ | $1/2$ | $\dfrac{b_1}{\sqrt{2\pi}\, b_3}$ | $\Phi\left(-\dfrac{b_2}{b_3}\right)$ |
-| gamma | $b_2$ | $P(b_3, b_3 - 1)$ | $\dfrac{b_1}{b_2} \dfrac{(b_3 - 1)^{b_3} \mathrm{e}^{-(b_3 - 1)}}{\Gamma(b_3)}$ | 0 |
+| gamma | $b_2$ | $F_\Gamma\left(b_2;\ b_3, \dfrac{b_2}{b_3 - 1}\right)$ | $\dfrac{b_1}{b_2} \dfrac{(b_3 - 1)^{b_3} \mathrm{e}^{-(b_3 - 1)}}{\Gamma(b_3)}$ | 0 |
 | linear | none | none | $b_1$ at all times | none |
 
 Here $G_m^0$ and $r_{\max}^0$ are for the curves without truncation, and $p_0$ is the fraction of the asymptote these reach at $t = 0$. The truncation at $b_4 = 0$ scales the curve by $1/(1 - p_0)$ after $t = 0$, so for $b_2 > 0$ the inflection point stays at $t_m$, and

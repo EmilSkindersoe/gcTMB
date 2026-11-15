@@ -84,8 +84,8 @@ asymptote, and b3 the slope on the log time axis;
 z = b3 (log t - log b2) + log((b3 - 1)/b3); b2 is the inflection point and b3 > 1 the shape;
 \item normal: f(t) = b1 Phi((t - b2)/b3), the standard normal distribution function Phi of
 z = (t - b2)/b3; symmetric around b2, where the curve reaches half of its asymptote;
-\item gamma: f(t) = b1 P(b3, t (b3 - 1)/b2), the distribution function of the gamma distribution
-with shape b3 > 1 and scale b2/(b3 - 1), whose density has its mode at b2: b2 is the inflection
+\item gamma: f(t) = b1 F(t), with F the cumulative distribution function (CDF) of the gamma
+distribution with shape b3 > 1 and scale b2/(b3 - 1), whose density has its mode at b2: b2 is the inflection
 point and b3 the shape;
 \item linear: f(t) = b1 t + b2, a straight line with slope b1 and intercept b2, for comparison
 with the growth curves. It has no asymptote, does not use b3-b5 and is not truncated;

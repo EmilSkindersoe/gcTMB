@@ -31,7 +31,7 @@ z(t):
 | `"hill"` | b1 / (1 + (b2/t)^b3) | time of half the asymptote | slope on the log time axis |
 | `"weibull"` | b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)) | inflection point | shape, \> 1 |
 | `"normal"` | b1 Phi((t - b2)/b3) | inflection point | scale |
-| `"gamma"` | b1 P(b3, t (b3 - 1)/b2), the gamma distribution function | inflection point | shape, \> 1 |
+| `"gamma"` | b1 F(t), with F the CDF of the gamma distribution with shape b3 and scale b2/(b3 - 1) | inflection point | shape, \> 1 |
 | `"linear"` | b1 t + b2, for comparison | intercept | not used |
 
 b1 is the asymptote approached at late times, and the slope of the

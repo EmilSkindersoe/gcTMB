@@ -38,7 +38,7 @@ The main function is `gcTMB()`. The models are of the form f(t) = b1 F(z(t)), wi
 | `"hill"` | b1 / (1 + (b2/t)^b3) | time of half the asymptote | slope on the log time axis |
 | `"weibull"` | b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)) | inflection point | shape, > 1 |
 | `"normal"` | b1 Phi((t - b2)/b3) | inflection point | scale |
-| `"gamma"` | b1 P(b3, t (b3 - 1)/b2), the gamma distribution function | inflection point | shape, > 1 |
+| `"gamma"` | b1 F(t), with F the CDF of the gamma distribution with shape b3 and scale b2/(b3 - 1) | inflection point | shape, > 1 |
 | `"linear"` | b1 t + b2, for comparison | intercept | not used |
 
 b1 is the asymptote approached at late times, and the slope of the linear model, which has no asymptote and is not truncated. The Hill, Weibull and gamma curves are for positive times. The links of the parameters can be chosen, e.g. `link = c(b1 = "log", b3 = "inverse")`, with the identity (default), log, logit (b1) or inverse (b3 of the logistic and Gompertz models, the rate 1/b3) links.

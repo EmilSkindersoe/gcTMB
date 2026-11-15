@@ -1,0 +1,2 @@
+# The headers in src/TMB are C++ (TMB templates); GitHub counts .h files as C by default
+*.h linguist-language=C++
