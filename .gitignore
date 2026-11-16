@@ -51,3 +51,7 @@ gcTMB.Rproj
 *.o
 *.so
 *.dll
+
+# local notes and project files (not published)
+TODO.md
+CLAUDE.md
