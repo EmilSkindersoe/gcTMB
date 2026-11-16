@@ -140,16 +140,22 @@ covtheta <- function(S, np, name){
 
 #' Convergence of a gcTMB fit
 #'
-#' Whether the fit converged to a proper maximum of the likelihood: the negative log-likelihood is
-#' finite, the optimiser reports convergence, the Hessian of the parameters is positive definite, the
-#' largest absolute gradient is below \code{gradtol}, and no standard deviation of the random effects
-#' is close to zero (a singular fit: below \code{sdtol}, or with a standard error of its log that is
-#' not finite or above 100, as in \code{summary}).
+#' Whether the fit converged to a maximum of the likelihood: the negative log-likelihood is finite,
+#' the optimiser reports convergence, the Hessian of the parameters is positive definite (not checked
+#' for fits with \code{control=list(sdreport=FALSE)}, see \code{\link{gcTMBcontrol}}), and the
+#' largest absolute gradient is below \code{gradtol}. By default, fits with standard deviations of
+#' the random effects close to zero count as converged; with \code{singular=TRUE} such singular fits
+#' do not (a standard deviation below \code{sdtol}, or with a standard error of its log that is not
+#' finite or above 100, as in \code{summary}). Note that the Hessian of a singular fit is often not
+#' positive definite.
 #'
 #' @param object A gcTMB object, the result of \code{\link{gcTMB}}.
 #' @param gradtol Numeric. The largest acceptable absolute gradient of the negative log-likelihood,
 #'   projected on the bounds of the coefficients.
-#' @param sdtol Numeric. Standard deviations of the random effects below sdtol make the fit singular.
+#' @param singular Logical. If TRUE, singular fits, with a standard deviation of the random effects
+#'   close to zero, count as not converged; FALSE (default) accepts them.
+#' @param sdtol Numeric. With singular=TRUE, standard deviations of the random effects below sdtol
+#'   make the fit singular.
 #'
 #' @return TRUE or FALSE, with the attribute \code{reasons}, a character vector of the failed checks
 #'   (empty for a converged fit). NA for a model with parameters set by \code{\link{update.gcTMB}}.
@@ -159,7 +165,7 @@ covtheta <- function(S, np, name){
 #' converged(fit)
 #'
 #' @export
-converged <- function(object, gradtol=1e-3, sdtol=1e-8){
+converged <- function(object, gradtol=1e-3, singular=FALSE, sdtol=1e-8){
   if (isTRUE(object$modified)) return(structure(NA, reasons="parameters set by update()"))
   s <- summary(object)
   sds <- unlist(lapply(s$varcor, function(vc) setNames(vc$sd, paste(vc$group, vc$labels))))
@@ -167,9 +173,9 @@ converged <- function(object, gradtol=1e-3, sdtol=1e-8){
   reasons <- c(
     if (!is.finite(as.numeric(s$logLik))) "the log-likelihood is not finite",
     if (s$convergence != 0) paste("the optimiser did not converge:", s$message),
-    if (!isTRUE(s$pdHess)) "the Hessian is not positive definite",
+    if (!isTRUE(s$nosdreport) && !isTRUE(s$pdHess)) "the Hessian is not positive definite",
     if (is.finite(s$maxgrad) && s$maxgrad > gradtol) paste("the largest absolute gradient is", format(s$maxgrad, digits=2)),
     if (!is.finite(s$maxgrad)) "the gradient is not finite",
-    if (length(union(s$singular, small)) > 0) paste("singular fit:", paste(union(s$singular, small), collapse=", ")))
+    if (singular && length(union(s$singular, small)) > 0) paste("singular fit:", paste(union(s$singular, small), collapse=", ")))
   structure(length(reasons) == 0, reasons=reasons)
 }

@@ -4,7 +4,7 @@
 \alias{converged}
 \title{Convergence of a gcTMB fit}
 \usage{
-converged(object, gradtol = 0.001, sdtol = 1e-08)
+converged(object, gradtol = 0.001, singular = FALSE, sdtol = 1e-08)
 }
 \arguments{
 \item{object}{A gcTMB object, the result of \code{\link{gcTMB}}.}
@@ -12,18 +12,25 @@ converged(object, gradtol = 0.001, sdtol = 1e-08)
 \item{gradtol}{Numeric. The largest acceptable absolute gradient of the negative log-likelihood,
 projected on the bounds of the coefficients.}
 
-\item{sdtol}{Numeric. Standard deviations of the random effects below sdtol make the fit singular.}
+\item{singular}{Logical. If TRUE, singular fits, with a standard deviation of the random effects
+close to zero, count as not converged; FALSE (default) accepts them.}
+
+\item{sdtol}{Numeric. With singular=TRUE, standard deviations of the random effects below sdtol
+make the fit singular.}
 }
 \value{
 TRUE or FALSE, with the attribute \code{reasons}, a character vector of the failed checks
 (empty for a converged fit). NA for a model with parameters set by \code{\link{update.gcTMB}}.
 }
 \description{
-Whether the fit converged to a proper maximum of the likelihood: the negative log-likelihood is
-finite, the optimiser reports convergence, the Hessian of the parameters is positive definite, the
-largest absolute gradient is below \code{gradtol}, and no standard deviation of the random effects
-is close to zero (a singular fit: below \code{sdtol}, or with a standard error of its log that is
-not finite or above 100, as in \code{summary}).
+Whether the fit converged to a maximum of the likelihood: the negative log-likelihood is finite,
+the optimiser reports convergence, the Hessian of the parameters is positive definite (not checked
+for fits with \code{control=list(sdreport=FALSE)}, see \code{\link{gcTMBcontrol}}), and the
+largest absolute gradient is below \code{gradtol}. By default, fits with standard deviations of
+the random effects close to zero count as converged; with \code{singular=TRUE} such singular fits
+do not (a standard deviation below \code{sdtol}, or with a standard error of its log that is not
+finite or above 100, as in \code{summary}). Note that the Hessian of a singular fit is often not
+positive definite.
 }
 \examples{
 fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)

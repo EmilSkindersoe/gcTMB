@@ -68,3 +68,37 @@ test_that("simulate returns the simulated random effects and true means", {
   expect_equal(attr(s1, "mean")$sim_1, s2$sim_1, tolerance=1e-6)
   expect_equal(rownames(attr(s1, "ranef")$sim_1$plant_ID), c("a", "b"))
 })
+
+test_that("random effects fits start from the fit without random effects when the Laplace approximation fails", {
+  # starting values of the logistic self-starter, at which the inner optimisation fails
+  st <- c(b1 = 116.62856, b2 = 32.31784, b3 = 10.97301)
+  f1 <- gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = FabaHeights25, start = st)
+  f2 <- gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = FabaHeights25)
+  expect_equal(as.numeric(logLik(f1)), as.numeric(logLik(f2)), tolerance = 1e-6)
+})
+
+test_that("control sdreport=FALSE gives the same estimates without standard errors", {
+  fn <- gcTMB(height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25, control = list(sdreport = FALSE))
+  expect_equal(coef(fn), coef(fit))
+  expect_equal(as.numeric(logLik(fn)), as.numeric(logLik(fit)))
+  expect_equal(ranef(fn), ranef(fit))
+  expect_equal(VarCorr(fn), VarCorr(fit))
+  expect_equal(sigma(fn), sigma(fit))
+  expect_true(all(is.na(vcov(fn))))
+  expect_true(isTRUE(converged(fn)))
+  expect_output(print(summary(fn)), "not computed")
+  expect_equal(predict(fn, newdata = data.frame(DAS = 30), random = FALSE),
+               predict(fit, newdata = data.frame(DAS = 30), random = FALSE))
+  s <- simulate(fn, nsim = 1, seed = 1, newdata = data.frame(DAS = 30, plant_ID = "new"))
+  expect_equal(dim(s), c(1, 1))
+  f0 <- gcTMB(height ~ DAS, data = FabaHeights25, control = list(sdreport = FALSE))
+  expect_equal(coef(f0), coef(gcTMB(height ~ DAS, data = FabaHeights25)))
+})
+
+test_that("singular fits count as converged unless singular=TRUE", {
+  fs <- gcTMB(height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)
+  fs$ssdrl[rownames(fs$ssdrl) == "theta", 1][1] <- log(1e-10)
+  expect_false(isTRUE(converged(fs, singular = TRUE)))
+  expect_match(attr(converged(fs, singular = TRUE), "reasons"), "singular", all = FALSE)
+  expect_false(any(grepl("singular", attr(converged(fs), "reasons"))))
+})

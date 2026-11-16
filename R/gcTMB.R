@@ -110,6 +110,18 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weig
   start <- gcTMBstartvals(dd, start, fix, method=method, gsl=gsl, gsu=gsu, gsn=gsn)
 
   obj <- gcTMBobj(dd, start, fix, rform=rform)
+  # random effects: if the Laplace approximation fails at the starting values, e.g. starting values
+  # far from the population curve, start from the fit without random effects
+  if (!is.null(rform) && !is.finite(suppressWarnings(obj$fn(obj$par)))){
+    fit0 <- tryCatch(suppressWarnings(gcTMB(form, fform=fform, rform=NULL, data=data, start=start, fix=fix, weights=weights,
+                                            lower=lower, upper=upper, family=family, model=model, truncated=truncated,
+                                            link=link, control=control)),
+                     error=function(e) NULL)
+    if (!is.null(fit0) && is.finite(fit0$opt$objective)){
+      start[!fix] <- fit0$estimates[seq_len(sum(!fix))]
+      obj <- gcTMBobj(dd, start, fix, rform=rform)
+    }
+  }
 
   # bounds apply to the free coefficients only, not to the variance parameters
   bounds <- function(b, inf){
@@ -165,9 +177,10 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weig
   res$obj <- obj
   # without random effects, the Hessian by automatic differentiation: the default finite differences of
   # sdreport use absolute steps, which fail for coefficients on a small scale
-  res$sdrl <- sdreport(obj, par.fixed=opt$par, hessian.fixed=if (is.null(rform)) obj$he(opt$par))
+  res$sdrl <- if (isFALSE(control$sdreport)) nosdreport(obj, opt, dd$re$terms) else
+    sdreport(obj, par.fixed=opt$par, hessian.fixed=if (is.null(rform)) obj$he(opt$par))
   # NaN standard errors of a Hessian that is not positive definite are reported by summary.gcTMB
-  res$ssdrl <- suppressWarnings(summary(res$sdrl))
+  res$ssdrl <- if (inherits(res$sdrl, "nosdreport")) nosdrsummary(res$sdrl) else suppressWarnings(summary(res$sdrl))
   # residual degrees of freedom for small-sample inference of gaussian and lognormal models without
   # random effects (lognormal: gaussian for log(y)): observations with positive weights minus free coefficients
   if (isTRUE(control$smallsample) && family %in% c("gaussian", "lognormal") && length(dd$re$terms) == 0){
@@ -221,4 +234,32 @@ thresholdopt <- function(obj, opt, i4, lower, upper, ctrl, dd, start, fix){
     best$convergence <- 1L
   }
   best
+}
+
+
+# the parts of sdreport used by the methods, without the covariance matrix of the estimates
+# (control sdreport=FALSE): the estimates, the random effects at their conditional modes, and the
+# correlation matrices of the random effects (as the ADREPORT corr), with NA standard errors;
+# nosdrsummary gives the same table as summary of an sdreport
+nosdreport <- function(obj, opt, terms){
+  env <- obj$env
+  r <- env$random
+  par.random <- if (!is.null(r)) env$last.par.best[r] else numeric(0)
+  pl <- env$parList(opt$par)
+  toff <- 0
+  corr <- unlist(lapply(terms, function(tm){
+    np <- length(tm$pars)
+    cr <- corrmatrix(pl$theta[toff + np + seq_len(np*(np - 1)/2)], np)
+    toff <<- toff + np + np*(np - 1)/2
+    as.vector(cr)
+  }))
+  np <- length(opt$par)
+  structure(list(par.fixed=opt$par, par.random=par.random, cov.fixed=matrix(NA_real_, np, np),
+                 pdHess=NA, corr=corr), class="nosdreport")
+}
+
+nosdrsummary <- function(object){
+  est <- c(object$corr, object$par.fixed, object$par.random)
+  nm <- c(rep("corr", length(object$corr)), names(object$par.fixed), rep("u", length(object$par.random)))
+  matrix(c(est, rep(NA_real_, length(est))), ncol=2, dimnames=list(nm, c("Estimate", "Std. Error")))
 }

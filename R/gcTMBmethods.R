@@ -125,7 +125,7 @@ summary.gcTMB <- function(object, ...){
     toff <<- toff + np + np*(np - 1)/2
     nm <- paste(vc$group, vc$labels)
     # parameters set by update(): no standard errors
-    if (isTRUE(object$modified)) se <- rep(0, np)
+    if (isTRUE(object$modified) || isFALSE(object$control$sdreport)) se <- rep(0, np)
     nm[!is.finite(se) | se > 100 | vc$sd < 1e-8]
   }))
 
@@ -168,7 +168,8 @@ summary.gcTMB <- function(object, ...){
               coefficients=coefs, fixed=userfixed(object), varcor=vcs, residpar=residpar(object), rdf=object$rdf,
               singular=singular, dispersion=dispersion, atbound=atbound(object),
               convergence=object$opt$convergence, message=object$opt$message,
-              maxgrad=max(abs(gr)), pdHess=object$sdrl$pdHess, modified=isTRUE(object$modified))
+              maxgrad=max(abs(gr)), pdHess=object$sdrl$pdHess, modified=isTRUE(object$modified),
+              nosdreport=isFALSE(object$control$sdreport))
   class(res) <- "summary.gcTMB"
   res
 }
@@ -218,7 +219,8 @@ print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...
     return(invisible(x))
   }
   cat("\nOptimiser: ", x$message, ", maximum absolute gradient ", format(x$maxgrad, digits=2), "\n", sep="")
-  if (!isTRUE(x$pdHess)) cat("Warning: the Hessian is not positive definite; the standard errors are not reliable.\n")
+  if (isTRUE(x$nosdreport)) cat("Standard errors not computed (control sdreport=FALSE).\n")
+  else if (!isTRUE(x$pdHess)) cat("Warning: the Hessian is not positive definite; the standard errors are not reliable.\n")
   invisible(x)
 }
 
