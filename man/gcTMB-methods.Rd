@@ -56,7 +56,7 @@
 
 \method{vcov}{gcTMB}(object, ...)
 
-\method{simulate}{gcTMB}(object, nsim = 1, seed = NULL, random = TRUE, ...)
+\method{simulate}{gcTMB}(object, nsim = 1, seed = NULL, random = TRUE, newdata = NULL, ...)
 }
 \arguments{
 \item{x, object}{A gcTMB object, the result of \code{\link{gcTMB}}.}
@@ -71,7 +71,8 @@ For prediction intervals, random=TRUE gives the interval of a new observation in
 \item{type}{Character string. For residuals, the type of residuals: "pearson" (default), the response residuals divided by the standard deviation of the fitted distribution and multiplied by the square root of the weights; "response", the observed minus the fitted values, as proportions for a binomial response; or "quantile", randomised quantile residuals (Dunn and Smyth, 1996), which are standard normal under the model. For the gaussian family, the quantile residuals are multiplied by the square root of the weights, as precision weights with standard deviation sigma/sqrt(w); for the other families they do not use the weights, as a weighted log-likelihood is not the density of a distribution of the observation. The quantile residuals are random for the count families; use set.seed for reproducible values. For the lognormal family, the pearson and quantile residuals are the standardised residuals of log(y), (log(y) - log(f))/sigma, multiplied by the square root of the weights.
 For predict, the type of prediction: "response" (default), the mean response at the times of newdata, or "parameters", the parameters b1-b3 of the curve of each row of newdata (with its covariates in fform and, with random=TRUE, the random effects of its groups); newdata then needs no time. The standard errors of the parameters are those of the estimates, by the delta method, and their confidence intervals are computed on the scale of the link and back-transformed; with random=TRUE, they include the uncertainty of the predicted random effects of the fitted groups. Prediction intervals of the parameters add the variance of the random effects of the terms without a fitted level, the parameters of a new group, and are not available with boot.}
 
-\item{newdata}{Data frame or NULL. The data for the predictions, with the time and the covariates of the model. If NULL, the original data is used.}
+\item{newdata}{Data frame or NULL. The data for the predictions, with the time and the covariates of the model. If NULL, the original data is used.
+For simulate, the times, covariates and grouping variables of the observations to simulate, e.g. new times or new individuals; each level of a grouping variable is one curve, with random effects shared by its rows. With random=TRUE all levels get new random effects; with random=FALSE the levels in the fitted data keep their fitted random effects and the other levels get new ones. For binomial responses the number of trials is taken from the response in newdata (one for a binary response).}
 
 \item{se.fit}{Logical. If TRUE, predict returns the standard errors of the predicted means, by the delta method; with random=TRUE they include the uncertainty of the predicted random effects.}
 
@@ -108,7 +109,12 @@ effects (small-sample inference, see \code{\link{gcTMB}}), and NULL otherwise; a
 argument of \code{multcomp::glht} for the times of \code{\link{timeto}}, it gives multivariate t instead of normal
 quantiles.
 simulate returns a data frame with nsim columns of simulated responses at the estimated
-parameters; for a binomial response given as cbind(successes, failures), the number of successes.
+parameters (or those set by \code{\link{update.gcTMB}}), a row for each observation of the fit or row of newdata; for a binomial response given as cbind(successes, failures), the number of successes.
+Its attribute \code{ranef} has the random effects of each simulation, a list named like the
+columns with an element in the format of \code{\link{ranef}} (for random=FALSE, the fitted random
+effects of the fitted levels), and its attribute \code{mean} the true means of the simulated
+responses, a data frame like the simulations: the curve f(t) of each observation with its random
+effects (the median for lognormal; for binomial and beta-binomial responses the proportion).
 }
 \description{
 gcTMB Methods
@@ -127,5 +133,12 @@ predict(fit, newdata=data.frame(DAS=c(20, 40, 60), plant_ID=6))
 predict(fit, newdata=data.frame(plant_ID=6), type="parameters")
 head(residuals(fit, type="quantile"))
 dim(simulate(fit, nsim=5, seed=1))
+# three new plants at new times
+nd <- expand.grid(DAS=seq(10, 80, 10), plant_ID=c("new1", "new2", "new3"))
+sims <- simulate(fit, nsim=2, seed=1, newdata=nd)
+head(sims)
+# the simulated random effects of the first simulation, and the true curves
+attr(sims, "ranef")$sim_1
+head(attr(sims, "mean"))
 
 }

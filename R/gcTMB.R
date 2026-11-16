@@ -45,87 +45,14 @@
 #'     \code{\link{timeto}} gives the times at which it reaches given responses
 #'     (\code{type="absolute"}), and \code{\link{maxrate}} its constant rate b1.
 #' }
-#' The curves start at zero and approach the asymptote b1 at late times. For the logistic, gompertz,
-#' weibull, normal and gamma models, b2 is the time of the maximum growth rate, the inflection point of
-#' the curve. For the logistic, gompertz and normal models, b3 is the scale of the curve on the time
-#' axis, positive for an increasing curve: the maximum growth rate is b1/(4 b3) for the logistic,
-#' b1/(e b3) for the gompertz and b1/(sqrt(2 pi) b3) for the normal model. The hill, weibull and gamma
-#' models are for positive times, and zero up to t = 0; their parameters b2 and b3 must be positive,
-#' and the weibull and gamma shape b3 larger than 1, e.g. with the log link for b2
-#' (\code{link=c(b2="log")}).
-#'
-#' The asymmetry b5 > 0 generalises each model, with b5 = 1 the curves above; it is fixed at 1 unless
-#' freed with \code{fix=c(b5=FALSE)}:
-#' \itemize{
-#'   \item logistic: the Richards curve f(t) = b1 / (1 + b5 exp(-(t - b2)/b3))^(1/b5), which tends to
-#'     the gompertz curve as b5 tends to 0;
-#'   \item gompertz: f(t) = b1 (1 - (1 - exp(-exp(-(t - b2)/b3)))^b5), a power of the survival
-#'     function 1 - F, as a power of the gompertz F would only shift the curve in time;
-#'   \item hill: f(t) = b1 / (1 + (b2/t)^b3)^b5, the five-parameter log-logistic curve;
-#'   \item weibull: f(t) = b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3))^b5, the exponentiated weibull curve;
-#'   \item normal and gamma: f(t) = b1 F(z)^b5, a power of their distribution function.
-#' }
-#' The Richards curve has its inflection point at b2 for all b5, where it reaches (1 + b5)^(-1/b5) of
-#' its asymptote, with the maximum growth rate b1/b3 (1 + b5)^(-(1 + b5)/b5). For the other models
-#' with b5 different from 1, b2 is the location of the curve rather than its inflection point or the
-#' time of half the asymptote; the vignette gives their inflection points and maximum growth rates; the times at which the curve reaches a level are given by
-#' \code{\link{timeto}}. The log link, \code{link=c(b5="log")}, keeps b5 positive.
-#'
-#' By default (\code{truncated=TRUE}), F is truncated at a threshold time b4, as a distribution function
-#' truncated from below: the curve is
-#' \deqn{f(t) = b_1 \frac{F(z(t)) - F(z(b_4))}{1 - F(z(b_4))}}{f(t) = b1 (F(z(t)) - F(z(b4))) / (1 - F(z(b4)))}
-#' for t > b4, and zero up to b4, for all models (F is the asymmetric curve for b5 different from 1): the response starts at zero at the threshold, e.g.
-#' the time of emergence or of the first pods, and approaches the asymptote b1. b2 and b3 keep their
-#' meaning for the curve without truncation; e.g. the maximum growth rate is at b2 if b2 > b4, and at
-#' the threshold otherwise. The truncation is for increasing curves, with b3 > 0. For the hill and
-#' weibull models, a threshold up to zero does not truncate the curve. The curve without truncation is the limit for
-#' b4 far below b2, so the threshold is only identified by data near it: with positive responses at
-#' all observed times, b4 may decrease without bound. A mean of zero gives zero counts with
-#' probability one for the count families; for the lognormal and beta families, responses up to the
-#' threshold are impossible. b4 can have covariates in \code{fform} and random effects in \code{rform}
-#' like the other parameters.
-#'
-#' By default b4 is fixed at 0, so that the curve starts at zero at t = 0, e.g. at sowing: this
-#' changes the logistic and gompertz curves, which are otherwise positive at t = 0, but not the hill
-#' and weibull curves, which are zero up to t = 0. With times that are not counted from the start of
-#' growth, e.g. centred times, give b4 in start, estimate it with \code{fix=c(b4=FALSE)}, or use
-#' \code{truncated=FALSE} for the curves without truncation.
-#'
-#' The curve has a kink at the threshold, where its slope jumps from zero, and so has the likelihood
-#' in b4 at each observation time: with zero responses at the first observation times, the estimate
-#' of b4 is often exactly one of them. If the optimiser stops at such a kink, the other parameters are
-#' re-optimised with b4 held, and the fit is reported as converged with the threshold at an
-#' observation time. The standard errors from the Hessian are then one-sided in b4; the profile
-#' (\code{confint}) and bootstrap intervals are more reliable.
-#'
-#' With the inverse link for b3, \code{link=c(b3="inverse")}, the linear predictor of b3, including
-#' its random effects, is the rate 1/b3: the coefficients of b3 in \code{coef}, \code{start},
-#' \code{fix}, \code{lower}, \code{upper} and \code{linfct} of \code{\link{timeto}} are rates per unit
-#' of time, and covariates and random effects act additively on the rate. Without covariates and
-#' random effects on b3, both links give the same fit.
-#'
-#' The log link keeps a parameter positive, e.g. \code{link=c(b1="log")} for a positive asymptote
-#' or \code{link=c(b3="log")} for a positive scale: covariates and random effects then act
-#' multiplicatively, and exp of a coefficient of a covariate is the ratio of the parameter between
-#' groups. The logit link keeps the asymptote b1 between 0 and 1, for proportions (the binomial,
-#' beta-binomial and beta families), with covariates and random effects on the log odds. As for the
-#' inverse link, without covariates and random effects on a parameter all its links give the same fit;
-#' the starting values must be inside the range of the link, e.g. positive times for the log link of b2.
-#'
-#' Gaussian models without random effects are estimated by maximum likelihood, but by default
-#' (\code{smallsample=TRUE} in \code{\link{gcTMBcontrol}}) their inference follows lm and nls:
-#' the residual standard deviation is the square root of the unbiased residual variance, the weighted
-#' residual sum of squares divided by n - p residual degrees of freedom, for n observations with
-#' positive weights and p free coefficients b1-b5; the covariance of the coefficients
-#' (\code{vcov}, \code{summary}, \code{\link{timeto}}, \code{predict}) is scaled accordingly, the Wald
-#' and prediction intervals use t quantiles with n - p degrees of freedom, and the profile intervals of
-#' the coefficients and times an F-based cutoff. The log-likelihood, the estimate log_sigma in
-#' \code{coef}, AIC, \code{anova}, \code{simulate} and \code{\link{bootstrap}} remain maximum likelihood.
-#' The other families and models with random effects use maximum likelihood and normal quantiles.
+#' The asymmetry b5, the truncation at the threshold b4, the maximum growth rates and inflection
+#' points, the rate 1/b3 and the small-sample inference are described in the vignette,
+#' \code{vignette("gcTMB")}; the links in the argument \code{link}.
 #'
 #' @return A gcTMB object, with methods for \code{print}, \code{summary}, \code{coef}, \code{vcov},
 #'   \code{predict}, \code{confint}, \code{anova}, \code{plot} and others, see \code{\link{gcTMB-methods}}.
-#' @seealso \code{\link{timeto}} for the times to reach a level of the asymptote,
+#' @seealso \code{\link{maxrate}} for the maximum growth rate and its timing,
+#'   \code{\link{timeto}} for the times to reach a level of the asymptote,
 #'   \code{\link{gcTMBstart}} for the starting values.
 #' @examples
 #' # logistic growth of the faba bean plants

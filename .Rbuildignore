@@ -9,3 +9,6 @@
 ^vignettes/.*\.html$
 ^vignettes/.*\.pdf$
 ^TODO\.md$
+^nlme-project$
+^nlme-project-gcTMB$
+^nlme project$

@@ -1,6 +1,6 @@
 Package: gcTMB
 Title: Fitting Growth Curves Using the Template Model Builder
-Version: 0.1.0.9000
+Version: 0.1.0.9001
 Authors@R: 
     person("Emil", "Skindersoe", , "e.skindersoe@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0000-2172-1614"))
@@ -17,7 +17,7 @@ Description: Fits non-linear growth curves over time, optionally with
     their asymptote and their standard errors are derived by automatic
     differentiation.
 License: GPL (>=2)
-Depends: R (>= 3.5)
+Depends: R (>= 3.6)
 LazyData: true
 VignetteBuilder: knitr
 Suggests: 

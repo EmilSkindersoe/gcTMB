@@ -2,6 +2,7 @@
 #'
 #' @param x,object A gcTMB object, the result of \code{\link{gcTMB}}.
 #' @param newdata Data frame or NULL. The data for the predictions, with the time and the covariates of the model. If NULL, the original data is used.
+#'   For simulate, the times, covariates and grouping variables of the observations to simulate, e.g. new times or new individuals; each level of a grouping variable is one curve, with random effects shared by its rows. With random=TRUE all levels get new random effects; with random=FALSE the levels in the fitted data keep their fitted random effects and the other levels get new ones. For binomial responses the number of trials is taken from the response in newdata (one for a binary response).
 #' @param random Logical. If TRUE, the random effects are included in the predictions, fitted values and residuals (conditional residuals). For simulate, if TRUE, new random effects are drawn for each simulation, otherwise the fitted random effects are kept.
 #'   For prediction intervals, random=TRUE gives the interval of a new observation in the group of each row of newdata, and random=FALSE the interval of a new observation in a new group, including the variance of the random effects. Rows of newdata with a level that is not in the fitted data are treated as new groups for that random effect term.
 #' @param se.fit Logical. If TRUE, predict returns the standard errors of the predicted means, by the delta method; with random=TRUE they include the uncertainty of the predicted random effects.
@@ -36,7 +37,12 @@
 #' argument of \code{multcomp::glht} for the times of \code{\link{timeto}}, it gives multivariate t instead of normal
 #' quantiles.
 #' simulate returns a data frame with nsim columns of simulated responses at the estimated
-#' parameters; for a binomial response given as cbind(successes, failures), the number of successes.
+#' parameters (or those set by \code{\link{update.gcTMB}}), a row for each observation of the fit or row of newdata; for a binomial response given as cbind(successes, failures), the number of successes.
+#' Its attribute \code{ranef} has the random effects of each simulation, a list named like the
+#' columns with an element in the format of \code{\link{ranef}} (for random=FALSE, the fitted random
+#' effects of the fitted levels), and its attribute \code{mean} the true means of the simulated
+#' responses, a data frame like the simulations: the curve f(t) of each observation with its random
+#' effects (the median for lognormal; for binomial and beta-binomial responses the proportion).
 #'
 #' @examples
 #' fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
@@ -52,6 +58,13 @@
 #' predict(fit, newdata=data.frame(plant_ID=6), type="parameters")
 #' head(residuals(fit, type="quantile"))
 #' dim(simulate(fit, nsim=5, seed=1))
+#' # three new plants at new times
+#' nd <- expand.grid(DAS=seq(10, 80, 10), plant_ID=c("new1", "new2", "new3"))
+#' sims <- simulate(fit, nsim=2, seed=1, newdata=nd)
+#' head(sims)
+#' # the simulated random effects of the first simulation, and the true curves
+#' attr(sims, "ranef")$sim_1
+#' head(attr(sims, "mean"))
 #'
 #' @name gcTMB-methods
 #' @aliases print.gcTMB summary.gcTMB print.summary.gcTMB logLik.gcTMB nobs.gcTMB df.residual.gcTMB fitted.gcTMB residuals.gcTMB predict.gcTMB coef.gcTMB vcov.gcTMB simulate.gcTMB
@@ -73,6 +86,7 @@ print.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...){
   printfixed(userfixed(x), digits)
   printre(recov(x), digits)
   printresid(x$family, residpar(x), digits)
+  if (isTRUE(x$modified)) cat("\nParameters set by update(): not estimates, without standard errors.\n")
   invisible(x)
 }
 
@@ -110,6 +124,8 @@ summary.gcTMB <- function(object, ...){
     se <- ses[toff + seq_len(np)]
     toff <<- toff + np + np*(np - 1)/2
     nm <- paste(vc$group, vc$labels)
+    # parameters set by update(): no standard errors
+    if (isTRUE(object$modified)) se <- rep(0, np)
     nm[!is.finite(se) | se > 100 | vc$sd < 1e-8]
   }))
 
@@ -152,7 +168,7 @@ summary.gcTMB <- function(object, ...){
               coefficients=coefs, fixed=userfixed(object), varcor=vcs, residpar=residpar(object), rdf=object$rdf,
               singular=singular, dispersion=dispersion, atbound=atbound(object),
               convergence=object$opt$convergence, message=object$opt$message,
-              maxgrad=max(abs(gr)), pdHess=object$sdrl$pdHess)
+              maxgrad=max(abs(gr)), pdHess=object$sdrl$pdHess, modified=isTRUE(object$modified))
   class(res) <- "summary.gcTMB"
   res
 }
@@ -197,6 +213,10 @@ print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...
         " (chi-square ", format(x$dispersion["chisq"], digits=digits), " on ", x$dispersion["df"], " df)\n", sep="")
   }
 
+  if (isTRUE(x$modified)){
+    cat("\nParameters set by update(): not estimates, without standard errors.\n")
+    return(invisible(x))
+  }
   cat("\nOptimiser: ", x$message, ", maximum absolute gradient ", format(x$maxgrad, digits=2), "\n", sep="")
   if (!isTRUE(x$pdHess)) cat("Warning: the Hessian is not positive definite; the standard errors are not reliable.\n")
   invisible(x)
@@ -749,8 +769,11 @@ vcov.gcTMB <- function(object, ...){
 
 #' @rdname gcTMB-methods
 #' @export
-simulate.gcTMB <- function(object, nsim=1, seed=NULL, random=TRUE, ...){
+simulate.gcTMB <- function(object, nsim=1, seed=NULL, random=TRUE, newdata=NULL, ...){
   if (!is.null(seed)) set.seed(seed)
+  if (!is.null(newdata)){
+    return(simnew(object, newdata, nsim, random, seed))
+  }
   obj <- object$obj
   par <- obj$env$last.par.best
   if (!is.null(object$rform) && !random){
@@ -759,14 +782,100 @@ simulate.gcTMB <- function(object, nsim=1, seed=NULL, random=TRUE, ...){
     dat$simre <- 0
     obj <- MakeADFun(dat, obj$env$parList(par=par), map=obj$env$map, random="u", DLL="gcTMB_TMBExports", silent=TRUE)
   }
-  sims <- lapply(seq_len(nsim), function(i) obj$simulate(par)$y)
+  out <- lapply(seq_len(nsim), function(i) obj$simulate(par))
+  sims <- lapply(out, function(o) o$y)
   nbad <- sum(sapply(sims, function(y) any(!is.finite(y))))
   if (nbad > 0) warning(nbad, " of ", nsim, " simulations contain non-finite values; simulated random effects may fall outside the valid parameter range.")
-  sims <- as.data.frame(sims, col.names=paste("sim", seq_len(nsim), sep="_"))
+  simout(sims, lapply(out, function(o) o$fsim),
+         lapply(out, function(o) ulist(object, o$usim, lapply(object$reterms, function(tm) tm$levels))), seed)
+}
+
+# simulations as a data frame with nsim columns, with the attributes mean (the true means, a data
+# frame like the simulations), ranef (for each simulation the simulated random effects, as ranef) and
+# seed
+simout <- function(sims, means, res, seed){
+  nm <- paste("sim", seq_along(sims), sep="_")
+  sims <- as.data.frame(sims, col.names=nm)
+  attr(sims, "mean") <- as.data.frame(means, col.names=nm)
+  attr(sims, "ranef") <- setNames(res, nm)
   attr(sims, "seed") <- seed
   sims
 }
 
+# random effects u (as in the template: by term, then by coefficient, then by level) as a list of data
+# frames like ranef, with the levels lev of each term
+ulist <- function(object, u, lev){
+  uoff <- 0
+  out <- lapply(seq_along(object$reterms), function(t){
+    tm <- object$reterms[[t]]
+    nl <- length(lev[[t]])
+    np <- length(tm$pars)
+    U <- matrix(u[uoff + seq_len(nl*np)], nrow=nl, dimnames=list(lev[[t]], relabels(tm)))
+    uoff <<- uoff + nl*np
+    as.data.frame(U, check.names=FALSE)
+  })
+  setNames(out, retermnames(object))
+}
+
+
+# responses simulated at the rows of newdata, nsim columns: the curves of the fixed effects plus random
+# effects for each level of the grouping factors in newdata, one draw per level shared by its rows.
+# random=TRUE draws new random effects for all levels; random=FALSE keeps the fitted random effects of
+# the levels in the fit and draws new ones for the other levels. Observations with weight 1;
+# binomial responses as numbers of successes, with the trials from the response in newdata.
+simnew <- function(object, newdata, nsim, random, seed=NULL){
+  newdata <- as.data.frame(newdata)
+  pd <- preddata(object, newdata, random=FALSE)
+  n <- length(pd$x)
+  if (anyNA(pd$x)) stop("newdata needs the time of every row.")
+  vcs <- recov(object)
+  re <- if (!random) ranef.gcTMB(object)
+  terms <- lapply(seq_along(object$reterms), function(t){
+    tm <- object$reterms[[t]]
+    g <- obsgroups(object, t, newdata)
+    if (anyNA(g)) stop("newdata needs the grouping variables of the random effects, without missing values.")
+    lv <- unique(g)
+    load <- reloads(tm, designmatrix(tm$xterms, newdata))
+    if (anyNA(load)) stop("newdata needs the covariates of the random slopes, without missing values.")
+    # square root of the covariance matrix, also for zero variances
+    e <- eigen(vcs[[t]]$cov, symmetric=TRUE)
+    R <- e$vectors %*% diag(sqrt(pmax(e$values, 0)), nrow=length(e$values))
+    fitted <- if (!random) match(lv, rownames(re[[t]]))
+    list(tm=tm, id=match(g, lv), lv=lv, nl=length(lv), load=load, R=R, fitted=fitted, U=if (!random) as.matrix(re[[t]]))
+  })
+  trials <- predtrials(object, newdata)
+  phi <- residpar(object)
+  if (!is.null(object$rdf)) phi <- exp(object$sdrl$par.fixed[["log_sigma"]])
+  out <- lapply(seq_len(nsim), function(i){
+    eta <- pd$eta
+    us <- numeric(0)
+    for (tt in terms){
+      np <- length(tt$tm$pars)
+      U <- matrix(rnorm(tt$nl*np), ncol=np) %*% t(tt$R)
+      if (!random){
+        ok <- which(!is.na(tt$fitted))
+        U[ok, ] <- tt$U[tt$fitted[ok], , drop=FALSE]
+      }
+      for (k in seq_len(np)) eta[, tt$tm$pars[k]] <- eta[, tt$tm$pars[k]] + tt$load[, k]*U[tt$id, k]
+      us <- c(us, as.vector(U))
+    }
+    mu <- predmean(pd, eta)
+    y <- suppressWarnings(switch(object$family,
+                            gaussian=rnorm(n, mu, phi),
+                            lognormal=rlnorm(n, log(mu), phi),
+                            poisson=rpois(n, mu),
+                            binomial=rbinom(n, trials, mu),
+                            betabinomial=rbinom(n, trials, rbeta(n, mu*phi, (1 - mu)*phi)),
+                            beta=rbeta(n, mu*phi, (1 - mu)*phi),
+                            rnbinom(n, size=nbsize(object$family, mu, phi), mu=mu)))
+    list(y=y, mu=mu, u=us)
+  })
+  sims <- lapply(out, function(o) o$y)
+  nbad <- sum(sapply(sims, function(y) any(!is.finite(y))))
+  if (nbad > 0) warning(nbad, " of ", nsim, " simulations contain non-finite values; simulated random effects may fall outside the valid parameter range.")
+  lev <- lapply(terms, function(tt) tt$lv)
+  simout(sims, lapply(out, function(o) o$mu), lapply(out, function(o) ulist(object, o$u, lev)), seed)
+}
 
 # standard deviations, correlation and covariance matrix of each random effect term
 recov <- function(object){

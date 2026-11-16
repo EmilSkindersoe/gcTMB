@@ -59,6 +59,9 @@ Type gcTMB(objective_function<Type>* obj) {
   // tpar, with design blocks at columns tzb of Z, correlated within a term and independent between terms
   matrix<Type> Zu(n, 5);
   Zu.setZero();
+  // simulated random effects (the fitted ones for simre = 0), in the order of u, and means
+  vector<Type> usim(u.size());
+  vector<Type> fsim(n);
   int nt = tnp.size();
   if (nt > 0){
     int ncorr = 0;
@@ -92,6 +95,9 @@ Type gcTMB(objective_function<Type>* obj) {
             scnldens.simulate(uj);
             for (int k = 0; k < np; k++) U(j, k) = uj(k);
           }
+        }
+        for (int k = 0; k < np; k++){
+          for (int j = 0; j < nl; j++) usim(uoff + j + k*nl) = U(j, k);
         }
       }
 
@@ -130,10 +136,13 @@ Type gcTMB(objective_function<Type>* obj) {
     nll += -w(i) * loglik(fam, y(i), f, bn(i), phi);
     SIMULATE {
       y(i) = simobs(fam, f, bn(i), phi);
+      fsim(i) = f;
     }
   }
   SIMULATE {
     REPORT(y);
+    REPORT(usim);
+    REPORT(fsim);
   }
 
   // mean at the times xp, for standard errors of the predictions by the delta method

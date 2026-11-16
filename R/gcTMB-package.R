@@ -18,3 +18,11 @@
 #' @importFrom methods as
 ## usethis namespace: end
 NULL
+
+# release the DLLs when the namespace is unloaded, e.g. by unloadNamespace("gcTMB"): on Windows a
+# loaded DLL cannot be overwritten, so this lets a new version be installed from the same R session
+.onUnload <- function(libpath){
+  for (dll in c("gcTMB_TMBExports", "gcTMB")){
+    try(library.dynam.unload(dll, libpath), silent=TRUE)
+  }
+}
