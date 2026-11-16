@@ -19,7 +19,7 @@
 #   b1: "asymptote", the response approached at late times; "slope" of the linear model
 #   b2: "inflection", the time of the maximum growth rate, or "halfway", the time of half the
 #       asymptote; "intercept" of the linear model
-#   b3: "scale" on the time axis, positive for an increasing curve; "slope" of the hill curve on the
+#   b3: "scale" on the time axis, positive; "slope" of the hill curve on the
 #       log time axis; "shape" of the weibull and gamma curves, larger than 1
 #   b4: not used by the curves themselves, see truncpars
 #   b5: "asymmetry", positive, with b5 = 1 the symmetric curves above; fixed at 1 by default. The

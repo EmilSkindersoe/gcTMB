@@ -34,7 +34,7 @@ Type linkinv(int lnk, Type eta){
 //   mod 7 linear:   f(t) = f1 t + f2, for comparison; f3-f5 are not used, and it is not truncated
 // f1 is the asymptote. f2 is the time of the maximum growth rate (the inflection point) for logistic,
 // gompertz, weibull, normal and gamma, and the time of half the asymptote for hill. f3 is the scale on
-// the time axis (logistic, gompertz, normal), positive for an increasing curve, the slope of the hill
+// the time axis (logistic, gompertz, normal), positive, the slope of the hill
 // curve on the log time axis, or the shape of the weibull and gamma curves, larger than 1. hill,
 // weibull and gamma are zero up to t = 0.
 // f5 is the asymmetry of the curve, with f5 = 1 the curves above; see gclogG below.

@@ -47,7 +47,7 @@ test_that("maxrate has standard errors of the delta method and Wald, profile and
   d <- simgauss("logistic")
   f <- gcTMB(y ~ day, truncated=FALSE, data=d, fix=c(b5=FALSE), link=c(b5="log"), start=c(b5=0))
   mr <- maxrate(f)
-  expect_equal(names(coef(mr)), c("tmax:lf1", "rate:lf1", "fraction:lf1"))
+  expect_equal(names(coef(mr)), c("tmax", "rate", "fraction"))
   b <- bcoef(f)
   val <- function(p) gcTMB:::maxrateR(1, c(p[1:3], 0, exp(p[4])))
   expect_equal(unname(coef(mr)), unname(val(b)))
@@ -55,7 +55,7 @@ test_that("maxrate has standard errors of the delta method and Wald, profile and
   expect_equal(unname(vcov(mr)), unname(J %*% vcov(f)[1:4, 1:4] %*% t(J)), tolerance=1e-5)
   w <- confint(mr, method="wald")
   expect_equal(unname(w[, 2] - w[, 1]), unname(2*qt(0.975, f$rdf)*sqrt(diag(vcov(mr)))))
-  p <- suppressMessages(confint(mr, parm=c("tmax:lf1", "rate:lf1")))
+  p <- suppressMessages(confint(mr, parm=c("tmax", "rate")))
   expect_equal(p, w[1:2, ], tolerance=0.05)
   # the profile is the likelihood with the quantity fixed: refit with b2 or b1 at a limit
   lim <- p[1, 1]
@@ -79,6 +79,6 @@ test_that("maxrate for curves of newdata and for truncated fits", {
   expect_equal(unname(coef(maxrate(ft))), unname(gcTMB:::maxrateR(1, c(bt, 1), trunc=TRUE)))
   # a hill curve with b3 b5 < 1, by a linear function that scales b5 = 1 down to 0.01
   fh <- gcTMB(height ~ DAS, truncated=FALSE, data=FabaHeights25, model="hill")
-  expect_warning(mh <- maxrate(fh, linfct=diag(c(1, 1, 1, 1, 0.01))), "no inflection point")
+  expect_warning(mh <- maxrate(fh, curves=diag(c(1, 1, 1, 1, 0.01))), "no inflection point")
   expect_true(all(is.na(coef(mh))))
 })

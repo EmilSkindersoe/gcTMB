@@ -92,3 +92,56 @@ test_that("plot gives diagnostic ggplots", {
   expect_silent(plot(f))
   expect_error(plot(gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic")), which=4), "no random effects")
 })
+
+test_that("the QQ plot of non-normal residuals warns", {
+  fp <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
+  expect_warning(plot(fp, residuals="pearson", draw=FALSE), "not normally distributed")
+  expect_warning(plot(fp, residuals="response", which=3, draw=FALSE), "not normally distributed")
+  expect_no_warning(plot(fp, draw=FALSE, seed=1))
+  expect_no_warning(plot(fp, residuals="pearson", which=1:2, draw=FALSE))
+  f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
+  expect_no_warning(plot(f, residuals="pearson", draw=FALSE))
+})
+
+test_that("plot with type='curves' draws the curves of the individuals and the population", {
+  d <- simre()
+  f <- gcTMB(y ~ day, truncated=FALSE, rform=b1 ~ 1 | id, data=d)
+  p <- plot(f, type="curves", draw=FALSE)$curves
+  expect_s3_class(p, "ggplot")
+  b <- ggplot2::ggplot_build(p)
+  # points, the curve of each individual and one population curve
+  expect_equal(nrow(b$data[[1]]), nrow(d))
+  expect_equal(length(unique(b$data[[2]]$group)), length(unique(d$id)))
+  expect_equal(length(unique(b$data[[3]]$group)), 1)
+  # the curve of an individual at its observed times is its fitted curve
+  ig <- p$layers[[2]]$data
+  id1 <- ig[ig$id == ig$id[1], ]
+  expect_equal(id1$y, predict(f, newdata=id1))
+  # population curve with the random effects at zero
+  pg <- p$layers[[3]]$data
+  expect_equal(pg$y, predict(f, newdata=pg, random=FALSE))
+  # curves at given times
+  pt <- plot(f, type="curves", draw=FALSE, times=seq(0, 5, by=0.5))$curves
+  expect_equal(sort(unique(pt$layers[[3]]$data$time)), seq(0, 5, by=0.5))
+  expect_error(plot(f, type="curves", times=1), "at least two times")
+
+  # covariates: a population curve for each level, coloured
+  d$grp <- factor(rep(c("a", "b"), length.out=length(unique(d$id))))[as.integer(factor(d$id))]
+  fg <- gcTMB(y ~ day, fform=b1 ~ grp, truncated=FALSE, rform=b1 ~ 1 | id, data=d)
+  pgp <- plot(fg, type="curves", draw=FALSE)$curves
+  expect_equal(length(unique(pgp$layers[[3]]$data$curve)), 2)
+  expect_equal(pgp$labels$colour, "grp")
+
+  # without random effects: only the population curve
+  f0 <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
+  p0 <- plot(f0, type="curves", draw=FALSE)$curves
+  expect_equal(length(p0$layers), 2)
+  pdf(NULL)
+  on.exit(dev.off())
+  expect_silent(plot(f, type="curves"))
+  # validation plots with the curves last
+  pb <- plot(f, type=c("validation", "curves"), which=1:4, draw=FALSE, seed=1)
+  expect_equal(names(pb), c("fitted", "time", "qq", "ranef", "curves"))
+  expect_silent(plot(f, type=c("curves", "validation")))
+  expect_equal(names(plot(f, type=c("curves", "validation"), draw=FALSE)), c("fitted", "time", "qq", "curves"))
+})

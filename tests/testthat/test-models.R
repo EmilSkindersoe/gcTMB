@@ -104,14 +104,6 @@ test_that("given starting values are kept and the others are linearised around t
   expect_error(gcTMB(y ~ day, truncated=FALSE, data=d, fix=c(b1=TRUE)), "give the values")
 })
 
-test_that("decreasing curves have a negative scale", {
-  d <- simgauss("logistic", b=c(50, 10, -2.5))
-  f <- gcTMB(y ~ day, truncated=FALSE, data=d)
-  expect_equal(unname(bcoef(f)), unname(coef(nlsfit("logistic", d, start=c(50, 10, -2.5)))), tolerance=1e-6)
-  expect_lt(bcoef(f)[[3]], 0)
-  expect_equal(summary(f)$direction, "decreasing")
-  expect_equal(summary(gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic")))$direction, "increasing")
-})
 
 test_that("grid search starting values", {
   d <- simgauss("gompertz")

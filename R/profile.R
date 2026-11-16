@@ -211,7 +211,7 @@ profcutoffs <- function(object, level){
 #'
 #' @examples
 #' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
-#' pr <- profile(timeto(fit, respLev=c(10, 90)), progress=FALSE)
+#' pr <- profile(timeto(fit, level=c(10, 90)), progress=FALSE)
 #' confint(pr)
 #' plot(pr)
 #'
@@ -256,15 +256,15 @@ profile.timetoTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress
 
   pb <- progressbar(length(parm), progress)
   prof <- lapply(parm, function(i){
-    L <- fitted$linfct[[i]]
+    L <- fitted$curves[[i]]
     q <- fitted$q[[i]]
     # the coefficient of b2 computed from the time: free, with the largest weight
     w2 <- L[ps, free]
     if (all(w2 == 0)) stop("the time ", names(est)[i], " does not depend on an estimated coefficient of b2.")
     kp <- which.max(abs(w2))
     k <- free[kp]
-    if (any(L[3:5, k] != 0)) stop("the coefficient ", fit$coefnames[k], " of b2 must not enter b3 in linfct.")
-    if (absolute && L[1, k] != 0) stop("the coefficient ", fit$coefnames[k], " of b2 must not enter b1 in linfct.")
+    if (any(L[3:5, k] != 0)) stop("the coefficient ", fit$coefnames[k], " of b2 must not enter b3 in curves.")
+    if (absolute && L[1, k] != 0) stop("the coefficient ", fit$coefnames[k], " of b2 must not enter b1 in curves.")
 
     # full parameter vector from the reduced one (without coefficient k)
     pvfull <- function(par){
@@ -413,12 +413,12 @@ timevalue <- function(object, i, lpv){
 #' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
 #' confint(fit)
 #' confint(fit, method="wald")
-#' confint(timeto(fit, respLev=c(10, 50, 90)))
+#' confint(timeto(fit, level=c(10, 50, 90)))
 #' \donttest{
 #' # parametric bootstrap, reused for the times
 #' bt <- bootstrap(fit, nsim=200, seed=1, progress=FALSE)
 #' confint(fit, boot=bt)
-#' confint(timeto(fit, respLev=c(10, 50, 90)), boot=bt)
+#' confint(timeto(fit, level=c(10, 50, 90)), boot=bt)
 #' }
 #' @name confint.gcTMB
 #' @aliases confint.gcTMB confint.timetoTMB
@@ -482,7 +482,7 @@ confint.timetoTMB <- function(object, parm=NULL, level=0.95, method=c("profile",
       apply(draws, 2, function(par){
         pv <- fit$start
         pv[!fit$fix] <- par[seq_len(nb)]
-        lpv <- as.vector(object$linfct[[i]] %*% pv)
+        lpv <- as.vector(object$curves[[i]] %*% pv)
         if (isTRUE(object$conditional[[i]])) lpv <- lpv + as.vector(object$uweights[[i]] %*% par[r])
         timevalue(object, i, lpv)
       })

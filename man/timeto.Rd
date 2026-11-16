@@ -6,8 +6,8 @@
 \usage{
 timeto(
   x,
-  respLev = 50,
-  linfct = NULL,
+  level = 50,
+  curves = NULL,
   newdata = NULL,
   random = TRUE,
   residual = FALSE,
@@ -17,21 +17,24 @@ timeto(
 \arguments{
 \item{x}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
-\item{respLev}{Numeric vector. Levels in percent of the asymptote b1, between 0 and 100 (default 50): the time t p at which the curve reaches p percent of b1, the time at which the transformed time z(t) is Finv(p/100), with the inverse Finv of F of the model (see \code{\link{gcTMB}}): b2 + b3 Finv(p/100) for the logistic and gompertz models, b2 (p/(100 - p))^(1/b3) for the hill model. For the logistic, normal and hill models without truncation, t 50 is b2. For a curve truncated at the threshold b4 (the default of \code{\link{gcTMB}}), the levels are of the truncated curve, at Finv(p/100 + (1 - p/100) F(z(b4))). For \code{type="absolute"}, values of the response; the linear model, which has no asymptote, has only these.}
+\item{level}{Numeric vector. Levels in percent of the asymptote b1, between 0 and 100 (default 50): the time t p at which the curve reaches p percent of b1, the time at which the transformed time z(t) is Finv(p/100), with the inverse Finv of F of the model (see \code{\link{gcTMB}}): b2 + b3 Finv(p/100) for the logistic and gompertz models, b2 (p/(100 - p))^(1/b3) for the hill model. For the logistic, normal and hill models without truncation, t 50 is b2. For a curve truncated at the threshold b4 (the default of \code{\link{gcTMB}}), the levels are of the truncated curve, at Finv(p/100 + (1 - p/100) F(z(b4))). For \code{type="absolute"}, values of the response; the linear model, which has no asymptote, has only these.}
 
-\item{linfct}{Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curve, with 5 rows (b1-b5) and one column for each model coefficient, or a list of such matrices; default is the identity matrix, for models without covariates in fform. Each matrix is paired with an entry of respLev.}
+\item{curves}{Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curve, with 5 rows (b1-b5) and one column for each model coefficient, or a list of such matrices; default is the identity matrix, for models without covariates in fform. Each matrix is paired with an entry of level.}
 
-\item{newdata}{Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to linfct; the time is not needed. With grouping variables of the random effects, the curves of fitted groups, see Details. The times are computed at each level of respLev for each row, named by the covariate and group values (or by the row names of newdata, if set).}
+\item{newdata}{Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves; the time is not needed. With grouping variables of the random effects, the curves of fitted groups, see Details. The times are computed at each entry of level for each row, named by the covariate and group values (or by the row names of newdata, if set).}
 
 \item{random}{Logical. If TRUE, the times of rows of newdata with fitted groups are conditional on their random effects, and for the other random effect terms, the variance-covariance matrix of the random effects is included in the standard error estimation. If FALSE, the times are for the population curves.}
 
 \item{residual}{Logical. If TRUE, the residual variance is included in the standard error estimation (gaussian family only)}
 
-\item{type}{Character string. "relative" (default) for levels relative to the asymptote, or "absolute" for the times at which the curves reach the responses in respLev, on the scale of the response (proportions for binomial, beta-binomial and beta). Responses outside the range of a curve, between zero and the asymptote, give NA, with a warning.}
+\item{type}{Character string. "relative" (default) for levels relative to the asymptote, or "absolute" for the times at which the curves reach the responses in level, on the scale of the response (proportions for binomial, beta-binomial and beta). Responses outside the range of a curve, between zero and the asymptote, give NA, with a warning.}
 }
 \value{
 A timetoTMB object: a list with the estimated times (\code{coef}), their covariance
-matrix (\code{vcov}), and what \code{confint} and \code{profile} need.
+matrix (\code{vcov}), and what \code{confint} and \code{profile} need. The times are named by
+the level, e.g. \code{10\%} (relative) or \code{y=10} (absolute), followed by the name of the
+curve for curves from \code{newdata} or named \code{curves}, e.g. \code{10\%:trt=0.1}; several
+unnamed \code{curves} are numbered.
 }
 \description{
 Estimates the times at which growth curves reach a percentage of their asymptote, or a given
@@ -55,16 +58,16 @@ for the times of fitted groups, see \code{\link{confint.timetoTMB}}.
 \examples{
 fit <- gcTMB(height ~ DAS, data=FabaHeights25, model="logistic")
 # days after sowing at which the plants reach 10\%, 50\% and 90\% of their final height
-tt <- timeto(fit, respLev=c(10, 50, 90))
+tt <- timeto(fit, level=c(10, 50, 90))
 tt
 confint(tt)
 # the day at which they reach a height of 50
-timeto(fit, respLev=50, type="absolute")
+timeto(fit, level=50, type="absolute")
 
 # a curve for each treatment level
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
 fit2 <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25)
-timeto(fit2, respLev=90, newdata=data.frame(trt=levels(FabaHeights25$trt)))
+timeto(fit2, level=90, newdata=data.frame(trt=levels(FabaHeights25$trt)))
 }
 \seealso{
 \code{\link{confint.timetoTMB}} for confidence intervals, \code{\link{profile.timetoTMB}}

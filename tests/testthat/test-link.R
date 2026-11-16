@@ -73,7 +73,7 @@ test_that("log and logit links reparameterise the curve, with the same fit", {
     expect_equal(sqrt(diag(vcov(fl))[1:3]), sqrt(diag(vcov(f))[1:3])/bcoef(f), tolerance=1e-4, label=m)
     expect_equal(predict(fl), predict(f), tolerance=1e-8)
     expect_equal(unname(predict(fl, type="parameters")[1, ]), unname(bcoef(f)), tolerance=1e-6)
-    expect_equal(coef(timeto(fl, respLev=c(10, 90))), coef(timeto(f, respLev=c(10, 90))), tolerance=1e-6)
+    expect_equal(coef(timeto(fl, level=c(10, 90))), coef(timeto(f, level=c(10, 90))), tolerance=1e-6)
     s <- capture.output(print(summary(fl)))
     expect_true(any(grepl("log link for b1", s)))
     expect_true(any(grepl("b1, b2, b3 are on the log scale", s)))

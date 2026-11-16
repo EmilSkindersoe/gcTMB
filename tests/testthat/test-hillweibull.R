@@ -61,7 +61,7 @@ test_that("times of the hill and weibull curves, with standard errors and profil
     f <- gcTMB(y ~ day, truncated=FALSE, data=d, model=m)
     b <- bcoef(f)
     p <- c(10, 50, 90)
-    tt <- timeto(f, respLev=p)
+    tt <- timeto(f, level=p)
     expect_equal(unname(coef(tt)), gcTMB:::gctimeR(match(m, allmodels), p/100, b[[2]], b[[3]]), tolerance=1e-10)
     expect_equal(unname(predict(f, newdata=data.frame(day=coef(tt)))), b[[1]]*p/100, tolerance=1e-8)
     # delta method, by numerical derivatives
@@ -73,7 +73,7 @@ test_that("times of the hill and weibull curves, with standard errors and profil
   }
   # hill: t50 is b2
   f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("hill", b=ltpars$hill), model="hill")
-  expect_equal(unname(coef(timeto(f, respLev=50))), bcoef(f)[[2]], tolerance=1e-10)
+  expect_equal(unname(coef(timeto(f, level=50))), bcoef(f)[[2]], tolerance=1e-10)
 })
 
 test_that("truncated hill and weibull curves recover the threshold", {
@@ -86,7 +86,7 @@ test_that("truncated hill and weibull curves recover the threshold", {
     expect_equal(coef(f)[["b4:(Intercept)"]], 6, tolerance=0.1, label=m)
     expect_lt(AIC(f), AIC(gcTMB(y ~ day, truncated=FALSE, data=d, model=m)))
     expect_equal(as.vector(f$obj$gr(f$opt$par)), numDeriv::grad(f$obj$fn, f$opt$par), tolerance=1e-5)
-    tt <- timeto(f, respLev=c(10, 50))
+    tt <- timeto(f, level=c(10, 50))
     expect_equal(unname(predict(f, newdata=data.frame(day=coef(tt)))), coef(f)[["b1:(Intercept)"]]*c(0.1, 0.5), tolerance=1e-8)
     # profiles of the times: b2 found numerically on the log scale
     ci <- confint(tt)

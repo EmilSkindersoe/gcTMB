@@ -45,7 +45,7 @@ not included. Gaussian models without random effects use the F-based cutoff of
 }
 \examples{
 fit <- gcTMB(height ~ DAS, data=FabaHeights25)
-pr <- profile(timeto(fit, respLev=c(10, 90)), progress=FALSE)
+pr <- profile(timeto(fit, level=c(10, 90)), progress=FALSE)
 confint(pr)
 plot(pr)
 

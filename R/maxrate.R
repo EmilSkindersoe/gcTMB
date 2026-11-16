@@ -6,8 +6,8 @@
 #' bootstrap intervals.
 #'
 #' @param x A gcTMB object, the result of \code{\link{gcTMB}}.
-#' @param linfct Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see \code{\link{timeto}}; default is the identity matrix, for models without covariates in fform.
-#' @param newdata Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to linfct.
+#' @param curves Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see \code{\link{timeto}}; default is the identity matrix, for models without covariates in fform.
+#' @param newdata Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves.
 #'
 #' @details The curves are the population curves, with all random effects at zero; the standard
 #' errors include the uncertainty of the fixed effects. For each curve, \code{maxrate} gives
@@ -38,7 +38,10 @@
 #' \code{method="profile"}.
 #'
 #' @return A maxrateTMB object: a list with the estimates (\code{coef}), their covariance matrix
-#'   (\code{vcov}), and what \code{confint} and \code{profile} need.
+#'   (\code{vcov}), and what \code{confint} and \code{profile} need. The estimates are named
+#'   \code{tmax}, \code{rate} and \code{fraction}, followed by the name of the curve for curves from
+#'   \code{newdata} or named \code{curves}, e.g. \code{rate:trt=0.1}; several unnamed \code{curves}
+#'   are numbered.
 #' @seealso \code{\link{confint.maxrateTMB}} for confidence intervals, \code{\link{timeto}}
 #' @examples
 #' fit <- gcTMB(height ~ DAS, data=FabaHeights25, model="logistic")
@@ -55,27 +58,29 @@
 #' fit2 <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25)
 #' maxrate(fit2, newdata=data.frame(trt=levels(FabaHeights25$trt)))
 #' @export
-maxrate <- function(x, linfct=NULL, newdata=NULL){
+maxrate <- function(x, curves=NULL, newdata=NULL){
   if (!inherits(x, "gcTMB")) stop("x must be a gcTMB object.")
   if (!is.null(newdata)){
-    if (!is.null(linfct)) stop("give either linfct or newdata, not both.")
-    linfct <- curvelinfct(x, newdata)
+    if (!is.null(curves)) stop("give either curves or newdata, not both.")
+    # population curves: not named by the grouping variables of the random effects
+    curves <- newdatacurves(x, newdata, groups=FALSE)
   }
-  if (is.null(linfct)) linfct <- diag(5)
-  if (!is.list(linfct)) linfct <- list(linfct)
-  if (is.null(names(linfct))) names(linfct) <- paste("lf", seq_along(linfct), sep="")
-  linfct <- checklinfct(x, linfct, is.null(newdata))
+  if (is.null(curves)) curves <- diag(5)
+  if (!is.list(curves)) curves <- list(curves)
+  # unnamed curves: no name for a single curve, numbered otherwise
+  if (is.null(names(curves))) names(curves) <- if (length(curves) == 1) "" else seq_along(curves)
+  curves <- checkcurves(x, curves, is.null(newdata))
 
   pv <- x$start
   nb <- sum(!x$fix)
   pv[!x$fix] <- x$sdrl$par.fixed[seq_len(nb)]
   qn <- c("tmax", "rate", "fraction")
   nq <- length(qn)
-  nc <- length(linfct)
+  nc <- length(curves)
   est <- numeric(nq*nc)
   grad <- matrix(0, nq*nc, nb)
   for (i in seq_len(nc)){
-    L <- linfct[[i]]
+    L <- curves[[i]]
     lpv <- as.vector(L %*% pv)
     id <- (i - 1)*nq + seq_len(nq)
     est[id] <- maxratevalue(x, lpv)
@@ -90,27 +95,33 @@ maxrate <- function(x, linfct=NULL, newdata=NULL){
   }
   vc <- fixedcov(x)[seq_len(nb), seq_len(nb), drop=FALSE]
   v <- grad %*% vc %*% t(grad)
-  nm <- paste(rep(qn, nc), rep(names(linfct), each=nq), sep=":")
+  nm <- curvelabels(rep(qn, nc), rep(names(curves), each=nq))
   if (anyNA(est) && !islinear(modelindex(x$model))){
-    warning("the curves ", paste(unique(names(linfct)[ceiling(which(is.na(est))/nq)]), collapse=", "),
-            " have no inflection point at a positive time (b3 b5 <= 1); their results are NA.", call.=FALSE)
+    nacurves <- unique(names(curves)[ceiling(which(is.na(est))/nq)])
+    warning(if (identical(nacurves, "")) "the curve has" else paste("the curves", paste(nacurves, collapse=", "), "have"),
+            " no inflection point at a positive time (b3 b5 <= 1); the results are NA.", call.=FALSE)
   }
   names(est) <- nm
   dimnames(v) <- list(nm, nm)
-  res <- list(estimates=est, variance=v, fit=x, linfct=linfct,
+  res <- list(estimates=est, variance=v, fit=x, curves=curves,
               quantity=setNames(rep(qn, nc), nm), curve=setNames(rep(seq_len(nc), each=nq), nm))
   class(res) <- "maxrateTMB"
   res
 }
 
-# linfct as a list of matrices with 5 rows and one column for each coefficient of the fit; a matrix
+# names of estimates: the label alone for an unnamed curve, otherwise label:curve
+curvelabels <- function(label, curve){
+  ifelse(curve == "", label, paste(label, curve, sep=":"))
+}
+
+# curves as a list of matrices with 5 rows and one column for each coefficient of the fit; a matrix
 # without a row for the asymmetry b5 keeps b5 of the fit, when it is a single coefficient
-checklinfct <- function(x, linfct, hint=TRUE){
+checkcurves <- function(x, curves, hint=TRUE){
   ncf <- length(x$start)
   npi <- rep(1:5, vapply(x$Xs, ncol, integer(1)))
-  lapply(linfct, function(L){
+  lapply(curves, function(L){
     if (!is.matrix(L) || nrow(L) != 5 || ncol(L) != ncf){
-      stop("each matrix in linfct must have 5 rows (b1-b5) and one column for each of the ", ncf,
+      stop("each matrix in curves must have 5 rows (b1-b5) and one column for each of the ", ncf,
            " model coefficients: ", paste(x$coefnames, collapse=", "), ".",
            if (hint && ncf > 5) " Alternatively, give the covariate values of the curves in newdata.")
     }
@@ -231,7 +242,7 @@ NULL
 #' @method print maxrateTMB
 #' @export
 print.maxrateTMB <- function(x, ...){
-  cat("Maximum growth rate (rate), its time (tmax) and the fraction of the asymptote reached then:\n\n")
+  cat("Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):\n\n")
   print(data.frame(Estimate=x$estimates, Std.Error=sqrt(diag(x$variance))), digits=3)
   invisible(x)
 }
@@ -270,7 +281,7 @@ vcov.maxrateTMB <- function(object, ...) object$variance
 #' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
 #' mr <- maxrate(fit)
 #' confint(mr, method="wald")
-#' confint(mr, parm=c("tmax:lf1", "rate:lf1"))
+#' confint(mr, parm=c("tmax", "rate"))
 #' @export
 confint.maxrateTMB <- function(object, parm=NULL, level=0.95, method=c("profile", "wald", "boot"), nsim=500, seed=NULL, boot=NULL, ...){
   method <- if (!is.null(boot)) "boot" else match.arg(method)
@@ -289,7 +300,7 @@ confint.maxrateTMB <- function(object, parm=NULL, level=0.95, method=c("profile"
     draws <- bootdraws(fit, getboot(fit, boot, nsim, seed, ...), FALSE)
     nb <- sum(!fit$fix)
     vals <- sapply(parm, function(i){
-      L <- object$linfct[[object$curve[[i]]]]
+      L <- object$curves[[object$curve[[i]]]]
       q <- match(object$quantity[[i]], c("tmax", "rate", "fraction"))
       apply(draws, 2, function(par){
         pv <- fit$start
@@ -322,7 +333,7 @@ profileable <- function(object, parm){
   b4 <- vapply(parm, function(i){
     pv <- fit$start
     pv[!fit$fix] <- fit$sdrl$par.fixed[seq_len(sum(!fit$fix))]
-    linkpars(linkindex(fit$link), as.vector(object$linfct[[object$curve[[i]]]] %*% pv))[4]
+    linkpars(linkindex(fit$link), as.vector(object$curves[[object$curve[[i]]]] %*% pv))[4]
   }, numeric(1))
   est <- coef(object)[parm]
   q <- object$quantity[parm]
@@ -345,7 +356,7 @@ profileable <- function(object, parm){
 #'   \code{\link{profile.gcTMB}}
 #' @examples
 #' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
-#' pr <- profile(maxrate(fit), parm="rate:lf1")
+#' pr <- profile(maxrate(fit), parm="rate")
 #' confint(pr)
 #' @export
 profile.maxrateTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress=interactive(), ...){
@@ -380,7 +391,7 @@ profile.maxrateTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progres
       }
       suppressWarnings(linkfun(lnk[ps], p))
     }
-    d <- profilesolved(fit, fitted$linfct[[fitted$curve[[i]]]], ps, solve, est[[i]], sqrt(fitted$variance[i, i]),
+    d <- profilesolved(fit, fitted$curves[[fitted$curve[[i]]]], ps, solve, est[[i]], sqrt(fitted$variance[i, i]),
                        names(est)[i], level, maxit)
     pb$tick()
     d
@@ -420,7 +431,7 @@ profilesolved <- function(fit, L, ps, solvefun, t0, se, name, level, maxit){
   if (all(w == 0)) stop(name, " does not depend on an estimated coefficient of b", ps, ".")
   kp <- which.max(abs(w))
   k <- free[kp]
-  if (any(L[oth, k] != 0)) stop("the coefficient ", fit$coefnames[k], " of b", ps, " must not enter other parameters in linfct.")
+  if (any(L[oth, k] != 0)) stop("the coefficient ", fit$coefnames[k], " of b", ps, " must not enter other parameters in curves.")
 
   pvfull <- function(par){
     pv <- fit$start

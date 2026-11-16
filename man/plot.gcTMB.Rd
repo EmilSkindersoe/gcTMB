@@ -2,13 +2,15 @@
 % Please edit documentation in R/plot.R
 \name{plot.gcTMB}
 \alias{plot.gcTMB}
-\title{Diagnostic plots for gcTMB models}
+\title{Plots of gcTMB models: validation and fitted curves}
 \usage{
 \method{plot}{gcTMB}(
   x,
+  type = c("validation", "curves"),
   which = 1:3,
-  type = c("quantile", "pearson", "response"),
+  residuals = c("quantile", "pearson", "response"),
   random = TRUE,
+  times = NULL,
   ncol = NULL,
   seed = NULL,
   draw = TRUE,
@@ -18,50 +20,80 @@
 \arguments{
 \item{x}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
-\item{which}{Integer vector, a subset of 1:4. The plots to draw: 1 residuals against fitted values, 2 residuals against time, 3
-normal QQ plot of the residuals, 4 normal QQ plots of the predicted random effects (models with
-random effects only)}
+\item{type}{Character vector. "validation" (default) for the validation plots, "curves" for the
+data with the fitted curves, or both, \code{c("validation", "curves")}, with the curves last}
 
-\item{type}{Character string. Residual type, see \code{\link{residuals.gcTMB}}: "quantile" (default), "pearson" or
-"response"}
+\item{which}{Integer vector, a subset of 1:4. The validation plots to draw: 1 residuals against
+fitted values, 2 residuals against time, 3 normal QQ plot of the residuals, 4 normal QQ plots of
+the predicted random effects (models with random effects only)}
 
-\item{random}{Logical. If TRUE, residuals and fitted values include the predicted random effects}
+\item{residuals}{Character string. Residual type of the validation plots, see
+\code{\link{residuals.gcTMB}}: "quantile" (default), "pearson" or "response"}
+
+\item{random}{Logical. If TRUE, residuals and fitted values of the validation plots include the
+predicted random effects}
+
+\item{times}{Numeric vector or NULL. The times at which the curves are drawn, e.g.
+\code{seq(0, 61, by=0.1)} to draw them from time 0; default 200 times over the range of the
+observed times}
 
 \item{ncol}{Integer or NULL. Number of columns of the page}
 
-\item{seed}{Integer or NULL. Seed for the randomised quantile residuals}
+\item{seed}{Integer or NULL. Seed for the randomised quantile residuals, which for the discrete
+families are random; it has no effect for the continuous families}
 
 \item{draw}{Logical. If FALSE, the graphs are returned without drawing them}
 
 \item{...}{Not used.}
 }
 \value{
-a list of ggplot objects, invisibly, named fitted, time, qq and ranef, for changing or
-drawing single graphs
+a list of ggplot objects, invisibly, for changing or drawing single graphs: fitted, time,
+qq and ranef for the validation plots, and curves for the curves plot
 }
 \description{
-Residuals against the fitted values, residuals against time, a normal QQ plot of the
-residuals, and normal QQ plots of the predicted random effects, drawn as ggplot2 graphs on one
-page.
+Validation plots (\code{type="validation"}, the default): residuals against the fitted values,
+residuals against time, a normal QQ plot of the residuals, and normal QQ plots of the predicted
+random effects. Fitted curves (\code{type="curves"}): the data with the fitted curves. With
+\code{type=c("validation", "curves")}, the curves plot is drawn last on the same page as the
+validation plots. The graphs are ggplot2 graphs.
 }
 \details{
 The default randomised quantile residuals are standard normal under the model for all families,
 so the QQ plot is compared with the identity line; for the discrete families they are drawn
 uniformly within the jump of the distribution function at each observation, and \code{seed}
-makes the plots reproducible. For \code{type="response"}, the QQ plot line goes through the
-quartiles. A lowess smoother (red) shows trends of the residuals against the fitted values and
+makes the plots reproducible. For \code{residuals="response"}, the QQ plot line goes through the
+quartiles. The Pearson and response residuals of the families other than gaussian and lognormal
+are not normally distributed under the model, so their QQ plot is drawn with a warning. A lowess smoother (red) shows trends of the residuals against the fitted values and
 time.
 
 The QQ plots of the random effects (\code{which=4}) show the predicted random effects of each
 parameter and grouping factor. They are shrunk towards zero, so their spread is smaller than the
 estimated standard deviation, and with few groups they say little about the normality of the
 random effects.
+
+The curves plot shows the data with the fitted curves at \code{times}, by default over the range
+of the observed times: for models with random effects, the curve of each individual (each
+combination of the grouping variables of the random effects) with its predicted random effects,
+and the population curves, with the random effects at zero, as thick lines for each combination
+of the covariates of the fixed effects (\code{fform}). Points and curves are coloured by these
+covariates. The covariates of an individual are taken from its first observation.
 }
 \examples{
 fit <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=FabaHeights25)
-plot(fit, which=1:4, seed=1)
+plot(fit, which=1:4)
+# the data with the curves of the plants and the population curve, from sowing
+plot(fit, type="curves", times=seq(0, 61, by=0.1))
+# validation plots with the curves last
+plot(fit, type=c("validation", "curves"))
+# by treatment
+FabaHeights25$trt <- factor(FabaHeights25$Treatment)
+fitt <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+plot(fitt, type="curves")
 # a single graph, changed
 p <- plot(fit, which=2, draw=FALSE)
 p$time + ggplot2::labs(x="Days after sowing")
+# counts: the randomised quantile residuals are reproducible with a seed
+fitp <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
+plot(fitp, seed=1)
 
 }

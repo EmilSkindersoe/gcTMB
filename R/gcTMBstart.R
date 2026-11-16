@@ -27,8 +27,8 @@
 #' combinations of a grid of parameter values and returns the best grid point; parameters
 #' not included in the grid start at the values of method "lm".
 #' Without bounds in \code{gsl} and \code{gsu}, default ranges are used for b2 (the time range
-#' extended by a quarter at both ends, positive with the log link) and b3 (the sign of the "lm"
-#' starting value, with 1/4 to 4 times its value, log-spaced; on the scale of its link). Default ranges are only used for parameters
+#' extended by a quarter at both ends, positive with the log link) and b3 (1/4 to 4 times
+#' its "lm" starting value, log-spaced; on the scale of its link). Default ranges are only used for parameters
 #' with a single coefficient in \code{fform}; the asymptote b1 is only included in the grid with
 #' user-specified bounds.
 #'
@@ -175,11 +175,10 @@ lmstart <- function(dd, start, fix){
   yd <- yd[ok]
   if (length(td) == 0) stop("no finite responses for the starting values.")
   trange <- if (length(td) > 1) diff(range(td)) else 1
-  increasing <- length(td) < 2 || yd[length(yd)] >= yd[1]
 
   # b2 and b3 from the linearised curve for a given asymptote b1, Finv(y / b1) = a + c h(t) with the
   # time h(t) = t or log(t) of the model; fallbacks for too few points
-  b3range <- if (is.na(m$b3)) NULL else switch(m$b3, shape=c(1.001, 50), slope=if (increasing) c(0.05, 50) else c(-50, -0.05), NULL)
+  b3range <- if (is.na(m$b3)) NULL else switch(m$b3, shape=c(1.001, 50), slope=c(0.05, 50), NULL)
   linfit <- function(b1){
     q <- yd / b1
     use <- is.finite(q) & q > 0.01 & q < 0.99 & (!m$logtime | td > 0)
@@ -208,10 +207,10 @@ lmstart <- function(dd, start, fix){
       b2 <- p[1]
       b3 <- p[2]
     }
-    # fallbacks: a scale of an eighth of the time range in the direction of the data (a slope or
-    # shape of 2), and the time at which the response is closest to half the asymptote
+    # fallbacks: a scale of an eighth of the time range (a slope or shape of 2), and the time at
+    # which the response is closest to half the asymptote
     if (!is.finite(b3) || b3 == 0){
-      b3 <- switch(m$b3, shape=2, slope=if (increasing) 2 else -2, (if (increasing) 1 else -1) * trange / 8)
+      b3 <- switch(m$b3, shape=2, slope=2, trange / 8)
     }
     if (!is.finite(b2) || (m$logtime && b2 <= 0)){
       tp <- if (m$logtime) td > 0 else rep(TRUE, length(td))
@@ -364,7 +363,7 @@ gridrange <- function(dd, start){
     if (dd$lnk[2] == linkindex("log") || gcmodel(dd$mod)$logtime) lo <- max(lo, min(x[x > 0], up) / 4)
     rng[[i2]] <- list(lower=linkfun(dd$lnk[2], lo), upper=linkfun(dd$lnk[2], up), log=FALSE)
   }
-  # b3: keep the sign of the starting value, between 1/4 and 4 times its value
+  # b3: between 1/4 and 4 times its starting value
   i3 <- single(3)
   if (!is.null(i3)){
     b3 <- start[i3]

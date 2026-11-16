@@ -50,5 +50,5 @@ the bootstrap intervals.
 fit <- gcTMB(height ~ DAS, data=FabaHeights25)
 mr <- maxrate(fit)
 confint(mr, method="wald")
-confint(mr, parm=c("tmax:lf1", "rate:lf1"))
+confint(mr, parm=c("tmax", "rate"))
 }

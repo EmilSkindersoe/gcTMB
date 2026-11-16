@@ -25,11 +25,11 @@ The package gcTMB fits growth curves over time using the Template Model Builder 
 
 ## Growth models
 
-All models but the linear one are of the form $f(t) = b_1 F(z(t))$, with a function $F$ increasing from 0 to 1 and a transformed time $z(t)$, increasing in $t$:
+All models but the linear one are functions $f(t)$ of time, increasing from 0 towards the asymptote $b_1$, e.g. the logistic curve $f(t) = b_1/(1 + \exp(-(t - b_2)/b_3))$:
 
 * $b_1$ is the asymptote, the response approached at late times,
 * $b_2$ is the time of the maximum growth rate, the inflection point of the curve (logistic, Gompertz, Weibull, normal, gamma), or the time of half the asymptote (Hill),
-* $b_3$ is the scale of the curve on the time axis (logistic, Gompertz, normal), positive for an increasing curve, its slope on the log time axis (Hill), or its shape (Weibull, gamma).
+* $b_3$ is the scale of the curve on the time axis (logistic, Gompertz, normal), its slope on the log time axis (Hill), or its shape (Weibull, gamma).
 
 The parameter $b_4$ is the threshold of truncated curves, and $b_5$ the asymmetry of the curve (both below).
 
@@ -49,7 +49,7 @@ The curve reaches $\mathrm{e}^{-1} \approx 37\%$ of its asymptote at $b_2$, and 
 
 $$ f(t) = \frac{b_1}{1 + (b_2 / t)^{b_3}} $$
 
-A logistic curve on the log time axis, $z = b_3 (\log t - \log b_2)$, for positive times; it reaches half of its asymptote at $b_2$.
+A logistic curve in $\log t$, $f(t) = b_1/(1 + \exp(-b_3 (\log t - \log b_2)))$, for positive times; it reaches half of its asymptote at $b_2$.
 
 #### weibull
 
@@ -77,31 +77,43 @@ A straight line with slope $b_1$ and intercept $b_2$, for comparison with the gr
 
 #### Truncation at a threshold
 
-By default, $F$ is truncated at a threshold time $b_4$, as a distribution function truncated from below:
+By default, a curve $f(t)$ above is truncated at a threshold time $b_4$, shifted down to zero at $b_4$ and rescaled to keep the asymptote $b_1$:
 
-$$ f(t) = b_1 \frac{F(z(t)) - F(z(b_4))}{1 - F(z(b_4))} \quad \text{for } t > b_4, $$
+$$ f_{b_4}(t) = b_1 \frac{f(t) - f(b_4)}{b_1 - f(b_4)} \quad \text{for } t > b_4, $$
 
-and $f(t) = 0$ up to $b_4$, e.g. before the emergence of the plants or the first pods. $b_2$ and $b_3$ keep their meaning for the curve without truncation. By default $b_4$ is fixed at 0, so that the curve starts at zero at $t = 0$, e.g. at sowing; `fix = c(b4 = FALSE)` estimates it, and `truncated = FALSE` gives the curves without truncation. The Hill and Weibull curves are zero up to $t = 0$ anyway, so a threshold at or below 0 does not change them.
+and $f_{b_4}(t) = 0$ up to $b_4$, e.g. before the emergence of the plants or the first pods. $b_2$ and $b_3$ keep their meaning for the curve without truncation. By default $b_4$ is fixed at 0, so that the curve starts at zero at $t = 0$, e.g. at sowing; `fix = c(b4 = FALSE)` estimates it, and `truncated = FALSE` gives the curves without truncation. The Hill and Weibull curves are zero up to $t = 0$ anyway, so a threshold at or below 0 does not change them.
 
 #### Maximum growth rate and inflection point
 
-For the curves with the default threshold $b_4 = 0$ and without asymmetry ($b_5 = 1$), the inflection point $t_m$, the fraction $G_m = f(t_m)/b_1$ of the asymptote reached there, and the maximum growth rate $r_{\max}$, the slope of the curve at $t_m$, follow from those of the curves without truncation:
+For the curves without truncation and without asymmetry ($b_5 = 1$), the inflection point $t_m$, the proportion of total growth at inflection $f(t_m)/b_1$, and the maximum growth rate $r_{\max}$, the slope of the curve at $t_m$, are:
 
-| Model | Inflection point $t_m$ | Fraction $G_m^0$ | Maximum growth rate $r_{\max}^0$ | $p_0 = F(z(0))$ |
-|:--|:--|:--|:--|:--|
-| logistic | $b_2$ | $1/2$ | $\dfrac{b_1}{4 b_3}$ | $\dfrac{1}{1 + \mathrm{e}^{b_2/b_3}}$ |
-| gompertz | $b_2$ | $\mathrm{e}^{-1} \approx 0.37$ | $\dfrac{b_1}{\mathrm{e}^1 b_3}$ | $\exp\left(-\mathrm{e}^{b_2/b_3}\right)$ |
-| hill | $b_2 \left(\dfrac{b_3 - 1}{b_3 + 1}\right)^{1/b_3}$ | $\dfrac{b_3 - 1}{2 b_3}$ | $\dfrac{b_1}{b_2} \dfrac{(b_3 - 1)^{1 - 1/b_3} (b_3 + 1)^{1 + 1/b_3}}{4 b_3}$ | 0 |
-| weibull | $b_2$ | $1 - \mathrm{e}^{-(b_3 - 1)/b_3}$ | $\dfrac{b_1}{b_2} (b_3 - 1) \mathrm{e}^{-(b_3 - 1)/b_3}$ | 0 |
-| normal | $b_2$ | $1/2$ | $\dfrac{b_1}{\sqrt{2\pi}\, b_3}$ | $\Phi\left(-\dfrac{b_2}{b_3}\right)$ |
-| gamma | $b_2$ | $F_\Gamma\left(b_2;\ b_3, \dfrac{b_2}{b_3 - 1}\right)$ | $\dfrac{b_1}{b_2} \dfrac{(b_3 - 1)^{b_3} \mathrm{e}^{-(b_3 - 1)}}{\Gamma(b_3)}$ | 0 |
-| linear | none | none | $b_1$ at all times | none |
+| Model | Inflection point $t_m$ | Proportion of total growth at inflection $f(t_m)/b_1$ | Maximum growth rate $r_{\max}$ |
+|:--|:--|:--|:--|
+| logistic | $b_2$ | $1/2$ | $\dfrac{b_1}{4 b_3}$ |
+| gompertz | $b_2$ | $\mathrm{e}^{-1} \approx 0.37$ | $\dfrac{b_1}{\mathrm{e}^1 b_3}$ |
+| hill | $b_2 \left(\dfrac{b_3 - 1}{b_3 + 1}\right)^{1/b_3}$ | $\dfrac{b_3 - 1}{2 b_3}$ | $\dfrac{b_1}{b_2} \dfrac{(b_3 - 1)^{1 - 1/b_3} (b_3 + 1)^{1 + 1/b_3}}{4 b_3}$ |
+| weibull | $b_2$ | $1 - \mathrm{e}^{-(b_3 - 1)/b_3}$ | $\dfrac{b_1}{b_2} (b_3 - 1) \mathrm{e}^{-(b_3 - 1)/b_3}$ |
+| normal | $b_2$ | $1/2$ | $\dfrac{b_1}{\sqrt{2\pi}\, b_3}$ |
+| gamma | $b_2$ | $F_\Gamma\left(b_2;\ b_3, \dfrac{b_2}{b_3 - 1}\right)$ | $\dfrac{b_1}{b_2} \dfrac{(b_3 - 1)^{b_3} \mathrm{e}^{-(b_3 - 1)}}{\Gamma(b_3)}$ |
+| linear | none | none | $b_1$ at all times |
 
-Here $G_m^0$ and $r_{\max}^0$ are for the curves without truncation, and $p_0$ is the fraction of the asymptote these reach at $t = 0$. The truncation at $b_4 = 0$ scales the curve by $1/(1 - p_0)$ after $t = 0$, so for $b_2 > 0$ the inflection point stays at $t_m$, and
+<!--
+Truncation at the default threshold b4 = 0 (kept as a note, not shown in the vignette):
+p0 = f(0)/b1 is the proportion of the asymptote the curve without truncation reaches at t = 0:
+  logistic  p0 = 1/(1 + exp(b2/b3))
+  gompertz  p0 = exp(-exp(b2/b3))
+  hill      p0 = 0
+  weibull   p0 = 0
+  normal    p0 = Phi(-b2/b3)
+  gamma     p0 = 0
+  linear    none
+The truncation at b4 = 0 scales the curve by 1/(1 - p0) after t = 0, so for b2 > 0 the inflection
+point stays at t_m, and, with G0 = f(t_m)/b1 and r0 = r_max of the curves without truncation,
+  f_b4(t_m)/b1 = (G0 - p0)/(1 - p0),   r_max = r0/(1 - p0)   (truncated curve f_b4, b4 = 0).
+For the Hill, Weibull and gamma curves p0 = 0 and nothing changes.
+-->
 
-$$ G_m = \frac{G_m^0 - p_0}{1 - p_0}, \qquad r_{\max} = \frac{r_{\max}^0}{1 - p_0}. $$
-
-For the Hill, Weibull and gamma curves, $p_0 = 0$ and nothing changes. $G_m$ tells how much of the growth has occurred when the growth is fastest. The Hill curve has an inflection point at a positive time only for $b_3 > 1$. `maxrate()` computes $t_m$, $r_{\max}$ and $G_m$ for all curves, also with an estimated threshold and asymmetric ones.
+The proportion of total growth at inflection tells how much of the growth has occurred when the growth is fastest. The Hill curve has an inflection point at a positive time only for $b_3 > 1$. `maxrate()` computes $t_m$, $r_{\max}$ and $f(t_m)/b_1$ for all curves, also truncated and asymmetric ones.
 
 #### Asymmetry
 
@@ -111,9 +123,9 @@ Each model has an asymmetry parameter $b_5 > 0$, with $b_5 = 1$ the curves above
 * gompertz, a power of the survival function $1 - F$: $$ f(t) = b_1 \left(1 - \left(1 - \exp\left(-\exp\left(-\frac{t - b_2}{b_3}\right)\right)\right)^{b_5}\right) $$ as a power of the Gompertz $F$ itself would only shift the curve in time;
 * hill, the five-parameter log-logistic curve: $$ f(t) = \frac{b_1}{\left(1 + (b_2 / t)^{b_3}\right)^{b_5}} $$
 * weibull, the exponentiated Weibull curve: $$ f(t) = b_1 \left(1 - \exp\left(-\frac{b_3 - 1}{b_3} \left(\frac{t}{b_2}\right)^{b_3}\right)\right)^{b_5} $$
-* normal and gamma, a power of their distribution function: $f(t) = b_1 F(z(t))^{b_5}$.
+* normal and gamma, a power of the curve relative to its asymptote: $$ f(t) = b_1 \Phi\left(\frac{t - b_2}{b_3}\right)^{b_5}, \qquad f(t) = b_1 F_\Gamma\left(t;\ b_3, \frac{b_2}{b_3 - 1}\right)^{b_5}. $$
 
-For the Richards curve, $b_2$ remains the inflection point for all $b_5$: $t_m = b_2$, where the curve reaches the fraction $G_m = (1 + b_5)^{-1/b_5}$ of its asymptote, with the maximum growth rate $r_{\max} = \dfrac{b_1}{b_3} (1 + b_5)^{-(1 + b_5)/b_5}$. $G_m$ goes from $\mathrm{e}^{-1}$ (Gompertz, $b_5 \to 0$) through $1/2$ (logistic, $b_5 = 1$) towards 1 as $b_5$ grows. For the other models with $b_5 \neq 1$, $b_2$ is the location of the curve rather than its inflection point or the time of half the asymptote.
+For the Richards curve, $b_2$ remains the inflection point for all $b_5$: $t_m = b_2$, where the proportion of total growth at inflection is $f(t_m)/b_1 = (1 + b_5)^{-1/b_5}$, with the maximum growth rate $r_{\max} = \dfrac{b_1}{b_3} (1 + b_5)^{-(1 + b_5)/b_5}$. $f(t_m)/b_1$ goes from $\mathrm{e}^{-1}$ (Gompertz, $b_5 \to 0$) through $1/2$ (logistic, $b_5 = 1$) towards 1 as $b_5$ grows. For the other models with $b_5 \neq 1$, $b_2$ is the location of the curve rather than its inflection point or the time of half the asymptote.
 
 ## The faba bean data
 
@@ -181,7 +193,7 @@ AIC(allfits[["b1, b2, b3"]]$linear)
 ```
 
 ```{r, fig.width = 6, fig.height = 4}
-ndm <- data.frame(DAS = seq(1, 80, length.out = 100))
+ndm <- data.frame(DAS = seq(0, 80, by = 0.1))
 curveplot <- function(set){
   fs <- allfits[[set]]
   curves <- do.call(rbind, lapply(names(fs), function(m)
@@ -202,7 +214,7 @@ The curves of the six growth models are close to each other within the observed 
 With `interval = "confidence"`, `predict()` adds standard errors and confidence intervals for the mean response by the delta method; with `interval = "prediction"`, the intervals are for a new observation.
 
 ```{r, fig.width = 6, fig.height = 4}
-nd <- data.frame(DAS = seq(0, 80, length.out = 100))
+nd <- data.frame(DAS = seq(0, 80, by = 0.1))
 ci <- predict(fit, newdata = nd, interval = "confidence")
 pi <- predict(fit, newdata = nd, interval = "prediction")
 ggplot(FabaHeights25, aes(x = DAS, y = height)) +
@@ -256,10 +268,10 @@ coef(fit)[["b3:(Intercept)"]]
 
 ### Diagnostics
 
-`plot()` draws residuals against the fitted values and against time, and a normal QQ plot. The repeated measurements of the same plants are not independent; the random effects below account for that.
+`plot()` draws validation plots: residuals against the fitted values and against time, and a normal QQ plot of the randomised quantile residuals. With `type = c("validation", "curves")`, the data with the fitted curve are added as the last graph. The repeated measurements of the same plants are not independent; the random effects below account for that.
 
 ```{r, fig.width = 7, fig.height = 5}
-plot(fit, seed = 1)
+plot(fit, type = c("validation", "curves"))
 ```
 
 ## Time to reach a level of the asymptote
@@ -267,9 +279,9 @@ plot(fit, seed = 1)
 `timeto()` gives the times at which a curve reaches a percentage of its asymptote, $b_2 + b_3 F^{-1}(p/100)$, with standard errors by automatic differentiation. With `type = "absolute"`, the times at which the curve reaches given responses, here a height of 50cm.
 
 ```{r}
-tt <- timeto(fit, respLev = c(10, 50, 90))
+tt <- timeto(fit, level = c(10, 50, 90))
 tt
-timeto(fit, respLev = 50, type = "absolute")
+timeto(fit, level = 50, type = "absolute")
 ```
 
 `confint()` gives profile likelihood intervals by default, `method = "wald"` Wald intervals and `method = "boot"` parametric bootstrap intervals.
@@ -281,7 +293,7 @@ confint(tt, method = "wald")
 
 ## Maximum growth rate
 
-`maxrate()` gives the time of the maximum growth rate (`tmax`), the inflection point of the curve, the maximum growth rate there (`rate`), and the fraction of the asymptote reached at that time (`fraction`). The standard errors are by the delta method. `confint()` gives profile likelihood intervals for `tmax` and `rate` by default, and Wald intervals for `fraction`; `method = "wald"` and `method = "boot"` as for `timeto()`. For the logistic curve truncated at $b_4 = 0$, `tmax` is $b_2$, and `rate` and `fraction` follow from $b_1/(4 b_3)$ and $1/2$ as in the table of the growth models.
+`maxrate()` gives the time of the maximum growth rate (`tmax`), the inflection point of the curve, the maximum growth rate there (`rate`), and the proportion of total growth at that time, $f(t_m)/b_1$ (`fraction`). The standard errors are by the delta method. `confint()` gives profile likelihood intervals for `tmax` and `rate` by default, and Wald intervals for `fraction`; `method = "wald"` and `method = "boot"` as for `timeto()`. For the logistic curve truncated at $b_4 = 0$, `tmax` is $b_2$; `rate` is slightly above and `fraction` slightly below the values $b_1/(4 b_3)$ and $1/2$ of the curve without truncation in the table of the growth models, as the truncation shifts the curve down to zero at $t = 0$ and rescales it.
 
 ```{r, message = FALSE}
 mr <- maxrate(fit)
@@ -289,7 +301,7 @@ mr
 confint(mr)
 ```
 
-With an estimated asymmetry, the fraction of the asymptote reached at the inflection point is estimated as well. For the Richards curve, the inflection point remains at $b_2$; for the Hill, Weibull and asymmetric Gompertz curves it differs from $b_2$.
+With an estimated asymmetry, the proportion of total growth at inflection is estimated as well. For the Richards curve, the inflection point remains at $b_2$; for the Hill, Weibull and asymmetric Gompertz curves it differs from $b_2$.
 
 ```{r}
 maxrate(allfits[["b1, b2, b3, b5"]]$logistic)
@@ -318,14 +330,21 @@ anova(fitre0, fitre)
 
 ```{r, fig.width = 6, fig.height = 4}
 nd <- unique(FabaHeights25[, c("plant_ID", "trt")])
-nd <- merge(nd, data.frame(DAS = seq(14, 61, 1)))
+nd <- merge(nd, data.frame(DAS = seq(0, 61, by = 0.1)))
 nd$fit <- predict(fitre, newdata = nd)
 ggplot(FabaHeights25, aes(x = DAS, y = height, colour = trt)) +
   geom_point() +
   geom_line(data = nd, aes(y = fit, group = plant_ID)) +
   labs(x = "Days after sowing", y = "Height", colour = "Treatment") +
   theme_minimal()
-timeto(fitre, respLev = 90, newdata = data.frame(trt = levels(FabaHeights25$trt)), random = FALSE)
+timeto(fitre, level = 90, newdata = data.frame(trt = levels(FabaHeights25$trt)), random = FALSE)
+```
+
+`plot()` with `type = "curves"` draws such a plot directly: the data with the curve of each plant, and the population curve of each treatment as a thick line. By default the curves are drawn over the observed days; `times` gives the times at which they are drawn, here from sowing. It returns the ggplot object in a list, for changing the graph.
+
+```{r, fig.width = 6, fig.height = 4}
+p <- plot(fitre, type = "curves", times = seq(0, 61, by = 0.1), draw = FALSE)
+p$curves + labs(x = "Days after sowing", y = "Height", colour = "Treatment")
 ```
 
 ## Non-normal responses
@@ -343,7 +362,7 @@ predict(fitp, newdata = genotypes, type = "parameters", random = FALSE)
 All the counts with the fitted curve of each plant, with its predicted random asymptote:
 
 ```{r, fig.width = 6, fig.height = 4}
-days <- seq(61, 79, 0.25)
+days <- seq(61, 79, by = 0.05)
 ndp <- merge(unique(FabaCounts23[, c("Tube_ID", "Genotype")]), data.frame(DAS = days))
 ndp$fit <- predict(fitp, newdata = ndp)
 ggplot(FabaCounts23, aes(x = DAS, y = pods, colour = Genotype)) +

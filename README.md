@@ -82,10 +82,10 @@ its asymptote, with standard errors from automatic differentiation and
 profile likelihood intervals by `confint()`.
 
 ``` r
-tt <- timeto(fit, respLev = c(10, 50, 90))
+tt <- timeto(fit, level = c(10, 50, 90))
 confint(tt)
-#>            2.5 %    97.5 %
-#> 10:lf1  4.192012  4.902495
-#> 50:lf2  9.664311 10.137903
-#> 90:lf3 15.044105 16.338969
+#>         2.5 %    97.5 %
+#> 10%  4.192012  4.902495
+#> 50%  9.664311 10.137903
+#> 90% 15.044105 16.338969
 ```

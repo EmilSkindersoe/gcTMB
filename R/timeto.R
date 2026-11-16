@@ -4,12 +4,12 @@
 #' response, with standard errors by the delta method and automatic differentiation.
 #'
 #' @param x A gcTMB object, the result of \code{\link{gcTMB}}.
-#' @param respLev Numeric vector. Levels in percent of the asymptote b1, between 0 and 100 (default 50): the time t p at which the curve reaches p percent of b1, the time at which the transformed time z(t) is Finv(p/100), with the inverse Finv of F of the model (see \code{\link{gcTMB}}): b2 + b3 Finv(p/100) for the logistic and gompertz models, b2 (p/(100 - p))^(1/b3) for the hill model. For the logistic, normal and hill models without truncation, t 50 is b2. For a curve truncated at the threshold b4 (the default of \code{\link{gcTMB}}), the levels are of the truncated curve, at Finv(p/100 + (1 - p/100) F(z(b4))). For \code{type="absolute"}, values of the response; the linear model, which has no asymptote, has only these.
-#' @param linfct Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curve, with 5 rows (b1-b5) and one column for each model coefficient, or a list of such matrices; default is the identity matrix, for models without covariates in fform. Each matrix is paired with an entry of respLev.
-#' @param newdata Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to linfct; the time is not needed. With grouping variables of the random effects, the curves of fitted groups, see Details. The times are computed at each level of respLev for each row, named by the covariate and group values (or by the row names of newdata, if set).
+#' @param level Numeric vector. Levels in percent of the asymptote b1, between 0 and 100 (default 50): the time t p at which the curve reaches p percent of b1, the time at which the transformed time z(t) is Finv(p/100), with the inverse Finv of F of the model (see \code{\link{gcTMB}}): b2 + b3 Finv(p/100) for the logistic and gompertz models, b2 (p/(100 - p))^(1/b3) for the hill model. For the logistic, normal and hill models without truncation, t 50 is b2. For a curve truncated at the threshold b4 (the default of \code{\link{gcTMB}}), the levels are of the truncated curve, at Finv(p/100 + (1 - p/100) F(z(b4))). For \code{type="absolute"}, values of the response; the linear model, which has no asymptote, has only these.
+#' @param curves Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curve, with 5 rows (b1-b5) and one column for each model coefficient, or a list of such matrices; default is the identity matrix, for models without covariates in fform. Each matrix is paired with an entry of level.
+#' @param newdata Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves; the time is not needed. With grouping variables of the random effects, the curves of fitted groups, see Details. The times are computed at each entry of level for each row, named by the covariate and group values (or by the row names of newdata, if set).
 #' @param random Logical. If TRUE, the times of rows of newdata with fitted groups are conditional on their random effects, and for the other random effect terms, the variance-covariance matrix of the random effects is included in the standard error estimation. If FALSE, the times are for the population curves.
 #' @param residual Logical. If TRUE, the residual variance is included in the standard error estimation (gaussian family only)
-#' @param type Character string. "relative" (default) for levels relative to the asymptote, or "absolute" for the times at which the curves reach the responses in respLev, on the scale of the response (proportions for binomial, beta-binomial and beta). Responses outside the range of a curve, between zero and the asymptote, give NA, with a warning.
+#' @param type Character string. "relative" (default) for levels relative to the asymptote, or "absolute" for the times at which the curves reach the responses in level, on the scale of the response (proportions for binomial, beta-binomial and beta). Responses outside the range of a curve, between zero and the asymptote, give NA, with a warning.
 #'
 #' @details Without random effects, or with \code{random=FALSE}, the times are those of the
 #' population curves, with all random effects at zero, and their standard errors include the
@@ -26,66 +26,70 @@
 #' for the times of fitted groups, see \code{\link{confint.timetoTMB}}.
 #'
 #' @return A timetoTMB object: a list with the estimated times (\code{coef}), their covariance
-#'   matrix (\code{vcov}), and what \code{confint} and \code{profile} need.
+#'   matrix (\code{vcov}), and what \code{confint} and \code{profile} need. The times are named by
+#'   the level, e.g. \code{10\%} (relative) or \code{y=10} (absolute), followed by the name of the
+#'   curve for curves from \code{newdata} or named \code{curves}, e.g. \code{10\%:trt=0.1}; several
+#'   unnamed \code{curves} are numbered.
 #' @seealso \code{\link{confint.timetoTMB}} for confidence intervals, \code{\link{profile.timetoTMB}}
 #' @examples
 #' fit <- gcTMB(height ~ DAS, data=FabaHeights25, model="logistic")
 #' # days after sowing at which the plants reach 10%, 50% and 90% of their final height
-#' tt <- timeto(fit, respLev=c(10, 50, 90))
+#' tt <- timeto(fit, level=c(10, 50, 90))
 #' tt
 #' confint(tt)
 #' # the day at which they reach a height of 50
-#' timeto(fit, respLev=50, type="absolute")
+#' timeto(fit, level=50, type="absolute")
 #'
 #' # a curve for each treatment level
 #' FabaHeights25$trt <- factor(FabaHeights25$Treatment)
 #' fit2 <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25)
-#' timeto(fit2, respLev=90, newdata=data.frame(trt=levels(FabaHeights25$trt)))
+#' timeto(fit2, level=90, newdata=data.frame(trt=levels(FabaHeights25$trt)))
 #' @export
 #'
-timeto <- function(x, respLev=50, linfct=NULL, newdata=NULL, random=TRUE, residual=FALSE, type=c("relative", "absolute")){
+timeto <- function(x, level=50, curves=NULL, newdata=NULL, random=TRUE, residual=FALSE, type=c("relative", "absolute")){
   type <- match.arg(type)
   absolute <- type == "absolute"
   if (!is.null(newdata)){
-    if (!is.null(linfct)) stop("give either linfct or newdata, not both.")
-    # every level of respLev for every curve
-    nl <- curvelinfct(x, newdata)
-    rows <- rep(seq_along(nl), length(respLev))
-    linfct <- rep(nl, length(respLev))
-    respLev <- rep(respLev, each=length(nl))
+    if (!is.null(curves)) stop("give either curves or newdata, not both.")
+    # every entry of level for every curve
+    nl <- newdatacurves(x, newdata)
+    rows <- rep(seq_along(nl), length(level))
+    curves <- rep(nl, length(level))
+    level <- rep(level, each=length(nl))
   }
-  if (is.null(linfct)) linfct <- diag(5)
-  if (!is.list(linfct)) linfct <- list(linfct)
-  if (length(respLev) != length(linfct)){
-    if (length(respLev) == 1){
-      respLev <- rep(respLev, length(linfct))
+  if (is.null(curves)) curves <- diag(5)
+  if (!is.list(curves)) curves <- list(curves)
+  # unnamed curves: no name for a single curve, numbered otherwise
+  if (is.null(names(curves))) names(curves) <- if (length(curves) == 1) "" else seq_along(curves)
+  if (length(level) != length(curves)){
+    if (length(level) == 1){
+      level <- rep(level, length(curves))
     }
-    if (length(linfct) == 1){
-      linfct <- rep(linfct, length(respLev))
+    if (length(curves) == 1){
+      curves <- rep(curves, length(level))
     }
-    if (length(respLev) != length(linfct)){
-      stop("respLev and linfct must have the same length or one of them must be of length 1.")
+    if (length(level) != length(curves)){
+      stop("level and curves must have the same length or one of them must be of length 1.")
     }
   }
-  if (is.null(names(linfct))) names(linfct) <- paste("lf", 1:length(linfct), sep="")
   ncf <- length(x$start)
-  # a linfct without a row for the asymmetry b5 keeps b5 of the fit, when it is a single coefficient
+  # a curves without a row for the asymmetry b5 keeps b5 of the fit, when it is a single coefficient
   npi <- rep(1:5, vapply(x$Xs, ncol, integer(1)))
   if (sum(npi == 5) == 1){
-    linfct <- lapply(linfct, function(L){
+    curves <- lapply(curves, function(L){
       if (is.matrix(L) && nrow(L) == 5 && ncol(L) == ncf && all(L[5, ] == 0)) L[5, npi == 5] <- 1
       L
     })
   }
-  for (L in linfct){
+  for (L in curves){
     if (!is.matrix(L) || nrow(L) != 5 || ncol(L) != ncf){
-      stop("each matrix in linfct must have 5 rows (b1-b5) and one column for each of the ", ncf,
+      stop("each matrix in curves must have 5 rows (b1-b5) and one column for each of the ", ncf,
            " model coefficients: ", paste(x$coefnames, collapse=", "), ".",
            if (is.null(newdata) && ncf > 5) " Alternatively, give the covariate values of the curves in newdata.")
     }
   }
   if (!absolute && islinear(modelindex(x$model))) stop("the linear model has no asymptote; use type=\"absolute\" for the times at which it reaches given responses.")
-  if (!absolute && any(respLev <= 0 | respLev >= 100)) stop("respLev must be between 0 and 100 percent of the asymptote.")
+  if (!absolute && any(level <= 0 | level >= 100)) stop("level must be between 0 and 100 percent of the asymptote.")
 
   if (residual == TRUE && x$family != "gaussian"){
     stop("residual=TRUE is only available for the gaussian family.")
@@ -102,7 +106,7 @@ timeto <- function(x, respLev=50, linfct=NULL, newdata=NULL, random=TRUE, residu
   # random effects of each time: the weights W of the fitted random effects on b1-b5, for the rows of
   # newdata with a fitted group (random=TRUE), and the terms whose variance is added for a new group
   # (random=TRUE, no fitted level)
-  nt <- length(linfct)
+  nt <- length(curves)
   W <- rep(list(matrix(0, 5, nu)), nt)
   newterm <- matrix(random, nt, length(terms))
   # columns of each term for a new group (intercept, covariates of slopes), for each time
@@ -128,10 +132,10 @@ timeto <- function(x, respLev=50, linfct=NULL, newdata=NULL, random=TRUE, residu
   grad <- matrix(0, nt, nb + nu + sum(vapply(terms, function(tm) length(tm$pars), integer(1))) + 1)
 
   for (i in seq_len(nt)){
-    lpv <- as.vector(linfct[[i]] %*% pv)
+    lpv <- as.vector(curves[[i]] %*% pv)
     u <- as.vector(W[[i]] %*% uhat)
     # fraction of the asymptote, or the response for absolute times
-    q <- if (absolute) respLev[i] else respLev[i]/100
+    q <- if (absolute) level[i] else level[i]/100
     ql[i] <- q
     qf <- timeq(x, q, lpv + u, absolute)
     if (!is.finite(qf) || (!islinear(mod) && (qf <= 0 || qf >= 1))){
@@ -148,7 +152,7 @@ timeto <- function(x, respLev=50, linfct=NULL, newdata=NULL, random=TRUE, residu
     tgrad <- tobj$gr()
     gu <- tgrad[6:10]
     gnew <- unlist(lapply(seq_along(terms), function(t) gu[terms[[t]]$pars] * loads[[t]][i, ] * newterm[i, t]))
-    grad[i, ] <- c((tgrad[1:5] %*% linfct[[i]])[!x$fix], gu %*% W[[i]], gnew, tgrad[11])
+    grad[i, ] <- c((tgrad[1:5] %*% curves[[i]])[!x$fix], gu %*% W[[i]], gnew, tgrad[11])
   }
 
   # covariance of the free coefficients and the fitted random effects: jointly for times of fitted
@@ -156,7 +160,8 @@ timeto <- function(x, respLev=50, linfct=NULL, newdata=NULL, random=TRUE, residu
   cbu <- if (any(cond)) jointcov(x) else as.matrix(bdiag(fixedcov(x)[seq_len(nb), seq_len(nb), drop=FALSE], matrix(0, nu, nu)))
   cvc <- as.matrix(bdiag(c(list(cbu), lapply(recov(x), function(vc) vc$cov), list(matrix(rvar)))))
   tvar <- grad %*% cvc %*% t(grad)
-  tn <- paste(if (absolute) paste("y=", respLev, sep="") else respLev, names(linfct), sep=":")
+  # 10% (relative) or y=10 (absolute), with the name of the curve if it has one
+  tn <- curvelabels(if (absolute) paste("y=", level, sep="") else paste(level, "%", sep=""), names(curves))
   if (anyNA(tl)){
     warning("the curves do not reach the response for ", paste(tn[is.na(tl)], collapse=", "), "; the times are NA.", call.=FALSE)
   }
@@ -164,7 +169,7 @@ timeto <- function(x, respLev=50, linfct=NULL, newdata=NULL, random=TRUE, residu
   colnames(tvar) <- rownames(tvar) <- tn
   # the fit, linear functions, random effect weights and levels are kept for profile and confint
   names(ql) <- names(tl)
-  res <- list(estimates=tl, variance=tvar, fit=x, linfct=linfct, q=ql, type=type, random=random, residual=residual,
+  res <- list(estimates=tl, variance=tvar, fit=x, curves=curves, q=ql, type=type, random=random, residual=residual,
               uweights=W, conditional=setNames(cond, names(tl)),
               newvar=setNames(apply(newterm, 1, any) & length(terms) > 0, names(tl)))
   class(res) <- "timetoTMB"
@@ -208,7 +213,7 @@ jointcov <- function(object, all=FALSE){
 # linear functions of the curves in the rows of newdata: the rows of the design matrices of b1-b5,
 # named by the values of the covariates in fform and the grouping variables in newdata, or by the
 # row names of newdata if set
-curvelinfct <- function(x, newdata){
+newdatacurves <- function(x, newdata, groups=TRUE){
   if (!is.data.frame(newdata) || nrow(newdata) == 0) stop("newdata must be a data frame with at least one row.")
   vars <- unique(unlist(lapply(x$fterms, function(ft) all.vars(ft$terms))))
   miss <- setdiff(vars, names(newdata))
@@ -222,7 +227,7 @@ curvelinfct <- function(x, newdata){
     L
   })
   # grouping variables of the random effects in newdata
-  gvars <- unique(unlist(lapply(x$reterms, function(tm) all.vars(tm$formula))))
+  gvars <- if (groups) unique(unlist(lapply(x$reterms, function(tm) all.vars(tm$formula))))
   vars <- c(vars, intersect(setdiff(gvars, vars), names(newdata)))
   if (.row_names_info(newdata) > 0){
     names(L) <- rownames(newdata)

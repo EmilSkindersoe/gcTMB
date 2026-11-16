@@ -4,18 +4,21 @@
 \alias{maxrate}
 \title{Maximum growth rate and its timing}
 \usage{
-maxrate(x, linfct = NULL, newdata = NULL)
+maxrate(x, curves = NULL, newdata = NULL)
 }
 \arguments{
 \item{x}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
-\item{linfct}{Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see \code{\link{timeto}}; default is the identity matrix, for models without covariates in fform.}
+\item{curves}{Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see \code{\link{timeto}}; default is the identity matrix, for models without covariates in fform.}
 
-\item{newdata}{Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to linfct.}
+\item{newdata}{Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves.}
 }
 \value{
 A maxrateTMB object: a list with the estimates (\code{coef}), their covariance matrix
-(\code{vcov}), and what \code{confint} and \code{profile} need.
+(\code{vcov}), and what \code{confint} and \code{profile} need. The estimates are named
+\code{tmax}, \code{rate} and \code{fraction}, followed by the name of the curve for curves from
+\code{newdata} or named \code{curves}, e.g. \code{rate:trt=0.1}; several unnamed \code{curves}
+are numbered.
 }
 \description{
 Estimates the time at which growth curves grow fastest, the inflection point, the maximum growth

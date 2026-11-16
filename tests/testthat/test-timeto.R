@@ -5,9 +5,9 @@ test_that("times are b2 + b3 Finv(p), with standard errors of the delta method",
     f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss(m), model=m)
     b <- bcoef(f)
     p <- c(10, 50, 90)
-    tt <- timeto(f, respLev=p)
+    tt <- timeto(f, level=p)
     expect_s3_class(tt, "timetoTMB")
-    expect_equal(names(coef(tt)), paste(p, ":lf", 1:3, sep=""))
+    expect_equal(names(coef(tt)), paste(p, "%", sep=""))
     expect_equal(unname(coef(tt)), b[[2]] + b[[3]]*Finv[[m]](p/100), tolerance=1e-10, label=m)
     V <- vcov(f)[1:3, 1:3]
     se <- sapply(p, function(pp){
@@ -36,17 +36,17 @@ test_that("times do not depend on the link of b3", {
 test_that("absolute times: times at which the curve reaches a response", {
   f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
   b <- bcoef(f)
-  tt <- timeto(f, respLev=c(10, 40), type="absolute")
-  expect_equal(names(coef(tt)), c("y=10:lf1", "y=40:lf2"))
+  tt <- timeto(f, level=c(10, 40), type="absolute")
+  expect_equal(names(coef(tt)), c("y=10", "y=40"))
   expect_equal(unname(coef(tt)), b[[2]] + b[[3]]*qlogis(c(10, 40)/b[[1]]), tolerance=1e-10)
   # the standard errors include the asymptote
   g <- function(bb) bb[2] + bb[3]*qlogis(40/bb[1])
   gr <- numDeriv::grad(g, unname(b))
   expect_equal(sqrt(vcov(tt)[2, 2]), sqrt(drop(t(gr) %*% vcov(f)[1:3, 1:3] %*% gr)), tolerance=1e-6)
   # responses beyond the asymptote are not reached
-  expect_warning(tt <- timeto(f, respLev=c(20, 80), type="absolute"), "do not reach")
+  expect_warning(tt <- timeto(f, level=c(20, 80), type="absolute"), "do not reach")
   expect_true(is.na(coef(tt)[2]))
-  expect_error(timeto(f, respLev=100), "between 0 and 100")
+  expect_error(timeto(f, level=100), "between 0 and 100")
 })
 
 test_that("timeto with newdata gives the times of the curve of each row", {
@@ -55,17 +55,17 @@ test_that("timeto with newdata gives the times of the curve of each row", {
   d$trt <- factor(d$trt)
   f <- gcTMB(y ~ day, truncated=FALSE, fform=list(b1 ~ trt, b2 ~ trt, b3 ~ trt), data=d)
   tt <- timeto(f, c(50, 90), newdata=data.frame(trt=c("a", "b")))
-  expect_equal(names(coef(tt)), c("50:trt=a", "50:trt=b", "90:trt=a", "90:trt=b"))
+  expect_equal(names(coef(tt)), c("50%:trt=a", "50%:trt=b", "90%:trt=a", "90%:trt=b"))
   b <- bcoef(f)
   expect_equal(unname(coef(tt)[1:2]), unname(c(b[3], b[3] + b[4])))
-  # the same as linfct
+  # the same as curves
   L <- matrix(0, 5, 8)
   L[1, 1] <- L[2, 3] <- L[3, 5] <- 1
   L[1, 2] <- L[2, 4] <- L[3, 6] <- 1
-  expect_equal(unname(coef(timeto(f, 90, linfct=L))), unname(coef(tt)[4]))
+  expect_equal(unname(coef(timeto(f, 90, curves=L))), unname(coef(tt)[4]))
   expect_error(timeto(f), "8 model coefficients")
   expect_error(timeto(f, newdata=data.frame(x=1)), "covariates of fform")
-  expect_error(timeto(f, linfct=L, newdata=data.frame(trt="a")), "either linfct or newdata")
+  expect_error(timeto(f, curves=L, newdata=data.frame(trt="a")), "either curves or newdata")
 })
 
 test_that("times of fitted groups and of the population", {

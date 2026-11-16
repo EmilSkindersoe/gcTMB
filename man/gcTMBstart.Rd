@@ -82,8 +82,8 @@ Method "grid" evaluates the negative log-likelihood (without random effects) at 
 combinations of a grid of parameter values and returns the best grid point; parameters
 not included in the grid start at the values of method "lm".
 Without bounds in \code{gsl} and \code{gsu}, default ranges are used for b2 (the time range
-extended by a quarter at both ends, positive with the log link) and b3 (the sign of the "lm"
-starting value, with 1/4 to 4 times its value, log-spaced; on the scale of its link). Default ranges are only used for parameters
+extended by a quarter at both ends, positive with the log link) and b3 (1/4 to 4 times
+its "lm" starting value, log-spaced; on the scale of its link). Default ranges are only used for parameters
 with a single coefficient in \code{fform}; the asymptote b1 is only included in the grid with
 user-specified bounds.
 }

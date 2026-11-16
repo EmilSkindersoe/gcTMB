@@ -36,7 +36,7 @@ test_that("an estimated asymmetry agrees with nls, and timeto with the curve", {
   n <- nls(y ~ b1/(1 + b5*exp(-(day - b2)/b3))^(1/b5), data=d, start=list(b1=50, b2=20, b3=5, b5=3))
   expect_equal(unname(bcoef(f)), unname(coef(n)), tolerance=1e-4)
   b <- bcoef(f)
-  tt <- timeto(f, respLev=c(10, 50, 90))
+  tt <- timeto(f, level=c(10, 50, 90))
   expect_equal(unname(coef(tt)), gcTMB:::gctimeR(1, c(0.1, 0.5, 0.9), b[[2]], b[[3]], b5=b[[4]]), tolerance=1e-8)
   # the predictions of the template are the curve
   nd <- data.frame(day=c(5, 20, 50))

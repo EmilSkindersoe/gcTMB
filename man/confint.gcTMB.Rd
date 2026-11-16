@@ -78,11 +78,11 @@ and \code{\link{profile.timetoTMB}}, whose results can be reused with \code{conf
 fit <- gcTMB(height ~ DAS, data=FabaHeights25)
 confint(fit)
 confint(fit, method="wald")
-confint(timeto(fit, respLev=c(10, 50, 90)))
+confint(timeto(fit, level=c(10, 50, 90)))
 \donttest{
 # parametric bootstrap, reused for the times
 bt <- bootstrap(fit, nsim=200, seed=1, progress=FALSE)
 confint(fit, boot=bt)
-confint(timeto(fit, respLev=c(10, 50, 90)), boot=bt)
+confint(timeto(fit, level=c(10, 50, 90)), boot=bt)
 }
 }

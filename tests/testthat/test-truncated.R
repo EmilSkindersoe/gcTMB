@@ -48,7 +48,7 @@ test_that("truncated fits: gradient, predictions and times", {
   expect_equal(unname(unlist(p$fit)), unname(predict(fit, newdata=nd)), tolerance=1e-10)
   expect_equal(unlist(p$fit)[[1]], 0)
   # the curve reaches the levels at the times of timeto
-  tt <- timeto(fit, respLev=c(10, 50, 90))
+  tt <- timeto(fit, level=c(10, 50, 90))
   b1 <- coef(fit)[["b1:(Intercept)"]]
   expect_equal(unname(predict(fit, newdata=data.frame(day=coef(tt)))), c(0.1, 0.5, 0.9) * b1, tolerance=1e-8)
   expect_true(all(is.finite(sqrt(diag(vcov(tt))))))

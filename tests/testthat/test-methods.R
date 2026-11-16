@@ -34,7 +34,6 @@ test_that("summary contains the coefficient table, sample sizes and variance com
   expect_equal(unname(coef(s)[, 2]), unname(sqrt(diag(vcov(f)))[1:3]))
   expect_equal(s$nobs, nrow(d))
   expect_equal(s$ngroups, c(id=12))
-  expect_equal(s$direction, "increasing")
   expect_equal(s$residpar, unname(exp(coef(f)["log_sigma"])))
   expect_length(s$varcor, 2)
   expect_true(s$pdHess)

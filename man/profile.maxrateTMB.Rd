@@ -36,6 +36,6 @@ maximum growth rate (by b1) of a curve, re-optimising the other coefficients.
 }
 \examples{
 fit <- gcTMB(height ~ DAS, data=FabaHeights25)
-pr <- profile(maxrate(fit), parm="rate:lf1")
+pr <- profile(maxrate(fit), parm="rate")
 confint(pr)
 }

@@ -106,15 +106,6 @@ summary.gcTMB <- function(object, ...){
   # NaN for a Hessian that is not positive definite, with a warning in the printed summary
   coefs[, 2] <- suppressWarnings(sqrt(diag(fixedcov(object))))[seq_len(nrow(coefs))]
 
-  # direction of the curve from the signs of the asymptote b1 and the scale b3 at the observations
-  npi <- rep(1:5, sapply(object$Xs, ncol))
-  b <- object$start
-  b[!object$fix] <- coefs[, 1]
-  b1 <- object$Xs[[1]] %*% b[npi == 1]
-  b3 <- linkfun(linkindex(object$link)[3], object$Xs[[3]] %*% b[npi == 3], inverse=TRUE)
-  s <- sign(b1 * b3)
-  direction <- if (all(s > 0)) "increasing" else if (all(s < 0)) "decreasing" else "increasing and decreasing"
-
   # standard deviations at the boundary (singular fit): the likelihood is flat in the log standard
   # deviation, which gives a very large or no standard error, independent of the scale of the parameter
   ses <- ests[rownames(ests) == "theta", 2]
@@ -162,7 +153,6 @@ summary.gcTMB <- function(object, ...){
     gr[object$opt$par >= up & gr < 0] <- 0
   }
   res <- list(call=object$call, model=object$model, truncated=fittrunc(object), trunctext=trunctext(object), family=object$family, link=object$link, b3inverse=object$link[["b3"]] == "inverse",
-              direction=direction,
               nobs=nobs(object), ntrials=if (object$family %in% c("binomial", "betabinomial")) sum(dat$bn), ngroups=ngroups,
               logLik=ll, AIC=AIC(object), BIC=BIC(object),
               coefficients=coefs, fixed=userfixed(object), varcor=vcs, residpar=residpar(object), rdf=object$rdf,
@@ -183,8 +173,7 @@ print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...
     print(x$call)
     cat("\n")
   }
-  cat("Model:  ", x$model, if (!is.null(x$direction)) paste(",", x$direction, "curve"),
-      x$trunctext, "\n", sep="")
+  cat("Model:  ", x$model, x$trunctext, "\n", sep="")
   cat("Family: ", x$family, ", ", linktext(x$link, x$model, fittrunc(x)), "\n", sep="")
 
   cat("\nNumber of observations: ", x$nobs, sep="")
