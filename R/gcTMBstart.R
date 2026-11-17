@@ -644,6 +644,7 @@ reterms <- function(rform, data){
     return(list(terms=list(), Z=Matrix::sparseMatrix(i=integer(0), j=integer(0), x=numeric(0), dims=c(n, 0))))
   }
   if (inherits(rform, "formula")) rform <- list(rform)
+  rform <- splitdoublebars(rform)
   terms <- list()
   Zl <- list()
   for (f in rform){
@@ -673,6 +674,41 @@ reterms <- function(rform, data){
     }
   }
   list(terms=terms, Z=do.call(cbind, Zl))
+}
+
+# independent random effects: a formula with a double bar, e.g. b1 + b2 ~ x || group, becomes a
+# formula for each parameter, with a term for each column of the design (b1 ~ (1 | group) +
+# (0 + x | group), and the same for b2), so that all the random coefficients are independent, as
+# pdDiag of nlme. The double bar of lme4 alone would only separate the columns of the design, and keep
+# the parameters of the left-hand side correlated within each term.
+splitdoublebars <- function(rform){
+  hasdbar <- function(x) is.call(x) && (identical(x[[1]], as.name("||")) || any(vapply(as.list(x)[-1], hasdbar, logical(1))))
+  # x || g as (1 | g) + (0 + x | g): a bar for the intercept and for each term of x
+  expand <- function(x){
+    if (!is.call(x)) return(x)
+    if (identical(x[[1]], as.name("||"))){
+      tt <- terms(as.formula(call("~", x[[2]])))
+      bars <- lapply(attr(tt, "term.labels"), function(l) call("(", call("|", call("+", 0, str2lang(l)), x[[3]])))
+      if (attr(tt, "intercept") == 1) bars <- c(list(call("(", call("|", 1, x[[3]]))), bars)
+      return(Reduce(function(a, b) call("+", a, b), bars))
+    }
+    x[-1] <- lapply(as.list(x)[-1], expand)
+    x
+  }
+  out <- list()
+  for (f in rform){
+    if (length(f) == 3 && hasdbar(f[[3]])){
+      rhs <- expand(f[[3]])
+      pars <- intersect(paste("b", 1:5, sep=""), all.vars(f[[2]]))
+      for (p in pars){
+        g <- as.formula(call("~", as.name(p), rhs), env=environment(f))
+        out[[length(out) + 1]] <- g
+      }
+    } else {
+      out[[length(out) + 1]] <- f
+    }
+  }
+  out
 }
 
 # design blocks of a transposed random effect design Zt of lme4 with nc columns per level (rows by

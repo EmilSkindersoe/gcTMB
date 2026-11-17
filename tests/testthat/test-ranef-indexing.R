@@ -75,3 +75,37 @@ test_that("simulate uses the fitted model, not the last parameters evaluated by 
   fs <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
   expect_equal(fn$sdrl$par.random, fs$sdrl$par.random, tolerance=1e-6)
 })
+
+test_that("a double bar makes all random coefficients independent, as pdDiag of nlme", {
+  d <- reindexdata()
+  # across the parameters: the same as a list of one formula per parameter
+  fdv <- gcTMB(y ~ t, rform=b1 + b2 ~ 1 || g, data=d, model="linear")
+  fl <- gcTMB(y ~ t, rform=list(b1 ~ 1 | g, b2 ~ 1 | g), data=d, model="linear")
+  fc <- gcTMB(y ~ t, rform=b1 + b2 ~ 1 | g, data=d, model="linear")
+  expect_length(fdv$reterms, 2)
+  expect_equal(as.numeric(logLik(fdv)), as.numeric(logLik(fl)))
+  expect_equal(unname(unlist(VarCorr(fdv))), unname(unlist(VarCorr(fl))))
+  expect_false(isTRUE(all.equal(as.numeric(logLik(fdv)), as.numeric(logLik(fc)))))
+  # across the parameters and the intercepts and slopes, against lme4
+  skip_if_not_installed("lme4")
+  fx <- gcTMB(y ~ t, fform=b2 ~ x, rform=b1 + b2 ~ x || g, data=d, model="linear")
+  expect_length(fx$reterms, 4)
+  m <- suppressMessages(lme4::lmer(y ~ t + x + (0 + t | g) + (0 + t:x | g) + (1 | g) + (0 + x | g), data=d, REML=FALSE,
+                                   control=lme4::lmerControl(optimizer="bobyqa")))
+  expect_equal(as.numeric(logLik(fx)), as.numeric(logLik(m)), tolerance=1e-6)
+  m2 <- suppressMessages(lme4::lmer(y ~ t + (0 + t | g) + (1 | g), data=d, REML=FALSE))
+  expect_equal(as.numeric(logLik(fdv)), as.numeric(logLik(m2)), tolerance=1e-6)
+})
+
+test_that("a double bar agrees with pdDiag of nlme for a growth curve", {
+  skip_if_not_installed("nlme")
+  d <- FabaHeights25
+  f <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 || plant_ID, data=d, truncated=FALSE)
+  n <- nlme::nlme(height ~ b1/(1 + exp(-(DAS - b2)/b3)), data=d, fixed=b1 + b2 + b3 ~ 1,
+                  random=nlme::pdDiag(b1 + b2 ~ 1), groups=~ plant_ID, start=unname(fixef(f)[1:3]), method="ML")
+  # nlme maximises its linearised approximation of the likelihood, so its log-likelihood is a little lower
+  expect_gte(as.numeric(logLik(f)), as.numeric(logLik(n)) - 1e-6)
+  expect_lt(as.numeric(logLik(f)) - as.numeric(logLik(n)), 0.5)
+  expect_equal(unname(vapply(VarCorr(f)[1:2], function(v) attr(v, "stddev"), numeric(1))),
+               as.numeric(nlme::VarCorr(n)[1:2, "StdDev"]), tolerance=1e-2)
+})

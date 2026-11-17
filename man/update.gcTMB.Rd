@@ -4,12 +4,12 @@
 \alias{update.gcTMB}
 \title{Update a gcTMB fit, or set its parameters}
 \usage{
-\method{update}{gcTMB}(object, ..., fixef = NULL, VarCorr = NULL, sigma = NULL)
+\method{update}{gcTMB}(object, ..., fixef = NULL, VarCorr = NULL, sigma = NULL, rho = NULL)
 }
 \arguments{
 \item{object}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
-\item{...}{Without fixef, VarCorr and sigma: the arguments of \code{\link{gcTMB}} to change, as in
+\item{...}{Without fixef, VarCorr, sigma and rho: the arguments of \code{\link{gcTMB}} to change, as in
 \code{\link[stats]{update}}.}
 
 \item{fixef}{Named numeric vector or NULL. New values of coefficients of b1-b5, named as in
@@ -24,18 +24,25 @@ with one random effect term. The terms that are not given keep their covariance 
 \item{sigma}{Numeric or NULL. The new residual standard deviation (gaussian, of log(y) for
 lognormal), or the dispersion parameter of the other families, as returned by
 \code{\link{sigma.gcTMB}}.}
+
+\item{rho}{Numeric or NULL. The new autocorrelation rho of the residuals, as returned by
+\code{\link{corpars}}, for a model fitted with a \code{correlation} structure: between 0 and 1 for
+\code{\link{corCAR1}}, between -1 and 1 for \code{\link{corAR1}}.}
 }
 \value{
 A gcTMB object.
 }
 \description{
-With \code{fixef}, \code{VarCorr} or \code{sigma}, \code{update} returns the model with some of
+With \code{fixef}, \code{VarCorr}, \code{sigma} or \code{rho}, \code{update} returns the model with some of
 its parameters set to new values, e.g. as the true model of a simulation study (see
 \code{\link{simulate.gcTMB}}); the model is not refitted. Without them, it refits the model with
 the arguments in \code{...} changed, as \code{\link[stats]{update}}.
 }
 \details{
-The parameters that are not given keep their values, and the random effects are the conditional
+Every parameter of the model can be set: the coefficients of b1-b5 (\code{fixef}, including
+coefficients fixed in the fit), the covariance matrices of the random effects (\code{VarCorr}), the
+residual standard deviation or dispersion (\code{sigma}) and the autocorrelation (\code{rho}),
+i.e. all the entries of \code{coef}. The parameters that are not given keep their values, and the random effects are the conditional
 modes at the new parameters. The new values are not estimates: the standard errors, the covariance
 matrix of \code{vcov} and the confidence intervals are NA, and \code{\link{converged}} returns NA.
 The log-likelihood is that of the data at the new parameters. For gaussian models without random
@@ -52,5 +59,9 @@ fixef(fit2)
 VarCorr(fit2)
 # refit with another growth model
 fitg <- update(fit, model="gompertz")
+# a weaker autocorrelation of the residuals, the other parameters unchanged
+fitc <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=FabaHeights25,
+              correlation=corCAR1(form=~ DAS | plant_ID))
+corpars(update(fitc, rho=0.7))
 
 }

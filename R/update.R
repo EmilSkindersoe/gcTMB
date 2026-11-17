@@ -1,11 +1,14 @@
 #' Update a gcTMB fit, or set its parameters
 #'
-#' With \code{fixef}, \code{VarCorr} or \code{sigma}, \code{update} returns the model with some of
+#' With \code{fixef}, \code{VarCorr}, \code{sigma} or \code{rho}, \code{update} returns the model with some of
 #' its parameters set to new values, e.g. as the true model of a simulation study (see
 #' \code{\link{simulate.gcTMB}}); the model is not refitted. Without them, it refits the model with
 #' the arguments in \code{...} changed, as \code{\link[stats]{update}}.
 #'
-#' The parameters that are not given keep their values, and the random effects are the conditional
+#' Every parameter of the model can be set: the coefficients of b1-b5 (\code{fixef}, including
+#' coefficients fixed in the fit), the covariance matrices of the random effects (\code{VarCorr}), the
+#' residual standard deviation or dispersion (\code{sigma}) and the autocorrelation (\code{rho}),
+#' i.e. all the entries of \code{coef}. The parameters that are not given keep their values, and the random effects are the conditional
 #' modes at the new parameters. The new values are not estimates: the standard errors, the covariance
 #' matrix of \code{vcov} and the confidence intervals are NA, and \code{\link{converged}} returns NA.
 #' The log-likelihood is that of the data at the new parameters. For gaussian models without random
@@ -23,7 +26,10 @@
 #' @param sigma Numeric or NULL. The new residual standard deviation (gaussian, of log(y) for
 #'   lognormal), or the dispersion parameter of the other families, as returned by
 #'   \code{\link{sigma.gcTMB}}.
-#' @param ... Without fixef, VarCorr and sigma: the arguments of \code{\link{gcTMB}} to change, as in
+#' @param rho Numeric or NULL. The new autocorrelation rho of the residuals, as returned by
+#'   \code{\link{corpars}}, for a model fitted with a \code{correlation} structure: between 0 and 1 for
+#'   \code{\link{corCAR1}}, between -1 and 1 for \code{\link{corAR1}}.
+#' @param ... Without fixef, VarCorr, sigma and rho: the arguments of \code{\link{gcTMB}} to change, as in
 #'   \code{\link[stats]{update}}.
 #'
 #' @return A gcTMB object.
@@ -38,12 +44,16 @@
 #' VarCorr(fit2)
 #' # refit with another growth model
 #' fitg <- update(fit, model="gompertz")
+#' # a weaker autocorrelation of the residuals, the other parameters unchanged
+#' fitc <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=FabaHeights25,
+#'               correlation=corCAR1(form=~ DAS | plant_ID))
+#' corpars(update(fitc, rho=0.7))
 #'
 #' @importFrom stats update
 #' @export
-update.gcTMB <- function(object, ..., fixef=NULL, VarCorr=NULL, sigma=NULL){
-  if (is.null(fixef) && is.null(VarCorr) && is.null(sigma)) return(NextMethod())
-  if (length(list(...)) > 0) stop("give either new parameter values (fixef, VarCorr, sigma) or arguments to refit the model, not both.")
+update.gcTMB <- function(object, ..., fixef=NULL, VarCorr=NULL, sigma=NULL, rho=NULL){
+  if (is.null(fixef) && is.null(VarCorr) && is.null(sigma) && is.null(rho)) return(NextMethod())
+  if (length(list(...)) > 0) stop("give either new parameter values (fixef, VarCorr, sigma, rho) or arguments to refit the model, not both.")
   env <- object$obj$env
   pl <- env$parList(object$opt$par)
   start <- object$start
@@ -81,6 +91,15 @@ update.gcTMB <- function(object, ..., fixef=NULL, VarCorr=NULL, sigma=NULL){
     if (object$family %in% c("poisson", "binomial")) stop("the ", object$family, " family has no residual standard deviation or dispersion parameter.")
     if (length(sigma) != 1 || !is.finite(sigma) || sigma <= 0) stop("sigma must be a single positive number.")
     pl$log_sigma <- log(sigma)
+  }
+
+  if (!is.null(rho)){
+    ct <- cortypeindex(object$correlation)
+    if (ct == 0) stop("the model has no autocorrelation; fit it with a correlation structure, e.g. correlation=corCAR1(form=~ time | group).")
+    lo <- if (ct == 1) -1 else 0
+    if (length(rho) != 1 || !is.finite(rho) || rho <= lo || rho >= 1) stop("rho must be a single number between ", lo, " and 1 for ", class(object$correlation)[1], ".")
+    # on the unconstrained scale of nlme
+    pl$cor_par <- if (ct == 1) log((1 + rho)/(1 - rho)) else stats::qlogis(rho)
   }
 
   # a new objective function: the one of the fit is shared with the original object

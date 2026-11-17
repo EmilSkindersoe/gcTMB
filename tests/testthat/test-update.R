@@ -102,3 +102,36 @@ test_that("singular fits count as converged unless singular=TRUE", {
   expect_match(attr(converged(fs, singular = TRUE), "reasons"), "singular", all = FALSE)
   expect_false(any(grepl("singular", attr(converged(fs), "reasons"))))
 })
+
+test_that("update can set every parameter of the model", {
+  # treatment effects, fixed b4 and b5, correlated random effects, sigma and autocorrelation
+  dd <- FabaHeights25
+  dd$trt <- factor(dd$Treatment)
+  f <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | plant_ID, data=dd,
+             correlation=corCAR1(form=~ DAS | plant_ID))
+  fe <- fixef(f)
+  vc <- VarCorr(f)$plant_ID
+  newfe <- c(fe + 1, b4=2, b5=1.5)
+  fu <- update(f, fixef=newfe, VarCorr=list(plant_ID=2*vc), sigma=2*sigma(f), rho=0.5)
+  expect_equal(fixef(fu)[names(fe)], fe + 1)
+  expect_equal(unname(fu$obj$env$parList(fu$opt$par)$b4), 2)
+  expect_equal(unname(fu$obj$env$parList(fu$opt$par)$b5), 1.5)
+  expect_equal(VarCorr(fu)$plant_ID, 2*vc, ignore_attr=TRUE, tolerance=1e-8)
+  expect_equal(sigma(fu), 2*sigma(f))
+  expect_equal(corpars(fu), c(rho=0.5))
+  # all the entries of coef are changed as expected
+  cf <- coef(f)
+  ex <- cf
+  b <- grepl("^b[1-5]:", names(cf))
+  ex[b] <- cf[b] + 1
+  sdn <- grepl("^log_sd:", names(cf))
+  ex[sdn] <- cf[sdn] + log(2)/2
+  ex["log_sigma"] <- cf["log_sigma"] + log(2)
+  ex["cor_par:CAR1"] <- 0
+  expect_equal(coef(fu), ex, tolerance=1e-8)
+  # a fixed autocorrelation and the dispersion of another family can be set too
+  ff <- update(f, correlation=corCAR1(0.8, form=~ DAS | plant_ID, fixed=TRUE))
+  expect_equal(corpars(update(ff, rho=0.3)), c(rho=0.3))
+  fn <- gcTMB(pods ~ DAS, data=FabaCounts23, family="nbinom2", fix=c(b4=FALSE))
+  expect_equal(sigma(update(fn, sigma=3)), 3)
+})

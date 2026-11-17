@@ -216,3 +216,32 @@ test_that("the methods work with autocorrelation", {
   expect_s3_class(update(fit, sigma=2), "gcTMB")
   expect_equal(corpars(update(fit, sigma=2)), corpars(fit))
 })
+
+test_that("update sets rho, keeping the other parameters", {
+  fit <- gcTMB(height ~ DAS, data=d, correlation=corCAR1(form=~ DAS | plant_ID))
+  fu <- update(fit, rho=0.7)
+  expect_equal(corpars(fu), c(rho=0.7))
+  expect_equal(fixef(fu), fixef(fit))
+  expect_equal(sigma(fu), sigma(fit))
+  expect_true(is.na(converged(fu)))
+  expect_output(print(fu), "rho: 0.7")
+  # the log-likelihood is the multivariate normal density at the new rho
+  mu <- predict(fit)
+  ll <- sum(vapply(split(seq_len(nrow(d)), d$plant_ID), function(i){
+    S <- sigma(fit)^2 * 0.7^abs(outer(d$DAS[i], d$DAS[i], "-"))
+    L <- t(chol(S))
+    z <- forwardsolve(L, d$height[i] - mu[i])
+    -0.5*sum(z^2) - sum(log(diag(L))) - 0.5*length(i)*log(2*pi)
+  }, numeric(1)))
+  expect_equal(as.numeric(logLik(fu)), ll, tolerance=1e-8)
+  # simulations use the new rho
+  sims <- simulate(fu, nsim=1, seed=1)
+  expect_equal(length(sims[[1]]), nrow(d))
+  # AR(1) allows negative values; errors
+  fa <- gcTMB(height ~ DAS, data=d, correlation=corAR1(form=~ 1 | plant_ID))
+  expect_equal(corpars(update(fa, rho=-0.3)), c(rho=-0.3))
+  expect_error(update(fit, rho=-0.3), "between 0 and 1")
+  expect_error(update(fa, rho=1), "between -1 and 1")
+  expect_error(update(gcTMB(height ~ DAS, data=d), rho=0.5), "no autocorrelation")
+  expect_error(update(fit, rho=0.5, model="gompertz"), "not both")
+})

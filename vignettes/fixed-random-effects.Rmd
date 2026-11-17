@@ -74,6 +74,13 @@ Under the smaller model, a standard deviation of the random effects is zero, on 
 anova(fitre1, fitre, test = "boot", nsim = 100, seed = 1)
 ```
 
+The random effects of `b1 + b2 ~ 1 | plant_ID` are correlated. With a double bar, `b1 + b2 ~ 1 || plant_ID`, they are independent, the same as `list(b1 ~ 1 | plant_ID, b2 ~ 1 | plant_ID)` and as `random = pdDiag(b1 + b2 ~ 1)` in nlme. A list of formulas mixes the two: `list(b1 + b2 ~ 1 | plant_ID, b3 ~ 1 | plant_ID)` gives correlated random effects of $b_1$ and $b_2$, and a random effect of $b_3$ that is independent of both, a block-diagonal covariance matrix as `pdBlocked` in nlme. The likelihood ratio test of the correlated and the independent random effects tests their correlation:
+
+```{r}
+fitred <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 || plant_ID, data = FabaHeights25)
+anova(fitred, fitre)
+```
+
 ### Plotting the curves
 
 `plot()` with `type = "curves"` draws a plot directly: the data with the curve of each plant, and the population curve of each treatment as a thick line. By default the curves are drawn over the observed days; `times` gives the times at which they are drawn, here from sowing. It returns the ggplot object in a list, for changing the graph. Otherwise, it can be constructed manually using `predict()`.
