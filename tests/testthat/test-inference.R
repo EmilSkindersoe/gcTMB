@@ -32,9 +32,9 @@ test_that("anova gives likelihood ratio tests and F-tests", {
   f0 <- gcTMB(y ~ day, truncated=FALSE, data=d)
   f1 <- gcTMB(y ~ day, truncated=FALSE, fform=b1 ~ trt, data=d)
   a <- anova(f0, f1)
-  expect_equal(a$Chisq[2], 2*(as.numeric(logLik(f1)) - as.numeric(logLik(f0))))
+  expect_equal(a$LR[2], 2*(as.numeric(logLik(f1)) - as.numeric(logLik(f0))))
   expect_equal(a$Df[2], 1)
-  expect_lt(a[["Pr(>Chisq)"]][2], 0.001)
+  expect_lt(a[["Pr(>LR)"]][2], 0.001)
   # F-test as anova of nls
   n0 <- nlsfit("logistic", d)
   n1 <- nls(y ~ (a1 + a2*(trt == "b"))/(1 + exp(-(day - b2)/b3)), data=d, start=list(a1=50, a2=10, b2=10, b3=2.5))

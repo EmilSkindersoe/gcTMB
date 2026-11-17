@@ -233,17 +233,17 @@ fit2 <- update(fit1, correlation = NULL)
 anova(fit0, fit1)
 #> Likelihood ratio tests of gcTMB models
 #> 
-#>      npar    AIC    BIC  logLik deviance  Chisq Df Pr(>Chisq)  
-#> fit0    8 994.54 1020.9 -489.27   978.54                       
-#> fit1   16 993.54 1046.3 -480.77   961.54 16.991  8     0.0302 *
+#>      npar    AIC    BIC  logLik deviance     LR Df Pr(>LR)  
+#> fit0    8 994.54 1020.9 -489.27   978.54                    
+#> fit1   16 993.54 1046.3 -480.77   961.54 16.991  8  0.0302 *
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 anova(fit2, fit1)
 #> Likelihood ratio tests of gcTMB models
 #> 
-#>      npar     AIC    BIC  logLik deviance  Chisq Df Pr(>Chisq)    
-#> fit2   15 1046.34 1095.8 -508.17  1016.34                         
-#> fit1   16  993.54 1046.3 -480.77   961.54 54.799  1  1.335e-13 ***
+#>      npar     AIC    BIC  logLik deviance     LR Df   Pr(>LR)    
+#> fit2   15 1046.34 1095.8 -508.17  1016.34                        
+#> fit1   16  993.54 1046.3 -480.77   961.54 54.799  1 1.335e-13 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```

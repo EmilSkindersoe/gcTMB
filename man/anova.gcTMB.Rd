@@ -7,7 +7,7 @@
 \method{anova}{gcTMB}(
   object,
   ...,
-  test = c("Chisq", "F", "boot"),
+  test = c("LR", "F", "boot"),
   nsim = 1000,
   seed = NULL,
   progress = interactive()
@@ -18,8 +18,9 @@
 
 \item{...}{Further gcTMB objects, fitted to the same data.}
 
-\item{test}{Character string. "Chisq" (default) for likelihood ratio tests, "F" for F-tests of gaussian or lognormal models
-without random effects, or "boot" for parametric bootstrap likelihood ratio tests}
+\item{test}{Character string. "LR" (default) for likelihood ratio tests, "F" for F-tests of gaussian or lognormal models
+without random effects, or "boot" for parametric bootstrap likelihood ratio tests. "Chisq", the name in
+earlier versions and in \code{stats::anova}, is accepted for "LR".}
 
 \item{nsim}{Integer. Number of simulations for \code{test="boot"}}
 
@@ -30,7 +31,7 @@ without random effects, or "boot" for parametric bootstrap likelihood ratio test
 \value{
 a data frame of class anova with the number of parameters (npar), AIC, BIC, log-likelihood
 and deviance (minus twice the log-likelihood) of each model, and the likelihood ratio statistic
-(Chisq), its degrees of freedom (Df) and p-value (Pr(>Chisq)) for the comparison with the
+(LR), its degrees of freedom (Df) and p-value (Pr(>LR)) for the comparison with the
 previous model. For \code{test="F"}, the residual degrees of freedom (Res.Df) and residual sum of
 squares (RSS) instead of the deviance, and the F statistic (F) and its p-value (Pr(>F)). For
 \code{test="boot"}, additionally the bootstrap p-value (Pr(boot)), with the simulated likelihood ratio

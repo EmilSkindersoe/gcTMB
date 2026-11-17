@@ -206,7 +206,7 @@ test_that("the methods work with autocorrelation", {
   bt <- bootstrap(fit, nsim=5, seed=1, progress=FALSE)
   expect_true(all(is.finite(bt$estimates[!is.na(bt$estimates[, 1]), "cor_par:CAR1"])))
   fit0 <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=d)
-  expect_gt(anova(fit0, fit)$Chisq[2], 0)
+  expect_gt(anova(fit0, fit)$LR[2], 0)
   # zero weights: the observation is left out of the chain
   w <- rep(1, nrow(d))
   w[d$DAS == 28] <- 0

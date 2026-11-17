@@ -41,8 +41,9 @@
 #'
 #' @param object A gcTMB object, the result of \code{\link{gcTMB}}.
 #' @param ... Further gcTMB objects, fitted to the same data.
-#' @param test Character string. "Chisq" (default) for likelihood ratio tests, "F" for F-tests of gaussian or lognormal models
-#'   without random effects, or "boot" for parametric bootstrap likelihood ratio tests
+#' @param test Character string. "LR" (default) for likelihood ratio tests, "F" for F-tests of gaussian or lognormal models
+#'   without random effects, or "boot" for parametric bootstrap likelihood ratio tests. "Chisq", the name in
+#'   earlier versions and in \code{stats::anova}, is accepted for "LR".
 #' @param nsim Integer. Number of simulations for \code{test="boot"}
 #' @param seed Integer or NULL. An optional seed for the random number generator, for \code{test="boot"}
 #' @param progress Logical. Show a progress bar for \code{test="boot"}
@@ -59,13 +60,14 @@
 #'
 #' @return a data frame of class anova with the number of parameters (npar), AIC, BIC, log-likelihood
 #'   and deviance (minus twice the log-likelihood) of each model, and the likelihood ratio statistic
-#'   (Chisq), its degrees of freedom (Df) and p-value (Pr(>Chisq)) for the comparison with the
+#'   (LR), its degrees of freedom (Df) and p-value (Pr(>LR)) for the comparison with the
 #'   previous model. For \code{test="F"}, the residual degrees of freedom (Res.Df) and residual sum of
 #'   squares (RSS) instead of the deviance, and the F statistic (F) and its p-value (Pr(>F)). For
 #'   \code{test="boot"}, additionally the bootstrap p-value (Pr(boot)), with the simulated likelihood ratio
 #'   statistics of each comparison in the attribute \code{"boot"}.
 #' @export
-anova.gcTMB <- function(object, ..., test=c("Chisq", "F", "boot"), nsim=1000, seed=NULL, progress=interactive()){
+anova.gcTMB <- function(object, ..., test=c("LR", "F", "boot"), nsim=1000, seed=NULL, progress=interactive()){
+  if (identical(test, "Chisq")) test <- "LR"
   test <- match.arg(test)
   fits <- c(list(object), list(...))
   if (!all(vapply(fits, inherits, logical(1), "gcTMB"))) stop("all arguments must be gcTMB objects.")
@@ -90,7 +92,7 @@ anova.gcTMB <- function(object, ..., test=c("Chisq", "F", "boot"), nsim=1000, se
   if (test == "F"){
     fam <- unique(vapply(fits, function(f) f$family, character(1)))
     if (length(fam) != 1 || !(fam %in% c("gaussian", "lognormal")) || any(vapply(fits, function(f) length(f$reterms) > 0 || !is.null(f$correlation), logical(1)))){
-      stop("F-tests are only available for gaussian or lognormal models without random effects and without autocorrelation; use test=\"Chisq\".")
+      stop("F-tests are only available for gaussian or lognormal models without random effects and without autocorrelation; use test=\"LR\".")
     }
     # weighted residual sums of squares (of log(y) for lognormal), residual degrees of freedom without the residual sd
     rss <- vapply(fits[ord], function(f){
@@ -107,7 +109,7 @@ anova.gcTMB <- function(object, ..., test=c("Chisq", "F", "boot"), nsim=1000, se
   }
 
   pval <- ifelse(!is.na(df) & df > 0, pchisq(pmax(chisq, 0), df, lower.tail=FALSE), NA)
-  tab <- data.frame(ic, deviance=-2*ll, Chisq=chisq, Df=df, "Pr(>Chisq)"=pval,
+  tab <- data.frame(ic, deviance=-2*ll, LR=chisq, Df=df, "Pr(>LR)"=pval,
                     row.names=nm[ord], check.names=FALSE)
   if (test == "boot"){
     boot <- anovaboot(fits[ord], chisq, df, nsim, seed, progress)
