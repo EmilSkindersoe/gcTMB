@@ -229,6 +229,9 @@ profile.timetoTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress
   if (anyNA(est[parm])) stop("the times ", paste(names(est)[parm][is.na(est[parm])], collapse=", "), " are NA.")
   absolute <- identical(fitted$type, "absolute")
   if (islinear(modelindex(fit$model))) stop("profiles of the times are not available for the linear model; use confint(..., method=\"wald\") or method=\"boot\".")
+  # b1 as the maximum growth rate: the asymptote, which sets the fraction of an absolute response,
+  # depends on the parameter b2 the profile solves for
+  if (absolute && fitrate(fit)) stop("profiles of absolute times are not available with b1type=\"rate\"; use confint(..., method=\"wald\") or method=\"boot\".")
 
   obj <- fit$obj
   # keep the state of the TMB object, as tmbprofile does
@@ -365,7 +368,7 @@ profile.timetoTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress
 # predictors); NA if the curve does not reach the level
 timevalue <- function(object, i, lpv){
   fit <- object$fit
-  b <- linkpars(linkindex(fit$link), lpv)
+  b <- curvepars(fit, lpv)
   q <- timeq(fit, object$q[[i]], lpv, identical(object$type, "absolute"))
   if (!is.finite(q) || (!islinear(modelindex(fit$model)) && (q <= 0 || q >= 1))) return(NA)
   gctimeR(modelindex(fit$model), q, b[2], b[3], b[4], b[5], trunc=fittrunc(fit), b1=b[1])

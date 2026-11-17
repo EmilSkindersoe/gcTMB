@@ -17,6 +17,7 @@
 #' @param model Character string. The growth model: "logistic" (default), "gompertz", "hill", "weibull", "normal" or "gamma", each with an asymmetry parameter b5, or "linear" for a straight line, see Details.
 #' @param truncated Logical. If TRUE (default), the curve is truncated at a threshold time b4, by default fixed at 0: the response is zero up to b4 and then grows, see Details. FALSE for the curves without truncation.
 #' @param link Named character vector or NULL. Links of the parameters b1-b5: NULL for the defaults (the identity link for all parameters), or links named by parameter, e.g. \code{link=c(b1="log", b3="inverse")}. The asymptote b1 has the link "identity" (default), "log" or "logit"; the times b2 and b4 (the threshold of a truncated curve) "identity" (default) or "log"; the asymmetry b5 "identity" (default) or "log", to keep it positive; and the scale b3 "identity" (default), "inverse", with which its coefficients are the growth rate 1/b3, or "log". The coefficients, and start, fix, lower, upper and curves of \code{\link{timeto}}, are on the scale of the links, see Details.
+#' @param b1type Character string. The meaning of b1: "asymptote" (default), or "rate" for the maximum growth rate of the curve, see Details. With "rate", covariates and random effects on b1 are effects on the maximum growth rate, which \code{\link{anova.gcTMB}} and \code{\link{pairwise}} can test.
 #' @param gsl Numeric vector or NULL. Lower bounds for a grid search, same length as start; NA for the default range. If gsl, gsu and gsn are all NULL, no grid search is performed. See \code{\link{gcTMBstart}}.
 #' @param gsu Numeric vector or NULL. Upper bounds for a grid search, same length as start; NA for the default range.
 #' @param gsn Integer, a single number or a vector, or NULL. Number of grid points for each parameter, a single number or a vector with the same length as start. \code{gsn=10} alone runs a grid search over the default ranges.
@@ -48,6 +49,16 @@
 #' The asymmetry b5, the truncation at the threshold b4, the maximum growth rates and inflection
 #' points, the rate 1/b3 and the small-sample inference are described in the vignette,
 #' \code{vignette("gcTMB")}; the links in the argument \code{link}.
+#'
+#' With \code{b1type="rate"}, b1 is the maximum growth rate of the curve, the slope at its inflection
+#' point (see \code{\link{maxrate}}), instead of the asymptote; the asymptote is b1 divided by the
+#' maximum growth rate of the curve with asymptote 1, which depends on b2-b5. The model is the same as
+#' with the asymptote, unless b1 has random effects, which are then random maximum growth rates.
+#' \code{predict(type="parameters")} gives the asymptote as well. The maximum growth rate has a closed
+#' form for all the models with b5 = 1, and for the logistic (Richards) and hill curves also with an
+#' asymmetry b5; the gompertz, weibull, normal and gamma models need b5 fixed at 1. The hill curve has
+#' a maximum growth rate at a positive time only for b3 b5 > 1. For the linear model, b1 is the rate
+#' anyway.
 #'
 #' @return A gcTMB object, with methods for \code{print}, \code{summary}, \code{coef}, \code{vcov},
 #'   \code{predict}, \code{confint}, \code{anova}, \code{plot} and others, see \code{\link{gcTMB-methods}}.
@@ -85,6 +96,13 @@
 #' fitre <- gcTMB(height ~ DAS, fform=b1 ~ trt, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
 #' summary(fitre)
 #'
+#' # treatment effects on the maximum growth rate, b1 with b1type = "rate", tested by a likelihood
+#' # ratio test and compared in pairs
+#' fitr <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25, b1type="rate")
+#' fitr0 <- gcTMB(height ~ DAS, fform=b2 ~ trt, data=FabaHeights25, b1type="rate")
+#' anova(fitr0, fitr)
+#' pairwise(fitr, newdata=data.frame(trt=levels(FabaHeights25$trt)))
+#'
 #' # pod counts with a poisson distribution
 #' gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson")
 #'
@@ -93,10 +111,11 @@
 #' coef(fitt)
 #' @export
 
-gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weights=NULL, lower=-Inf, upper=Inf, family="gaussian", model="logistic", truncated=TRUE, link=NULL, gsl=NULL, gsu=NULL, gsn=NULL, control=list()){
+gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weights=NULL, lower=-Inf, upper=Inf, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type=c("asymptote", "rate"), gsl=NULL, gsu=NULL, gsn=NULL, control=list()){
+  b1type <- match.arg(b1type)
   # control list
   control <- do.call(gcTMBcontrol, control)
-  dd <- gcTMBdata(form, fform=fform, rform=rform, data=data, weights=weights, family=family, model=model, truncated=truncated, link=link)
+  dd <- gcTMBdata(form, fform=fform, rform=rform, data=data, weights=weights, family=family, model=model, truncated=truncated, link=link, b1type=b1type)
   fixnamed <- !is.null(names(fix))
   start <- parvector(start, dd$npi, NA, "start")
   fix <- defaultfix(fix, dd$npi)
@@ -104,6 +123,7 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weig
     stop("give the values of the fixed parameters in start, e.g. start=c(b1=10), fix=c(b1=TRUE).")
   }
   fix[dd$npi %in% unusedpars(dd$mod, dd$trunc)] <- TRUE
+  checkb1rate(dd, start, fix)
 
   # starting values for parameters with NA in start
   method <- if (is.null(gsl) & is.null(gsu) & is.null(gsn)) "lm" else "grid"
@@ -115,7 +135,7 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weig
   if (!is.null(rform) && !is.finite(suppressWarnings(obj$fn(obj$par)))){
     fit0 <- tryCatch(suppressWarnings(gcTMB(form, fform=fform, rform=NULL, data=data, start=start, fix=fix, weights=weights,
                                             lower=lower, upper=upper, family=family, model=model, truncated=truncated,
-                                            link=link, control=control)),
+                                            link=link, b1type=b1type, control=control)),
                      error=function(e) NULL)
     if (!is.null(fit0) && is.finite(fit0$opt$objective)){
       start[!fix] <- fit0$estimates[seq_len(sum(!fix))]
@@ -160,6 +180,7 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weig
   res$family <- family
   res$model <- model
   res$truncated <- dd$trunc
+  res$b1type <- b1type
   res$link <- dd$link
   res$start <- start
   res$fix <- fix

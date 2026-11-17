@@ -380,7 +380,7 @@ preddata <- function(object, newdata, random, covs=FALSE){
   }
   Zp <- if (length(Zl) > 0) do.call(cbind, unlist(Zl, recursive=FALSE)) else Matrix::sparseMatrix(i=integer(0), j=integer(0), x=numeric(0), dims=c(n, 0))
   list(x=x, Xs=Xs, eta=eta, Zp=Zp, Zl=Zl, X=rl$X, newgroup=newgroup,
-       mod=modelindex(object$model), trunc=fittrunc(object), lnk=linkindex(object$link))
+       mod=modelindex(object$model), trunc=fittrunc(object), b1rate=fitrate(object), lnk=linkindex(object$link))
 }
 
 # design of the random effects of the fitted levels in newdata. For each term: Zl, a design block for
@@ -448,7 +448,7 @@ reloads <- function(tm, X){
 # mean function at the linear predictors eta of b1-b5
 predmean <- function(pd, eta){
   b <- linkpars(pd$lnk, eta)
-  as.vector(gcmeanR(pd$mod, pd$x, b[, 1], b[, 2], b[, 3], b[, 4], b[, 5], trunc=isTRUE(pd$trunc)))
+  as.vector(gcmeanR(pd$mod, pd$x, b[, 1], b[, 2], b[, 3], b[, 4], b[, 5], trunc=isTRUE(pd$trunc), b1rate=isTRUE(pd$b1rate)))
 }
 
 # standard errors of the predicted means by the delta method of TMB: the mean at the new times is
@@ -488,7 +488,14 @@ predictpars <- function(object, newdata, random, se.fit, interval, level, boot, 
   out <- function(eta) if (scale == "link") eta else linkpars(pd$lnk, eta)
   fit <- out(pd$eta)[, used, drop=FALSE]
   colnames(fit) <- pnames
-  if (!se.fit && interval == "none") return(fit)
+  if (!se.fit && interval == "none"){
+    # b1 as the maximum growth rate: the asymptote of the curves, on the original scale
+    if (fitrate(object) && !islinear(pd$mod) && scale == "original"){
+      b <- linkpars(pd$lnk, pd$eta)
+      fit <- cbind(fit, asymptote=b[, 1] / rate1(pd$mod, b[, 2], b[, 3], b[, 4], b[, 5], isTRUE(pd$trunc)))
+    }
+    return(fit)
+  }
   if (!is.null(seed)) set.seed(seed)
 
   z <- zquant(object, level)
@@ -921,10 +928,11 @@ atdefault <- function(object, k){
   all(abs(b - c(0, 1)[k - 3]) < 1e-8)
 }
 
-# description of the truncation of a fit for print and summary
+# description of the truncation of a fit for print and summary, and of b1 as the maximum growth rate
 trunctext <- function(object){
-  if (!fittrunc(object)) return(NULL)
-  if (atdefault(object, 4)) ", truncated at b4 = 0" else ", truncated at the threshold b4"
+  tt <- if (!fittrunc(object)) NULL else if (atdefault(object, 4)) ", truncated at b4 = 0" else ", truncated at the threshold b4"
+  if (fitrate(object) && !islinear(modelindex(object$model))) tt <- paste(tt, "; b1 is the maximum growth rate", sep="")
+  tt
 }
 
 # coefficients fixed by the user, named; the parameters the model does not use are always fixed

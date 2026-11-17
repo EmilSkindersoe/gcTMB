@@ -181,7 +181,7 @@ curveplot <- function(x, times=NULL, ngrid=200){
     p <- p + ggplot2::geom_line(data=pg, ggplot2::aes(group=curve), colour="blue", linewidth=1.2)
   }
   p + ggplot2::labs(x=tvar, y=yname,
-                    title=if (is.null(ig)) "Fitted curves" else "Fitted curves: individuals and population") +
+                    title=if (!is.null(ig)) "Fitted curves: individuals and population" else if (nrow(pc) == 1) "Fitted curve" else "Fitted curves") +
     ggplot2::theme_bw()
 }
 

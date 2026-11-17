@@ -33,6 +33,27 @@ All models but the linear one are functions $f(t)$ of time, increasing from 0 to
 
 The parameter $b_4$ is the threshold of truncated curves, and $b_5$ the asymmetry of the curve (both below).
 
+#### Scale, slope and shape
+
+The parameter $b_3$ sets how long the growth takes, but in three different ways:
+
+* A **scale** (logistic, Gompertz, normal) is in units of time. The curve depends on time only through $(t - b_2)/b_3$, so $b_3$ stretches the curve along the time axis around $b_2$ without changing its form: doubling $b_3$ doubles the duration of the growth and halves the maximum growth rate. A larger scale means slower growth. The time from 10% to 90% of the asymptote is a fixed multiple of $b_3$.
+* A **slope** (Hill) has no units. The Hill curve is a logistic curve in $\log t$ with the scale $1/b_3$ on the log time axis, so $b_3$ sets the *ratio* of the times at which the curve reaches given fractions of its asymptote, not their difference. A larger slope means steeper, faster growth, the opposite direction of a scale.
+* A **shape** (Weibull, gamma) has no units. It sets the form of the curve: how wide the growth period is relative to its timing $b_2$, and how asymmetric the curve is, e.g. the proportion of total growth at inflection in the table below. With $b_2$ fixed, a larger shape gives a shorter growth period, and the gamma curve tends to the normal curve. The time scale of these curves is carried by $b_2$ together with the shape.
+
+Changing the unit of time, e.g. from days to weeks, changes $b_2$ and a scale $b_3$, but not a slope or a shape.
+
+<!--
+Duration of growth from 10% to 90% of the asymptote (table removed from the vignette, kept as a note):
+  logistic t90 - t10 = 2 log(9) b3 = 4.39 b3; gompertz 3.08 b3; normal 2 qnorm(0.9) b3 = 2.56 b3;
+  hill t90 / t10 = 81^(1/b3); weibull t90 / t10 = (log 10 / log(10/9))^(1/b3) = 21.9^(1/b3);
+  gamma: no closed form, coefficient of variation of the times of growth 1/sqrt(b3).
+Checks of the durations: logistic F(z) = 0.1, 0.9 at z = -log 9, log 9; gompertz exp(-exp(-z)) = 0.1, 0.9
+at z = -0.834, 2.250; normal at z = -/+1.2816; hill: logistic in b3 (log t - log b2), so
+b3 log(t90/t10) = 2 log 9; weibull: the shift of z cancels, b3 log(t90/t10) = log(log 10 / log(10/9));
+gamma with shape k = b3: mean k theta, sd sqrt(k) theta.
+-->
+
 #### logistic
 
 $$ f(t) = \frac{b_1}{1 + \exp\left(-\frac{t - b_2}{b_3}\right)} $$
@@ -114,6 +135,10 @@ For the Hill, Weibull and gamma curves p0 = 0 and nothing changes.
 -->
 
 The proportion of total growth at inflection tells how much of the growth has occurred when the growth is fastest. The Hill curve has an inflection point at a positive time only for $b_3 > 1$. `maxrate()` computes $t_m$, $r_{\max}$ and $f(t_m)/b_1$ for all curves, also truncated and asymmetric ones.
+
+#### The maximum growth rate as a parameter
+
+With `b1type = "rate"`, $b_1$ is the maximum growth rate $r_{\max}$ of the curve instead of its asymptote, and the asymptote is $b_1 / r_1$, where $r_1$ is the maximum growth rate of the curve with asymptote 1, from the table above; for a truncated curve, $r_1$ is that of the truncated curve. The curves and the likelihood are the same as with the asymptote, but covariates and random effects on $b_1$ are now effects on the maximum growth rate, so that `anova()` tests whether the treatments have the same maximum growth rate, and `pairwise()` compares it between pairs of treatments. The maximum growth rate has a closed form for all curves with $b_5 = 1$, and for the logistic (Richards) and Hill curves also with an estimated asymmetry; the Gompertz, Weibull, normal and gamma curves need $b_5$ fixed at 1 with `b1type = "rate"`.
 
 #### Asymmetry
 
@@ -301,13 +326,6 @@ mr
 confint(mr)
 ```
 
-With an estimated asymmetry, the proportion of total growth at inflection is estimated as well. For the Richards curve, the inflection point remains at $b_2$; for the Hill, Weibull and asymmetric Gompertz curves it differs from $b_2$.
-
-```{r}
-maxrate(allfits[["b1, b2, b3, b5"]]$logistic)
-```
-
-For a truncated curve, the maximum growth rate is at the inflection point of the curve without truncation if that comes after the threshold $b_4$, and otherwise just after the threshold, where the slope jumps from zero.
 
 ## Covariates and random effects
 
@@ -326,21 +344,13 @@ fitre0 <- gcTMB(height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights
 anova(fitre0, fitre)
 ```
 
-`predict()` gives the curves of the fitted plants with their predicted random effects (`random = TRUE`), or the population curves of the treatments (`random = FALSE`); `timeto()` with `newdata` gives the times of the curves of each row.
+`timeto()` with `newdata` gives the times of the curves of each row.
 
-```{r, fig.width = 6, fig.height = 4}
-nd <- unique(FabaHeights25[, c("plant_ID", "trt")])
-nd <- merge(nd, data.frame(DAS = seq(0, 61, by = 0.1)))
-nd$fit <- predict(fitre, newdata = nd)
-ggplot(FabaHeights25, aes(x = DAS, y = height, colour = trt)) +
-  geom_point() +
-  geom_line(data = nd, aes(y = fit, group = plant_ID)) +
-  labs(x = "Days after sowing", y = "Height", colour = "Treatment") +
-  theme_minimal()
+```{r}
 timeto(fitre, level = 90, newdata = data.frame(trt = levels(FabaHeights25$trt)), random = FALSE)
 ```
 
-`plot()` with `type = "curves"` draws such a plot directly: the data with the curve of each plant, and the population curve of each treatment as a thick line. By default the curves are drawn over the observed days; `times` gives the times at which they are drawn, here from sowing. It returns the ggplot object in a list, for changing the graph.
+`plot()` with `type = "curves"` draws a plot directly: the data with the curve of each plant, and the population curve of each treatment as a thick line. By default the curves are drawn over the observed days; `times` gives the times at which they are drawn, here from sowing. It returns the ggplot object in a list, for changing the graph. Otherwise, it can be constructed manually using `predict()`.
 
 ```{r, fig.width = 6, fig.height = 4}
 p <- plot(fitre, type = "curves", times = seq(0, 61, by = 0.1), draw = FALSE)
@@ -356,7 +366,7 @@ fitp <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, 
               family = "poisson", fix = c(b4 = FALSE))
 summary(fitp)
 genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
-predict(fitp, newdata = genotypes, type = "parameters", random = FALSE)
+cbind(genotypes, predict(fitp, newdata = genotypes, type = "parameters", random = FALSE))
 ```
 
 All the counts with the fitted curve of each plant, with its predicted random asymptote:
@@ -394,4 +404,38 @@ The estimated threshold improves the fit over the default threshold at sowing:
 fitp0 <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
                family = "poisson")
 AIC(fitp0, fitp)
+```
+
+### Genotype effects on the maximum growth rate
+
+The genotype effects above are on the asymptote. With `b1type = "rate"`, $b_1$ is the maximum growth rate, so the same formulas give genotype effects and random effects of the plants on the maximum growth rate, the most pods gained per day; the log link expresses the genotype effects as ratios of the rates. The random effects are now on the rate of each plant rather than its asymptote, which is a different model, here with a somewhat worse fit by AIC.
+
+```{r}
+fitpr <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+               family = "poisson", fix = c(b4 = FALSE), b1type = "rate", link = c(b1 = "log"))
+summary(fitpr)
+AIC(fitp, fitpr)
+```
+
+Whether the genotypes have the same maximum growth rate is a likelihood ratio test of the models with and without the genotype effects on $b_1$, keeping those on $b_2$:
+
+```{r}
+fitpr0 <- gcTMB(pods ~ DAS, fform = b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+                family = "poisson", fix = c(b4 = FALSE), b1type = "rate", link = c(b1 = "log"))
+anova(fitpr0, fitpr)
+```
+
+`pairwise()` compares the maximum growth rates of all pairs of genotypes by Wald tests. By default, the p-values and the confidence intervals are adjusted for the number of pairs by the single-step method, the generalisation of Tukey's honestly significant differences to the correlated estimates of a model, so that the intervals cover all the differences simultaneously; `adjust = "holm"` and the other methods of `p.adjust()` adjust the p-values only. With the log link, the differences are log ratios of the rates, and the ratios are given as well. The same works for the other parameters, e.g. `parm = "b2"` for the time of the maximum growth rate, which is $b_2$ for the logistic curve.
+
+```{r}
+pairwise(fitpr, newdata = genotypes)
+```
+
+The overall likelihood ratio test is borderline, while the pairwise comparisons single out the largest differences: Melodie gains pods faster than ILB938 and Capri, and ILB938 more slowly than Lynx and Navara. The Wald tests rely on the normal approximation of the estimates, which is rougher than the likelihood ratio test with only 22 plants.
+
+`predict()` with `type = "parameters"` gives the asymptote of the population curves as well, and `maxrate()` the rates, which are now $b_1$:
+
+```{r}
+cbind(genotypes, predict(fitpr, newdata = genotypes, type = "parameters", random = FALSE))
+maxrate(fitpr, newdata = genotypes)
 ```

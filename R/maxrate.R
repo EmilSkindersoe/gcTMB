@@ -133,7 +133,7 @@ checkcurves <- function(x, curves, hint=TRUE){
 # tmax, rate and fraction of a curve of the fit with the parameters lpv (b1-b5 on the scale of the
 # linear predictors)
 maxratevalue <- function(fit, lpv){
-  b <- linkpars(linkindex(fit$link), lpv)
+  b <- curvepars(fit, lpv)
   maxrateR(modelindex(fit$model), b, fittrunc(fit))
 }
 
@@ -386,8 +386,8 @@ profile.maxrateTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progres
         u <- maxrate0(mod, if (m$logtime) 1 else 0, b[3], b[5])[["t"]]
         p <- if (m$logtime) v/u else v - u
       } else {
-        # the rate is proportional to b1
-        p <- v / maxrateR(mod, replace(b, 1, 1), trunc)[["rate"]]
+        # the rate is proportional to b1, or b1 itself for b1type="rate"
+        p <- if (fitrate(fit)) v else v / maxrateR(mod, replace(b, 1, 1), trunc)[["rate"]]
       }
       suppressWarnings(linkfun(lnk[ps], p))
     }

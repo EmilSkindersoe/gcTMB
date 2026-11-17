@@ -42,6 +42,7 @@
 #' @param model Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "normal", "gamma" or "linear", see \code{\link{gcTMB}}.
 #' @param truncated Logical. If TRUE (default), the curve is truncated at a threshold b4, by default fixed at 0, see \code{\link{gcTMB}}.
 #' @param link Named character vector or NULL. Links of the parameters b1-b5, see \code{\link{gcTMB}}.
+#' @param b1type Character string. The meaning of b1, "asymptote" (default) or "rate" for the maximum growth rate, see \code{\link{gcTMB}}.
 #' @param method Character string. One of "lm" or "grid".
 #' @param gsl Numeric vector or NULL. Lower bounds for the grid search, same length as start, on the scale of the coefficients (the rate 1/b3 for b3 with the inverse link); NA (or NULL) for the default range.
 #' @param gsu Numeric vector or NULL. Upper bounds for the grid search, same length as start; NA (or NULL) for the default range.
@@ -56,11 +57,13 @@
 #' gcTMBstart(height ~ DAS, data=FabaHeights25, method="grid", gsn=c(1, 10, 10, 1, 1))
 #' @export
 #'
-gcTMBstart <- function(form, fform=NULL, data, start=NULL, fix=NULL, weights=NULL, family="gaussian", model="logistic", truncated=TRUE, link=NULL, method="lm", gsl=NULL, gsu=NULL, gsn=NULL){
-  dd <- gcTMBdata(form, fform=fform, data=data, weights=weights, family=family, model=model, truncated=truncated, link=link)
+gcTMBstart <- function(form, fform=NULL, data, start=NULL, fix=NULL, weights=NULL, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type=c("asymptote", "rate"), method="lm", gsl=NULL, gsu=NULL, gsn=NULL){
+  b1type <- match.arg(b1type)
+  dd <- gcTMBdata(form, fform=fform, data=data, weights=weights, family=family, model=model, truncated=truncated, link=link, b1type=b1type)
   start <- parvector(start, dd$npi, NA, "start")
   fix <- defaultfix(fix, dd$npi)
   fix[dd$npi %in% unusedpars(dd$mod, dd$trunc)] <- TRUE
+  checkb1rate(dd, start, fix)
   sv <- gcTMBstartvals(dd, start, fix, method=method, gsl=gsl, gsu=gsu, gsn=gsn)
   names(sv) <- coefnames(dd$Xs)
   sv
@@ -68,7 +71,7 @@ gcTMBstart <- function(form, fform=NULL, data, start=NULL, fix=NULL, weights=NUL
 
 
 # model data shared by gcTMB and gcTMBstart
-gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="gaussian", model="logistic", truncated=TRUE, link=NULL){
+gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type="asymptote"){
   if (!is.logical(truncated) || length(truncated) != 1 || is.na(truncated)) stop("truncated must be TRUE or FALSE.")
   fform <- fforms(fform)
   if (is.null(weights)) weights <- rep(1, nrow(data))
@@ -128,7 +131,19 @@ gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="
 
   list(y=y, x=mf[,2], w=weights, bn=bn, fam=fam, mod=mod, trunc=truncated, lnk=lnk, re=re,
        Xs=Xs, fform=fform, fterms=fterms, npars=npars, npi=rep(1:5, npars),
-       family=family, model=model, link=link, data=data)
+       family=family, model=model, link=link, data=data, b1rate=identical(b1type, "rate"))
+}
+
+# b1 as the maximum growth rate: the gompertz, weibull, normal and gamma curves only with the
+# symmetric curves, b5 fixed at 1 (their maximum growth rate has no closed form otherwise)
+checkb1rate <- function(dd, start, fix){
+  if (!isTRUE(dd$b1rate) || !(dd$model %in% c("gompertz", "weibull", "normal", "gamma"))) return(invisible())
+  i5 <- which(dd$npi == 5)
+  rpars <- unlist(lapply(dd$re$terms, function(tm) tm$pars))
+  s5 <- start[i5]
+  sym <- length(i5) == 1 && all(fix[i5]) && (is.na(s5) || abs(linkfun(dd$lnk[5], s5, inverse=TRUE) - 1) < 1e-10) && !(5 %in% rpars)
+  if (!sym) stop("b5 must be fixed at 1 for the ", dd$model, " model with b1type=\"rate\": its maximum growth rate has no closed form for an asymmetric curve.")
+  invisible()
 }
 
 # design matrix of a parameter for data, with the terms, factor levels and contrasts of the fit
@@ -157,6 +172,9 @@ lmstart <- function(dd, start, fix){
   # parameters with a given starting value, and their values on the original scale
   kn <- sapply(1:3, function(i) fix[npi == i][1] | !is.na(start[npi == i][1]))
   kv <- sapply(1:3, function(i) if (kn[i]) linkfun(dd$lnk[i], start[npi == i][1], inverse=TRUE) else NA)
+  # b1 as the maximum growth rate: the asymptote of the curves below is not given; the rate follows
+  # from the asymptote and the shape at the end
+  if (isTRUE(dd$b1rate)) kn[1] <- FALSE
   # asymmetry b5: its starting value, otherwise the symmetric curve
   a <- if (!is.na(start[npi == 5][1])) linkfun(dd$lnk[5], start[npi == 5][1], inverse=TRUE) else 1
 
@@ -273,6 +291,7 @@ lmstart <- function(dd, start, fix){
     if (m$logtime && b4 <= 0) b4 <- min(c(td[td > 0], best[2])) / 2
   }
   orig <- c(best, b4)
+  if (isTRUE(dd$b1rate) && !islinear(dd$mod)) orig[1] <- orig[1] * rate1(dd$mod, best[2], best[3], b4, a, isTRUE(dd$trunc))
   pooled <- c(vapply(1:4, function(i) suppressWarnings(linkfun(dd$lnk[i], orig[i])), numeric(1)), linkfun(dd$lnk[5], a))
   # starting values outside the range of their links, e.g. a negative time with the log link
   bad <- setdiff(which(!is.finite(pooled[1:4])), unusedpars(dd$mod, isTRUE(dd$trunc)))
@@ -395,7 +414,7 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
   vs <- if (length(re$terms) > 0) varstart(dd, start, re) else list(theta=numeric(0))
   stheta <- vs$theta
   up <- rep(0, sum(tnp*tnl))
-  dlist <- list(model="gcTMB", y=dd$y, x=dd$x, w=dd$w, bn=dd$bn, fam=dd$fam, mod=dd$mod, trunc=as.integer(isTRUE(dd$trunc)), lnk=as.integer(dd$lnk),
+  dlist <- list(model="gcTMB", y=dd$y, x=dd$x, w=dd$w, bn=dd$bn, fam=dd$fam, mod=dd$mod, trunc=as.integer(isTRUE(dd$trunc)), b1rate=as.integer(isTRUE(dd$b1rate)), lnk=as.integer(dd$lnk),
                 tnp=tnp, tnl=tnl, tpar=as.integer(unlist(lapply(re$terms, function(tm) tm$pars)) - 1),
                 tzb=if (length(re$terms) > 0) tzbvec(re$terms) else integer(0),
                 simre=1L, Z=re$Z)
@@ -468,7 +487,7 @@ varstart <- function(dd, start, re){
   eta <- matrix(eta, nrow=length(dd$y))
   meanfun <- function(eta) gcmeanR(dd$mod, dd$x, linkfun(dd$lnk[1], eta[, 1], inverse=TRUE), linkfun(dd$lnk[2], eta[, 2], inverse=TRUE),
                                     linkfun(dd$lnk[3], eta[, 3], inverse=TRUE), linkfun(dd$lnk[4], eta[, 4], inverse=TRUE),
-                                    linkfun(dd$lnk[5], eta[, 5], inverse=TRUE), trunc=isTRUE(dd$trunc))
+                                    linkfun(dd$lnk[5], eta[, 5], inverse=TRUE), trunc=isTRUE(dd$trunc), b1rate=isTRUE(dd$b1rate))
   mu <- meanfun(eta)
   # response on the scale of the mean (proportions for binomial counts), on the log scale for lognormal
   binom <- dd$family %in% c("binomial", "betabinomial")

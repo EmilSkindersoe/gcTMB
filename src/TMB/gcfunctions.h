@@ -245,6 +245,61 @@ Type gcmean(int mod, int trunc, Type t, Type f1, Type f2, Type f3, Type f4, Type
   return f1 * exp(gclogG(mod, z, f3, f5));
 }
 
+// maximum growth rate of the curve with asymptote f1 = 1, for b1 as the maximum growth rate
+// (b1rate = 1): the asymptote is then b1 / gcrate1. Closed forms at the inflection point tm of the
+// curve without truncation, for the asymmetry f5 of the logistic (Richards) and hill curves, and
+// f5 = 1 for the others (checked in R). Truncated at f4 (trunc = 1): the curve without truncation
+// scaled by 1 / S(z4) beyond f4; if the inflection point is not after the threshold, the curve grows
+// fastest just after it, with the slope at f4 by a central difference (evaluated at a valid time,
+// as both branches of the conditional expression are evaluated). The linear model has rate b1.
+template<class Type>
+Type gcrate1(int mod, int trunc, Type f2, Type f3, Type f4, Type f5){
+  if (mod == 7) return Type(1);
+  Type tm = f2;
+  Type r0;
+  switch (mod){
+  case 1:
+    r0 = pow(Type(1 + f5), Type(-(1 + f5) / f5)) / f3;
+    break;
+  case 2:
+    r0 = exp(Type(-1)) / f3;
+    break;
+  case 3: {
+    // v = (f2 / tm)^f3 at the inflection point
+    Type v = (f3 + 1) / (f3 * f5 - 1);
+    tm = f2 * pow(v, Type(-1 / f3));
+    r0 = f3 * f5 * v * pow(Type(1 + v), Type(-f5 - 1)) / tm;
+    break;
+  }
+  case 4: {
+    Type cc = (f3 - 1) / f3;
+    r0 = f3 * cc * exp(-cc) / f2;
+    break;
+  }
+  case 5:
+    // standard normal density at 0, 1 / sqrt(2 pi)
+    r0 = Type(0.3989422804014327) / f3;
+    break;
+  default:
+    // gamma with shape f3 and scale f2 / (f3 - 1): the density of z = t (f3 - 1) / f2 at its mode
+    r0 = dgamma(Type(f3 - 1), f3, Type(1), false) * (f3 - 1) / f2;
+  }
+  if (trunc != 1) return r0;
+  Type h = Type(1e-4);
+  Type t4 = gclogtime(mod) ? Type(CppAD::CondExpGt(f4, Type(2 * h), f4, Type(1))) : f4;
+  Type g4 = (exp(gclogG(mod, gcz(mod, Type(t4 + h), f2, f3), f3, f5)) -
+             exp(gclogG(mod, gcz(mod, Type(t4 - h), f2, f3), f3, f5))) / (2 * h);
+  return CppAD::CondExpGt(tm, f4, r0, g4) / exp(gclogS4(mod, f2, f3, f4, f5));
+}
+
+// asymptote of a curve from f1, which is the asymptote (b1rate = 0) or the maximum growth rate
+// (b1rate = 1)
+template<class Type>
+Type gcasym(int b1rate, int mod, int trunc, Type f1, Type f2, Type f3, Type f4, Type f5){
+  if (b1rate != 1) return f1;
+  return f1 / gcrate1(mod, trunc, f2, f3, f4, f5);
+}
+
 // time at which the curve reaches the fraction q of the asymptote f1, the inverse of gcmean:
 // t(Ginv(q)); r: shift on the response scale (residual). Truncated at f4 (trunc = 1):
 // 1 - S(z) / S(z4) = q gives t(Sinv((1 - q) S(z4))), on the log scale of S. The linear model has no

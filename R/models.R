@@ -190,6 +190,30 @@ fittrunc <- function(object){
   isTRUE(object$truncated)
 }
 
+# b1 of a fit as the maximum growth rate (b1type="rate") instead of the asymptote
+fitrate <- function(object){
+  identical(object$b1type, "rate")
+}
+
+# maximum growth rate of curves with asymptote 1 and parameters f2-f5 (vectors, recycled), as gcrate1
+# in the TMB template: the asymptote of a curve whose b1 is the maximum growth rate is b1 / rate1
+rate1 <- function(mod, f2, f3, f4, f5, trunc=FALSE){
+  if (islinear(mod)) return(rep(1, max(length(f2), 1)))
+  p <- cbind(f2, f3, f4, f5)
+  key <- do.call(paste, c(as.data.frame(p), sep=""))
+  first <- !duplicated(key)
+  r <- vapply(which(first), function(i) maxrateR(mod, c(1, p[i, ]), trunc)[["rate"]], numeric(1))
+  r[match(key, key[first])]
+}
+
+# parameters b1-b5 on their original scale from the linear predictors lpv of a curve of a fit, with b1
+# the asymptote also for b1type="rate"
+curvepars <- function(fit, lpv){
+  b <- linkpars(linkindex(fit$link), lpv)
+  if (fitrate(fit)) b[1] <- b[1] / rate1(modelindex(fit$model), b[2], b[3], b[4], b[5], fittrunc(fit))
+  b
+}
+
 # asymmetric curve G of model m with the asymmetry a = b5 (see gcmodels), as in the TMB template:
 # log G(z), log(1 - G(z)), and their inverses; sh = b3 is the shape of the gamma base
 logG <- function(m, z, a, sh=NULL){
@@ -215,9 +239,11 @@ logS4 <- function(m, f2, f3, f4, f5=1){
 # growth curve, same as gcmean in the TMB template: f1 G(z(t)) with the asymmetry f5, and truncated
 # at the threshold f4 (trunc=TRUE), f1 (G(z) - G(z4)) / (1 - G(z4)) for t > f4 and zero otherwise,
 # z4 = z(f4). The models on positive times are zero up to t = 0. The linear model is f1 t + f2.
-gcmeanR <- function(mod, t, f1, f2, f3, f4, f5=1, trunc=FALSE){
+gcmeanR <- function(mod, t, f1, f2, f3, f4, f5=1, trunc=FALSE, b1rate=FALSE){
   m <- gcmodel(mod)
   if (isTRUE(m$linear)) return(f1 * t + f2)
+  # b1 as the maximum growth rate: the asymptote
+  if (b1rate) f1 <- f1 / rate1(mod, f2, f3, f4, f5, trunc)
   pos <- if (m$logtime) t > 0 else rep(TRUE, length(t))
   z <- m$z(ifelse(pos, t, 1), f2, f3)
   Ft <- if (!trunc) exp(logG(m, z, f5, f3)) else ifelse(t > f4, -expm1(logSG(m, z, f5, f3) - logS4(m, f2, f3, f4, f5)), 0)

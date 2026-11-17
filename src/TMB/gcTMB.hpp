@@ -8,6 +8,7 @@ Type gcTMB(objective_function<Type>* obj) {
   DATA_INTEGER(fam);
   DATA_INTEGER(mod);
   DATA_INTEGER(trunc);     // 1: curve truncated at the threshold b4
+  DATA_INTEGER(b1rate);    // 1: b1 is the maximum growth rate instead of the asymptote
   DATA_IVECTOR(lnk);       // links of b1-b5: 1 = identity, 2 = inverse, 3 = log, 4 = logit
   DATA_IVECTOR(tnp);       // random effect terms: number of random coefficients per term
   DATA_IVECTOR(tnl);       // number of levels per term
@@ -127,12 +128,12 @@ Type gcTMB(objective_function<Type>* obj) {
 
   Type f;
   for (int i = 0; i < n; i++){
-    f = gcmean(mod, trunc, x(i),
-                linkinv(lnk(0), Type(Xb1(i) + Zu(i, 0))),
-                linkinv(lnk(1), Type(Xb2(i) + Zu(i, 1))),
-                linkinv(lnk(2), Type(Xb3(i) + Zu(i, 2))),
-                linkinv(lnk(3), Type(Xb4(i) + Zu(i, 3))),
-                linkinv(lnk(4), Type(Xb5(i) + Zu(i, 4))));
+    Type f2 = linkinv(lnk(1), Type(Xb2(i) + Zu(i, 1)));
+    Type f3 = linkinv(lnk(2), Type(Xb3(i) + Zu(i, 2)));
+    Type f4 = linkinv(lnk(3), Type(Xb4(i) + Zu(i, 3)));
+    Type f5 = linkinv(lnk(4), Type(Xb5(i) + Zu(i, 4)));
+    Type f1 = gcasym(b1rate, mod, trunc, linkinv(lnk(0), Type(Xb1(i) + Zu(i, 0))), f2, f3, f4, f5);
+    f = gcmean(mod, trunc, x(i), f1, f2, f3, f4, f5);
     nll += -w(i) * loglik(fam, y(i), f, bn(i), phi);
     SIMULATE {
       y(i) = simobs(fam, f, bn(i), phi);
@@ -169,12 +170,12 @@ Type gcTMB(objective_function<Type>* obj) {
     vector<Type> Xpb5 = Xp5 * b5;
     vector<Type> mu(npred);
     for (int i = 0; i < npred; i++){
-      mu(i) = gcmean(mod, trunc, xp(i),
-                      linkinv(lnk(0), Type(Xpb1(i) + Zup(i, 0))),
-                      linkinv(lnk(1), Type(Xpb2(i) + Zup(i, 1))),
-                      linkinv(lnk(2), Type(Xpb3(i) + Zup(i, 2))),
-                      linkinv(lnk(3), Type(Xpb4(i) + Zup(i, 3))),
-                      linkinv(lnk(4), Type(Xpb5(i) + Zup(i, 4))));
+      Type f2 = linkinv(lnk(1), Type(Xpb2(i) + Zup(i, 1)));
+      Type f3 = linkinv(lnk(2), Type(Xpb3(i) + Zup(i, 2)));
+      Type f4 = linkinv(lnk(3), Type(Xpb4(i) + Zup(i, 3)));
+      Type f5 = linkinv(lnk(4), Type(Xpb5(i) + Zup(i, 4)));
+      Type f1 = gcasym(b1rate, mod, trunc, linkinv(lnk(0), Type(Xpb1(i) + Zup(i, 0))), f2, f3, f4, f5);
+      mu(i) = gcmean(mod, trunc, xp(i), f1, f2, f3, f4, f5);
     }
     ADREPORT(mu);
   }

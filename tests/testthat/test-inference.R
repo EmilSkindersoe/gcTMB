@@ -136,6 +136,13 @@ test_that("plot with type='curves' draws the curves of the individuals and the p
   f0 <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
   p0 <- plot(f0, type="curves", draw=FALSE)$curves
   expect_equal(length(p0$layers), 2)
+  # titles: a single curve without random effects, curves with them or with covariates
+  expect_equal(p0$labels$title, "Fitted curve")
+  expect_equal(p$labels$title, "Fitted curves: individuals and population")
+  dg <- simgauss("logistic")
+  dg$g <- factor(rep(c("a", "b"), length.out=nrow(dg)))
+  pg0 <- plot(gcTMB(y ~ day, fform=b1 ~ g, truncated=FALSE, data=dg), type="curves", draw=FALSE)$curves
+  expect_equal(pg0$labels$title, "Fitted curves")
   pdf(NULL)
   on.exit(dev.off())
   expect_silent(plot(f, type="curves"))

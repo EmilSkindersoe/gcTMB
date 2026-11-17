@@ -145,7 +145,7 @@ timeto <- function(x, level=50, curves=NULL, newdata=NULL, random=TRUE, residual
     }
 
     # time and its gradient w.r.t. (b1-b5, u1-u5, r) from the gcTime TMB template
-    tobj <- MakeADFun(list(model="gcTime", mod=mod, trunc=as.integer(fittrunc(x)), lnk=as.integer(lnk), absolute=as.integer(absolute), q=q),
+    tobj <- MakeADFun(list(model="gcTime", mod=mod, trunc=as.integer(fittrunc(x)), b1rate=as.integer(fitrate(x)), lnk=as.integer(lnk), absolute=as.integer(absolute), q=q),
                       list(b=lpv, u=u, r=0),
                       ADreport=TRUE, DLL="gcTMB_TMBExports", silent=TRUE)
     tl[i] <- tobj$fn()
@@ -180,7 +180,7 @@ timeto <- function(x, level=50, curves=NULL, newdata=NULL, random=TRUE, residual
 # the parameters lpv (b1-b5 on the scale of the linear predictors) of the curve
 timeq <- function(fit, q, lpv, absolute){
   if (!absolute) return(q)
-  b <- linkpars(linkindex(fit$link), lpv)
+  b <- curvepars(fit, lpv)
   q / b[1]
 }
 

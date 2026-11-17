@@ -15,6 +15,7 @@ gcTMBstart(
   model = "logistic",
   truncated = TRUE,
   link = NULL,
+  b1type = c("asymptote", "rate"),
   method = "lm",
   gsl = NULL,
   gsu = NULL,
@@ -41,6 +42,8 @@ gcTMBstart(
 \item{truncated}{Logical. If TRUE (default), the curve is truncated at a threshold b4, by default fixed at 0, see \code{\link{gcTMB}}.}
 
 \item{link}{Named character vector or NULL. Links of the parameters b1-b5, see \code{\link{gcTMB}}.}
+
+\item{b1type}{Character string. The meaning of b1, "asymptote" (default) or "rate" for the maximum growth rate, see \code{\link{gcTMB}}.}
 
 \item{method}{Character string. One of "lm" or "grid".}
 
