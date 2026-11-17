@@ -5,8 +5,68 @@
 \alias{gcTMB-package}
 \title{gcTMB: Fitting Growth Curves Using the Template Model Builder}
 \description{
-Fits non-linear growth curves over time by maximum likelihood using the Template Model Builder ('TMB'), with covariates on the parameters and random effects, which are integrated out by the Laplace approximation. The growth models are the logistic (Richards), Gompertz, Hill, Weibull, normal and gamma curves, each with an asymmetry parameter, and a straight line for comparison. They are parameterised by the asymptote or the maximum growth rate, a time (of the maximum growth rate or of half the asymptote), a scale, slope or shape parameter, and the asymmetry, with identity, log, logit or inverse links, and can be truncated at a threshold time before which the response is zero. The response can follow a Gaussian, lognormal, Poisson, binomial, beta- binomial, beta or negative binomial distribution. Fixed effects are given by formulas for each parameter; random effects can be correlated across parameters, with several terms, nested or crossed grouping factors and random slopes; and the Gaussian and lognormal residuals can be autocorrelated within individuals, with first-order autoregressive (AR(1)) or continuous-time AR(1) structures as in 'nlme'. Starting values are found by a linearisation of the curves or a grid search. Inference includes Wald, profile likelihood and parametric bootstrap confidence intervals, small-sample t and F inference for Gaussian models, likelihood ratio tests with parametric bootstrap p-values, and pairwise comparisons of the curves with single-step multiplicity adjustment. The times at which the curves reach a level of their asymptote or a given response, and the maximum growth rates, their timing and the fraction of the asymptote reached then, are derived with standard errors by automatic differentiation and the delta method. Methods are available for predictions with confidence and prediction intervals, fitted values and residuals (Pearson, randomised quantile and normalized), validation and curve plots, simulation from the fitted model at the observed or new times and individuals, updating parameters for simulation studies, model comparison by information criteria, and the extractors fixef(), ranef() and VarCorr() compatible with 'nlme' and 'lme4'. Four vignettes cover the growth models and their parameters, fixed and random effects, the timing and maximum growth rates, and autocorrelation and simulation, and a complete guide contains them all.
+Fits non-linear growth curves over time by maximum likelihood using the Template Model Builder ('TMB'), with covariates on the parameters and random effects, which are integrated out by the Laplace approximation, and autocorrelated residuals. The main function gcTMB() fits the logistic (Richards), Gompertz, Hill, Weibull, normal and gamma growth curves, each with an asymmetry parameter, and a straight line for comparison. The curves are parameterised by the asymptote (or, with b1type = "rate", the maximum growth rate), a time (of the maximum growth rate or of half the asymptote), a scale, slope or shape parameter, a threshold time before which a truncated curve is zero, and the asymmetry, each with an identity, log, logit or inverse link, and any of them can be fixed. The response can follow a Gaussian, lognormal, Poisson, binomial, beta-binomial, beta or negative binomial (nbinom1, nbinom2) distribution, with case weights. Fixed effects are formulas for each parameter, e.g. b1 + b2 ~ treatment, and random effects are written as in 'nlme', e.g. b1 + b2 ~ 1 | individual: they can be correlated across the parameters, with several terms, nested or crossed grouping factors and random slopes. The Gaussian and lognormal residuals can be autocorrelated within individuals, with the first-order autoregressive structures corAR1() and continuous-time corCAR1() of 'nlme', whose objects are accepted as well. Starting values are found by a linearisation of the curves or a grid search (gcTMBstart()), and the optimisation is controlled by gcTMBcontrol(). Inference covers Wald, profile likelihood and parametric bootstrap confidence intervals (confint(), profile(), bootstrap()), small-sample t and F inference for Gaussian and lognormal models without random effects, likelihood ratio tests with chi-square, F or parametric bootstrap p-values (anova()), information criteria such as AIC, AICc, BIC and HQIC and goodness-of-fit criteria (criteria()), and pairwise comparisons of a parameter between curves with single-step multiplicity adjustment (pairwise()). The times at which the curves reach a percentage of their asymptote or a given response (timeto()), and the maximum growth rates, their timing and the fraction of the asymptote reached then (maxrate()), are derived with standard errors by automatic differentiation and the delta method, and with profile likelihood and bootstrap intervals, for the population curves, and for timeto() also for fitted individuals. Methods for gcTMB fits include summary(), predict() with confidence and prediction intervals of the curves or their parameters, fitted() and residuals() (Pearson, randomised quantile and normalized), plot() of validation plots and fitted curves, simulate() at the observed or new times and individuals, update() to refit the model or set its parameters as the true model of a simulation study, logLik(), coef(), vcov(), converged(), and the extractors fixef(), ranef(), VarCorr(), sigma() and corpars(), compatible with 'nlme' and 'lme4'. The data sets FabaHeights25 (heights of faba bean plants under five treatments) and FabaCounts23 (pod counts of six faba bean genotypes) illustrate the methods. Four vignettes cover the growth models and their parameters, fixed and random effects, the timing and maximum growth rates, and autocorrelation and simulation, and an overview shows most of the features in one document.
 }
+\section{Growth models and fitting}{
+
+\code{\link{gcTMB}} fits the growth curves: logistic (Richards), Gompertz, Hill, Weibull, normal and
+gamma, each with an asymmetry b5, and a straight line. The parameters are the asymptote b1 (or the
+maximum growth rate, \code{b1type="rate"}), the time b2 of the maximum growth rate or of half the
+asymptote, the scale, slope or shape b3, the threshold b4 of a truncated curve and the asymmetry
+b5, each with a link and optionally fixed. \code{\link{gcTMBstart}} gives the starting values and
+\code{\link{gcTMBcontrol}} the settings of the optimisation and the inference.
+}
+
+\section{Effects, distributions and autocorrelation}{
+
+Fixed effects of covariates on the parameters (\code{fform}) and random effects (\code{rform}),
+correlated across parameters, with several terms, nested or crossed factors and random slopes; the
+families gaussian, lognormal, poisson, binomial, betabinomial, beta, nbinom1 and nbinom2; and
+autocorrelated residuals within individuals, \code{\link{corAR1}} and \code{\link{corCAR1}}.
+}
+
+\section{Inference}{
+
+\itemize{
+\item \code{\link{summary.gcTMB}}, \code{coef}, \code{vcov}, \code{logLik}, \code{\link{converged}};
+\item confidence intervals: \code{\link{confint.gcTMB}} (profile likelihood, Wald, bootstrap),
+\code{\link{profile.gcTMB}}, \code{\link{bootstrap}};
+\item tests and model choice: \code{\link{anova.gcTMB}} (likelihood ratio, F and parametric
+bootstrap tests), \code{\link{criteria}} (information and goodness-of-fit criteria),
+\code{\link{pairwise}} (pairwise comparisons with single-step adjustment).
+}
+}
+
+\section{Timing and growth rates}{
+
+\code{\link{timeto}}, the times to reach a percentage of the asymptote or a given response, and
+\code{\link{maxrate}}, the maximum growth rate, its timing and the fraction of the asymptote reached
+then, with standard errors and \code{confint} and \code{profile} methods.
+}
+
+\section{Predictions, diagnostics and simulation}{
+
+\code{\link{predict.gcTMB}} (curves and parameters, with confidence and prediction intervals),
+\code{fitted}, \code{\link{residuals.gcTMB}} (Pearson, randomised quantile, normalized),
+\code{\link{plot.gcTMB}} (validation plots and curves), \code{\link{simulate.gcTMB}} (at the observed
+or new times and individuals), and \code{\link{update.gcTMB}} (refit, or set the parameters of a true
+model for simulation).
+}
+
+\section{Extractors}{
+
+\code{\link{fixef}}, \code{\link{ranef}}, \code{\link{VarCorr}}, \code{sigma}, \code{\link{corpars}}
+and \code{\link{varpars}}, compatible with nlme and lme4 (see \code{\link{gcTMB}}, Relation to nlme).
+}
+
+\section{Data and vignettes}{
+
+The data sets \code{\link{FabaHeights25}} and \code{\link{FabaCounts23}}. The vignettes:
+\code{vignette("gcTMB")}, an overview of most features; \code{vignette("growth-models")},
+\code{vignette("fixed-random-effects")}, \code{vignette("timing-rates")} and
+\code{vignette("autocorrelation-simulation")}.
+}
+
 \author{
 \strong{Maintainer}: Emil Skindersoe \email{e.skindersoe@gmail.com} (\href{https://orcid.org/0009-0000-2172-1614}{ORCID})
 
