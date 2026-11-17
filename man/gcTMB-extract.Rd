@@ -71,7 +71,7 @@ size or dispersion), and NA for poisson and binomial models. The residual varian
 \code{\link{gcTMB}}), it is the unbiased estimate.
 
 \code{corpars} returns the parameter of the autocorrelation of the residuals within groups (see
-\code{\link{corStruct}}), Phi, the correlation of residuals one unit of time apart, and an empty vector
+\code{\link{corStruct}}), rho, the correlation of residuals one unit of time apart, and an empty vector
 for a model with independent residuals; it is \code{coef(fit$modelStruct$corStruct,
 unconstrained=FALSE)} of nlme. \code{varpars} returns the parameters of the variance
 function of the residuals, as a named vector; the current models have a constant residual variance,

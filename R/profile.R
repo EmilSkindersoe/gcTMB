@@ -132,12 +132,12 @@ natscale <- function(ci, rn, corr2, level){
   tolog <- grepl("^log_sd:", rn) | rn %in% c("log_sigma", "log_phi", "log_theta")
   ci[tolog, ] <- exp(ci[tolog, ])
   rn[tolog] <- sub("^log_", "", rn[tolog])
-  # the autocorrelation Phi from its unconstrained parameter
+  # the autocorrelation rho from its unconstrained parameter
   ar <- rn == "cor_par:AR1"
   car <- rn == "cor_par:CAR1"
   ci[ar, ] <- (exp(ci[ar, ]) - 1)/(exp(ci[ar, ]) + 1)
   ci[car, ] <- stats::plogis(ci[car, ])
-  rn[ar | car] <- "Phi"
+  rn[ar | car] <- "rho"
   two <- rn %in% corr2
   ci[two, ] <- ci[two, ] / sqrt(1 + ci[two, ]^2)
   rn[two] <- sub("^corr_par:", "corr:", rn[two])
@@ -388,7 +388,7 @@ timevalue <- function(object, i, lpv){
 #'
 #' The counterpart of \code{intervals} of nlme, with profile likelihood and parametric bootstrap
 #' intervals in addition to the Wald intervals; the autocorrelation cor_par:AR1 or cor_par:CAR1 is
-#' reported as Phi.
+#' reported as rho.
 #'
 #' Standard deviations of the random effects, the residual standard deviation and the precision are
 #' reported on their natural scale; Wald intervals for them are computed on the log scale. The

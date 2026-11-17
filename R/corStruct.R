@@ -7,46 +7,49 @@
 #'
 #' The residuals of different groups are independent. Within a group, the residuals e are stationary,
 #' with the residual variance sigma^2 of the model (sigma^2/w for weights w) and the correlation
-#' \deqn{cor(e_s, e_t) = Phi^{|t - s|},}{cor(e_s, e_t) = Phi^|t - s|,}
-#' with Phi the correlation of residuals one unit of time apart (Zuur et al., 2009, Section 6.1;
+#' \deqn{cor(e_s, e_t) = rho^{|t - s|},}{cor(e_s, e_t) = rho^|t - s|,}
+#' with rho the correlation of residuals one unit of time apart (Zuur et al., 2009, Section 6.1;
 #' Pinheiro and Bates, 2000, Section 5.3):
 #' \itemize{
 #'   \item \code{corAR1}: the autoregressive process of order 1 at integer times (positions), with
-#'     -1 < Phi < 1; gaps in the times are allowed, e.g. measurements every second day with
-#'     \code{form = ~ day | plant} and a day without measurement, with the correlation Phi^2 across a
+#'     -1 < rho < 1; gaps in the times are allowed, e.g. measurements every second day with
+#'     \code{form = ~ day | plant} and a day without measurement, with the correlation rho^2 across a
 #'     gap of two days. Without a time covariate (\code{form = ~ 1 | plant}), the time is the position
 #'     of the observation within its group, in the order of the data;
 #'   \item \code{corCAR1}: the continuous-time autoregressive process of order 1, for times that need
-#'     not be integers and unequally spaced observations, with 0 < Phi < 1.
+#'     not be integers and unequally spaced observations, with 0 < rho < 1.
 #' }
 #' The times must be unique within a group. As the process is Markov, the likelihood is the product of
 #' the density of the first residual of each group and the conditional densities of each residual given
-#' the previous one, normal with mean Phi^dt e_prev and variance sigma^2 (1 - Phi^(2 dt)) for the time
+#' the previous one, normal with mean rho^dt e_prev and variance sigma^2 (1 - rho^(2 dt)) for the time
 #' dt between them, which is exact and linear in the number of observations.
 #'
-#' @param value Numeric. The starting value of Phi, or its value with \code{fixed=TRUE}: between -1
+#' @param value Numeric. The starting value of rho, or its value with \code{fixed=TRUE}: between -1
 #'   and 1 (default 0) for \code{corAR1}, between 0 and 1 (default 0.2) for \code{corCAR1}
 #' @param form One-sided formula. The time covariate and the grouping factor, \code{~ time | group}.
 #'   Without a grouping factor, the residuals of all observations form a single series when the model has
 #'   no random effects, and are grouped by the innermost grouping factor of the random effects (the one
 #'   with most levels) otherwise, as in \code{nlme::lme}. Without a time covariate (\code{~ 1} or
 #'   \code{~ 1 | group}), the times are the positions of the observations within their group.
-#' @param fixed Logical. If TRUE, Phi is fixed at \code{value} and not estimated
+#' @param fixed Logical. If TRUE, rho is fixed at \code{value} and not estimated
 #'
 #' @return An object of class \code{c("corAR1", "corStruct")} or \code{c("corCAR1", "corStruct")}:
-#'   \code{value} on the unconstrained scale of nlme, log((1 + Phi)/(1 - Phi)) for AR(1) and
-#'   log(Phi/(1 - Phi)) for CAR(1), with the attributes \code{formula} and \code{fixed}.
+#'   \code{value} on the unconstrained scale of nlme, log((1 + rho)/(1 - rho)) for AR(1) and
+#'   log(rho/(1 - rho)) for CAR(1), with the attributes \code{formula} and \code{fixed}.
 #' @references Pinheiro, J.C. and Bates, D.M. (2000). Mixed-Effects Models in S and S-PLUS.
 #'   Springer, New York.
 #'
 #'   Zuur, A.F., Ieno, E.N., Walker, N.J., Saveliev, A.A. and Smith, G.M. (2009). Mixed Effects Models
 #'   and Extensions in Ecology with R. Springer, New York.
 #' @details The estimated parameter is in \code{coef(fit)} as \code{cor_par:AR1} or \code{cor_par:CAR1}, on
-#' the unconstrained scale of nlme (\code{coef} of an nlme \code{corStruct}); \code{\link{corpars}} gives
-#' Phi, and \code{confint(fit, parm="cor_par:CAR1")} an interval for Phi. If nlme is attached after
+#' the unconstrained scale of nlme (\code{coef} of an nlme \code{corStruct}): the logit link
+#' log(rho/(1 - rho)) for CAR(1), and log((1 + rho)/(1 - rho)), the logit of (1 + rho)/2, for AR(1),
+#' whose rho lies between -1 and 1. Wald intervals are computed on this scale and transformed back.
+#' \code{\link{corpars}} gives
+#' rho, and \code{confint(fit, parm="cor_par:CAR1")} an interval for rho. If nlme is attached after
 #' gcTMB, its constructors mask these; gcTMB accepts their objects, and gcTMB's correlation structures can
 #' be passed to \code{nlme::gls}, \code{nlme::gnls}, \code{nlme::lme} and \code{nlme::nlme}.
-#' @seealso \code{\link{gcTMB}}, \code{\link{corpars}} for the estimate of Phi, and
+#' @seealso \code{\link{gcTMB}}, \code{\link{corpars}} for the estimate of rho, and
 #'   \code{residuals(fit, type="normalized")} for residuals that are independent under the model.
 #' @examples
 #' FabaHeights25$trt <- factor(FabaHeights25$Treatment)
@@ -87,8 +90,8 @@ cortypeindex <- function(correlation){
   stop("correlation must be corAR1() or corCAR1().")
 }
 
-# Phi from its unconstrained value v, for correlation type ct (1 AR(1), 2 CAR(1))
-corphi <- function(ct, v){
+# rho from its unconstrained value v, for correlation type ct (1 AR(1), 2 CAR(1))
+corrho <- function(ct, v){
   if (ct == 1) (exp(v) - 1)/(exp(v) + 1) else stats::plogis(v)
 }
 
@@ -186,8 +189,8 @@ printcor <- function(object, digits){
   txt <- cortext(object)
   if (is.null(txt)) return(invisible())
   cat("\nCorrelation structure: ", txt, "\n", sep="")
-  phi <- if (!is.null(object$corphi)) object$corphi else corpars(object)
-  cat("Phi: ", format(phi[["Phi"]], digits=digits),
+  cp <- if (!is.null(object$corrho)) object$corrho else corpars(object)
+  cat("rho: ", format(cp[["rho"]], digits=digits),
       if (isTRUE(attr(object$correlation, "fixed"))) " (fixed)", "\n", sep="")
 }
 
@@ -198,14 +201,14 @@ normalizeresid <- function(object, r){
   dat <- object$obj$env$data
   ct <- dat$cortype
   if (is.null(ct) || ct == 0 || !(object$family %in% c("gaussian", "lognormal"))) return(r)
-  Phi <- corpars(object)[["Phi"]]
+  rho <- corpars(object)[["rho"]]
   prev <- dat$corprev
   has <- prev >= 0
-  rho <- rep(0, length(r))
-  rho[has] <- if (ct == 1) Phi^dat$corlag[has] else Phi^dat$cordt[has]
+  cr <- rep(0, length(r))
+  cr[has] <- if (ct == 1) rho^dat$corlag[has] else rho^dat$cordt[has]
   rp <- rep(0, length(r))
   rp[has] <- r[prev[has] + 1]
-  out <- (r - rho*rp)/sqrt(1 - rho^2)
+  out <- (r - cr*rp)/sqrt(1 - cr^2)
   out[dat$w <= 0] <- 0
   out
 }
@@ -217,15 +220,15 @@ corsimresid <- function(object, newdata){
   if (is.null(object$correlation)) return(stats::rnorm(n))
   cs <- corsetup(object$correlation, newdata, reterms=object$reterms,
                  termgroup=function(t, data) obsgroups(object, t, data))
-  Phi <- corpars(object)[["Phi"]]
+  rho <- corpars(object)[["rho"]]
   r <- numeric(n)
   for (i in cs$corord + 1L){
     p <- cs$corprev[i]
     if (p < 0){
       r[i] <- stats::rnorm(1)
     } else {
-      rho <- if (cs$cortype == 1) Phi^cs$corlag[i] else Phi^cs$cordt[i]
-      r[i] <- rho*r[p + 1] + sqrt(1 - rho^2)*stats::rnorm(1)
+      cr <- if (cs$cortype == 1) rho^cs$corlag[i] else rho^cs$cordt[i]
+      r[i] <- cr*r[p + 1] + sqrt(1 - cr^2)*stats::rnorm(1)
     }
   }
   r

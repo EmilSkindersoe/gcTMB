@@ -36,11 +36,13 @@ fitre <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_
 
 The random effects shift the whole curve of a plant, but a plant that is above its curve at one measurement often stays above it at the next. The `correlation` argument models this autocorrelation of the residuals within a group over time, with the same correlation structures as the package nlme (Pinheiro and Bates, 2000; Zuur et al., 2009, Chapter 6). The residuals $\varepsilon$ of a group are normal with the residual variance $\sigma^2$ and
 
-$$\mathrm{cor}(\varepsilon_s, \varepsilon_t) = \Phi^{|t - s|},$$
+$$\mathrm{cor}(\varepsilon_s, \varepsilon_t) = \rho^{|t - s|},$$
 
-with $\Phi$ the correlation of residuals one unit of time apart. `corAR1()` is the autoregressive process of order 1 at integer times (or at the positions of the observations, with `form = ~ 1 | group`), with $-1 < \Phi < 1$; `corCAR1()` its continuous-time version, for unequally spaced times, with $0 < \Phi < 1$. Residuals of different groups are independent, and the correlation is available for the gaussian and lognormal (on the log scale) families. As the process is Markov, each residual given the previous one of its group, $dt$ earlier, is normal with mean $\Phi^{dt} \varepsilon_{\mathrm{prev}}$ and variance $\sigma^2 (1 - \Phi^{2 dt})$, so the likelihood is exact and its cost linear in the number of observations; with random effects, the Laplace approximation integrates them out as before.
+with $\rho$ the correlation of residuals one unit of time apart. `corAR1()` is the autoregressive process of order 1 at integer times (or at the positions of the observations, with `form = ~ 1 | group`), with $-1 < \rho < 1$; `corCAR1()` its continuous-time version, for unequally spaced times, with $0 < \rho < 1$. Residuals of different groups are independent, and the correlation is available for the gaussian and lognormal (on the log scale) families. As the process is Markov, each residual given the previous one of its group, $dt$ earlier, is normal with mean $\rho^{dt} \varepsilon_{\mathrm{prev}}$ and variance $\sigma^2 (1 - \rho^{2 dt})$, so the likelihood is exact and its cost linear in the number of observations; with random effects, the Laplace approximation integrates them out as before.
 
-The heights are measured every 7 days, so with `corCAR1(form = ~ DAS | plant_ID)` $\Phi$ is the correlation per day, and $\Phi^7$ that of consecutive measurements:
+The parameter $\rho$ is estimated on an unconstrained scale, as in nlme. For `corCAR1()`, with $0 < \rho < 1$, this is the logit link, $\log(\rho/(1 - \rho))$. For `corAR1()`, with $-1 < \rho < 1$, it is $\log((1 + \rho)/(1 - \rho))$, the logit of $(1 + \rho)/2$, which maps the interval $(-1, 1)$ to the real line (twice Fisher's $z$-transformation, $2\,\mathrm{atanh}(\rho)$). `coef()` reports the parameter on this scale, as `cor_par:CAR1` or `cor_par:AR1`, and `corpars()`, `summary()` and `confint()` report $\rho$ itself.
+
+The heights are measured every 7 days, so with `corCAR1(form = ~ DAS | plant_ID)` $\rho$ is the correlation per day, and $\rho^7$ that of consecutive measurements:
 
 ```{r}
 fitrec <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25,
@@ -48,6 +50,12 @@ fitrec <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant
 summary(fitrec)
 corpars(fitrec)^7
 anova(fitre, fitrec)
+```
+
+`confint()` gives the profile likelihood interval of $\rho$, or with `method = "wald"` a Wald interval computed on the logit scale and transformed back:
+
+```{r}
+confint(fitrec, parm = "cor_par:CAR1")
 ```
 
 The autocorrelation improves the fit clearly. The normalized residuals, the standardised residuals minus their conditional mean given the previous residual of the plant, divided by the conditional standard deviation, are independent under the model; their correlation between consecutive measurements of a plant is close to zero, whereas that of the Pearson residuals is not:
@@ -139,56 +147,53 @@ In a full simulation study, these steps are repeated for many simulated data set
 
 ### Recovering the autocorrelation
 
-With a correlation structure, `simulate()` draws the residuals of each group with the autocorrelation of the fit: within a plant in `newdata`, ordered in time, each residual given the previous one, $dt$ earlier, is normal with mean $\Phi^{dt}$ times the previous residual and variance $\sigma^2 (1 - \Phi^{2 dt})$. The true model is the logistic curve with a random asymptote for each plant and continuous-time AR(1) residuals within plants:
+With a correlation structure, `simulate()` draws the residuals of each group with the autocorrelation of the fit: within a plant in `newdata`, ordered in time, each residual given the previous one, $dt$ earlier, is normal with mean $\rho^{dt}$ times the previous residual and variance $\sigma^2 (1 - \rho^{2 dt})$. The true model is the logistic curve with a random asymptote for each plant and continuous-time AR(1) residuals within plants. The autocorrelation is fixed at $\rho = 0.7$ per day with `fixed = TRUE`, and the other parameters are estimated from the heights:
 
 ```{r sim-cartrue}
+rho0 <- 0.7
 fitcar <- gcTMB(height ~ DAS, rform = b1 ~ 1 | plant_ID, data = FabaHeights25,
-                correlation = corCAR1(form = ~ DAS | plant_ID))
-phi0 <- corpars(fitcar)[["Phi"]]
-c(fixef(fitcar), sigma = sigma(fitcar), Phi = phi0)
+                correlation = corCAR1(value = rho0, form = ~ DAS | plant_ID, fixed = TRUE))
+c(fixef(fitcar), sigma = sigma(fitcar), corpars(fitcar))
 ```
 
-We simulate 50 data sets of 30 new plants, measured at unequally spaced days, once at 12 days and once at 25 days between day 10 and day 70, and fit the true model to each. The Wald interval of $\Phi$ is computed on its unconstrained scale, $\log(\Phi/(1 - \Phi))$, and transformed back by `confint()`.
+We simulate 50 data sets of 30 new plants, each measured at 12 unequally spaced days between day 10 and day 63, and fit the model to each, now with $\rho$ estimated. `confint()` computes the Wald interval of $\rho$ on the logit scale and transforms it back.
 
 ```{r sim-carrun}
-designs <- list("12 days" = c(10, 13, 17, 21, 24, 28, 35, 38, 42, 49, 56, 63),
-                "25 days" = seq(10, 70, by = 2.5))
-carsim <- do.call(rbind, lapply(names(designs), function(dn){
-  design <- expand.grid(DAS = designs[[dn]], plant_ID = paste0("p", 1:30))
-  sims <- simulate(fitcar, nsim = 50, seed = 1, newdata = design)
-  do.call(rbind, lapply(sims, function(y){
-    dat <- cbind(design, height = y)
-    f1 <- gcTMB(height ~ DAS, rform = b1 ~ 1 | plant_ID, data = dat, correlation = corCAR1(form = ~ DAS | plant_ID))
-    ci <- confint(f1, parm = "cor_par:CAR1", method = "wald")
-    # the same model without the autocorrelation
-    f0 <- gcTMB(height ~ DAS, rform = b1 ~ 1 | plant_ID, data = dat)
-    data.frame(design = dn, Phi = corpars(f1)[["Phi"]], covered = ci[1] <= phi0 & phi0 <= ci[2],
-               b2 = coef(f1)[[2]], se.b2 = sqrt(vcov(f1)[2, 2]),
-               b2.indep = coef(f0)[[2]], se.b2.indep = sqrt(vcov(f0)[2, 2]))
-  }))
+days <- c(10, 13, 17, 21, 24, 28, 35, 38, 42, 49, 56, 63)
+design <- expand.grid(DAS = days, plant_ID = paste0("p", 1:30))
+sims <- simulate(fitcar, nsim = 50, seed = 1, newdata = design)
+carsim <- do.call(rbind, lapply(sims, function(y){
+  dat <- cbind(design, height = y)
+  f1 <- gcTMB(height ~ DAS, rform = b1 ~ 1 | plant_ID, data = dat, correlation = corCAR1(form = ~ DAS | plant_ID))
+  ci <- confint(f1, parm = "cor_par:CAR1", method = "wald")
+  # the same model without the autocorrelation
+  f0 <- gcTMB(height ~ DAS, rform = b1 ~ 1 | plant_ID, data = dat)
+  data.frame(rho = corpars(f1)[["rho"]], lower = ci[1], upper = ci[2],
+             covered = ci[1] <= rho0 & rho0 <= ci[2],
+             b2 = coef(f1)[[2]], se.b2 = sqrt(vcov(f1)[2, 2]),
+             b2.indep = coef(f0)[[2]], se.b2.indep = sqrt(vcov(f0)[2, 2]))
 }))
 ```
 
-The estimates of $\Phi$ are centred close to the true value, with a small downward bias, which is typical of the maximum likelihood estimate of an autoregressive parameter in short series and decreases with more observations per plant; the coverage of the 95% Wald intervals approaches the nominal level as well:
+The means of the estimates of $\rho$ and of the bounds of their 95% Wald intervals, and the coverage of the intervals, against the true value 0.7:
 
 ```{r sim-cartab}
-aggregate(cbind(Phi, covered) ~ design, data = carsim, FUN = mean)
+colMeans(carsim[, c("rho", "lower", "upper", "covered")])
 ```
 
-```{r sim-carplot, fig.width = 6, fig.height = 3}
-ggplot(carsim, aes(x = Phi)) +
+```{r sim-carplot, fig.width = 5, fig.height = 3}
+ggplot(carsim, aes(x = rho)) +
   geom_histogram(bins = 20, fill = "grey70", colour = "grey30") +
-  geom_vline(xintercept = phi0, colour = "red") +
-  facet_wrap(~ design) +
-  labs(x = expression(paste("Estimate of ", Phi)), y = "Simulations") +
+  geom_vline(xintercept = rho0, colour = "red") +
+  labs(x = expression(paste("Estimate of ", rho)), y = "Simulations") +
   theme_minimal()
 ```
 
-Ignoring the autocorrelation does not bias the estimates of the curve much, but it understates their uncertainty. For the time of the maximum growth rate $b_2$, the standard deviation of the estimates over the simulations is close to the mean standard error of the model with the autocorrelation, but about twice the mean standard error of the model without it:
+The simulations also show how the uncertainty of the curve is estimated with and without the autocorrelation in the model. For the time of the maximum growth rate $b_2$, the standard deviation of the estimates over the simulations can be compared with the mean standard errors of the two models; there is some indication that the model without the autocorrelation understates the uncertainty:
 
 ```{r sim-carse}
-sapply(split(carsim, carsim$design), function(s)
-  c(sd.b2 = sd(s$b2), mean.se.b2 = mean(s$se.b2), sd.b2.indep = sd(s$b2.indep), mean.se.b2.indep = mean(s$se.b2.indep)))
+with(carsim, c(sd.b2 = sd(b2), mean.se.b2 = mean(se.b2),
+               sd.b2.indep = sd(b2.indep), mean.se.b2.indep = mean(se.b2.indep)))
 ```
 
 ## References

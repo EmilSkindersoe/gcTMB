@@ -27,7 +27,7 @@ test_that("the likelihood is the multivariate normal density of the residuals of
     fit <- gcTMB(y ~ t, data=dd, truncated=FALSE, correlation=cs, start=c(b1=50, b2=4, b3=1.5))
     mu <- predict(fit)
     s <- sigma(fit)
-    phi <- corpars(fit)[["Phi"]]
+    phi <- corpars(fit)[["rho"]]
     ll <- sum(sapply(split(seq_len(nrow(dd)), dd$g), function(i){
       tt <- if (inherits(cs, "corCAR1")) dd$t[i] else seq_along(i)
       V <- s^2 * outer(tt, tt, function(a, b) phi^abs(a - b))
@@ -46,10 +46,10 @@ test_that("the fits without random effects agree with nlme::gnls", {
     expect_equal(fit$opt$convergence, 0)
     cf <- coef(fit)
     g <- suppressWarnings(nlme::gnls(height ~ b1/(1 + exp(-(DAS - b2)/b3)), data=d, start=c(b1=cf[[1]], b2=cf[[2]], b3=cf[[3]]),
-                                     correlation=mk(corpars(fit)[["Phi"]]), control=nlme::gnlsControl(returnObject=TRUE)))
+                                     correlation=mk(corpars(fit)[["rho"]]), control=nlme::gnlsControl(returnObject=TRUE)))
     expect_equal(as.numeric(logLik(fit)), as.numeric(logLik(g)), tolerance=1e-7)
     expect_equal(unname(cf[1:3]), unname(coef(g)), tolerance=1e-5)
-    expect_equal(corpars(fit)[["Phi"]], unname(coef(g$modelStruct$corStruct, unconstrained=FALSE)), tolerance=1e-5)
+    expect_equal(corpars(fit)[["rho"]], unname(coef(g$modelStruct$corStruct, unconstrained=FALSE)), tolerance=1e-5)
     # gnls reports sigma with n - p degrees of freedom
     expect_equal(sigma(fit) * sqrt(nobs(fit)/(nobs(fit) - 3)), g$sigma, tolerance=1e-5)
   }
@@ -77,7 +77,7 @@ test_that("with random effects, the likelihood is exact for a random asymptote a
   fr <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=d, truncated=FALSE, correlation=corCAR1(form=~ DAS | plant_ID))
   cf <- coef(fr)
   s <- sigma(fr)
-  phi <- corpars(fr)[["Phi"]]
+  phi <- corpars(fr)[["rho"]]
   sdu <- sqrt(VarCorr(fr)[[1]][1])
   # the logistic curve is linear in the random asymptote: the marginal distribution of each plant is
   # multivariate normal, and the Laplace approximation exact
@@ -95,7 +95,7 @@ test_that("with random effects, the likelihood is exact for a random asymptote a
   # nlme's alternating algorithm stops close to the optimum
   expect_true(as.numeric(logLik(fr)) >= as.numeric(logLik(nm)) - 1e-6)
   expect_equal(as.numeric(logLik(fr)), as.numeric(logLik(nm)), tolerance=1e-3)
-  expect_equal(corpars(fr)[["Phi"]], unname(coef(nm$modelStruct$corStruct, unconstrained=FALSE)), tolerance=1e-2)
+  expect_equal(corpars(fr)[["rho"]], unname(coef(nm$modelStruct$corStruct, unconstrained=FALSE)), tolerance=1e-2)
 })
 
 test_that("the grouping defaults to the innermost grouping factor of the random effects", {
@@ -121,16 +121,16 @@ test_that("checks of the correlation structures", {
   expect_null(f0$rdf)
 })
 
-test_that("a fixed Phi, and the parameter in coef, confint and summary", {
+test_that("a fixed rho, and the parameter in coef, confint and summary", {
   ff <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=d, correlation=corCAR1(0.5, form=~ DAS | plant_ID, fixed=TRUE))
-  expect_equal(corpars(ff), c(Phi=0.5))
+  expect_equal(corpars(ff), c(rho=0.5))
   expect_false(any(grepl("cor_par", names(coef(ff)))))
-  expect_output(print(ff), "Phi: 0.5 \\(fixed\\)")
+  expect_output(print(ff), "rho: 0.5 \\(fixed\\)")
   fe <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=d, correlation=corAR1(form=~ 1 | plant_ID))
   expect_equal(tail(names(coef(fe)), 1), "cor_par:AR1")
-  expect_equal(corpars(fe)[["Phi"]], tanh(coef(fe)[["cor_par:AR1"]]/2))
+  expect_equal(corpars(fe)[["rho"]], tanh(coef(fe)[["cor_par:AR1"]]/2))
   ci <- confint(fe, parm="cor_par:AR1", method="wald")
-  expect_equal(rownames(ci), "Phi")
+  expect_equal(rownames(ci), "rho")
   expect_true(ci[1] < corpars(fe) && corpars(fe) < ci[2])
   expect_output(print(summary(fe)), "Correlation structure: AR\\(1\\) in the order of the observations within plant_ID")
   expect_length(corpars(gcTMB(height ~ DAS, data=d)), 0)
@@ -142,7 +142,7 @@ test_that("a fixed Phi, and the parameter in coef, confint and summary", {
 
 test_that("simulated residuals have the correlation of the fit, and normalized residuals are independent", {
   fit <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=d, correlation=corCAR1(form=~ DAS | plant_ID))
-  phi <- corpars(fit)[["Phi"]]
+  phi <- corpars(fit)[["rho"]]
   s <- sigma(fit)
   dat <- fit$obj$env$data
   sims <- simulate(fit, nsim=400, seed=1, random=FALSE)
@@ -168,7 +168,7 @@ test_that("simulated residuals have the correlation of the fit, and normalized r
 
 test_that("simulate with newdata draws correlated residuals within groups", {
   fit <- gcTMB(height ~ DAS, data=d, truncated=FALSE, correlation=corCAR1(form=~ DAS | plant_ID))
-  phi <- corpars(fit)[["Phi"]]
+  phi <- corpars(fit)[["rho"]]
   nd <- expand.grid(DAS=c(10, 11, 13), plant_ID=c("a", "b"))
   sims <- simulate(fit, nsim=4000, seed=2, newdata=nd)
   R <- (as.matrix(sims) - attr(sims, "mean")[, 1])/sigma(fit)
@@ -178,9 +178,9 @@ test_that("simulate with newdata draws correlated residuals within groups", {
   expect_lt(abs(C[1, 4]), 0.05)
 })
 
-test_that("Phi is recovered from data simulated with known parameters", {
+test_that("rho is recovered from data simulated with known parameters", {
   set.seed(11)
-  # 30 curves, 12 times each, CAR(1) residuals with Phi 0.6 per unit of time and a random asymptote
+  # 30 curves, 12 times each, CAR(1) residuals with rho 0.6 per unit of time and a random asymptote
   tt <- c(1, 2, 3.5, 4, 5, 6.5, 7, 8, 9.5, 10, 11, 12)
   sim1 <- function(){
     do.call(rbind, lapply(1:30, function(g){
@@ -193,7 +193,7 @@ test_that("Phi is recovered from data simulated with known parameters", {
     fit <- gcTMB(y ~ t, rform=b1 ~ 1 | g, data=sim1(), truncated=FALSE, correlation=corCAR1(form=~ t | g))
     c(corpars(fit), sigma=sigma(fit), b2=coef(fit)[[2]])
   }))
-  expect_equal(mean(est[, "Phi"]), 0.6, tolerance=0.05)
+  expect_equal(mean(est[, "rho"]), 0.6, tolerance=0.05)
   expect_equal(mean(est[, "sigma"]), 2, tolerance=0.05)
   expect_equal(mean(est[, "b2"]), 6, tolerance=0.02)
 })

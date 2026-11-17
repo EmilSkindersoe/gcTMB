@@ -135,7 +135,7 @@ pairwise(fitpr, newdata = genotypes)
 
 ## Autocorrelation
 
-The residuals of the gaussian and lognormal families can be autocorrelated within individuals over time, with the correlation structures of nlme: `corAR1()` for integer times and `corCAR1()` for continuous times, with the correlation $\Phi^{|t - s|}$ of residuals at times $s$ and $t$.
+The residuals of the gaussian and lognormal families can be autocorrelated within individuals over time, with the correlation structures of nlme: `corAR1()` for integer times and `corCAR1()` for continuous times, with the correlation $\rho^{|t - s|}$ of residuals at times $s$ and $t$.
 
 ```{r}
 fitrec <- update(fitre, correlation = corCAR1(form = ~ DAS | plant_ID))

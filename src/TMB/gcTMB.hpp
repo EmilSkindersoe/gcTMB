@@ -3,14 +3,14 @@
 #undef TMB_OBJECTIVE_PTR
 #define TMB_OBJECTIVE_PTR obj
 
-// correlation of residuals dt apart in time (CAR(1), 0 < Phi < 1), or lag positions apart (AR(1), -1 < Phi < 1,
-// by repeated products, as Phi may be negative)
+// correlation of residuals dt apart in time (CAR(1), 0 < rho < 1), or lag positions apart (AR(1), -1 < rho < 1,
+// by repeated products, as rho may be negative)
 template<class Type>
-Type corlagcor(int cortype, Type Phi, Type dt, int lag){
-  if (cortype == 2) return exp(dt * log(Phi));
-  Type rho = 1;
-  for (int k = 0; k < lag; k++) rho *= Phi;
-  return rho;
+Type corlagcor(int cortype, Type rho, Type dt, int lag){
+  if (cortype == 2) return exp(dt * log(rho));
+  Type cr = 1;
+  for (int k = 0; k < lag; k++) cr *= rho;
+  return cr;
 }
 
 template<class Type>
@@ -57,17 +57,17 @@ Type gcTMB(objective_function<Type>* obj) {
   PARAMETER_VECTOR(theta); // length zero without random effects
   PARAMETER(log_sigma);    // log sd (gaussian; of log(y) for lognormal), precision (beta, betabinomial), size (nbinom2) or dispersion (nbinom1);
                            // mapped (fixed) for poisson and binomial
-  PARAMETER(cor_par);      // autocorrelation on the unconstrained scale of nlme: log((1 + Phi)/(1 - Phi)) for AR(1),
-                           // log(Phi/(1 - Phi)) for CAR(1); mapped (fixed) without autocorrelation
+  PARAMETER(cor_par);      // autocorrelation on the unconstrained scale of nlme: log((1 + rho)/(1 - rho)) for AR(1),
+                           // log(rho/(1 - rho)) for CAR(1); mapped (fixed) without autocorrelation
 
   Type phi = exp(log_sigma);
   // correlated residuals (gaussian, and log(y) for lognormal): stationary, with the marginal standard
-  // deviation sigma/sqrt(w) and the correlation Phi^dt between observations dt apart in time within a group
+  // deviation sigma/sqrt(w) and the correlation rho^dt between observations dt apart in time within a group
   bool correlated = (cortype > 0) && (fam == 1 || fam == 8);
-  Type Phi = 0;
-  if (cortype == 1) Phi = (exp(cor_par) - Type(1)) / (exp(cor_par) + Type(1));
-  if (cortype == 2) Phi = Type(1) / (Type(1) + exp(-cor_par));
-  if (correlated) ADREPORT(Phi);
+  Type rho = 0;
+  if (cortype == 1) rho = (exp(cor_par) - Type(1)) / (exp(cor_par) + Type(1));
+  if (cortype == 2) rho = Type(1) / (Type(1) + exp(-cor_par));
+  if (correlated) ADREPORT(rho);
   if (fam == 1 || fam == 8){
     Type sigma = phi;
     ADREPORT(sigma);
@@ -174,7 +174,7 @@ Type gcTMB(objective_function<Type>* obj) {
   if (correlated){
     // standardised residuals r = (g(y) - g(f)) sqrt(w)/sigma, g the identity (gaussian) or log
     // (lognormal), with precision weights w; within a group in time, r given the previous residual is
-    // normal with mean rho r_prev and variance 1 - rho^2, rho = Phi^dt (the Markov property of AR(1)).
+    // normal with mean cr r_prev and variance 1 - cr^2, cr = rho^dt (the Markov property of AR(1)).
     // Observations with weight zero are not in the chains and do not contribute.
     // all residuals first: the previous observation of a group may come later in the data
     vector<Type> r(n);
@@ -193,8 +193,8 @@ Type gcTMB(objective_function<Type>* obj) {
       if (p < 0){
         ld = dnorm(r(i), Type(0), Type(1), true);
       } else {
-        Type rho = corlagcor(cortype, Phi, cordt(i), corlag(i));
-        ld = dnorm(r(i), rho * r(p), sqrt(Type(1) - rho*rho), true);
+        Type cr = corlagcor(cortype, rho, cordt(i), corlag(i));
+        ld = dnorm(r(i), cr * r(p), sqrt(Type(1) - cr*cr), true);
       }
       // density of y: the Jacobian of the standardisation, and of the log for lognormal
       ld += Type(0.5) * log(w(i)) - log(phi);
@@ -210,8 +210,8 @@ Type gcTMB(objective_function<Type>* obj) {
         if (p < 0 || w(i) <= 0){
           rs(i) = rnorm(Type(0), Type(1));
         } else {
-          Type rho = corlagcor(cortype, Phi, cordt(i), corlag(i));
-          rs(i) = rho * rs(p) + sqrt(Type(1) - rho*rho) * rnorm(Type(0), Type(1));
+          Type cr = corlagcor(cortype, rho, cordt(i), corlag(i));
+          rs(i) = cr * rs(p) + sqrt(Type(1) - cr*cr) * rnorm(Type(0), Type(1));
         }
         Type wi = (w(i) > 0) ? w(i) : Type(1);
         Type e = rs(i) * phi / sqrt(wi);

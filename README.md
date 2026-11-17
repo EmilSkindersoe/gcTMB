@@ -219,7 +219,7 @@ summary(fit1)
 #> Residual standard deviation: 3.29
 #> 
 #> Correlation structure: continuous-time AR(1) in DAS within plant_ID
-#> Phi: 0.9594
+#> rho: 0.9594
 #> 
 #> Optimiser: relative convergence (4), maximum absolute gradient 0.00024
 ```
