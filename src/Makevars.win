@@ -11,6 +11,9 @@
 #
 ## TMB_FLAGS = -I"../../inst/include" # add include directory inst/include
 #
+# the TMB template has more sections than the default object format of MinGW allows
+TMB_FLAGS = -Wa,-mbig-obj
+
 # --- TMB-specific compiling directives below ---
 
 .PHONY: all tmblib

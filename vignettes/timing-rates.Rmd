@@ -1,0 +1,145 @@
+---
+title: "Timing and maximum growth rates"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::pdf_document:
+    fig_crop: false
+vignette: >
+  %\VignetteIndexEntry{3. Timing and maximum growth rates}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  dpi = 150,
+  fig.retina = 2,
+  fig.align = "center",
+  out.width = "100%"
+)
+```
+
+This vignette covers the times at which growth curves reach a level of their asymptote, `timeto()`, and the maximum growth rates and their timing, `maxrate()`, with treatment effects for the heights of faba bean plants and genotype effects for counts of pods. The table of the inflection points and maximum growth rates of the growth models is in the vignette *Growth models and their parameters*.
+
+The models of the vignettes *Growth models and their parameters* and *Fixed and random effects*: a single logistic curve, a curve for each treatment with random effects of the plants, and a Poisson model of the pods with a curve for each genotype and a random asymptote of each plant:
+
+```{r}
+library(gcTMB)
+library(ggplot2)
+FabaHeights25$trt <- factor(FabaHeights25$Treatment)
+trts <- data.frame(trt = levels(FabaHeights25$trt))
+fit <- gcTMB(height ~ DAS, data = FabaHeights25, model = "logistic")
+fitre <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)
+fitp <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+              family = "poisson", fix = c(b4 = FALSE))
+genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
+```
+
+## Time to reach a level of the asymptote
+
+`timeto()` gives the times at which a curve reaches a percentage of its asymptote, $b_2 + b_3 F^{-1}(p/100)$, with standard errors by automatic differentiation. With `type = "absolute"`, the times at which the curve reaches given responses, here a height of 50cm.
+
+```{r}
+tt <- timeto(fit, level = c(10, 50, 90))
+tt
+timeto(fit, level = 50, type = "absolute")
+```
+
+`confint()` gives profile likelihood intervals by default, `method = "wald"` Wald intervals and `method = "boot"` parametric bootstrap intervals.
+
+```{r, message = FALSE}
+confint(tt)
+confint(tt, method = "wald")
+```
+
+## Maximum growth rate
+
+`maxrate()` gives the time of the maximum growth rate (`tmax`), the inflection point of the curve, the maximum growth rate there (`rate`), and the proportion of total growth at that time, $f(t_m)/b_1$ (`fraction`). The standard errors are by the delta method. `confint()` gives profile likelihood intervals for `tmax` and `rate` by default, and Wald intervals for `fraction`; `method = "wald"` and `method = "boot"` as for `timeto()`. For the logistic curve truncated at $b_4 = 0$, `tmax` is $b_2$; `rate` is slightly above and `fraction` slightly below the values $b_1/(4 b_3)$ and $1/2$ of the curve without truncation in the table of the growth models, as the truncation shifts the curve down to zero at $t = 0$ and rescales it.
+
+```{r, message = FALSE}
+mr <- maxrate(fit)
+mr
+confint(mr)
+```
+
+## Timing and maximum growth rates of the treatments
+
+`timeto()` and `maxrate()` with `newdata` give the times and rates of the curves of each row, here the population curves of the treatments (`random = FALSE`) of the model with random effects of the plants:
+
+```{r}
+timeto(fitre, level = 90, newdata = trts, random = FALSE)
+mrre <- maxrate(fitre, newdata = trts)
+mrre
+```
+
+### Treatment effects on the maximum growth rate
+
+With `b1type = "rate"`, $b_1$ is the maximum growth rate of the curve instead of its asymptote (see *The maximum growth rate as a parameter* in the vignette *Growth models and their parameters*), so that covariates on $b_1$ are effects on the maximum growth rate. The model with the treatment effects on $b_1$ and $b_2$ has the same number of parameters as `fitre`, but the random effects of the plants are now on their maximum growth rates rather than their asymptotes, a slightly different model. The log link gives the treatment effects as ratios of the rates.
+
+```{r}
+fitrr <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25,
+               b1type = "rate", link = c(b1 = "log"))
+AIC(fitre, fitrr)
+```
+
+Whether the treatments have the same maximum growth rate is a likelihood ratio test of the models with and without the treatment effects on $b_1$, keeping those on $b_2$:
+
+```{r}
+fitrr0 <- gcTMB(height ~ DAS, fform = b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25,
+                b1type = "rate", link = c(b1 = "log"))
+anova(fitrr0, fitrr)
+```
+
+`pairwise()` compares the maximum growth rates of all pairs of treatments (see the pods below for the details); with the log link, as ratios:
+
+```{r}
+pairwise(fitrr, newdata = trts)
+```
+
+The treatments do not differ clearly in their maximum growth rates.
+
+## Timing and maximum growth rates of the genotypes
+
+The same functions apply to count data. For the pods, the times at which the population curve of each genotype reaches half of its asymptote, and the maximum growth rates, the most pods gained per day, of the Poisson model `fitp` with genotype effects on the asymptote:
+
+```{r}
+timeto(fitp, level = 50, newdata = genotypes, random = FALSE)
+maxrate(fitp, newdata = genotypes)
+```
+
+### Genotype effects on the maximum growth rate
+
+The genotype effects of `fitp` are on the asymptote. With `b1type = "rate"`, $b_1$ is the maximum growth rate, so the same formulas give genotype effects and random effects of the plants on the maximum growth rate, the most pods gained per day; the log link expresses the genotype effects as ratios of the rates. The random effects are now on the rate of each plant rather than its asymptote, which is a different model, here with a somewhat worse fit by AIC.
+
+```{r}
+fitpr <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+               family = "poisson", fix = c(b4 = FALSE), b1type = "rate", link = c(b1 = "log"))
+summary(fitpr)
+AIC(fitp, fitpr)
+```
+
+Whether the genotypes have the same maximum growth rate is a likelihood ratio test of the models with and without the genotype effects on $b_1$, keeping those on $b_2$:
+
+```{r}
+fitpr0 <- gcTMB(pods ~ DAS, fform = b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+                family = "poisson", fix = c(b4 = FALSE), b1type = "rate", link = c(b1 = "log"))
+anova(fitpr0, fitpr)
+```
+
+`pairwise()` compares the maximum growth rates of all pairs of genotypes by Wald tests. By default, the p-values and the confidence intervals are adjusted for the number of pairs by the single-step method, the generalisation of Tukey's honestly significant differences to the correlated estimates of a model, so that the intervals cover all the differences simultaneously; `adjust = "holm"` and the other methods of `p.adjust()` adjust the p-values only. With the log link, the differences are log ratios of the rates, and the ratios are given as well. The same works for the other parameters, e.g. `parm = "b2"` for the time of the maximum growth rate, which is $b_2$ for the logistic curve.
+
+```{r}
+pairwise(fitpr, newdata = genotypes)
+```
+
+The overall likelihood ratio test is borderline, while the pairwise comparisons single out the largest differences: Melodie gains pods faster than ILB938 and Capri, and ILB938 more slowly than Lynx and Navara. The Wald tests rely on the normal approximation of the estimates, which is rougher than the likelihood ratio test with only 22 plants.
+
+`predict()` with `type = "parameters"` gives the asymptote of the population curves as well, and `maxrate()` the rates, which are now $b_1$:
+
+```{r}
+cbind(genotypes, predict(fitpr, newdata = genotypes, type = "parameters", random = FALSE))
+maxrate(fitpr, newdata = genotypes)
+```
+

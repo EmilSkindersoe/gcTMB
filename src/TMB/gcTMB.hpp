@@ -3,6 +3,16 @@
 #undef TMB_OBJECTIVE_PTR
 #define TMB_OBJECTIVE_PTR obj
 
+// correlation of residuals dt apart in time (CAR(1), 0 < Phi < 1), or lag positions apart (AR(1), -1 < Phi < 1,
+// by repeated products, as Phi may be negative)
+template<class Type>
+Type corlagcor(int cortype, Type Phi, Type dt, int lag){
+  if (cortype == 2) return exp(dt * log(Phi));
+  Type rho = 1;
+  for (int k = 0; k < lag; k++) rho *= Phi;
+  return rho;
+}
+
 template<class Type>
 Type gcTMB(objective_function<Type>* obj) {
   DATA_INTEGER(fam);
@@ -33,6 +43,11 @@ Type gcTMB(objective_function<Type>* obj) {
   DATA_MATRIX(Xp4);
   DATA_MATRIX(Xp5);
   DATA_SPARSE_MATRIX(Zp);  // random effects of the fitted levels; zero rows for population predictions
+  DATA_INTEGER(cortype);   // autocorrelation of the residuals within groups: 0 = none, 1 = AR(1), 2 = CAR(1)
+  DATA_IVECTOR(corprev);   // previous observation (zero-based) of the same group in time, -1 for the first; length n
+  DATA_VECTOR(cordt);      // CAR(1): time since the previous observation of the group; length n
+  DATA_IVECTOR(corlag);    // AR(1): lag (in positions) since the previous observation of the group; length n
+  DATA_IVECTOR(corord);    // observations in an order with each after its previous one, for simulation
   PARAMETER_VECTOR(b1);
   PARAMETER_VECTOR(b2);
   PARAMETER_VECTOR(b3);
@@ -42,8 +57,17 @@ Type gcTMB(objective_function<Type>* obj) {
   PARAMETER_VECTOR(theta); // length zero without random effects
   PARAMETER(log_sigma);    // log sd (gaussian; of log(y) for lognormal), precision (beta, betabinomial), size (nbinom2) or dispersion (nbinom1);
                            // mapped (fixed) for poisson and binomial
+  PARAMETER(cor_par);      // autocorrelation on the unconstrained scale of nlme: log((1 + Phi)/(1 - Phi)) for AR(1),
+                           // log(Phi/(1 - Phi)) for CAR(1); mapped (fixed) without autocorrelation
 
   Type phi = exp(log_sigma);
+  // correlated residuals (gaussian, and log(y) for lognormal): stationary, with the marginal standard
+  // deviation sigma/sqrt(w) and the correlation Phi^dt between observations dt apart in time within a group
+  bool correlated = (cortype > 0) && (fam == 1 || fam == 8);
+  Type Phi = 0;
+  if (cortype == 1) Phi = (exp(cor_par) - Type(1)) / (exp(cor_par) + Type(1));
+  if (cortype == 2) Phi = Type(1) / (Type(1) + exp(-cor_par));
+  if (correlated) ADREPORT(Phi);
   if (fam == 1 || fam == 8){
     Type sigma = phi;
     ADREPORT(sigma);
@@ -127,6 +151,7 @@ Type gcTMB(objective_function<Type>* obj) {
   vector<Type> Xb5 = X5 * b5;
 
   Type f;
+  vector<Type> fv(n);
   for (int i = 0; i < n; i++){
     Type f2 = linkinv(lnk(1), Type(Xb2(i) + Zu(i, 1)));
     Type f3 = linkinv(lnk(2), Type(Xb3(i) + Zu(i, 2)));
@@ -134,10 +159,64 @@ Type gcTMB(objective_function<Type>* obj) {
     Type f5 = linkinv(lnk(4), Type(Xb5(i) + Zu(i, 4)));
     Type f1 = gcasym(b1rate, mod, trunc, linkinv(lnk(0), Type(Xb1(i) + Zu(i, 0))), f2, f3, f4, f5);
     f = gcmean(mod, trunc, x(i), f1, f2, f3, f4, f5);
-    nll += -w(i) * loglik(fam, y(i), f, bn(i), phi);
+    fv(i) = f;
+    if (!correlated){
+      nll += -w(i) * loglik(fam, y(i), f, bn(i), phi);
+      SIMULATE {
+        y(i) = simobs(fam, f, bn(i), phi);
+      }
+    }
     SIMULATE {
-      y(i) = simobs(fam, f, bn(i), phi);
       fsim(i) = f;
+    }
+  }
+
+  if (correlated){
+    // standardised residuals r = (g(y) - g(f)) sqrt(w)/sigma, g the identity (gaussian) or log
+    // (lognormal), with precision weights w; within a group in time, r given the previous residual is
+    // normal with mean rho r_prev and variance 1 - rho^2, rho = Phi^dt (the Markov property of AR(1)).
+    // Observations with weight zero are not in the chains and do not contribute.
+    // all residuals first: the previous observation of a group may come later in the data
+    vector<Type> r(n);
+    for (int i = 0; i < n; i++){
+      if (w(i) <= 0){
+        r(i) = 0;
+      } else {
+        Type e = (fam == 8) ? Type(log(y(i)) - log(fv(i))) : Type(y(i) - fv(i));
+        r(i) = e * sqrt(w(i)) / phi;
+      }
+    }
+    for (int i = 0; i < n; i++){
+      if (w(i) <= 0) continue;
+      int p = corprev(i);
+      Type ld;
+      if (p < 0){
+        ld = dnorm(r(i), Type(0), Type(1), true);
+      } else {
+        Type rho = corlagcor(cortype, Phi, cordt(i), corlag(i));
+        ld = dnorm(r(i), rho * r(p), sqrt(Type(1) - rho*rho), true);
+      }
+      // density of y: the Jacobian of the standardisation, and of the log for lognormal
+      ld += Type(0.5) * log(w(i)) - log(phi);
+      if (fam == 8) ld -= log(y(i));
+      nll -= ld;
+    }
+    SIMULATE {
+      vector<Type> rs(n);
+      rs.setZero();
+      for (int k = 0; k < n; k++){
+        int i = corord(k);
+        int p = corprev(i);
+        if (p < 0 || w(i) <= 0){
+          rs(i) = rnorm(Type(0), Type(1));
+        } else {
+          Type rho = corlagcor(cortype, Phi, cordt(i), corlag(i));
+          rs(i) = rho * rs(p) + sqrt(Type(1) - rho*rho) * rnorm(Type(0), Type(1));
+        }
+        Type wi = (w(i) > 0) ? w(i) : Type(1);
+        Type e = rs(i) * phi / sqrt(wi);
+        y(i) = (fam == 8) ? Type(fv(i) * exp(e)) : Type(fv(i) + e);
+      }
     }
   }
   SIMULATE {

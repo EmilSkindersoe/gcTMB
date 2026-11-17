@@ -19,6 +19,7 @@ gcTMB(
   truncated = TRUE,
   link = NULL,
   b1type = c("asymptote", "rate"),
+  correlation = NULL,
   gsl = NULL,
   gsu = NULL,
   gsn = NULL,
@@ -38,7 +39,10 @@ gcTMB(
 
 \item{fix}{Logical vector or NULL. One entry for each model coefficient. If TRUE, a model coefficient is fixed to its value in start. Alternatively, a vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of the named parameters; their values must then be given in start, e.g. start=c(b1=10). The threshold b4 and the asymmetry b5 are fixed by default, at b4 = 0 (the curve starts at zero at t = 0) and b5 = 1 (the symmetric curve) unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE), or an unnamed fix vector, estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.}
 
-\item{weights}{Numeric vector or NULL. Weights, one for each row of data.}
+\item{weights}{Numeric vector or NULL. Weights, one for each row of data. Unlike the
+\code{weights} of nlme, which are variance functions (\code{varFunc}), these are numeric case
+weights of the log-likelihood; with a correlation structure, they are precision weights, as
+\code{weights=varFixed(~ 1/w)} in nlme.}
 
 \item{lower}{Numeric, a single value or a vector. Lower bounds for the model coefficients b1-b5, a single value or a vector with the same length as start. Bounds of fixed coefficients are ignored; variance parameters are unbounded.}
 
@@ -53,6 +57,12 @@ gcTMB(
 \item{link}{Named character vector or NULL. Links of the parameters b1-b5: NULL for the defaults (the identity link for all parameters), or links named by parameter, e.g. \code{link=c(b1="log", b3="inverse")}. The asymptote b1 has the link "identity" (default), "log" or "logit"; the times b2 and b4 (the threshold of a truncated curve) "identity" (default) or "log"; the asymmetry b5 "identity" (default) or "log", to keep it positive; and the scale b3 "identity" (default), "inverse", with which its coefficients are the growth rate 1/b3, or "log". The coefficients, and start, fix, lower, upper and curves of \code{\link{timeto}}, are on the scale of the links, see Details.}
 
 \item{b1type}{Character string. The meaning of b1: "asymptote" (default), or "rate" for the maximum growth rate of the curve, see Details. With "rate", covariates and random effects on b1 are effects on the maximum growth rate, which \code{\link{anova.gcTMB}} and \code{\link{pairwise}} can test.}
+
+\item{correlation}{A correlation structure or NULL. The autocorrelation of the residuals within
+groups over time, \code{\link{corAR1}} or \code{\link{corCAR1}} (or the same structures of
+the package nlme), e.g. \code{corCAR1(form=~ day | plant)}, for the gaussian and lognormal (on the
+log scale) families. NULL (default) for independent residuals. See \code{\link{corStruct}}; with
+a correlation structure, the weights are precision weights, with residual variance sigma^2/w.}
 
 \item{gsl}{Numeric vector or NULL. Lower bounds for a grid search, same length as start; NA for the default range. If gsl, gsu and gsn are all NULL, no grid search is performed. See \code{\link{gcTMBstart}}.}
 
@@ -95,6 +105,36 @@ with the growth curves. It has no asymptote, does not use b3-b5 and is not trunc
 \code{\link{timeto}} gives the times at which it reaches given responses
 (\code{type="absolute"}), and \code{\link{maxrate}} its constant rate b1.
 }
+\strong{Relation to nlme.} Parts of the interface follow the package nlme (Pinheiro and Bates,
+2000), so that models can be moved between \code{nlme::nlme}/\code{nlme::gnls} and gcTMB:
+\itemize{
+\item the fixed and random effects are formulas for the parameters, as the arguments \code{fixed}
+and \code{random} of \code{nlme::nlme}: \code{fform=b1 + b2 ~ trt} or
+\code{fform=list(b1 ~ trt, b2 ~ 1)}, and \code{rform=b1 + b2 ~ 1 | plant}. The random effects of a
+formula have an unstructured covariance matrix, as \code{pdSymm}; uncorrelated random effects,
+as \code{pdDiag}, are separate terms, e.g. \code{rform=list(b1 ~ 1 | plant, b2 ~ 1 | plant)} or
+\code{b1 ~ x || plant}. Nested factors (\code{1 | plot/plant}) and the double bar use the syntax
+of lme4;
+\item the correlation structures \code{\link{corAR1}} and \code{\link{corCAR1}} have the
+arguments and the parameterisation of nlme, whose objects are accepted as well, and
+\code{residuals(fit, type="normalized")} gives the normalized residuals of nlme;
+\item \code{\link{fixef}}, \code{\link{ranef}} and \code{\link{VarCorr}} are generics with the names
+of those of nlme, and work for gcTMB, nlme and lme4 fits whichever package is attached last;
+\item \code{predict} and \code{fitted} with \code{random=FALSE} correspond to \code{level=0} of
+nlme (the population curves), and with \code{random=TRUE} to the innermost level.
+}
+The differences: gcTMB fits by maximum likelihood (the Laplace approximation with random
+effects), so its log-likelihoods, AIC and likelihood ratio tests compare with nlme fits with
+\code{method="ML"}, not with the default REML of \code{nlme::lme} and \code{nlme::gls}; the
+integration over the random effects is exact for gaussian responses with random effects that enter
+the curve linearly, e.g. random asymptotes, where nlme's linearisation can stop slightly short of
+the maximum. \code{coef}
+returns the estimated coefficients and variance parameters, not the coefficients of each group as
+\code{coef} of nlme (use \code{predict(fit, type="parameters")} for those); \code{weights} are
+numeric weights, not variance functions; and the results of \code{ranef} and \code{VarCorr} have
+the format of lme4 (a list of data frames, and of covariance matrices). \code{\link{confint.gcTMB}}
+gives the intervals of \code{intervals} of nlme.
+
 The asymmetry b5, the truncation at the threshold b4, the maximum growth rates and inflection
 points, the rate 1/b3 and the small-sample inference are described in the vignette,
 \code{vignette("gcTMB")}; the links in the argument \code{link}.
@@ -147,12 +187,21 @@ fitr0 <- gcTMB(height ~ DAS, fform=b2 ~ trt, data=FabaHeights25, b1type="rate")
 anova(fitr0, fitr)
 pairwise(fitr, newdata=data.frame(trt=levels(FabaHeights25$trt)))
 
+# residuals of each plant correlated over time, continuous-time AR(1)
+fitc <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25,
+              correlation=corCAR1(form=~ DAS | plant_ID))
+corpars(fitc)
+
 # pod counts with a poisson distribution
 gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson")
 
 # no pods before a threshold b4, after which the count grows
 fitt <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
 coef(fitt)
+}
+\references{
+Pinheiro, J.C. and Bates, D.M. (2000). Mixed-Effects Models in S and S-PLUS.
+Springer, New York.
 }
 \seealso{
 \code{\link{maxrate}} for the maximum growth rate and its timing,

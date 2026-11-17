@@ -53,6 +53,10 @@ infinite size of the negative binomial for the poisson model, the chi-square dis
 conservative: the p-value is approximately twice the correct value for a single standard
 deviation.
 
+The tests are those of \code{anova} of nlme for models fitted with \code{method="ML"}, in the
+layout of \code{anova} of lme4; as gcTMB fits by maximum likelihood, models with different fixed
+effects can be compared (REML fits of nlme cannot).
+
 For gaussian and lognormal (on the log scale) models without random effects, \code{test="F"} gives F-tests, as nls does for
 continuous responses: the reduction of the (weighted) residual sum of squares per additional
 parameter, divided by the residual mean square of the largest model, with n - p residual degrees

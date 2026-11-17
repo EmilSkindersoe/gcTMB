@@ -1,0 +1,199 @@
+---
+title: "Autocorrelation and simulation"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::pdf_document:
+    fig_crop: false
+vignette: >
+  %\VignetteIndexEntry{4. Autocorrelation and simulation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  dpi = 150,
+  fig.retina = 2,
+  fig.align = "center",
+  out.width = "100%"
+)
+```
+
+This vignette covers the autocorrelation of the residuals of a plant over time, and simulation studies: simulating data from a fitted model, refitting it, and comparing the estimates with the true parameters, including the autocorrelation parameter.
+
+The model of the vignette *Fixed and random effects*, with treatment effects on the asymptote and the time of the maximum growth rate and random effects of the plants on both:
+
+```{r}
+library(gcTMB)
+library(ggplot2)
+FabaHeights25$trt <- factor(FabaHeights25$Treatment)
+fitre <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)
+```
+
+## Autocorrelation of the residuals
+
+The random effects shift the whole curve of a plant, but a plant that is above its curve at one measurement often stays above it at the next. The `correlation` argument models this autocorrelation of the residuals within a group over time, with the same correlation structures as the package nlme (Pinheiro and Bates, 2000; Zuur et al., 2009, Chapter 6). The residuals $\varepsilon$ of a group are normal with the residual variance $\sigma^2$ and
+
+$$\mathrm{cor}(\varepsilon_s, \varepsilon_t) = \Phi^{|t - s|},$$
+
+with $\Phi$ the correlation of residuals one unit of time apart. `corAR1()` is the autoregressive process of order 1 at integer times (or at the positions of the observations, with `form = ~ 1 | group`), with $-1 < \Phi < 1$; `corCAR1()` its continuous-time version, for unequally spaced times, with $0 < \Phi < 1$. Residuals of different groups are independent, and the correlation is available for the gaussian and lognormal (on the log scale) families. As the process is Markov, each residual given the previous one of its group, $dt$ earlier, is normal with mean $\Phi^{dt} \varepsilon_{\mathrm{prev}}$ and variance $\sigma^2 (1 - \Phi^{2 dt})$, so the likelihood is exact and its cost linear in the number of observations; with random effects, the Laplace approximation integrates them out as before.
+
+The heights are measured every 7 days, so with `corCAR1(form = ~ DAS | plant_ID)` $\Phi$ is the correlation per day, and $\Phi^7$ that of consecutive measurements:
+
+```{r}
+fitrec <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25,
+                correlation = corCAR1(form = ~ DAS | plant_ID))
+summary(fitrec)
+corpars(fitrec)^7
+anova(fitre, fitrec)
+```
+
+The autocorrelation improves the fit clearly. The normalized residuals, the standardised residuals minus their conditional mean given the previous residual of the plant, divided by the conditional standard deviation, are independent under the model; their correlation between consecutive measurements of a plant is close to zero, whereas that of the Pearson residuals is not:
+
+```{r}
+lag1 <- function(r) {
+  o <- order(FabaHeights25$plant_ID, FabaHeights25$DAS)
+  same <- head(FabaHeights25$plant_ID[o], -1) == tail(FabaHeights25$plant_ID[o], -1)
+  cor(head(r[o], -1)[same], tail(r[o], -1)[same])
+}
+c(pearson = lag1(residuals(fitrec, type = "pearson")), normalized = lag1(residuals(fitrec, type = "normalized")))
+```
+
+## Simulation
+
+A simulation study has four steps: fit a model to data, simulate new data sets from the fitted model, refit the model to the simulated data, and compare the estimates with the true parameters, the estimates of the original fit.
+
+### The true model
+
+We fit a logistic growth curve to the heights of the faba beans in `FabaHeights25`, with random effects on the asymptote $b_1$, the time of the maximum growth rate $b_2$ and the scale $b_3$ of each plant. The random effects of a plant are correlated: their covariance matrix is unstructured. The threshold $b_4$ and the asymmetry $b_5$ are fixed at their defaults, $b_4 = 0$ (the curve starts at zero at time 0) and $b_5 = 1$ (the symmetric curve).
+
+```{r sim-fit}
+fitsim <- gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = FabaHeights25)
+fitsim
+converged(fitsim)
+```
+
+The fitted model is the true model of the simulation. Its parameters are:
+
+```{r sim-truth}
+fixef(fitsim)
+VarCorr(fitsim)
+sigma(fitsim)
+```
+
+Other true models can be made from it with `update()`, e.g. `update(fitsim, fixef = c(b1 = 150))` for a larger asymptote, or `update(fitsim, VarCorr = ...)` for other covariance matrices of the random effects.
+
+### Simulating new plants
+
+We simulate 50 new plants, each measured at 10 equidistant days from day 5 to day 100. Each plant in `newdata` is a new curve, with its own random effects drawn from the fitted covariance matrix.
+
+```{r sim-simulate}
+simdata <- expand.grid(DAS = seq(5, 100, length.out = 10),
+                       plant_ID = paste("plant", 1:50, sep = ""))
+simdata$height <- simulate(fitsim, nsim = 1, seed = 1, newdata = simdata)[[1]]
+head(simdata)
+```
+
+### Refitting the model
+
+The same model is fitted to the simulated data.
+
+```{r sim-refit}
+simfit <- gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = simdata)
+converged(simfit)
+```
+
+The 95% parametric bootstrap confidence intervals of the coefficients and the variance parameters are compared with the true values, the estimates of the original fit. `confint` reports the standard deviations of the random effects and the residual standard deviation on their natural scale, while `coef` has them on the log scale, so the true values and the estimates are transformed in the same way. The correlations of the three random effects stay on the unconstrained scale of `coef`.
+
+```{r sim-confint}
+ci <- confint(simfit, method = "boot", nsim = 50, seed = 1)
+natural <- function(p){
+  lg <- grepl("^log_", names(p))
+  p[lg] <- exp(p[lg])
+  p
+}
+truth <- natural(coef(fitsim))
+tab <- data.frame(true = truth, estimate = natural(coef(simfit)), ci,
+                  covered = truth >= ci[, 1] & truth <= ci[, 2],
+                  check.names = FALSE)
+# the standard deviations are on their natural scale: drop "log_" from their names
+rownames(tab) <- sub("^log_", "", rownames(tab))
+tab
+```
+
+The simulated heights and the estimated curves of the 50 plants:
+
+```{r sim-plot, fig.width = 7, fig.height = 4.5}
+grid <- expand.grid(DAS = seq(5, 100, length.out = 200), plant_ID = unique(simdata$plant_ID))
+grid$height <- predict(simfit, newdata = grid)
+ggplot(simdata, aes(DAS, height, group = plant_ID)) +
+  geom_line(data = grid, colour = "grey50", linewidth = 0.3) +
+  geom_point(size = 0.8) +
+  labs(x = "Days after sowing", y = "Height") +
+  theme_bw()
+```
+
+In a full simulation study, these steps are repeated for many simulated data sets, e.g. to estimate the coverage of the confidence intervals or to compare growth models with `criteria()`, as below for the autocorrelation.
+
+### Recovering the autocorrelation
+
+With a correlation structure, `simulate()` draws the residuals of each group with the autocorrelation of the fit: within a plant in `newdata`, ordered in time, each residual given the previous one, $dt$ earlier, is normal with mean $\Phi^{dt}$ times the previous residual and variance $\sigma^2 (1 - \Phi^{2 dt})$. The true model is the logistic curve with a random asymptote for each plant and continuous-time AR(1) residuals within plants:
+
+```{r sim-cartrue}
+fitcar <- gcTMB(height ~ DAS, rform = b1 ~ 1 | plant_ID, data = FabaHeights25,
+                correlation = corCAR1(form = ~ DAS | plant_ID))
+phi0 <- corpars(fitcar)[["Phi"]]
+c(fixef(fitcar), sigma = sigma(fitcar), Phi = phi0)
+```
+
+We simulate 50 data sets of 30 new plants, measured at unequally spaced days, once at 12 days and once at 25 days between day 10 and day 70, and fit the true model to each. The Wald interval of $\Phi$ is computed on its unconstrained scale, $\log(\Phi/(1 - \Phi))$, and transformed back by `confint()`.
+
+```{r sim-carrun}
+designs <- list("12 days" = c(10, 13, 17, 21, 24, 28, 35, 38, 42, 49, 56, 63),
+                "25 days" = seq(10, 70, by = 2.5))
+carsim <- do.call(rbind, lapply(names(designs), function(dn){
+  design <- expand.grid(DAS = designs[[dn]], plant_ID = paste0("p", 1:30))
+  sims <- simulate(fitcar, nsim = 50, seed = 1, newdata = design)
+  do.call(rbind, lapply(sims, function(y){
+    dat <- cbind(design, height = y)
+    f1 <- gcTMB(height ~ DAS, rform = b1 ~ 1 | plant_ID, data = dat, correlation = corCAR1(form = ~ DAS | plant_ID))
+    ci <- confint(f1, parm = "cor_par:CAR1", method = "wald")
+    # the same model without the autocorrelation
+    f0 <- gcTMB(height ~ DAS, rform = b1 ~ 1 | plant_ID, data = dat)
+    data.frame(design = dn, Phi = corpars(f1)[["Phi"]], covered = ci[1] <= phi0 & phi0 <= ci[2],
+               b2 = coef(f1)[[2]], se.b2 = sqrt(vcov(f1)[2, 2]),
+               b2.indep = coef(f0)[[2]], se.b2.indep = sqrt(vcov(f0)[2, 2]))
+  }))
+}))
+```
+
+The estimates of $\Phi$ are centred close to the true value, with a small downward bias, which is typical of the maximum likelihood estimate of an autoregressive parameter in short series and decreases with more observations per plant; the coverage of the 95% Wald intervals approaches the nominal level as well:
+
+```{r sim-cartab}
+aggregate(cbind(Phi, covered) ~ design, data = carsim, FUN = mean)
+```
+
+```{r sim-carplot, fig.width = 6, fig.height = 3}
+ggplot(carsim, aes(x = Phi)) +
+  geom_histogram(bins = 20, fill = "grey70", colour = "grey30") +
+  geom_vline(xintercept = phi0, colour = "red") +
+  facet_wrap(~ design) +
+  labs(x = expression(paste("Estimate of ", Phi)), y = "Simulations") +
+  theme_minimal()
+```
+
+Ignoring the autocorrelation does not bias the estimates of the curve much, but it understates their uncertainty. For the time of the maximum growth rate $b_2$, the standard deviation of the estimates over the simulations is close to the mean standard error of the model with the autocorrelation, but about twice the mean standard error of the model without it:
+
+```{r sim-carse}
+sapply(split(carsim, carsim$design), function(s)
+  c(sd.b2 = sd(s$b2), mean.se.b2 = mean(s$se.b2), sd.b2.indep = sd(s$b2.indep), mean.se.b2.indep = mean(s$se.b2.indep)))
+```
+
+## References
+
+Pinheiro, J.C. and Bates, D.M. (2000). *Mixed-Effects Models in S and S-PLUS*. Springer, New York.
+
+Zuur, A.F., Ieno, E.N., Walker, N.J., Saveliev, A.A. and Smith, G.M. (2009). *Mixed Effects Models and Extensions in Ecology with R*. Springer, New York.
+

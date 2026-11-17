@@ -33,7 +33,7 @@
 #'   fitted values, 2 residuals against time, 3 normal QQ plot of the residuals, 4 normal QQ plots of
 #'   the predicted random effects (models with random effects only)
 #' @param residuals Character string. Residual type of the validation plots, see
-#'   \code{\link{residuals.gcTMB}}: "quantile" (default), "pearson" or "response"
+#'   \code{\link{residuals.gcTMB}}: "quantile" (default), "pearson", "response" or "normalized" (decorrelated by the autocorrelation of the fit, see \code{\link{corStruct}})
 #' @param random Logical. If TRUE, residuals and fitted values of the validation plots include the
 #'   predicted random effects
 #' @param times Numeric vector or NULL. The times at which the curves are drawn, e.g.
@@ -66,7 +66,7 @@
 #' @return a list of ggplot objects, invisibly, for changing or drawing single graphs: fitted, time,
 #'   qq and ranef for the validation plots, and curves for the curves plot
 #' @export
-plot.gcTMB <- function(x, type=c("validation", "curves"), which=1:3, residuals=c("quantile", "pearson", "response"), random=TRUE,
+plot.gcTMB <- function(x, type=c("validation", "curves"), which=1:3, residuals=c("quantile", "pearson", "response", "normalized"), random=TRUE,
                        times=NULL, ncol=NULL, seed=NULL, draw=TRUE, ...){
   type <- if (missing(type)) "validation" else unique(match.arg(type, several.ok=TRUE))
   rtype <- match.arg(residuals)
@@ -81,7 +81,7 @@ plot.gcTMB <- function(x, type=c("validation", "curves"), which=1:3, residuals=c
 
     res <- stats::residuals(x, type=rtype, random=random)
     d <- data.frame(fitted=fitted(x, random=random), time=as.vector(x$obj$env$data$x), res=res)
-    ylab <- switch(rtype, quantile="Quantile residuals", pearson="Pearson residuals", response="Residuals")
+    ylab <- switch(rtype, quantile="Quantile residuals", pearson="Pearson residuals", normalized="Normalized residuals", response="Residuals")
 
     if (1 %in% which){
       plots$fitted <- residplot(d, "fitted", ylab) + ggplot2::labs(x="Fitted values", title="Residuals vs fitted")

@@ -20,7 +20,7 @@ gradients of TMB) is available, for the fit, the profiles and the bootstrap.}
 
 \item{eval.max}{Integer. Maximum number of evaluations of the objective function, see \code{\link{nlminb}}.}
 
-\item{smallsample}{Logical. If TRUE (default), gaussian and lognormal models without random effects use the unbiased
+\item{smallsample}{Logical. If TRUE (default), gaussian and lognormal models without random effects and without autocorrelation use the unbiased
 residual variance with n - p residual degrees of freedom and t quantiles, as lm and nls; if
 FALSE, the maximum likelihood estimate and normal quantiles. See \code{\link{gcTMB}}.}
 

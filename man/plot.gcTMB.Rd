@@ -8,7 +8,7 @@
   x,
   type = c("validation", "curves"),
   which = 1:3,
-  residuals = c("quantile", "pearson", "response"),
+  residuals = c("quantile", "pearson", "response", "normalized"),
   random = TRUE,
   times = NULL,
   ncol = NULL,
@@ -28,7 +28,7 @@ fitted values, 2 residuals against time, 3 normal QQ plot of the residuals, 4 no
 the predicted random effects (models with random effects only)}
 
 \item{residuals}{Character string. Residual type of the validation plots, see
-\code{\link{residuals.gcTMB}}: "quantile" (default), "pearson" or "response"}
+\code{\link{residuals.gcTMB}}: "quantile" (default), "pearson", "response" or "normalized" (decorrelated by the autocorrelation of the fit, see \code{\link{corStruct}})}
 
 \item{random}{Logical. If TRUE, residuals and fitted values of the validation plots include the
 predicted random effects}

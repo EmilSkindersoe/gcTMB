@@ -1,0 +1,134 @@
+---
+title: "Fixed and random effects"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::pdf_document:
+    fig_crop: false
+vignette: >
+  %\VignetteIndexEntry{2. Fixed and random effects}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  dpi = 150,
+  fig.retina = 2,
+  fig.align = "center",
+  out.width = "100%"
+)
+```
+
+This vignette covers covariates (fixed effects) and random effects of the parameters of the growth curves, and likelihood ratio tests of their inclusion, for the heights of faba bean plants and for counts of pods. The growth models and their parameters are introduced in the vignette *Growth models and their parameters*.
+
+The models without random effects of that vignette, a single logistic curve and a curve for each treatment:
+
+```{r}
+library(gcTMB)
+library(ggplot2)
+FabaHeights25$trt <- factor(FabaHeights25$Treatment)
+fit <- gcTMB(height ~ DAS, data = FabaHeights25)
+fittrt <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, data = FabaHeights25)
+```
+
+## Covariates and random effects
+
+Covariates on the parameters are given by `fform`, e.g. `b1 + b2 ~ trt` for effects of the treatment on the asymptote and the time of the maximum growth rate. Random effects are given by `rform`, e.g. `b1 + b2 ~ 1 | plant_ID` for correlated random effects of each plant on the asymptote and the time of the maximum growth rate, which account for the repeated measurements of the plants. For the heights, we use the logistic model with the defaults $b_4 = 0$ and $b_5 = 1$ fixed.
+
+```{r}
+fitre <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)
+summary(fitre)
+```
+
+### Testing the fixed effects
+
+Likelihood ratio tests by `anova()` compare nested models, here with and without the treatment effects.
+
+```{r}
+fitre0 <- gcTMB(height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)
+anova(fitre0, fitre)
+```
+
+For gaussian (and lognormal) models without random effects, `test = "F"` gives F-tests as for `nls()`: the reduction of the residual sum of squares per additional parameter, divided by the residual mean square of the larger model. The F-test accounts for the estimation of the residual variance, which the likelihood ratio test does not, and is preferable for small experiments; here for the models without random effects of the vignette *Growth models and their parameters*:
+
+```{r}
+anova(fit, fittrt, test = "F")
+```
+
+The two tests disagree, because the model without random effects treats the 200 heights as independent, while they are eight repeated measurements of each of 25 plants.
+
+### Testing the random effects
+
+The random effects are tested in the same way, by likelihood ratio tests of the models with and without them: here without random effects, with a random asymptote, and with random asymptotes and times of the maximum growth rate.
+
+```{r}
+fitre1 <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 ~ 1 | plant_ID, data = FabaHeights25)
+anova(fittrt, fitre1, fitre)
+```
+
+Under the smaller model, a standard deviation of the random effects is zero, on the boundary of its range, so the chi-square distribution of the likelihood ratio statistic is conservative: for a single standard deviation, the p-value is about twice the correct one. Both random effects are needed here anyway. `test = "boot"` gives a parametric bootstrap likelihood ratio test, which simulates from the smaller model and does not rely on the chi-square distribution; it fits both models to each simulation and takes several minutes:
+
+```{r, eval = FALSE}
+anova(fitre1, fitre, test = "boot", nsim = 100, seed = 1)
+```
+
+### Plotting the curves
+
+`plot()` with `type = "curves"` draws a plot directly: the data with the curve of each plant, and the population curve of each treatment as a thick line. By default the curves are drawn over the observed days; `times` gives the times at which they are drawn, here from sowing. It returns the ggplot object in a list, for changing the graph. Otherwise, it can be constructed manually using `predict()`.
+
+```{r, fig.width = 6, fig.height = 4}
+p <- plot(fitre, type = "curves", times = seq(0, 61, by = 0.1), draw = FALSE)
+p$curves + labs(x = "Days after sowing", y = "Height", colour = "Treatment")
+```
+
+## Non-normal responses
+
+The `family` argument gives the distribution of the response: "gaussian", "lognormal", "poisson", "nbinom2", "nbinom1", "binomial", "betabinomial" or "beta". The data set `FabaCounts23` contains the numbers of pods of 22 faba bean plants of six genotypes, counted between 61 and 79 days after sowing. The plants have no pods at the first counts, so the threshold $b_4$, the time of the first pods, is identified by the zero counts and estimated; the asymmetry is fixed at $b_5 = 1$. A Poisson model with an asymptote and a time of the maximum growth rate for each genotype, and a random asymptote for each plant:
+
+```{r}
+fitp <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+              family = "poisson", fix = c(b4 = FALSE))
+summary(fitp)
+genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
+cbind(genotypes, predict(fitp, newdata = genotypes, type = "parameters", random = FALSE))
+```
+
+All the counts with the fitted curve of each plant, with its predicted random asymptote:
+
+```{r, fig.width = 6, fig.height = 4}
+days <- seq(61, 79, by = 0.05)
+ndp <- merge(unique(FabaCounts23[, c("Tube_ID", "Genotype")]), data.frame(DAS = days))
+ndp$fit <- predict(fitp, newdata = ndp)
+ggplot(FabaCounts23, aes(x = DAS, y = pods, colour = Genotype)) +
+  geom_point() +
+  geom_line(data = ndp, aes(y = fit, group = Tube_ID)) +
+  labs(x = "Days after sowing", y = "Number of pods", colour = "Genotype") +
+  theme_minimal()
+```
+
+By genotype, the curves of the plants together with the population curves of the genotypes (`random = FALSE`), the fixed effects, with 95% confidence intervals. For Poisson models, the confidence intervals of the mean are computed on the log scale, so that they stay positive.
+
+```{r, fig.width = 7, fig.height = 5}
+# the population curve of each genotype
+ndg <- merge(genotypes, data.frame(DAS = days))
+ndg <- cbind(ndg, predict(fitp, newdata = ndg, random = FALSE, interval = "confidence"))
+ggplot(FabaCounts23, aes(x = DAS, y = pods)) +
+  geom_ribbon(data = ndg, aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "blue", alpha = 0.2) +
+  geom_line(data = ndp, aes(y = fit, group = Tube_ID), colour = "grey50") +
+  geom_line(data = ndg, aes(y = fit), colour = "blue", linewidth = 1) +
+  geom_point(alpha = 0.6) +
+  facet_wrap(~ Genotype) +
+  labs(x = "Days after sowing", y = "Number of pods") +
+  theme_minimal()
+```
+
+The estimated threshold improves the fit over the default threshold at sowing:
+
+```{r}
+fitp0 <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+               family = "poisson")
+AIC(fitp0, fitp)
+```
+

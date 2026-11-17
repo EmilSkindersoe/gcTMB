@@ -15,6 +15,10 @@
 #' conservative: the p-value is approximately twice the correct value for a single standard
 #' deviation.
 #'
+#' The tests are those of \code{anova} of nlme for models fitted with \code{method="ML"}, in the
+#' layout of \code{anova} of lme4; as gcTMB fits by maximum likelihood, models with different fixed
+#' effects can be compared (REML fits of nlme cannot).
+#'
 #' For gaussian and lognormal (on the log scale) models without random effects, \code{test="F"} gives F-tests, as nls does for
 #' continuous responses: the reduction of the (weighted) residual sum of squares per additional
 #' parameter, divided by the residual mean square of the largest model, with n - p residual degrees
@@ -85,8 +89,8 @@ anova.gcTMB <- function(object, ..., test=c("Chisq", "F", "boot"), nsim=1000, se
 
   if (test == "F"){
     fam <- unique(vapply(fits, function(f) f$family, character(1)))
-    if (length(fam) != 1 || !(fam %in% c("gaussian", "lognormal")) || any(vapply(fits, function(f) length(f$reterms) > 0, logical(1)))){
-      stop("F-tests are only available for gaussian or lognormal models without random effects; use test=\"Chisq\".")
+    if (length(fam) != 1 || !(fam %in% c("gaussian", "lognormal")) || any(vapply(fits, function(f) length(f$reterms) > 0 || !is.null(f$correlation), logical(1)))){
+      stop("F-tests are only available for gaussian or lognormal models without random effects and without autocorrelation; use test=\"Chisq\".")
     }
     # weighted residual sums of squares (of log(y) for lognormal), residual degrees of freedom without the residual sd
     rss <- vapply(fits[ord], function(f){

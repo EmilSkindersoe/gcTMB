@@ -52,7 +52,7 @@ fit_nlme <- function() {
 # correlated random effects on b1-b3, from gcTMB's own starting values (straight-line fits on the
 # linearised curve), which give a better fit than the starting values of SSlogis
 fit_gctmb <- function() {
-  gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = FabaHeights25, model = "logistic")
+  gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = FabaHeights25, model = "logistic",control=list(sdreport=FALSE,optimiser="nlmq"))
 }
 
 # the two fits agree (the log-likelihoods differ a little: nlme approximates the likelihood by
@@ -103,7 +103,7 @@ evals[1, ]
 
 # the time of one evaluation of the Laplace approximation (with the inner optimisation of the
 # random effects) and of its gradient, at the estimates
-microbenchmark(fn = obj$fn(opt$par), gr = obj$gr(opt$par), times = 20)
+microbenchmark(fn = obj$fn(opt$par), gr = obj$gr(opt$par), times = 3)
 
 # the starting values: how long the variance starting values take within them
 system.time(for (i in 1:5) ns$gcTMBstartvals(dd, ns$parvector(NULL, dd$npi, NA, "start"), fix, method = "lm"))

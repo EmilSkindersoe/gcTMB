@@ -3,7 +3,10 @@
 #' gcTMB has its own generics fixef, ranef and VarCorr and does not need nlme or lme4. They have the
 #' same names as the generics of nlme (re-exported by lme4), and work together with them: whichever
 #' package is attached last, fixef, ranef and VarCorr work both for gcTMB fits and for the fits of
-#' nlme and lme4 (the gcTMB generics pass other objects on to nlme, if it is installed).
+#' nlme and lme4 (the gcTMB generics pass other objects on to nlme, if it is installed). The results
+#' for gcTMB fits have the format of lme4: \code{ranef} a list of data frames, one for each term, also
+#' for a single term (nlme returns a data frame for a single level of grouping), and \code{VarCorr} a
+#' list of covariance matrices (nlme returns a character table).
 #'
 #' Extractors for the estimated parts of a model: the fixed effects, the predicted random effects,
 #' the covariance matrices of the random effects, the residual standard deviation, and the parameters
@@ -28,16 +31,19 @@
 #' as in \code{ranef}, with the standard deviations and the correlation matrix as attributes
 #' \code{stddev} and \code{correlation}; the residual standard deviation is the attribute \code{sc}.
 #'
-#' \code{sigma} returns the residual standard deviation of a gaussian model (of log(y) for lognormal),
+#' \code{sigma} returns the residual standard deviation of a gaussian model (of log(y) for lognormal; the
+#' maximum likelihood estimate, while \code{nlme::gnls} reports it with n - p degrees of freedom),
 #' or the dispersion parameter of the other families as printed by \code{print.gcTMB} (precision,
 #' size or dispersion), and NA for poisson and binomial models. The residual variance is
 #' \code{sigma(object)^2}. For gaussian models without random effects and small-sample inference (see
 #' \code{\link{gcTMB}}), it is the unbiased estimate.
 #'
-#' \code{corpars} returns the parameters of the autocorrelation of the residuals within a curve, and
-#' \code{varpars} the parameters of the variance function of the residuals, as named vectors. The
-#' current models have independent residuals with a constant variance, so both return an empty
-#' vector; they are the extractors for these parts once they are added to the models.
+#' \code{corpars} returns the parameter of the autocorrelation of the residuals within groups (see
+#' \code{\link{corStruct}}), Phi, the correlation of residuals one unit of time apart, and an empty vector
+#' for a model with independent residuals; it is \code{coef(fit$modelStruct$corStruct,
+#' unconstrained=FALSE)} of nlme. \code{varpars} returns the parameters of the variance
+#' function of the residuals, as a named vector; the current models have a constant residual variance,
+#' so it returns an empty vector, as the extractor for a variance function once it is added.
 #'
 #' @examples
 #' fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
@@ -137,7 +143,10 @@ sigma.gcTMB <- function(object, ...){
 #' @rdname gcTMB-extract
 #' @export
 corpars <- function(object){
-  setNames(numeric(0), character(0))
+  ct <- cortypeindex(object$correlation)
+  if (ct == 0) return(setNames(numeric(0), character(0)))
+  v <- object$obj$env$parList(object$opt$par)$cor_par
+  c(Phi=corphi(ct, v))
 }
 
 #' @rdname gcTMB-extract
@@ -153,7 +162,11 @@ retermnames <- function(object){
 
 # level of the grouping factor of random effect term t for each observation of the fit
 obsgroups <- function(object, t, data=object$data){
-  tm <- object$reterms[[t]]
+  termgroups(object$reterms[[t]], data)
+}
+
+# level of the grouping factor of the random effect term tm for each row of data
+termgroups <- function(tm, data){
   bar <- str2lang(tm$name)
   bar[[2]] <- 1
   rt <- mkReTrms(list(bar), model.frame(subbars(as.formula(call("~", bar))), data=data, na.action=na.pass))

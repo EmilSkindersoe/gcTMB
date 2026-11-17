@@ -14,9 +14,22 @@ pak::pak("EmilSkindersoe/gcTMB")
 
 ## Documentation
 
-The vignette introduces the package with worked examples on faba bean
+The vignettes introduce the package with worked examples on faba bean
 data:
-[gcTMB.pdf](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/gcTMB.pdf).
+
+1.  [Growth models and their parameters](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/growth-models.pdf): the
+    growth models, the meaning of their parameters, confidence intervals,
+    and simple treatment effects.
+2.  [Fixed and random effects](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/fixed-random-effects.pdf):
+    covariates and random effects, and likelihood ratio tests of their
+    inclusion, for heights and counts.
+3.  [Timing and maximum growth rates](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/timing-rates.pdf): `timeto()`
+    and `maxrate()` with treatment and genotype effects, for normal and
+    count data.
+4.  [Autocorrelation and simulation](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/autocorrelation-simulation.pdf):
+    autocorrelated residuals within individuals, and simulation studies.
+
+[The overview](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/gcTMB.pdf) shows most of the features in one document.
 
 ## Growth models
 

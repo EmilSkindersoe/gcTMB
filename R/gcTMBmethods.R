@@ -3,13 +3,13 @@
 #' @param x,object A gcTMB object, the result of \code{\link{gcTMB}}.
 #' @param newdata Data frame or NULL. The data for the predictions, with the time and the covariates of the model. If NULL, the original data is used.
 #'   For simulate, the times, covariates and grouping variables of the observations to simulate, e.g. new times or new individuals; each level of a grouping variable is one curve, with random effects shared by its rows. With random=TRUE all levels get new random effects; with random=FALSE the levels in the fitted data keep their fitted random effects and the other levels get new ones. For binomial responses the number of trials is taken from the response in newdata (one for a binary response).
-#' @param random Logical. If TRUE, the random effects are included in the predictions, fitted values and residuals (conditional residuals). For simulate, if TRUE, new random effects are drawn for each simulation, otherwise the fitted random effects are kept.
+#' @param random Logical. If TRUE, the random effects are included in the predictions, fitted values and residuals (conditional residuals). TRUE corresponds to the innermost level of \code{predict} and \code{fitted} of nlme, and FALSE to \code{level=0} (\code{re.form=NA} of lme4). For simulate, if TRUE, new random effects are drawn for each simulation, otherwise the fitted random effects are kept.
 #'   For prediction intervals, random=TRUE gives the interval of a new observation in the group of each row of newdata, and random=FALSE the interval of a new observation in a new group, including the variance of the random effects. Rows of newdata with a level that is not in the fitted data are treated as new groups for that random effect term.
 #' @param se.fit Logical. If TRUE, predict returns the standard errors of the predicted means, by the delta method; with random=TRUE they include the uncertainty of the predicted random effects.
 #' @param interval Character string. The type of interval of predict: "none", "confidence" for confidence intervals of the mean, computed on the log scale for poisson and lognormal and on the logit scale for binomial and beta responses, or "prediction" for prediction intervals of a new observation with weight 1. Gaussian and lognormal models without random effects use t quantiles with n - p degrees of freedom and the unbiased residual variance, see \code{\link{gcTMB}}. For the gaussian and lognormal (on the log scale) families without boot, the prediction intervals use the normal (or t) distribution, and the variance of the random effects of new groups is added by the delta method. Otherwise they are quantiles of new observations simulated at nsim draws from the normal approximation of the fixed and random effects, with the variance parameters kept at their estimates, or at the bootstrap fits (see boot); with new random effects for new groups; for a binomial response as proportions, with the number of trials from the response in newdata (one for a binary response).
 #' @param level Numeric between 0 and 1. Confidence level of the intervals of predict
 #' @param digits Integer. Number of significant digits in the printed output
-#' @param type Character string. For residuals, the type of residuals: "pearson" (default), the response residuals divided by the standard deviation of the fitted distribution and multiplied by the square root of the weights; "response", the observed minus the fitted values, as proportions for a binomial response; or "quantile", randomised quantile residuals (Dunn and Smyth, 1996), which are standard normal under the model. For the gaussian family, the quantile residuals are multiplied by the square root of the weights, as precision weights with standard deviation sigma/sqrt(w); for the other families they do not use the weights, as a weighted log-likelihood is not the density of a distribution of the observation. The quantile residuals are random for the count families; use set.seed for reproducible values. For the lognormal family, the pearson and quantile residuals are the standardised residuals of log(y), (log(y) - log(f))/sigma, multiplied by the square root of the weights.
+#' @param type Character string. For residuals, the type of residuals: "pearson" (default), the response residuals divided by the standard deviation of the fitted distribution and multiplied by the square root of the weights; "response", the observed minus the fitted values, as proportions for a binomial response; or "quantile", randomised quantile residuals (Dunn and Smyth, 1996), which are standard normal under the model. The types "response", "pearson" and "normalized" are those of \code{residuals} of nlme. "normalized" (gaussian and lognormal) are the standardised residuals decorrelated by the autocorrelation of the fit (see \code{\link{corStruct}}): each standardised residual minus Phi^dt times the previous one of its group, divided by sqrt(1 - Phi^(2 dt)), independent standard normal under the model, as in nlme; without autocorrelation they are the pearson residuals, and so for the other families. For the gaussian family, the quantile residuals are multiplied by the square root of the weights, as precision weights with standard deviation sigma/sqrt(w); for the other families they do not use the weights, as a weighted log-likelihood is not the density of a distribution of the observation. The quantile residuals are random for the count families; use set.seed for reproducible values. For the lognormal family, the pearson and quantile residuals are the standardised residuals of log(y), (log(y) - log(f))/sigma, multiplied by the square root of the weights.
 #'   For predict, the type of prediction: "response" (default), the mean response at the times of newdata, or "parameters", the parameters b1-b3 of the curve of each row of newdata (with its covariates in fform and, with random=TRUE, the random effects of its groups); newdata then needs no time. The standard errors of the parameters are those of the estimates, by the delta method, and their confidence intervals are computed on the scale of the link and back-transformed; with random=TRUE, they include the uncertainty of the predicted random effects of the fitted groups. Prediction intervals of the parameters add the variance of the random effects of the terms without a fitted level, the parameters of a new group, and are not available with boot.
 #' @param nsim Integer. Number of response vectors to simulate; for predict, the number of parameter draws for simulated prediction intervals
 #' @param seed Integer or NULL. An optional seed for the random number generator
@@ -23,15 +23,18 @@
 #' With type="parameters", it returns a matrix of the parameters used by the model, a row for each row of
 #' newdata, or, with se.fit=TRUE or an interval, a data frame with the row of newdata (row), the
 #' parameter, and fit, se.fit, lwr and upr.
-#' coef and vcov include the variance parameters: for each random effect term the log standard deviations
+#' coef and vcov include the variance parameters (unlike \code{coef} of nlme and lme4, coef does not return the coefficients of each group; see \code{predict(type="parameters")}): for each random effect term the log standard deviations
 #' (log_sd:b1|group, or log_sd:b1:x|group for a random slope of b1 in x) and, for correlated random effects, the parameters of the correlation matrix
 #' (corr_par:b2,b1|group, unconstrained elements of the lower triangle of its Cholesky factor, by row);
 #' and the log residual standard deviation (log_sigma, gaussian; of log(y) for lognormal), log precision (log_phi, beta), log size
-#' (log_theta, nbinom2), log dispersion (log_phi, nbinom1) or log precision (log_phi, betabinomial).
+#' (log_theta, nbinom2), log dispersion (log_phi, nbinom1) or log precision (log_phi, betabinomial); and
+#' for an estimated autocorrelation the parameter cor_par:AR1 or cor_par:CAR1 on the unconstrained scale of
+#' nlme (\code{coef} of an nlme corStruct), see \code{\link{corStruct}}.
 #' summary returns a summary.gcTMB object with the coefficient table (Estimate, Std. Error), the
 #' variance components, log-likelihood, AIC and BIC, sample sizes, a Pearson dispersion statistic for
 #' poisson and binomial models, and convergence information. logLik returns the log-likelihood at the
-#' estimates, with the number of free coefficients and variance parameters as degrees of freedom.
+#' estimates, with the number of free coefficients and variance parameters as degrees of freedom; it is the
+#' maximum likelihood, comparable with nlme fits with \code{method="ML"}, not with the REML fits of \code{nlme::lme} and \code{nlme::gls}.
 #' df.residual returns the residual degrees of freedom n - p of gaussian and lognormal models without random
 #' effects (small-sample inference, see \code{\link{gcTMB}}), and NULL otherwise; as the \code{df}
 #' argument of \code{multcomp::glht} for the times of \code{\link{timeto}}, it gives multivariate t instead of normal
@@ -86,6 +89,7 @@ print.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...){
   printfixed(userfixed(x), digits)
   printre(recov(x), digits)
   printresid(x$family, residpar(x), digits)
+  printcor(x, digits)
   if (isTRUE(x$modified)) cat("\nParameters set by update(): not estimates, without standard errors.\n")
   invisible(x)
 }
@@ -159,7 +163,8 @@ summary.gcTMB <- function(object, ...){
               singular=singular, dispersion=dispersion, atbound=atbound(object),
               convergence=object$opt$convergence, message=object$opt$message,
               maxgrad=max(abs(gr)), pdHess=object$sdrl$pdHess, modified=isTRUE(object$modified),
-              nosdreport=isFALSE(object$control$sdreport))
+              nosdreport=isFALSE(object$control$sdreport), correlation=object$correlation, corgroup=object$corgroup,
+              reterms=object$reterms, corphi=corpars(object))
   class(res) <- "summary.gcTMB"
   res
 }
@@ -198,6 +203,7 @@ print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...
     cat("Standard deviations close to zero (singular fit): ", paste(x$singular, collapse=", "), "\n", sep="")
   }
   printresid(x$family, x$residpar, digits, x$rdf)
+  printcor(x, digits)
   if (!is.null(x$dispersion)){
     cat("\nPearson dispersion: ", format(x$dispersion["ratio"], digits=digits),
         " (chi-square ", format(x$dispersion["chisq"], digits=digits), " on ", x$dispersion["df"], " df)\n", sep="")
@@ -240,7 +246,7 @@ fitted.gcTMB <- function(object, random=TRUE, ...){
 
 #' @rdname gcTMB-methods
 #' @export
-residuals.gcTMB <- function(object, type=c("pearson", "response", "quantile"), random=TRUE, ...){
+residuals.gcTMB <- function(object, type=c("pearson", "response", "quantile", "normalized"), random=TRUE, ...){
   type <- match.arg(type)
   dat <- object$obj$env$data
   mu <- predict(object, random=random)
@@ -251,6 +257,16 @@ residuals.gcTMB <- function(object, type=c("pearson", "response", "quantile"), r
   y <- if (object$family %in% c("binomial", "betabinomial")) cnt/n else cnt
 
   if (type == "response") return(y - mu)
+
+  # normalized residuals: the standardised residuals of the gaussian and lognormal families, decorrelated
+  # by the autocorrelation of the fit (Pinheiro and Bates, 2000); the pearson residuals otherwise
+  if (type == "normalized"){
+    if (!(object$family %in% c("gaussian", "lognormal"))) type <- "pearson"
+    else {
+      r <- if (object$family == "lognormal") (log(y) - log(mu))/phi else (y - mu)/phi
+      return(normalizeresid(object, r * sqrt(as.vector(dat$w))))
+    }
+  }
 
   # lognormal: standardised residuals of log(y), for both pearson and quantile residuals
   if (object$family == "lognormal") return((log(y) - log(mu))/phi * sqrt(as.vector(dat$w)))
@@ -773,7 +789,7 @@ simulate.gcTMB <- function(object, nsim=1, seed=NULL, random=TRUE, newdata=NULL,
     return(simnew(object, newdata, nsim, random, seed))
   }
   obj <- object$obj
-  par <- obj$env$last.par.best
+  par <- fitpar(object)
   if (!is.null(object$rform) && !random){
     # keep the fitted random effects: rebuild the objective with simre = 0
     dat <- obj$env$data
@@ -786,6 +802,20 @@ simulate.gcTMB <- function(object, nsim=1, seed=NULL, random=TRUE, newdata=NULL,
   if (nbad > 0) warning(nbad, " of ", nsim, " simulations contain non-finite values; simulated random effects may fall outside the valid parameter range.")
   simout(sims, lapply(out, function(o) o$fsim),
          lapply(out, function(o) ulist(object, o$usim, lapply(object$reterms, function(tm) tm$levels))), seed)
+}
+
+# the full parameter vector of the fit (as obj$env$par): the estimates, and the random effects at their
+# conditional modes. Not obj$env$last.par.best, which TMB updates whenever the objective is evaluated at a
+# better point (e.g. by a profile or another optimisation after a fit that stopped short), so that it
+# need not be the fitted model.
+fitpar <- function(object){
+  env <- object$obj$env
+  par <- env$par
+  r <- env$random
+  if (is.null(r)) return(object$opt$par)
+  par[-r] <- object$opt$par
+  par[r] <- object$sdrl$par.random
+  par
 }
 
 # simulations as a data frame with nsim columns, with the attributes mean (the true means, a data
@@ -858,9 +888,11 @@ simnew <- function(object, newdata, nsim, random, seed=NULL){
       us <- c(us, as.vector(U))
     }
     mu <- predmean(pd, eta)
+    # residuals with the autocorrelation of the fit within groups (independent without one)
+    if (object$family %in% c("gaussian", "lognormal")) z <- corsimresid(object, newdata)
     y <- suppressWarnings(switch(object$family,
-                            gaussian=rnorm(n, mu, phi),
-                            lognormal=rlnorm(n, log(mu), phi),
+                            gaussian=mu + phi*z,
+                            lognormal=mu*exp(phi*z),
                             poisson=rpois(n, mu),
                             binomial=rbinom(n, trials, mu),
                             betabinomial=rbinom(n, trials, rbeta(n, mu*phi, (1 - mu)*phi)),
@@ -1026,8 +1058,12 @@ parnames <- function(object){
     c(paste("log_sd:", pn, "|", tm$group, sep=""),
       if (np > 1) paste("corr_par:", pairs, "|", tm$group, sep=""))
   }))
+  # the autocorrelation, unless fixed: cor_par:AR1 or cor_par:CAR1 on the unconstrained scale of nlme
+  ct <- cortypeindex(object$correlation)
+  cn <- if (ct > 0 && !isTRUE(attr(object$correlation, "fixed"))) paste("cor_par:", c("AR1", "CAR1")[ct], sep="")
   c(object$coefnames[!object$fix], renames,
-    switch(object$family, gaussian=, lognormal="log_sigma", beta="log_phi", nbinom2="log_theta", nbinom1="log_phi", betabinomial="log_phi"))
+    switch(object$family, gaussian=, lognormal="log_sigma", beta="log_phi", nbinom2="log_theta", nbinom1="log_phi", betabinomial="log_phi"),
+    cn)
 }
 
 # distribution function of the beta-binomial distribution with n trials, mean mu and precision phi

@@ -10,7 +10,10 @@
 #' @param data Data frame. Observations with missing values in the variables of the model or in the weights are left out.
 #' @param start Numeric vector or NULL. Starting values for each model coefficient. NA entries are replaced by the starting values of \code{\link{gcTMBstart}}. Alternatively, a vector named by parameter, e.g. c(b1=10), gives the same starting value to all coefficients of each named parameter.
 #' @param fix Logical vector or NULL. One entry for each model coefficient. If TRUE, a model coefficient is fixed to its value in start. Alternatively, a vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of the named parameters; their values must then be given in start, e.g. start=c(b1=10). The threshold b4 and the asymmetry b5 are fixed by default, at b4 = 0 (the curve starts at zero at t = 0) and b5 = 1 (the symmetric curve) unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE), or an unnamed fix vector, estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.
-#' @param weights Numeric vector or NULL. Weights, one for each row of data.
+#' @param weights Numeric vector or NULL. Weights, one for each row of data. Unlike the
+#'   \code{weights} of nlme, which are variance functions (\code{varFunc}), these are numeric case
+#'   weights of the log-likelihood; with a correlation structure, they are precision weights, as
+#'   \code{weights=varFixed(~ 1/w)} in nlme.
 #' @param lower Numeric, a single value or a vector. Lower bounds for the model coefficients b1-b5, a single value or a vector with the same length as start. Bounds of fixed coefficients are ignored; variance parameters are unbounded.
 #' @param upper Numeric, a single value or a vector. Upper bounds for the model coefficients b1-b5, a single value or a vector with the same length as start.
 #' @param family Character string. The distribution of the response, one of "gaussian", "lognormal", "binomial", "betabinomial", "beta", "poisson", "nbinom2", and "nbinom1". For the lognormal family, log(y) is normal with mean log f(t) and standard deviation sigma: the curve f is the median of a positive response, with a constant coefficient of variation; the mean is f(t) exp(sigma^2/2). The negative binomial families are for overdispersed counts, with variance mu (1 + mu/theta) for nbinom2 and mu (1 + phi) for nbinom1, and the beta-binomial family for overdispersed binomial counts, with variance n mu (1 - mu) (1 + (n - 1)/(phi + 1)) for n trials, as in glmmTMB.
@@ -18,6 +21,11 @@
 #' @param truncated Logical. If TRUE (default), the curve is truncated at a threshold time b4, by default fixed at 0: the response is zero up to b4 and then grows, see Details. FALSE for the curves without truncation.
 #' @param link Named character vector or NULL. Links of the parameters b1-b5: NULL for the defaults (the identity link for all parameters), or links named by parameter, e.g. \code{link=c(b1="log", b3="inverse")}. The asymptote b1 has the link "identity" (default), "log" or "logit"; the times b2 and b4 (the threshold of a truncated curve) "identity" (default) or "log"; the asymmetry b5 "identity" (default) or "log", to keep it positive; and the scale b3 "identity" (default), "inverse", with which its coefficients are the growth rate 1/b3, or "log". The coefficients, and start, fix, lower, upper and curves of \code{\link{timeto}}, are on the scale of the links, see Details.
 #' @param b1type Character string. The meaning of b1: "asymptote" (default), or "rate" for the maximum growth rate of the curve, see Details. With "rate", covariates and random effects on b1 are effects on the maximum growth rate, which \code{\link{anova.gcTMB}} and \code{\link{pairwise}} can test.
+#' @param correlation A correlation structure or NULL. The autocorrelation of the residuals within
+#'   groups over time, \code{\link{corAR1}} or \code{\link{corCAR1}} (or the same structures of
+#'   the package nlme), e.g. \code{corCAR1(form=~ day | plant)}, for the gaussian and lognormal (on the
+#'   log scale) families. NULL (default) for independent residuals. See \code{\link{corStruct}}; with
+#'   a correlation structure, the weights are precision weights, with residual variance sigma^2/w.
 #' @param gsl Numeric vector or NULL. Lower bounds for a grid search, same length as start; NA for the default range. If gsl, gsu and gsn are all NULL, no grid search is performed. See \code{\link{gcTMBstart}}.
 #' @param gsu Numeric vector or NULL. Upper bounds for a grid search, same length as start; NA for the default range.
 #' @param gsn Integer, a single number or a vector, or NULL. Number of grid points for each parameter, a single number or a vector with the same length as start. \code{gsn=10} alone runs a grid search over the default ranges.
@@ -46,6 +54,36 @@
 #'     \code{\link{timeto}} gives the times at which it reaches given responses
 #'     (\code{type="absolute"}), and \code{\link{maxrate}} its constant rate b1.
 #' }
+#' \strong{Relation to nlme.} Parts of the interface follow the package nlme (Pinheiro and Bates,
+#' 2000), so that models can be moved between \code{nlme::nlme}/\code{nlme::gnls} and gcTMB:
+#' \itemize{
+#'   \item the fixed and random effects are formulas for the parameters, as the arguments \code{fixed}
+#'     and \code{random} of \code{nlme::nlme}: \code{fform=b1 + b2 ~ trt} or
+#'     \code{fform=list(b1 ~ trt, b2 ~ 1)}, and \code{rform=b1 + b2 ~ 1 | plant}. The random effects of a
+#'     formula have an unstructured covariance matrix, as \code{pdSymm}; uncorrelated random effects,
+#'     as \code{pdDiag}, are separate terms, e.g. \code{rform=list(b1 ~ 1 | plant, b2 ~ 1 | plant)} or
+#'     \code{b1 ~ x || plant}. Nested factors (\code{1 | plot/plant}) and the double bar use the syntax
+#'     of lme4;
+#'   \item the correlation structures \code{\link{corAR1}} and \code{\link{corCAR1}} have the
+#'     arguments and the parameterisation of nlme, whose objects are accepted as well, and
+#'     \code{residuals(fit, type="normalized")} gives the normalized residuals of nlme;
+#'   \item \code{\link{fixef}}, \code{\link{ranef}} and \code{\link{VarCorr}} are generics with the names
+#'     of those of nlme, and work for gcTMB, nlme and lme4 fits whichever package is attached last;
+#'   \item \code{predict} and \code{fitted} with \code{random=FALSE} correspond to \code{level=0} of
+#'     nlme (the population curves), and with \code{random=TRUE} to the innermost level.
+#' }
+#' The differences: gcTMB fits by maximum likelihood (the Laplace approximation with random
+#' effects), so its log-likelihoods, AIC and likelihood ratio tests compare with nlme fits with
+#' \code{method="ML"}, not with the default REML of \code{nlme::lme} and \code{nlme::gls}; the
+#' integration over the random effects is exact for gaussian responses with random effects that enter
+#' the curve linearly, e.g. random asymptotes, where nlme's linearisation can stop slightly short of
+#' the maximum. \code{coef}
+#' returns the estimated coefficients and variance parameters, not the coefficients of each group as
+#' \code{coef} of nlme (use \code{predict(fit, type="parameters")} for those); \code{weights} are
+#' numeric weights, not variance functions; and the results of \code{ranef} and \code{VarCorr} have
+#' the format of lme4 (a list of data frames, and of covariance matrices). \code{\link{confint.gcTMB}}
+#' gives the intervals of \code{intervals} of nlme.
+#'
 #' The asymmetry b5, the truncation at the threshold b4, the maximum growth rates and inflection
 #' points, the rate 1/b3 and the small-sample inference are described in the vignette,
 #' \code{vignette("gcTMB")}; the links in the argument \code{link}.
@@ -62,6 +100,8 @@
 #'
 #' @return A gcTMB object, with methods for \code{print}, \code{summary}, \code{coef}, \code{vcov},
 #'   \code{predict}, \code{confint}, \code{anova}, \code{plot} and others, see \code{\link{gcTMB-methods}}.
+#' @references Pinheiro, J.C. and Bates, D.M. (2000). Mixed-Effects Models in S and S-PLUS.
+#'   Springer, New York.
 #' @seealso \code{\link{maxrate}} for the maximum growth rate and its timing,
 #'   \code{\link{timeto}} for the times to reach a level of the asymptote,
 #'   \code{\link{gcTMBstart}} for the starting values.
@@ -103,6 +143,11 @@
 #' anova(fitr0, fitr)
 #' pairwise(fitr, newdata=data.frame(trt=levels(FabaHeights25$trt)))
 #'
+#' # residuals of each plant correlated over time, continuous-time AR(1)
+#' fitc <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25,
+#'               correlation=corCAR1(form=~ DAS | plant_ID))
+#' corpars(fitc)
+#'
 #' # pod counts with a poisson distribution
 #' gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson")
 #'
@@ -111,11 +156,12 @@
 #' coef(fitt)
 #' @export
 
-gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weights=NULL, lower=-Inf, upper=Inf, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type=c("asymptote", "rate"), gsl=NULL, gsu=NULL, gsn=NULL, control=list()){
+gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weights=NULL, lower=-Inf, upper=Inf, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type=c("asymptote", "rate"), correlation=NULL, gsl=NULL, gsu=NULL, gsn=NULL, control=list()){
   b1type <- match.arg(b1type)
   # control list
   control <- do.call(gcTMBcontrol, control)
-  dd <- gcTMBdata(form, fform=fform, rform=rform, data=data, weights=weights, family=family, model=model, truncated=truncated, link=link, b1type=b1type)
+  dd <- gcTMBdata(form, fform=fform, rform=rform, data=data, weights=weights, family=family, model=model, truncated=truncated, link=link, b1type=b1type,
+                  correlation=correlation)
   fixnamed <- !is.null(names(fix))
   start <- parvector(start, dd$npi, NA, "start")
   fix <- defaultfix(fix, dd$npi)
@@ -190,6 +236,11 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weig
   res$coefnames <- coefnames(dd$Xs)
   res$rform <- rform
   res$reterms <- dd$re$terms
+  res$correlation <- correlation
+  # the grouping factor of the random effects that groups the residuals, for a form without a group
+  if (!is.null(correlation) && is.null(corform(correlation)$group) && length(dd$re$terms) > 0){
+    res$corgroup <- dd$re$terms[[which.max(vapply(dd$re$terms, function(tm) length(tm$levels), integer(1)))]]$group
+  }
   res$estimates <- opt$par
   res$lower <- lower
   res$upper <- upper
@@ -204,7 +255,7 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weig
   res$ssdrl <- if (inherits(res$sdrl, "nosdreport")) nosdrsummary(res$sdrl) else suppressWarnings(summary(res$sdrl))
   # residual degrees of freedom for small-sample inference of gaussian and lognormal models without
   # random effects (lognormal: gaussian for log(y)): observations with positive weights minus free coefficients
-  if (isTRUE(control$smallsample) && family %in% c("gaussian", "lognormal") && length(dd$re$terms) == 0){
+  if (isTRUE(control$smallsample) && family %in% c("gaussian", "lognormal") && length(dd$re$terms) == 0 && is.null(correlation)){
     rdf <- sum(dd$w > 0) - sum(!fix)
     if (rdf > 0) res$rdf <- rdf else warning("no residual degrees of freedom; the standard errors use the maximum likelihood estimate of the residual variance.", call.=FALSE)
   }
@@ -265,7 +316,12 @@ thresholdopt <- function(obj, opt, i4, lower, upper, ctrl, dd, start, fix){
 nosdreport <- function(obj, opt, terms){
   env <- obj$env
   r <- env$random
-  par.random <- if (!is.null(r)) env$last.par.best[r] else numeric(0)
+  # the conditional modes of the random effects at the estimates (not last.par.best, the best point
+  # evaluated so far, which need not be the estimates)
+  par.random <- if (!is.null(r)){
+    obj$fn(opt$par)
+    env$last.par[r]
+  } else numeric(0)
   pl <- env$parList(opt$par)
   toff <- 0
   corr <- unlist(lapply(terms, function(tm){
