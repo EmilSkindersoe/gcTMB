@@ -23,13 +23,12 @@ knitr::opts_chunk$set(
 
 This vignette covers the autocorrelation of the residuals of a plant over time, and simulation studies: simulating data from a fitted model, refitting it, and comparing the estimates with the true parameters, including the autocorrelation parameter.
 
-The model of the vignette *Fixed and random effects*, with treatment effects on the asymptote and the time of the maximum growth rate and random effects of the plants on both:
+A logistic growth curve with correlated random effects of the plants on the asymptote and the time of the maximum growth rate, as in the vignette *Fixed and random effects*, here without treatment effects:
 
 ```{r}
 library(gcTMB)
 library(ggplot2)
-FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-fitre <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)
+fitre <- gcTMB(height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)
 ```
 
 ## Autocorrelation of the residuals
@@ -45,7 +44,7 @@ The parameter $\rho$ is estimated on an unconstrained scale, as in nlme. For `co
 The heights are measured every 7 days, so with `corCAR1(form = ~ DAS | plant_ID)` $\rho$ is the correlation per day, and $\rho^7$ that of consecutive measurements:
 
 ```{r}
-fitrec <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25,
+fitrec <- gcTMB(height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25,
                 correlation = corCAR1(form = ~ DAS | plant_ID))
 summary(fitrec)
 corpars(fitrec)^7
@@ -56,17 +55,6 @@ anova(fitre, fitrec)
 
 ```{r}
 confint(fitrec, parm = "cor_par:CAR1")
-```
-
-The autocorrelation improves the fit clearly. The normalized residuals, the standardised residuals minus their conditional mean given the previous residual of the plant, divided by the conditional standard deviation, are independent under the model; their correlation between consecutive measurements of a plant is close to zero, whereas that of the Pearson residuals is not:
-
-```{r}
-lag1 <- function(r) {
-  o <- order(FabaHeights25$plant_ID, FabaHeights25$DAS)
-  same <- head(FabaHeights25$plant_ID[o], -1) == tail(FabaHeights25$plant_ID[o], -1)
-  cor(head(r[o], -1)[same], tail(r[o], -1)[same])
-}
-c(pearson = lag1(residuals(fitrec, type = "pearson")), normalized = lag1(residuals(fitrec, type = "normalized")))
 ```
 
 ## Simulation
@@ -149,39 +137,40 @@ In a full simulation study, these steps are repeated for many simulated data set
 
 With a correlation structure, `simulate()` draws the residuals of each group with the autocorrelation of the fit: within a plant in `newdata`, ordered in time, each residual given the previous one, $dt$ earlier, is normal with mean $\rho^{dt}$ times the previous residual and variance $\sigma^2 (1 - \rho^{2 dt})$. `update()` is designed for simulation studies like this one: it sets some of the parameters of a fitted model to chosen values and keeps the others, without refitting, so that the result can serve as the true model of the simulation. Its arguments are `fixef` for the coefficients, `VarCorr` for the covariance matrices of the random effects, `sigma` for the residual standard deviation, and `rho` for the autocorrelation.
 
-Here the true model is the fit `fitrec` from above, with treatment effects on $b_1$ and $b_2$, correlated random effects of the plants on both, and continuous-time AR(1) residuals. Its autocorrelation, $\rho = 0.96$ per day, is set to $\rho = 0.7$, and all other parameters keep their estimates:
+Here the true model is the fit `fitrec` from above, with correlated random effects of the plants on $b_1$ and $b_2$ and continuous-time AR(1) residuals. Its autocorrelation, $\rho = `r round(corpars(fitrec), 2)`$ per day, is set to $\rho = 0.8$ with `update()`, and all other parameters keep their estimates:
 
 ```{r sim-cartrue}
-rho0 <- 0.7
+rho0 <- 0.8
 fitcar <- update(fitrec, rho = rho0)
-rbind(estimated = c(fixef(fitrec)[1:3], sigma = sigma(fitrec), corpars(fitrec)),
-      true = c(fixef(fitcar)[1:3], sigma = sigma(fitcar), corpars(fitcar)))
 ```
 
-We simulate 50 data sets of 30 new plants, six for each treatment, each plant measured at 12 unequally spaced days between day 10 and day 63. We fit the model to each data set, now with $\rho$ estimated. `confint()` computes the Wald interval of $\rho$ on the logit scale and transforms it back.
+`update()` changes $\rho$ and nothing else, so the other parameters are those estimated together with $\rho = `r round(corpars(fitrec), 2)`$. Alternatively, a new fit with $\rho$ fixed at 0.8, `corCAR1(value = 0.8, fixed = TRUE)`, estimates the other parameters given $\rho = 0.8$. This is the way to go when the true model should fit the data as well as possible with the chosen $\rho$, and it has the higher log-likelihood; `update()` is the way to go when only $\rho$ should differ from the fitted model, e.g. to compare simulations with different autocorrelations and otherwise the same parameters.
 
-```{r sim-carrun}
+```{r sim-carfixed}
+fitfix <- gcTMB(height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25,
+                correlation = corCAR1(value = rho0, form = ~ DAS | plant_ID, fixed = TRUE))
+pars <- function(f) c(fixef(f)[c("b1:(Intercept)", "b2:(Intercept)", "b3:(Intercept)")],
+                      sigma = sigma(f), corpars(f), logLik = as.numeric(logLik(f)))
+rbind(estimated = pars(fitrec), updated = pars(fitcar), refitted = pars(fitfix))
+```
+
+We simulate from the updated model: 50 data sets of 30 new plants, each measured at 12 unequally spaced days between day 10 and day 63. We fit the model to each data set, now with $\rho$ estimated. `confint()` computes the Wald interval of $\rho$ on the logit scale and transforms it back.
+
+```{r sim-carrun,warning=FALSE}
 days <- c(10, 13, 17, 21, 24, 28, 35, 38, 42, 49, 56, 63)
 design <- expand.grid(DAS = days, plant_ID = paste0("p", 1:30))
-design$trt <- factor(rep(levels(FabaHeights25$trt), each = 6)[as.integer(design$plant_ID)],
-                     levels = levels(FabaHeights25$trt))
 sims <- simulate(fitcar, nsim = 50, seed = 1, newdata = design)
 carsim <- do.call(rbind, lapply(sims, function(y){
   dat <- cbind(design, height = y)
-  f1 <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = dat,
+  f1 <- gcTMB(height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = dat,
               correlation = corCAR1(form = ~ DAS | plant_ID))
   ci <- confint(f1, parm = "cor_par:CAR1", method = "wald")
-  # the same model without the autocorrelation
-  f0 <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = dat)
-  b2 <- "b2:(Intercept)"
   data.frame(rho = corpars(f1)[["rho"]], lower = ci[1], upper = ci[2],
-             covered = ci[1] <= rho0 & rho0 <= ci[2],
-             b2 = coef(f1)[[b2]], se.b2 = sqrt(vcov(f1)[b2, b2]),
-             b2.indep = coef(f0)[[b2]], se.b2.indep = sqrt(vcov(f0)[b2, b2]))
+             covered = ci[1] <= rho0 & rho0 <= ci[2])
 }))
 ```
 
-The means of the estimates of $\rho$ and of the bounds of their 95% Wald intervals, and the coverage of the intervals, against the true value 0.7:
+The means of the estimates of $\rho$ and of the bounds of their 95% Wald intervals, and the coverage of the intervals, against the true value 0.8:
 
 ```{r sim-cartab}
 colMeans(carsim[, c("rho", "lower", "upper", "covered")])
@@ -189,17 +178,10 @@ colMeans(carsim[, c("rho", "lower", "upper", "covered")])
 
 ```{r sim-carplot, fig.width = 5, fig.height = 3}
 ggplot(carsim, aes(x = rho)) +
-  geom_histogram(bins = 20, fill = "grey70", colour = "grey30") +
+  geom_histogram(bins = 10, fill = "grey70", colour = "grey30") +
   geom_vline(xintercept = rho0, colour = "red") +
   labs(x = expression(paste("Estimate of ", rho)), y = "Simulations") +
   theme_minimal()
-```
-
-The simulations also show how the uncertainty of the curve is estimated with and without the autocorrelation in the model. For the time of the maximum growth rate $b_2$ of the first treatment, the standard deviation of the estimates over the simulations can be compared with the mean standard errors of the two models, to see how well the standard errors reflect the variation of the estimates:
-
-```{r sim-carse}
-with(carsim, c(sd.b2 = sd(b2), mean.se.b2 = mean(se.b2),
-               sd.b2.indep = sd(b2.indep), mean.se.b2.indep = mean(se.b2.indep)))
 ```
 
 ## References
