@@ -95,6 +95,28 @@ test_that("control sdreport=FALSE gives the same estimates without standard erro
   expect_equal(coef(f0), coef(gcTMB(height ~ DAS, data = FabaHeights25)))
 })
 
+test_that("control restart=TRUE restarts a fit that did not converge, and converged accepts a stable optimum", {
+  # three plants and three correlated random effects: a flat likelihood, where nlminb reports
+  # false convergence at the maximum
+  f3 <- gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = FabaHeights25)
+  nd <- expand.grid(DAS = seq(10, 80, length.out = 8), plant_ID = paste0("p", 1:3))
+  nd$height <- simulate(f3, newdata = nd, seed = 1)[[1]]
+  ctrl <- list(sdreport = FALSE)
+  f0 <- suppressWarnings(gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = nd, control = ctrl))
+  f1 <- suppressWarnings(gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = nd,
+                               control = c(ctrl, restart = TRUE)))
+  expect_null(f0$restart)
+  expect_false(isTRUE(converged(f0)))
+  expect_true(is.list(f1$restart))
+  expect_lt(abs(f1$restart$improvement), 1e-6)
+  expect_gte(as.numeric(logLik(f1)), as.numeric(logLik(f0)))
+  expect_true(isTRUE(converged(f1)))
+  expect_false(isTRUE(converged(f1, lltol = 0)))
+  # a fit that converges is not restarted
+  expect_null(gcTMB(height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25,
+                    control = list(restart = TRUE))$restart)
+})
+
 test_that("singular fits count as converged unless singular=TRUE", {
   fs <- gcTMB(height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)
   fs$ssdrl[rownames(fs$ssdrl) == "theta", 1][1] <- log(1e-10)

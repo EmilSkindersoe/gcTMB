@@ -214,6 +214,21 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weig
   if (isTRUE(dd$trunc) && length(i4) > 0 && is.finite(opt$objective) && opt$convergence != 0){
     opt <- thresholdopt(obj, opt, i4, lower, upper, ctrl, dd, start, fix)
   }
+  # restart: once more from the estimates, if the optimiser did not report convergence or the gradient
+  # is large; the better of the two optima is kept, and the improvement shows whether the first one
+  # was already at the maximum (see converged)
+  restart <- NULL
+  if (isTRUE(control$restart) && is.finite(opt$objective)){
+    gr0 <- tryCatch(max(abs(obj$gr(opt$par))), error=function(e) Inf)
+    if (opt$convergence != 0 || !is.finite(gr0) || gr0 > 1e-3){
+      opt2 <- tryCatch(nlminb(start=opt$par, objective=obj$fn, gradient=obj$gr, lower=lower, upper=upper, control=ctrl),
+                       error=function(e) NULL)
+      improvement <- if (!is.null(opt2) && is.finite(opt2$objective)) opt$objective - opt2$objective else NA_real_
+      restart <- list(improvement=improvement, convergence=opt$convergence, message=opt$message, maxgrad=gr0)
+      if (!is.na(improvement) && improvement >= 0) opt <- opt2
+      obj$fn(opt$par)
+    }
+  }
   if (!is.finite(opt$objective)){
     warning("the negative log-likelihood is not finite at the estimates; some observations may be impossible under the model, e.g. positive counts where the curve is zero.", call.=FALSE)
   } else if (opt$convergence != 0){
@@ -245,6 +260,7 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weig
   res$lower <- lower
   res$upper <- upper
   res$opt <- opt
+  res$restart <- restart
   res$control <- control
   res$obj <- obj
   # without random effects, the Hessian by automatic differentiation: the default finite differences of

@@ -101,6 +101,20 @@ simfit <- gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = simdat
 converged(simfit)
 ```
 
+`converged()` checks that the log-likelihood is finite, that the optimiser reports convergence with a largest absolute gradient below $10^{-3}$, and that the Hessian is positive definite. With few individuals and several correlated random effects, the likelihood is often so flat in some directions that `nlminb` reports "singular convergence" or "false convergence", or stops with a gradient slightly above $10^{-3}$, although it is at the maximum. With `control = list(restart = TRUE)`, such a fit is optimised once more from its estimates. The fit keeps the better optimum, and `fit$restart$improvement` holds the improvement of the log-likelihood. `converged()` accepts a fit that the restart improved by less than `lltol` ($10^{-6}$ by default), since its maximum is stable. In a simulation study that does not need standard errors, `sdreport = FALSE` also saves about a quarter of the time of each fit, but then the Hessian is not checked. Here, with three plants:
+
+```{r sim-restart}
+small <- expand.grid(DAS = seq(10, 80, length.out = 8), plant_ID = paste0("p", 1:3))
+small$height <- simulate(fitsim, newdata = small, seed = 1)[[1]]
+f0 <- gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = small,
+            control = list(sdreport = FALSE))
+converged(f0)
+f1 <- gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = small,
+            control = list(sdreport = FALSE, restart = TRUE))
+f1$restart$improvement
+converged(f1)
+```
+
 The 95% parametric bootstrap confidence intervals of the coefficients and the variance parameters are compared with the true values, the estimates of the original fit. `confint` reports the standard deviations of the random effects and the residual standard deviation on their natural scale, while `coef` has them on the log scale, so the true values and the estimates are transformed in the same way. The correlations of the three random effects stay on the unconstrained scale of `coef`.
 
 ```{r sim-confint}

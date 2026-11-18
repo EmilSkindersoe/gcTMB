@@ -4,7 +4,13 @@
 \alias{converged}
 \title{Convergence of a gcTMB fit}
 \usage{
-converged(object, gradtol = 0.001, singular = FALSE, sdtol = 1e-08)
+converged(
+  object,
+  gradtol = 0.001,
+  singular = FALSE,
+  sdtol = 1e-08,
+  lltol = 1e-06
+)
 }
 \arguments{
 \item{object}{A gcTMB object, the result of \code{\link{gcTMB}}.}
@@ -17,6 +23,10 @@ close to zero, count as not converged; FALSE (default) accepts them.}
 
 \item{sdtol}{Numeric. With singular=TRUE, standard deviations of the random effects below sdtol
 make the fit singular.}
+
+\item{lltol}{Numeric. For a fit restarted by \code{control=list(restart=TRUE)}: if the restart
+improved the log-likelihood by less than lltol, the optimiser message and the gradient are not
+checked.}
 }
 \value{
 TRUE or FALSE, with the attribute \code{reasons}, a character vector of the failed checks
@@ -31,6 +41,14 @@ the random effects close to zero count as converged; with \code{singular=TRUE} s
 do not (a standard deviation below \code{sdtol}, or with a standard error of its log that is not
 finite or above 100, as in \code{summary}). Note that the Hessian of a singular fit is often not
 positive definite.
+}
+\details{
+A fit with \code{control=list(restart=TRUE)} (see \code{\link{gcTMBcontrol}}) that was optimised a
+second time from its estimates, and whose log-likelihood the restart improved by less than
+\code{lltol}, is at the maximum: the convergence message of the optimiser and the gradient are
+then not checked. With few groups and several correlated random effects, the likelihood is often
+too flat in some directions for nlminb to report convergence or reach a gradient below gradtol,
+although the maximum is reached.
 }
 \examples{
 fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)

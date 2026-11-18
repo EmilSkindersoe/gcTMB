@@ -157,7 +157,7 @@ fitsim <- gcTMB(height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = design,
 c(true = corpars(fitrec), estimate = corpars(fitsim))
 ```
 
-The vignette *Autocorrelation and simulation* repeats this for many data sets.
+The vignette *Autocorrelation and simulation* repeats this for many data sets. In simulation studies, `control = list(sdreport = FALSE, restart = TRUE)` skips the standard errors and optimises a fit that does not converge once more from its estimates, and `converged()` checks the fits.
 
 ## References
 

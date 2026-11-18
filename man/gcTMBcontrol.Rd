@@ -9,7 +9,8 @@ gcTMBcontrol(
   iter.max = 1000,
   eval.max = 2000,
   smallsample = TRUE,
-  sdreport = TRUE
+  sdreport = TRUE,
+  restart = FALSE
 )
 }
 \arguments{
@@ -30,6 +31,15 @@ predictions. FALSE skips it, which saves about a quarter of the time of a fit wi
 effects, e.g. in simulation studies that only need the estimates and the log-likelihood: the
 standard errors, \code{vcov} and the Wald intervals are then NA, and \code{\link{converged}}
 does not check the Hessian. Profile and bootstrap intervals are still available.}
+
+\item{restart}{Logical. If TRUE, a fit whose optimiser does not report convergence, or whose
+largest absolute gradient is above 1e-3, is optimised once more from its estimates, and keeps the
+better of the two optima. With few groups and several correlated random effects, the likelihood
+is often so flat in some directions that nlminb reports "singular convergence" or "false
+convergence", or stops with a gradient slightly above the tolerance, at the maximum: the restart
+then hardly changes the log-likelihood. The improvement of the log-likelihood by the restart is
+kept in the fit (\code{fit$restart$improvement}), and \code{\link{converged}} accepts a fit that
+the restart improved by less than its argument lltol. FALSE (default) for no restart.}
 }
 \value{
 A list with the control parameters.
@@ -43,4 +53,8 @@ gcTMBcontrol(iter.max=2000)
 gcTMB(height ~ DAS, data=FabaHeights25, control=list(smallsample=FALSE))
 # estimates only, without standard errors
 gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=FabaHeights25, control=list(sdreport=FALSE))
+# a second optimisation from the estimates when the first one does not converge
+fit <- gcTMB(height ~ DAS, rform=b1 + b2 + b3 ~ 1 | plant_ID, data=FabaHeights25,
+             control=list(restart=TRUE))
+converged(fit)
 }

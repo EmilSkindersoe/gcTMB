@@ -172,6 +172,13 @@ covtheta <- function(S, np, name){
 #' finite or above 100, as in \code{summary}). Note that the Hessian of a singular fit is often not
 #' positive definite.
 #'
+#' A fit with \code{control=list(restart=TRUE)} (see \code{\link{gcTMBcontrol}}) that was optimised a
+#' second time from its estimates, and whose log-likelihood the restart improved by less than
+#' \code{lltol}, is at the maximum: the convergence message of the optimiser and the gradient are
+#' then not checked. With few groups and several correlated random effects, the likelihood is often
+#' too flat in some directions for nlminb to report convergence or reach a gradient below gradtol,
+#' although the maximum is reached.
+#'
 #' @param object A gcTMB object, the result of \code{\link{gcTMB}}.
 #' @param gradtol Numeric. The largest acceptable absolute gradient of the negative log-likelihood,
 #'   projected on the bounds of the coefficients.
@@ -179,6 +186,9 @@ covtheta <- function(S, np, name){
 #'   close to zero, count as not converged; FALSE (default) accepts them.
 #' @param sdtol Numeric. With singular=TRUE, standard deviations of the random effects below sdtol
 #'   make the fit singular.
+#' @param lltol Numeric. For a fit restarted by \code{control=list(restart=TRUE)}: if the restart
+#'   improved the log-likelihood by less than lltol, the optimiser message and the gradient are not
+#'   checked.
 #'
 #' @return TRUE or FALSE, with the attribute \code{reasons}, a character vector of the failed checks
 #'   (empty for a converged fit). NA for a model with parameters set by \code{\link{update.gcTMB}}.
@@ -188,16 +198,18 @@ covtheta <- function(S, np, name){
 #' converged(fit)
 #'
 #' @export
-converged <- function(object, gradtol=1e-3, singular=FALSE, sdtol=1e-8){
+converged <- function(object, gradtol=1e-3, singular=FALSE, sdtol=1e-8, lltol=1e-6){
   if (isTRUE(object$modified)) return(structure(NA, reasons="parameters set by update()"))
   s <- summary(object)
   sds <- unlist(lapply(s$varcor, function(vc) setNames(vc$sd, paste(vc$group, vc$labels))))
   small <- names(sds)[sds < sdtol]
+  # a restart (control restart=TRUE) that hardly changed the log-likelihood: the fit is at the maximum
+  stable <- !is.null(object$restart) && is.finite(object$restart$improvement) && object$restart$improvement < lltol
   reasons <- c(
     if (!is.finite(as.numeric(s$logLik))) "the log-likelihood is not finite",
-    if (s$convergence != 0) paste("the optimiser did not converge:", s$message),
+    if (!stable && s$convergence != 0) paste("the optimiser did not converge:", s$message),
     if (!isTRUE(s$nosdreport) && !isTRUE(s$pdHess)) "the Hessian is not positive definite",
-    if (is.finite(s$maxgrad) && s$maxgrad > gradtol) paste("the largest absolute gradient is", format(s$maxgrad, digits=2)),
+    if (!stable && is.finite(s$maxgrad) && s$maxgrad > gradtol) paste("the largest absolute gradient is", format(s$maxgrad, digits=2)),
     if (!is.finite(s$maxgrad)) "the gradient is not finite",
     if (singular && length(union(s$singular, small)) > 0) paste("singular fit:", paste(union(s$singular, small), collapse=", ")))
   structure(length(reasons) == 0, reasons=reasons)
