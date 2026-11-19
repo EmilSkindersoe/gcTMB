@@ -52,7 +52,7 @@ fit_nlme <- function() {
 # correlated random effects on b1-b3, from gcTMB's own starting values (straight-line fits on the
 # linearised curve), which give a better fit than the starting values of SSlogis
 fit_gctmb <- function() {
-  gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = FabaHeights25, model = "logistic",control=list(sdreport=FALSE,optimiser="nlmq"))
+  gcTMB(height ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant_ID, data = FabaHeights25, model = "logistic",control=list(sdreport=FALSE,optimiser="nlminb"))
 }
 
 # the two fits agree (the log-likelihoods differ a little: nlme approximates the likelihood by
