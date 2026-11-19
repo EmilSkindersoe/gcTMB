@@ -62,3 +62,6 @@ README.Rmd
 
 # pkgdown site, built locally for checking; GitHub Actions builds and publishes it
 docs/
+
+# hex sticker script (local only; the sticker itself, man/figures/logo.png, is committed)
+HexSticker.R
