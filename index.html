@@ -14,6 +14,7 @@
 ">
 <meta property="og:description" content="Non-linear growth curves (logistic, Richards, Gompertz, Hill, Weibull and more) with covariates, random effects and autocorrelated residuals, fitted by maximum likelihood with TMB.
 ">
+<meta property="og:image" content="https://emilskindersoe.github.io/gcTMB/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -23,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9004</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9005</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,8 +60,11 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="gctmb">gcTMB<a class="anchor" aria-label="anchor" href="#gctmb"></a>
-</h1></div>
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="gctmb">gcTMB<a class="anchor" aria-label="anchor" href="#gctmb"></a>
+</h1>
+</div>
+<p><img src="reference/figures/logo.png" align="right" height="139" alt="gcTMB hex sticker"></p>
 <p>gcTMB fits non-linear growth curves over time by maximum likelihood with the Template Model Builder (<a href="https://github.com/kaskr/adcomp" class="external-link">TMB</a>). The parameters of the curves can depend on covariates, have random effects for repeated measurements of the same individuals, and the residuals can be autocorrelated over time; the response can be continuous, a count or a proportion. Derived quantities such as the time to reach 90% of the asymptote or the maximum growth rate come with standard errors by automatic differentiation.</p>
 <div class="section level2">
 <h2 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>

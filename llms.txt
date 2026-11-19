@@ -1,5 +1,7 @@
 # gcTMB
 
+![gcTMB hex sticker](reference/figures/logo.png)
+
 gcTMB fits non-linear growth curves over time by maximum likelihood with
 the Template Model Builder ([TMB](https://github.com/kaskr/adcomp)). The
 parameters of the curves can depend on covariates, have random effects
