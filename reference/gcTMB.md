@@ -1,0 +1,495 @@
+# Fit a growth curve
+
+Fits a nonlinear growth curve over time by maximum likelihood with the
+Template Model Builder (TMB), optionally with covariates on the
+parameters and random effects, which are integrated out by the Laplace
+approximation.
+
+## Usage
+
+``` r
+gcTMB(
+  form,
+  fform = NULL,
+  rform = NULL,
+  data,
+  start = NULL,
+  fix = NULL,
+  weights = NULL,
+  lower = -Inf,
+  upper = Inf,
+  family = "gaussian",
+  model = "logistic",
+  truncated = TRUE,
+  link = NULL,
+  b1type = c("asymptote", "rate"),
+  correlation = NULL,
+  gsl = NULL,
+  gsu = NULL,
+  gsn = NULL,
+  control = list()
+)
+```
+
+## Arguments
+
+- form:
+
+  Formula, with the names of the response and the time variable, e.g.
+  `weight ~ day`
+
+- fform:
+
+  Formula, list of formulas, or NULL. Fixed effects for the model
+  parameters: a formula of the form b1 + b2 ~ Treatment, or a list of
+  such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site).
+  Parameters not listed have a single intercept (~ 1). A list of five
+  right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~
+  1), is also accepted.
+
+- rform:
+
+  Formula, list of formulas, or NULL. Random effects: a formula of the
+  form b1 + b2 ~ 1 \| individual for random intercepts, or b1 ~ x \|
+  individual for random intercepts and slopes in a covariate x, or a
+  list of such formulas, e.g. list(b1 + b2 ~ 1 \| plant, b1 ~ 1 \|
+  plot). The random effects within a formula are correlated across the
+  listed parameters and their intercepts and slopes; different formulas
+  and the levels of nested factors (1 \| plot/plant) are independent
+  terms. With a double bar, all the random coefficients of the formula
+  are independent, across the parameters as well as their intercepts and
+  slopes: b1 + b2 ~ 1 \|\| individual is list(b1 ~ 1 \| individual, b2 ~
+  1 \| individual), a diagonal covariance matrix as random=pdDiag(b1 +
+  b2 ~ 1) in nlme. A list of formulas combines the two into a
+  block-diagonal covariance matrix: list(b1 + b2 ~ 1 \| individual, b3 ~
+  1 \| individual) gives correlated random effects of b1 and b2, and a
+  random effect of b3 independent of both, as
+  random=pdBlocked(list(pdSymm(b1 + b2 ~ 1), pdSymm(b3 ~ 1))) in nlme.
+  The random slopes of a parameter usually go with a fixed effect of the
+  covariate in fform.
+
+- data:
+
+  Data frame. Observations with missing values in the variables of the
+  model or in the weights are left out.
+
+- start:
+
+  Numeric vector or NULL. Starting values for each model coefficient. NA
+  entries are replaced by the starting values of
+  [`gcTMBstart`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md).
+  Alternatively, a vector named by parameter, e.g. c(b1=10), gives the
+  same starting value to all coefficients of each named parameter.
+
+- fix:
+
+  Logical vector or NULL. One entry for each model coefficient. If TRUE,
+  a model coefficient is fixed to its value in start. Alternatively, a
+  vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of
+  the named parameters; their values must then be given in start, e.g.
+  start=c(b1=10). The threshold b4 and the asymmetry b5 are fixed by
+  default, at b4 = 0 (the curve starts at zero at t = 0) and b5 = 1 (the
+  symmetric curve) unless given in start; fix=c(b4=FALSE) or
+  fix=c(b5=FALSE), or an unnamed fix vector, estimates them. Without
+  truncation, b4 is not used and always fixed, at 0 unless given in
+  start.
+
+- weights:
+
+  Numeric vector or NULL. Weights, one for each row of data. Unlike the
+  `weights` of nlme, which are variance functions (`varFunc`), these are
+  numeric case weights of the log-likelihood; with a correlation
+  structure, they are precision weights, as `weights=varFixed(~ 1/w)` in
+  nlme.
+
+- lower:
+
+  Numeric, a single value or a vector. Lower bounds for the model
+  coefficients b1-b5, a single value or a vector with the same length as
+  start. Bounds of fixed coefficients are ignored; variance parameters
+  are unbounded.
+
+- upper:
+
+  Numeric, a single value or a vector. Upper bounds for the model
+  coefficients b1-b5, a single value or a vector with the same length as
+  start.
+
+- family:
+
+  Character string. The distribution of the response, one of "gaussian",
+  "lognormal", "binomial", "betabinomial", "beta", "poisson", "nbinom2",
+  and "nbinom1". For the lognormal family, log(y) is normal with mean
+  log f(t) and standard deviation sigma: the curve f is the median of a
+  positive response, with a constant coefficient of variation; the mean
+  is f(t) exp(sigma^2/2). The negative binomial families are for
+  overdispersed counts, with variance mu (1 + mu/theta) for nbinom2 and
+  mu (1 + phi) for nbinom1, and the beta-binomial family for
+  overdispersed binomial counts, with variance n mu (1 - mu) (1 + (n -
+  1)/(phi + 1)) for n trials, as in glmmTMB.
+
+- model:
+
+  Character string. The growth model: "logistic" (default), "gompertz",
+  "hill", "weibull", "normal" or "gamma", each with an asymmetry
+  parameter b5, or "linear" for a straight line, see Details.
+
+- truncated:
+
+  Logical. If TRUE (default), the curve is truncated at a threshold time
+  b4, by default fixed at 0: the response is zero up to b4 and then
+  grows, see Details. FALSE for the curves without truncation.
+
+- link:
+
+  Named character vector or NULL. Links of the parameters b1-b5: NULL
+  for the defaults (the identity link for all parameters), or links
+  named by parameter, e.g. `link=c(b1="log", b3="inverse")`. The
+  asymptote b1 has the link "identity" (default), "log" or "logit"; the
+  times b2 and b4 (the threshold of a truncated curve) "identity"
+  (default) or "log"; the asymmetry b5 "identity" (default) or "log", to
+  keep it positive; and the scale b3 "identity" (default), "inverse",
+  with which its coefficients are the growth rate 1/b3, or "log". The
+  coefficients, and start, fix, lower, upper and curves of
+  [`timeto`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md),
+  are on the scale of the links, see Details.
+
+- b1type:
+
+  Character string. The meaning of b1: "asymptote" (default), or "rate"
+  for the maximum growth rate of the curve, see Details. With "rate",
+  covariates and random effects on b1 are effects on the maximum growth
+  rate, which
+  [`anova.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/anova.gcTMB.md)
+  and
+  [`pairwise`](https://emilskindersoe.github.io/gcTMB/reference/pairwise.md)
+  can test.
+
+- correlation:
+
+  A correlation structure or NULL. The autocorrelation of the residuals
+  within groups over time,
+  [`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  or
+  [`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  (or the same structures of the package nlme), e.g.
+  `corCAR1(form=~ day | plant)`, for the gaussian and lognormal (on the
+  log scale) families. NULL (default) for independent residuals. See
+  [`corStruct`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md);
+  with a correlation structure, the weights are precision weights, with
+  residual variance sigma^2/w.
+
+- gsl:
+
+  Numeric vector or NULL. Lower bounds for a grid search, same length as
+  start; NA for the default range. If gsl, gsu and gsn are all NULL, no
+  grid search is performed. See
+  [`gcTMBstart`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md).
+
+- gsu:
+
+  Numeric vector or NULL. Upper bounds for a grid search, same length as
+  start; NA for the default range.
+
+- gsn:
+
+  Integer, a single number or a vector, or NULL. Number of grid points
+  for each parameter, a single number or a vector with the same length
+  as start. `gsn=10` alone runs a grid search over the default ranges.
+
+- control:
+
+  List. Control parameters, the arguments of
+  [`gcTMBcontrol`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBcontrol.md),
+  e.g. `list(iter.max=2000)`. See
+  [`gcTMBcontrol`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBcontrol.md)
+  for details.
+
+## Value
+
+A gcTMB object, with methods for `print`, `summary`, `coef`, `vcov`,
+`predict`, `confint`, `anova`, `plot` and others, see
+[`gcTMB-methods`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-methods.md).
+
+## Details
+
+The growth models are of the form f(t) = b1 F(z(t)), with a distribution
+function F increasing from 0 to 1 and a transformed time z(t):
+
+- logistic: f(t) = b1 / (1 + exp(-(t - b2)/b3)), with the logistic F(z)
+  = 1/(1 + exp(-z)) and z = (t - b2)/b3; symmetric around b2, where the
+  curve reaches half of its asymptote;
+
+- gompertz: f(t) = b1 exp(-exp(-(t - b2)/b3)), F(z) = exp(-exp(-z)) and
+  z = (t - b2)/b3; it reaches exp(-1), about 37\\ than it leaves zero;
+
+- hill: f(t) = b1 / (1 + (b2/t)^b3), the logistic F of z = b3 (log t -
+  log b2), a logistic curve on the log time axis (log-logistic); b2 is
+  the time at which the curve reaches half of its asymptote, and b3 the
+  slope on the log time axis;
+
+- weibull: f(t) = b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)), F(z) = 1 -
+  exp(-exp(z)) and z = b3 (log t - log b2) + log((b3 - 1)/b3); b2 is the
+  inflection point and b3 \> 1 the shape;
+
+- normal: f(t) = b1 Phi((t - b2)/b3), the standard normal distribution
+  function Phi of z = (t - b2)/b3; symmetric around b2, where the curve
+  reaches half of its asymptote;
+
+- gamma: f(t) = b1 F(t), with F the cumulative distribution function
+  (CDF) of the gamma distribution with shape b3 \> 1 and scale b2/(b3 -
+  1), whose density has its mode at b2: b2 is the inflection point and
+  b3 the shape;
+
+- linear: f(t) = b1 t + b2, a straight line with slope b1 and intercept
+  b2, for comparison with the growth curves. It has no asymptote, does
+  not use b3-b5 and is not truncated;
+  [`timeto`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md)
+  gives the times at which it reaches given responses
+  (`type="absolute"`), and
+  [`maxrate`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md)
+  its constant rate b1.
+
+**Relation to nlme.** Parts of the interface follow the package nlme
+(Pinheiro and Bates, 2000), so that models can be moved between
+[`nlme::nlme`](https://rdrr.io/pkg/nlme/man/nlme.html)/[`nlme::gnls`](https://rdrr.io/pkg/nlme/man/gnls.html)
+and gcTMB:
+
+- the fixed and random effects are formulas for the parameters, as the
+  arguments `fixed` and `random` of
+  [`nlme::nlme`](https://rdrr.io/pkg/nlme/man/nlme.html):
+  `fform=b1 + b2 ~ trt` or `fform=list(b1 ~ trt, b2 ~ 1)`, and
+  `rform=b1 + b2 ~ 1 | plant`. The random effects of a formula have an
+  unstructured covariance matrix, as `pdSymm`; uncorrelated random
+  effects, as `pdDiag`, are separate terms, e.g.
+  `rform=list(b1 ~ 1 | plant, b2 ~ 1 | plant)` or `b1 ~ x || plant`.
+  Nested factors (`1 | plot/plant`) and the double bar use the syntax of
+  lme4;
+
+- the correlation structures
+  [`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  and
+  [`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  have the arguments and the parameterisation of nlme, whose objects are
+  accepted as well, and `residuals(fit, type="normalized")` gives the
+  normalized residuals of nlme;
+
+- [`fixef`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md),
+  [`ranef`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md)
+  and
+  [`VarCorr`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md)
+  are generics with the names of those of nlme, and work for gcTMB, nlme
+  and lme4 fits whichever package is attached last;
+
+- `predict` and `fitted` with `random=FALSE` correspond to `level=0` of
+  nlme (the population curves), and with `random=TRUE` to the innermost
+  level.
+
+The differences: gcTMB fits by maximum likelihood (the Laplace
+approximation with random effects), so its log-likelihoods, AIC and
+likelihood ratio tests compare with nlme fits with `method="ML"`, not
+with the default REML of
+[`nlme::lme`](https://rdrr.io/pkg/nlme/man/lme.html) and
+[`nlme::gls`](https://rdrr.io/pkg/nlme/man/gls.html); the integration
+over the random effects is exact for gaussian responses with random
+effects that enter the curve linearly, e.g. random asymptotes, where
+nlme's linearisation can stop slightly short of the maximum. `coef`
+returns the estimated coefficients and variance parameters, not the
+coefficients of each group as `coef` of nlme (use
+`predict(fit, type="parameters")` for those); `weights` are numeric
+weights, not variance functions; and the results of `ranef` and
+`VarCorr` have the format of lme4 (a list of data frames, and of
+covariance matrices).
+[`confint.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/confint.gcTMB.md)
+gives the intervals of `intervals` of nlme.
+
+The asymmetry b5, the truncation at the threshold b4, the maximum growth
+rates and inflection points, the rate 1/b3 and the small-sample
+inference are described in the vignette,
+[`vignette("gcTMB")`](https://emilskindersoe.github.io/gcTMB/articles/gcTMB.md);
+the links in the argument `link`.
+
+With `b1type="rate"`, b1 is the maximum growth rate of the curve, the
+slope at its inflection point (see
+[`maxrate`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md)),
+instead of the asymptote; the asymptote is b1 divided by the maximum
+growth rate of the curve with asymptote 1, which depends on b2-b5. The
+model is the same as with the asymptote, unless b1 has random effects,
+which are then random maximum growth rates. `predict(type="parameters")`
+gives the asymptote as well. The maximum growth rate has a closed form
+for all the models with b5 = 1, and for the logistic (Richards) and hill
+curves also with an asymmetry b5; the gompertz, weibull, normal and
+gamma models need b5 fixed at 1. The hill curve has a maximum growth
+rate at a positive time only for b3 b5 \> 1. For the linear model, b1 is
+the rate anyway.
+
+## References
+
+Pinheiro, J.C. and Bates, D.M. (2000). Mixed-Effects Models in S and
+S-PLUS. Springer, New York.
+
+## See also
+
+[`maxrate`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md)
+for the maximum growth rate and its timing,
+[`timeto`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md)
+for the times to reach a level of the asymptote,
+[`gcTMBstart`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md)
+for the starting values.
+
+## Examples
+
+``` r
+# logistic growth of the faba bean plants
+fit <- gcTMB(height ~ DAS, data=FabaHeights25, model="logistic")
+summary(fit)
+#> Call:
+#> gcTMB(form = height ~ DAS, data = FabaHeights25, model = "logistic")
+#> 
+#> Model:  logistic, truncated at b4 = 0
+#> Family: gaussian, identity link for all parameters
+#> 
+#> Number of observations: 200
+#> Log-likelihood: -699.2 (df = 4), AIC: 1406, BIC: 1420
+#> 
+#> Coefficients:
+#>                Estimate Std. Error
+#> b1:(Intercept)   120.79      3.652
+#> b2:(Intercept)    30.73      0.682
+#> b3:(Intercept)    12.88      0.977
+#> 
+#> Residual standard deviation: 8.043 on 197 degrees of freedom
+#> 
+#> Optimiser: relative convergence (4), maximum absolute gradient 3.4e-08
+
+# the other models, compared by AIC
+fitg <- gcTMB(height ~ DAS, data=FabaHeights25, model="gompertz")
+fith <- gcTMB(height ~ DAS, data=FabaHeights25, model="hill")
+fitw <- gcTMB(height ~ DAS, data=FabaHeights25, model="weibull")
+fitn <- gcTMB(height ~ DAS, data=FabaHeights25, model="normal")
+fitgam <- gcTMB(height ~ DAS, data=FabaHeights25, model="gamma")
+fitlin <- gcTMB(height ~ DAS, data=FabaHeights25, model="linear")
+AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin)
+#>        df      AIC
+#> fit     4 1406.470
+#> fitg    4 1407.658
+#> fith    4 1409.892
+#> fitw    4 1407.757
+#> fitn    4 1406.412
+#> fitgam  4 1409.685
+#> fitlin  3 1443.592
+
+# the Richards curve: the logistic model with an estimated asymmetry b5
+fitr5 <- gcTMB(height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE))
+coef(fitr5)
+#> b1:(Intercept) b2:(Intercept) b3:(Intercept) b5:(Intercept)      log_sigma 
+#>    120.9525457     30.6657471     12.9844198      0.9728521      2.0772341 
+
+# the rate 1/b3 instead of the scale b3
+gcTMB(height ~ DAS, data=FabaHeights25, link=c(b3="inverse"))
+#> Call:
+#> gcTMB(form = height ~ DAS, data = FabaHeights25, link = c(b3 = "inverse"))
+#> 
+#> Model:  logistic, truncated at b4 = 0
+#> Family: gaussian, inverse link for b3, identity link for the other parameters
+#> 
+#> Coefficients:
+#> b1:(Intercept)  b2:(Intercept)  b3:(Intercept)  
+#>      120.78512        30.72998         0.07764  
+#> 
+#> Residual standard deviation: 8.043
+
+# treatment effects on the asymptote as ratios, with the log link
+FabaHeights25$trt <- factor(FabaHeights25$Treatment)
+fitl <- gcTMB(height ~ DAS, fform=b1 ~ trt, data=FabaHeights25, link=c(b1="log"))
+exp(coef(fitl)[2:5])
+#> b1:trt0.3 b1:trt0.5 b1:trt0.6 b1:trt0.8 
+#>  1.007483  1.077149  1.075851  1.050422 
+
+# treatment effects on the asymptote and random effects of the plants
+FabaHeights25$trt <- factor(FabaHeights25$Treatment)
+fitre <- gcTMB(height ~ DAS, fform=b1 ~ trt, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+summary(fitre)
+#> Call:
+#> gcTMB(form = height ~ DAS, fform = b1 ~ trt, rform = b1 + b2 ~ 
+#>     1 | plant_ID, data = FabaHeights25)
+#> 
+#> Model:  logistic, truncated at b4 = 0
+#> Family: gaussian, identity link for all parameters
+#> 
+#> Number of observations: 200, groups: plant_ID 25
+#> Log-likelihood: -509.5 (df = 11), AIC: 1041, BIC: 1077
+#> 
+#> Coefficients:
+#>                Estimate Std. Error
+#> b1:(Intercept)  115.742      4.058
+#> b1:trt0.3        -3.157      5.681
+#> b1:trt0.5         9.850      5.593
+#> b1:trt0.6        11.136      5.618
+#> b1:trt0.8         8.983      5.635
+#> b2:(Intercept)   30.874      0.540
+#> b3:(Intercept)   12.844      0.250
+#> 
+#> Random effects:
+#>  Groups   Name Std.Dev. Corr 
+#>  plant_ID b1   8.842         
+#>           b2   2.550    -0.33
+#> 
+#> Residual standard deviation: 2.075
+#> 
+#> Optimiser: relative convergence (4), maximum absolute gradient 5.2e-05
+
+# treatment effects on the maximum growth rate, b1 with b1type = "rate", tested by a likelihood
+# ratio test and compared in pairs
+fitr <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25, b1type="rate")
+fitr0 <- gcTMB(height ~ DAS, fform=b2 ~ trt, data=FabaHeights25, b1type="rate")
+anova(fitr0, fitr)
+#> Likelihood ratio tests of gcTMB models
+#> 
+#>       npar    AIC    BIC  logLik deviance     LR Df  Pr(>LR)   
+#> fitr0    8 1409.4 1435.8 -696.71   1393.4                      
+#> fitr    12 1401.8 1441.4 -688.90   1377.8 15.619  4 0.003576 **
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+pairwise(fitr, newdata=data.frame(trt=levels(FabaHeights25$trt)))
+#> Pairwise differences of b1 (maximum growth rate):
+#> 
+#>                   Estimate Std.Error t value p.value  lower    upper
+#> trt=0.1 - trt=0.3   0.0149    0.0776   0.193  0.9997 -0.199  0.22851
+#> trt=0.1 - trt=0.5  -0.2053    0.0822  -2.498  0.0946 -0.432  0.02101
+#> trt=0.1 - trt=0.6  -0.2180    0.0835  -2.611  0.0715 -0.448  0.01188
+#> trt=0.1 - trt=0.8  -0.1624    0.0839  -1.937  0.3016 -0.393  0.06853
+#> trt=0.3 - trt=0.5  -0.2203    0.0794  -2.774  0.0472 -0.439 -0.00163
+#> trt=0.3 - trt=0.6  -0.2330    0.0807  -2.885  0.0344 -0.455 -0.01063
+#> trt=0.3 - trt=0.8  -0.1774    0.0811  -2.186  0.1884 -0.401  0.04607
+#> trt=0.5 - trt=0.6  -0.0127    0.0849  -0.150  0.9998 -0.247  0.22107
+#> trt=0.5 - trt=0.8   0.0429    0.0854   0.502  0.9872 -0.192  0.27804
+#> trt=0.6 - trt=0.8   0.0556    0.0867   0.642  0.9689 -0.183  0.29427
+#> 
+#> Wald t tests on 189 degrees of freedom; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits.
+
+# residuals of each plant correlated over time, continuous-time AR(1)
+fitc <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25,
+              correlation=corCAR1(form=~ DAS | plant_ID))
+corpars(fitc)
+#>      rho 
+#> 0.953607 
+
+# pod counts with a poisson distribution
+gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson")
+#> Call:
+#> gcTMB(form = pods ~ DAS, data = FabaCounts23, family = "poisson")
+#> 
+#> Model:  logistic, truncated at b4 = 0
+#> Family: poisson, identity link for all parameters
+#> 
+#> Coefficients:
+#> b1:(Intercept)  b2:(Intercept)  b3:(Intercept)  
+#>         16.361          71.947           1.569  
+
+# no pods before a threshold b4, after which the count grows
+fitt <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
+coef(fitt)
+#> b1:(Intercept) b2:(Intercept) b3:(Intercept) b4:(Intercept) 
+#>      17.690093      72.296815       2.117993      65.000000 
+```
