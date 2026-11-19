@@ -13,3 +13,7 @@
 ^nlme-project-gcTMB$
 ^nlme project$
 ^profile_script\.R$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$

@@ -57,6 +57,8 @@ pak::pak("EmilSkindersoe/gcTMB")
 
 ## Documentation
 
+The website <https://emilskindersoe.github.io/gcTMB/> has all the help pages and the vignettes as web pages.
+
 The vignettes introduce the package with worked examples on faba bean
 data:
 
@@ -254,7 +256,7 @@ The curves of the plants and the population curves of the treatments:
 plot(fit1, type = "curves", times = seq(0, 61, by = 0.5))
 ```
 
-![](README-curves-1.png)<!-- -->
+![Fitted growth curves of the faba bean plants and the population curves of the treatments](man/figures/README-curves-1.png)<!-- -->
 
 The times to reach 90% of the asymptote for each treatment:
 
@@ -337,6 +339,13 @@ and lme4 fits alike, and the formulas of the effects and the correlation
 structures follow nlme; gcTMB fits by maximum likelihood, so its
 likelihoods compare with nlme fits with `method = "ML"`. See `?gcTMB`,
 *Relation to nlme*.
+
+## Acknowledgements
+
+gcTMB started as a fork of [drcTMB](https://github.com/daniel-gerhard/drcTMB)
+by Daniel Gerhard, which fits dose-response curves with the Template Model
+Builder. It has since been developed into a standalone package for growth
+curves, but builds on the ideas and code of drcTMB.
 
 ## License
 

@@ -1,0 +1,63 @@
+url: https://emilskindersoe.github.io/gcTMB/
+
+template:
+  bootstrap: 5
+
+home:
+  title: "gcTMB: Fitting Growth Curves Using the Template Model Builder"
+  description: >
+    Non-linear growth curves (logistic, Richards, Gompertz, Hill, Weibull and more) with
+    covariates, random effects and autocorrelated residuals, fitted by maximum likelihood with TMB.
+
+navbar:
+  structure:
+    left: [intro, reference, articles]
+    right: [search, github]
+
+reference:
+- title: Fitting growth curves
+  contents:
+  - gcTMB
+  - gcTMBcontrol
+  - gcTMBstart
+  - corStruct
+  - update.gcTMB
+  - converged
+- title: Methods and extractors
+  contents:
+  - gcTMB-methods
+  - gcTMB-extract
+  - plot.gcTMB
+  - criteria
+- title: Inference
+  contents:
+  - anova.gcTMB
+  - confint.gcTMB
+  - profile.gcTMB
+  - bootstrap
+  - pairwise
+- title: Timing and maximum growth rates
+  contents:
+  - timeto
+  - timetoTMB-methods
+  - profile.timetoTMB
+  - maxrate
+  - maxrateTMB-methods
+  - confint.maxrateTMB
+  - profile.maxrateTMB
+- title: Data
+  contents:
+  - FabaHeights25
+  - FabaCounts23
+- title: Package
+  contents:
+  - gcTMB-package
+
+articles:
+- title: Topics
+  navbar: Topics
+  contents:
+  - growth-models
+  - fixed-random-effects
+  - timing-rates
+  - autocorrelation-simulation
