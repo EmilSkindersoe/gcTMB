@@ -1,6 +1,6 @@
 # Runs R CMD check on several operating systems and R versions on every push and pull request.
-# Based on the r-lib/actions "check-standard" example workflow, with extra rows for old R versions
-# to find out the oldest R that gcTMB (and the packages it depends on) actually works with.
+# Based on the r-lib/actions "check-standard" example workflow, with an extra row for the oldest R
+# that gcTMB supports (the Depends line of DESCRIPTION).
 on:
   push:
     branches: [main, master]
@@ -27,20 +27,25 @@ jobs:
           - {os: ubuntu-latest,  r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-latest,  r: 'release'}
           - {os: ubuntu-latest,  r: 'oldrel-1'}
-          - {os: ubuntu-latest,  r: 'oldrel-4'}
-          # Probes of old R versions: DESCRIPTION claims R >= 3.6. Once the oldest working
-          # version is known, set Depends to it and keep only that row here.
-          - {os: ubuntu-22.04,   r: '4.1'}
-          - {os: ubuntu-22.04,   r: '3.6'}
+          # The oldest supported R: ggplot2 needs S7, which needs R >= 4.2. Some suggested packages
+          # (glmmTMB, through pbkrtest, doBy and Deriv) need R >= 4.5, so this row installs only
+          # the packages gcTMB needs plus those the tests and vignettes use; the tests skip the rest.
+          - {os: ubuntu-latest,  r: '4.2', dependencies: '"hard"',
+             extra-packages: 'any::knitr any::rmarkdown any::testthat any::nlme any::numDeriv'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      # Lets R CMD check run without all suggested packages installed (for the R 4.2 row)
+      _R_CHECK_FORCE_SUGGESTS_: false
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: r-lib/actions/setup-pandoc@v2
+
+      # The vignettes are PDF documents, so building them needs LaTeX
+      - uses: r-lib/actions/setup-tinytex@v2
 
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -50,7 +55,8 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck
+          dependencies: ${{ matrix.config.dependencies || '"all"' }}
+          extra-packages: any::rcmdcheck ${{ matrix.config.extra-packages }}
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2

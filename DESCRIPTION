@@ -1,6 +1,6 @@
 Package: gcTMB
 Title: Fitting Growth Curves Using the Template Model Builder
-Version: 0.1.0.9006
+Version: 0.1.0.9007
 Authors@R: 
     person("Emil", "Skindersoe", , "e.skindersoe@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0000-2172-1614"))
@@ -56,7 +56,7 @@ Description: Fits non-linear growth curves over time by maximum likelihood
 License: GPL (>=2)
 URL: https://emilskindersoe.github.io/gcTMB/, https://github.com/EmilSkindersoe/gcTMB
 BugReports: https://github.com/EmilSkindersoe/gcTMB/issues
-Depends: R (>= 3.6)
+Depends: R (>= 4.2.0)
 LazyData: true
 VignetteBuilder: knitr
 Suggests: 
