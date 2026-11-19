@@ -197,19 +197,19 @@ pairwise(fitrr, newdata = trts)
 #> 
 #>                   Estimate Std.Error z value p.value  lower  upper ratio
 #> trt=0.1 - trt=0.3  0.00528    0.0523   0.101   1.000 -0.137 0.1480 1.005
-#> trt=0.1 - trt=0.5 -0.07783    0.0523  -1.488   0.571 -0.221 0.0649 0.925
-#> trt=0.1 - trt=0.6 -0.08482    0.0523  -1.621   0.486 -0.228 0.0579 0.919
-#> trt=0.1 - trt=0.8 -0.06376    0.0523  -1.218   0.741 -0.207 0.0791 0.938
-#> trt=0.3 - trt=0.5 -0.08310    0.0522  -1.591   0.505 -0.226 0.0594 0.920
-#> trt=0.3 - trt=0.6 -0.09010    0.0522  -1.724   0.420 -0.233 0.0525 0.914
-#> trt=0.3 - trt=0.8 -0.06904    0.0523  -1.321   0.679 -0.212 0.0736 0.933
-#> trt=0.5 - trt=0.6 -0.00699    0.0522  -0.134   1.000 -0.149 0.1355 0.993
-#> trt=0.5 - trt=0.8  0.01406    0.0522   0.269   0.999 -0.128 0.1566 1.014
-#> trt=0.6 - trt=0.8  0.02106    0.0523   0.403   0.995 -0.122 0.1636 1.021
+#> trt=0.1 - trt=0.5 -0.07783    0.0523  -1.488   0.570 -0.220 0.0648 0.925
+#> trt=0.1 - trt=0.6 -0.08482    0.0523  -1.621   0.485 -0.228 0.0579 0.919
+#> trt=0.1 - trt=0.8 -0.06376    0.0523  -1.218   0.741 -0.207 0.0790 0.938
+#> trt=0.3 - trt=0.5 -0.08310    0.0522  -1.591   0.504 -0.226 0.0593 0.920
+#> trt=0.3 - trt=0.6 -0.09010    0.0522  -1.724   0.419 -0.233 0.0524 0.914
+#> trt=0.3 - trt=0.8 -0.06904    0.0523  -1.321   0.679 -0.212 0.0735 0.933
+#> trt=0.5 - trt=0.6 -0.00699    0.0522  -0.134   1.000 -0.149 0.1354 0.993
+#> trt=0.5 - trt=0.8  0.01406    0.0522   0.269   0.999 -0.128 0.1565 1.014
+#> trt=0.6 - trt=0.8  0.02106    0.0523   0.403   0.995 -0.121 0.1636 1.021
 #>                   ratio.lower ratio.upper
 #> trt=0.1 - trt=0.3       0.872        1.16
 #> trt=0.1 - trt=0.5       0.802        1.07
-#> trt=0.1 - trt=0.6       0.796        1.06
+#> trt=0.1 - trt=0.6       0.797        1.06
 #> trt=0.1 - trt=0.8       0.813        1.08
 #> trt=0.3 - trt=0.5       0.798        1.06
 #> trt=0.3 - trt=0.6       0.792        1.05
@@ -246,23 +246,23 @@ maxrate(fitp, newdata = genotypes)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
 #>                           Estimate Std.Error
-#> tmax:Genotype=Aurora        70.053  0.468917
-#> rate:Genotype=Aurora         2.789  0.488086
-#> fraction:Genotype=Aurora     0.489  0.005255
-#> tmax:Genotype=Capri         69.203  0.464834
-#> rate:Genotype=Capri          2.181  0.400920
-#> fraction:Genotype=Capri      0.478  0.009651
-#> tmax:Genotype=ILB938        69.045  0.553904
-#> rate:Genotype=ILB938         1.786  0.382495
-#> fraction:Genotype=ILB938     0.476  0.011624
-#> tmax:Genotype=Lynx          72.797  0.391537
-#> rate:Genotype=Lynx           3.667  0.506602
+#> tmax:Genotype=Aurora        70.053  0.468918
+#> rate:Genotype=Aurora         2.789  0.488091
+#> fraction:Genotype=Aurora     0.489  0.005257
+#> tmax:Genotype=Capri         69.203  0.464850
+#> rate:Genotype=Capri          2.181  0.400919
+#> fraction:Genotype=Capri      0.478  0.009656
+#> tmax:Genotype=ILB938        69.045  0.553914
+#> rate:Genotype=ILB938         1.786  0.382493
+#> fraction:Genotype=ILB938     0.476  0.011629
+#> tmax:Genotype=Lynx          72.797  0.391550
+#> rate:Genotype=Lynx           3.667  0.506615
 #> fraction:Genotype=Lynx       0.499  0.000776
-#> tmax:Genotype=Melodie       73.298  0.388651
-#> rate:Genotype=Melodie        4.733  0.639956
+#> tmax:Genotype=Melodie       73.298  0.388664
+#> rate:Genotype=Melodie        4.733  0.639974
 #> fraction:Genotype=Melodie    0.499  0.000580
-#> tmax:Genotype=Navara        72.654  0.399790
-#> rate:Genotype=Navara         3.331  0.485188
+#> tmax:Genotype=Navara        72.654  0.399801
+#> rate:Genotype=Navara         3.331  0.485199
 #> fraction:Genotype=Navara     0.498  0.000860
 ```
 
@@ -360,27 +360,27 @@ pairwise(fitpr, newdata = genotypes)
 #> Pairwise differences of b1 (maximum growth rate) on the scale of its log link:
 #> 
 #>                                    Estimate Std.Error z value p.value  lower
-#> Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78767 -0.360
+#> Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78771 -0.360
 #> Genotype=Aurora - Genotype=ILB938    0.4572     0.231   1.976 0.35585 -0.202
 #> Genotype=Aurora - Genotype=Lynx     -0.2753     0.231  -1.192 0.84196 -0.933
 #> Genotype=Aurora - Genotype=Melodie  -0.5368     0.245  -2.191 0.24139 -1.235
 #> Genotype=Aurora - Genotype=Navara   -0.1767     0.232  -0.762 0.97484 -0.838
 #> Genotype=Capri - Genotype=ILB938     0.1570     0.218   0.722 0.98021 -0.463
-#> Genotype=Capri - Genotype=Lynx      -0.5755     0.217  -2.650 0.08513 -1.194
-#> Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00444 -1.498
-#> Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24384 -1.099
+#> Genotype=Capri - Genotype=Lynx      -0.5754     0.217  -2.649 0.08514 -1.194
+#> Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00443 -1.498
+#> Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24385 -1.099
 #> Genotype=ILB938 - Genotype=Lynx     -0.7324     0.217  -3.376 0.00970 -1.351
 #> Genotype=ILB938 - Genotype=Melodie  -0.9940     0.232  -4.288 0.00032 -1.655
-#> Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04185 -1.255
-#> Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87005 -0.921
+#> Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04186 -1.255
+#> Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87004 -0.921
 #> Genotype=Lynx - Genotype=Navara      0.0985     0.218   0.453 0.99757 -0.521
-#> Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63191 -0.302
+#> Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63192 -0.302
 #>                                      upper ratio ratio.lower ratio.upper
 #> Genotype=Aurora - Genotype=Capri    0.9600 1.350       0.698       2.612
-#> Genotype=Aurora - Genotype=ILB938   1.1164 1.580       0.817       3.054
+#> Genotype=Aurora - Genotype=ILB938   1.1165 1.580       0.817       3.054
 #> Genotype=Aurora - Genotype=Lynx     0.3828 0.759       0.393       1.466
 #> Genotype=Aurora - Genotype=Melodie  0.1613 0.585       0.291       1.175
-#> Genotype=Aurora - Genotype=Navara   0.4841 0.838       0.433       1.623
+#> Genotype=Aurora - Genotype=Navara   0.4842 0.838       0.433       1.623
 #> Genotype=Capri - Genotype=ILB938    0.7769 1.170       0.629       2.175
 #> Genotype=Capri - Genotype=Lynx      0.0434 0.562       0.303       1.044
 #> Genotype=Capri - Genotype=Melodie  -0.1763 0.433       0.224       0.838
@@ -412,32 +412,32 @@ the rates, which are now $`b_1`$:
 
 cbind(genotypes, predict(fitpr, newdata = genotypes, type = "parameters", random = FALSE))
 #>   Genotype       b1       b2       b3 b4 asymptote
-#> 1   Aurora 2.729829 70.00411 1.335024 65 14.242046
-#> 2    Capri 2.021911 69.33433 1.335024 65 10.392866
-#> 3   ILB938 1.728172 68.95766 1.335024 65  8.775883
-#> 4     Lynx 3.594822 72.76662 1.335024 65 19.139759
-#> 5  Melodie 4.669523 73.31797 1.335024 65 24.886716
-#> 6   Navara 3.257525 72.62328 1.335024 65 17.338073
+#> 1   Aurora 2.729828 70.00409 1.335018 65 14.241985
+#> 2    Capri 2.021915 69.33432 1.335018 65 10.392846
+#> 3   ILB938 1.728166 68.95769 1.335018 65  8.775831
+#> 4     Lynx 3.594824 72.76662 1.335018 65 19.139689
+#> 5  Melodie 4.669520 73.31796 1.335018 65 24.886596
+#> 6   Navara 3.257544 72.62327 1.335018 65 17.338102
 maxrate(fitpr, newdata = genotypes)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
 #>                           Estimate Std.Error
-#> tmax:Genotype=Aurora        70.004  0.469411
-#> rate:Genotype=Aurora         2.730  0.521219
+#> tmax:Genotype=Aurora        70.004  0.469410
+#> rate:Genotype=Aurora         2.730  0.521222
 #> fraction:Genotype=Aurora     0.488  0.005415
-#> tmax:Genotype=Capri         69.334  0.461600
-#> rate:Genotype=Capri          2.022  0.350818
+#> tmax:Genotype=Capri         69.334  0.461599
+#> rate:Genotype=Capri          2.022  0.350820
 #> fraction:Genotype=Capri      0.481  0.008514
-#> tmax:Genotype=ILB938        68.958  0.559077
+#> tmax:Genotype=ILB938        68.958  0.559069
 #> rate:Genotype=ILB938         1.728  0.297596
-#> fraction:Genotype=ILB938     0.474  0.012516
-#> tmax:Genotype=Lynx          72.767  0.387531
-#> rate:Genotype=Lynx           3.595  0.616807
+#> fraction:Genotype=ILB938     0.474  0.012515
+#> tmax:Genotype=Lynx          72.767  0.387529
+#> rate:Genotype=Lynx           3.595  0.616811
 #> fraction:Genotype=Lynx       0.499  0.000783
-#> tmax:Genotype=Melodie       73.318  0.392051
-#> rate:Genotype=Melodie        4.670  0.883134
+#> tmax:Genotype=Melodie       73.318  0.392049
+#> rate:Genotype=Melodie        4.670  0.883139
 #> fraction:Genotype=Melodie    0.499  0.000559
-#> tmax:Genotype=Navara        72.623  0.396269
-#> rate:Genotype=Navara         3.258  0.564664
+#> tmax:Genotype=Navara        72.623  0.396267
+#> rate:Genotype=Navara         3.258  0.564670
 #> fraction:Genotype=Navara     0.498  0.000868
 ```
