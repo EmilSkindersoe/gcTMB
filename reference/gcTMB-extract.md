@@ -51,15 +51,13 @@ varpars(object)
 - object, x:
 
   A gcTMB object, the result of
-  [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md).
+  [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md);
+  for the generics `fixef`, `ranef` and `VarCorr`, a fitted model of any
+  class.
 
 - ...:
 
   Not used.
-
-- x, object:
-
-  For the generics, a fitted model of any class.
 
 - sigma:
 
