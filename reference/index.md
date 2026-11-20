@@ -88,6 +88,8 @@
 
 - [`FabaHeights25`](https://emilskindersoe.github.io/gcTMB/reference/FabaHeights25.md)
   : Heights of faba bean plants
+- [`FabaHeights26`](https://emilskindersoe.github.io/gcTMB/reference/FabaHeights26.md)
+  : Heights of faba bean plants in a field trial
 - [`FabaCounts23`](https://emilskindersoe.github.io/gcTMB/reference/FabaCounts23.md)
   : Flower and pod counts of faba bean plants
 
