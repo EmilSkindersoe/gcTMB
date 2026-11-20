@@ -1,6 +1,8 @@
 # Profile likelihood intervals of the coefficients and of the times of timeto.
 
 test_that("profile intervals of gaussian models are the profile intervals of nls (faba bean heights)", {
+  # before R 4.4, confint() of an nls fit is in MASS
+  if (getRversion() < "4.4.0") skip_if_not_installed("MASS")
   for (m in models){
     f <- gcTMB(height ~ DAS, truncated=FALSE, data=FabaHeights25, model=m)
     n <- fabanls(m)
