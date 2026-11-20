@@ -41,11 +41,10 @@ corpars(object)
 varpars(object)
 }
 \arguments{
-\item{object, x}{A gcTMB object, the result of \code{\link{gcTMB}}.}
+\item{object, x}{A gcTMB object, the result of \code{\link{gcTMB}}; for the generics
+\code{fixef}, \code{ranef} and \code{VarCorr}, a fitted model of any class.}
 
 \item{...}{Not used.}
-
-\item{x, object}{For the generics, a fitted model of any class.}
 
 \item{sigma}{Not used; for compatibility with the generic of nlme.}
 }

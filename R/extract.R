@@ -12,9 +12,9 @@
 #' the covariance matrices of the random effects, the residual standard deviation, and the parameters
 #' of the residual autocorrelation and of the variance function.
 #'
-#' @param object,x A gcTMB object, the result of \code{\link{gcTMB}}.
+#' @param object,x A gcTMB object, the result of \code{\link{gcTMB}}; for the generics
+#'   \code{fixef}, \code{ranef} and \code{VarCorr}, a fitted model of any class.
 #' @param sigma Not used; for compatibility with the generic of nlme.
-#' @param x,object For the generics, a fitted model of any class.
 #' @param ... Not used.
 #'
 #' @return
