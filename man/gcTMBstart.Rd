@@ -23,25 +23,25 @@ gcTMBstart(
 )
 }
 \arguments{
-\item{form}{Formula, with the names of the response and the time variable, e.g. \code{weight ~ day}}
+\item{form}{Formula, with the names of the response and the explanatory variable x (usually time), e.g. \code{weight ~ day}, see \code{\link{gcTMB}}.}
 
-\item{fform}{Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1). A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.}
+\item{fform}{Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1). A list of six right-hand side formulas, one for each of b1-b6 (X1 = ~ 1, ..., X6 = ~ 1), is also accepted, or of five for b1-b5.}
 
 \item{data}{Data frame. Observations with missing values in the variables of the model or in the weights are left out.}
 
 \item{start}{Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced.}
 
-\item{fix}{Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1 unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.}
+\item{fix}{Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4, the asymmetry b5 and the additive b6 are fixed by default, at 0, 1 and 0 unless given in start; fix=c(b4=FALSE), fix=c(b5=FALSE) or fix=c(b6=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.}
 
 \item{weights}{Numeric vector or NULL. Weights, one for each row of data.}
 
 \item{family}{Character string. The distribution of the response, see \code{\link{gcTMB}}.}
 
-\item{model}{Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "normal", "gamma" or "linear", see \code{\link{gcTMB}}.}
+\item{model}{Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "normal", "gamma", "chapmanrichards", "beta" or "linear", see \code{\link{gcTMB}}.}
 
 \item{truncated}{Logical. If TRUE (default), the curve is truncated at a threshold b4, by default fixed at 0, see \code{\link{gcTMB}}.}
 
-\item{link}{Named character vector or NULL. Links of the parameters b1-b5, see \code{\link{gcTMB}}.}
+\item{link}{Named character vector or NULL. Links of the parameters b1-b6, see \code{\link{gcTMB}}.}
 
 \item{b1type}{Character string. The meaning of b1, "asymptote" (default) or "rate" for the maximum growth rate, see \code{\link{gcTMB}}.}
 
@@ -80,6 +80,11 @@ without truncation reaches 1\\% of its asymptote; for the count families also be
 time with a positive count, and for the lognormal and beta families before all times, as positive
 responses are impossible before the threshold. The asymmetry b5 starts at 1, the symmetric curve,
 with which b2 and b3 are linearised unless b5 is given in start; b4 without truncation starts at 0.
+The additive b6 starts at 0, or at its value in start, and the curve above it is linearised.
+
+The curves that start at b4 (chapmanrichards, beta) are not linearised: b1-b3 are
+fitted by least squares to the mean responses, starting from a curve that reaches half the largest
+response at the time closest to it.
 
 Method "grid" evaluates the negative log-likelihood (without random effects) at all
 combinations of a grid of parameter values and returns the best grid point; parameters
@@ -95,5 +100,5 @@ gcTMBstart(height ~ DAS, data=FabaHeights25, model="gompertz")
 # with a given asymptote, from which b2 and b3 are linearised
 gcTMBstart(height ~ DAS, data=FabaHeights25, start=c(b1=120))
 # best point of a grid of b2 and b3 values
-gcTMBstart(height ~ DAS, data=FabaHeights25, method="grid", gsn=c(1, 10, 10, 1, 1))
+gcTMBstart(height ~ DAS, data=FabaHeights25, method="grid", gsn=c(1, 10, 10, 1, 1, 1))
 }

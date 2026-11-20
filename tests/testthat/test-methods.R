@@ -70,6 +70,13 @@ test_that("fitted values and residuals", {
   expect_equal(residuals(f, type="quantile"), residuals(f))
 })
 
+test_that("normalized residuals fall back to pearson residuals with a warning for the count families", {
+  fp <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
+  expect_warning(rn <- residuals(fp, type="normalized"), "only available for the gaussian and lognormal")
+  expect_equal(rn, residuals(fp, type="pearson"))
+  expect_no_warning(residuals(gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic")), type="normalized"))
+})
+
 test_that("predict uses the factor levels of the fit for new data", {
   d <- simgauss("logistic")
   d$trt <- factor(rep(c("a", "b"), length.out=nrow(d)))

@@ -24,7 +24,7 @@
 data with the fitted curves, or both, \code{c("validation", "curves")}, with the curves last}
 
 \item{which}{Integer vector, a subset of 1:4. The validation plots to draw: 1 residuals against
-fitted values, 2 residuals against time, 3 normal QQ plot of the residuals, 4 normal QQ plots of
+fitted values, 2 residuals against x, 3 normal QQ plot of the residuals, 4 normal QQ plots of
 the predicted random effects (models with random effects only)}
 
 \item{residuals}{Character string. Residual type of the validation plots, see
@@ -52,7 +52,7 @@ qq and ranef for the validation plots, and curves for the curves plot
 }
 \description{
 Validation plots (\code{type="validation"}, the default): residuals against the fitted values,
-residuals against time, a normal QQ plot of the residuals, and normal QQ plots of the predicted
+residuals against x (e.g. time), a normal QQ plot of the residuals, and normal QQ plots of the predicted
 random effects. Fitted curves (\code{type="curves"}): the data with the fitted curves. With
 \code{type=c("validation", "curves")}, the curves plot is drawn last on the same page as the
 validation plots. The graphs are ggplot2 graphs.
@@ -65,6 +65,10 @@ makes the plots reproducible. For \code{residuals="response"}, the QQ plot line 
 quartiles. The Pearson and response residuals of the families other than gaussian and lognormal
 are not normally distributed under the model, so their QQ plot is drawn with a warning. A lowess smoother (red) shows trends of the residuals against the fitted values and
 time.
+
+The simulations of \code{\link{simulate.gcTMB}} can also be used for simulation-based residuals,
+e.g. with \code{createDHARMa()} of the package DHARMa; with \code{random=FALSE}, the simulations
+are conditional on the predicted random effects, as the residuals of these plots.
 
 The QQ plots of the random effects (\code{which=4}) show the predicted random effects of each
 parameter and grouping factor. They are shrunk towards zero, so their spread is smaller than the

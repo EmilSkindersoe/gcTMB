@@ -13,12 +13,16 @@
 #   normal:   F standard normal,        z = (t - b2) / b3
 #   gamma:    F gamma with shape b3,    z = t (b3 - 1) / b2: the gamma distribution function with shape
 #             b3 and scale b2 / (b3 - 1), whose density has its mode at b2
-#   linear:   f(t) = b1 t + b2, for comparison; b3-b5 are not used, and it is not truncated
+#   linear:   f(t) = b1 t + b6, for comparison, with the intercept b6; b2-b5 are not used, and it is
+#             not truncated
+#   chapmanrichards, beta: curves that start at b4, see startcurve and the beta entry;
+#             they have G(t, b2, b3, b4), the inverse tq and the maximum growth rate mr instead of a
+#             base distribution and a transformed time, and do not use b5
 # hill, weibull and gamma are for positive times (logtime) and zero up to t = 0.
-# b1-b5: role of each parameter, NA if the model does not use it (it is then always fixed)
+# b1-b6: role of each parameter, NA if the model does not use it (it is then always fixed)
 #   b1: "asymptote", the response approached at late times; "slope" of the linear model
 #   b2: "inflection", the time of the maximum growth rate, or "halfway", the time of half the
-#       asymptote; "intercept" of the linear model
+#       asymptote
 #   b3: "scale" on the time axis, positive; "slope" of the hill curve on the
 #       log time axis; "shape" of the weibull and gamma curves, larger than 1
 #   b4: not used by the curves themselves, see truncpars
@@ -27,6 +31,9 @@
 #       logistic (Richards): G = (1 + b5 exp(-z))^(-1/b5) = F(z - log b5)^(1/b5)
 #       hill, weibull, normal, gamma: G = F(z)^b5
 #       gompertz: G = 1 - S(z)^b5, a power of the survival function (a power of F is only a shift)
+#   b6: "additive", a constant added to the curve, b6 + b1 G(z): the response from which the curve
+#       grows (e.g. the breast height 1.3 of height-diameter models); fixed at 0 by default.
+#       "intercept" of the linear model, b1 t + b6, where it is estimated by default.
 # b4 is the threshold of the truncated curves (truncated=TRUE in gcTMB), for all models but the linear
 # one: see truncpars.
 # z(t, b2, b3), zinv(z, b2, b3): the transformed time and its inverse
@@ -88,12 +95,31 @@ lstime <- list(logtime=FALSE,
 # asymmetry by a power of F (see gcmodels)
 powF <- list(powS=FALSE, pow=function(a) a, shift=function(a) 0)
 
+# curves that start at b4, (1 - exp(-(t - b4)/b3))^c with the exponent cfun(b2, b3, b4) (see
+# gcmodels): the fraction G of the asymptote at t, the time tq at which it reaches the fraction q, and
+# the time t, fraction G and rate r (asymptote 1) of the maximum growth rate, at the inflection point
+# (at the start for curves without an inflection point after it)
+startcurve <- function(cfun){
+  list(start=TRUE, logtime=FALSE, cfun=cfun,
+       G=function(t, b2, b3, b4){
+         z <- pmax((t - b4) / b3, 0)
+         ifelse(t > b4, (-expm1(-z))^cfun(b2, b3, b4), 0)
+       },
+       tq=function(q, b2, b3, b4) b4 - b3 * log1p(-q^(1 / cfun(b2, b3, b4))),
+       mr=function(b2, b3, b4){
+         cc <- cfun(b2, b3, b4)
+         if (!all(is.finite(c(cc, b3))) || b3 <= 0) return(c(t=NA, G=NA, r=NA))
+         if (cc > 1) return(c(t=b4 + b3 * log(cc), G=(1 - 1 / cc)^cc, r=(1 - 1 / cc)^(cc - 1) / b3))
+         c(t=b4, G=0, r=if (cc == 1) 1 / b3 else Inf)
+       })
+}
+
 gcmodels <- list(
-  logistic=c(list(b1="asymptote", b2="inflection", b3="scale", b4=NA, b5="asymmetry", powS=FALSE,
+  logistic=c(list(b1="asymptote", b2="inflection", b3="scale", b4=NA, b5="asymmetry", b6="additive", powS=FALSE,
                     pow=function(a) 1 / a, shift=function(a) log(a)), lstime, basedists$logistic),
-  gompertz=c(list(b1="asymptote", b2="inflection", b3="scale", b4=NA, b5="asymmetry", powS=TRUE,
+  gompertz=c(list(b1="asymptote", b2="inflection", b3="scale", b4=NA, b5="asymmetry", b6="additive", powS=TRUE,
                     pow=function(a) a, shift=function(a) 0), lstime, basedists$gompertz),
-  hill=c(list(b1="asymptote", b2="halfway", b3="slope", b4=NA, b5="asymmetry", logtime=TRUE,
+  hill=c(list(b1="asymptote", b2="halfway", b3="slope", b4=NA, b5="asymmetry", b6="additive", logtime=TRUE,
               z=function(t, b2, b3) b3 * (log(t) - log(b2)),
               zinv=function(z, b2, b3) b2 * exp(z / b3),
               b2fromz=function(t, z, b3) t * exp(-z / b3),
@@ -101,7 +127,7 @@ gcmodels <- list(
               cslope=function(b3) b3,
               fromline=function(a, c) c(exp(-a / c), c)),
          powF, basedists$logistic),
-  weibull=c(list(b1="asymptote", b2="inflection", b3="shape", b4=NA, b5="asymmetry", logtime=TRUE,
+  weibull=c(list(b1="asymptote", b2="inflection", b3="shape", b4=NA, b5="asymmetry", b6="additive", logtime=TRUE,
                  z=function(t, b2, b3) b3 * (log(t) - log(b2)) + log((b3 - 1) / b3),
                  zinv=function(z, b2, b3) b2 * exp((z - log((b3 - 1) / b3)) / b3),
                  b2fromz=function(t, z, b3) t * exp(-(z - log((b3 - 1) / b3)) / b3),
@@ -109,17 +135,40 @@ gcmodels <- list(
                  cslope=function(b3) b3,
                  fromline=function(a, c) c(exp((log((c - 1) / c) - a) / c), c)),
             powF, basedists$cloglog),
-  normal=c(list(b1="asymptote", b2="inflection", b3="scale", b4=NA, b5="asymmetry"), powF, lstime, basedists$normal),
-  gamma=c(list(b1="asymptote", b2="inflection", b3="shape", b4=NA, b5="asymmetry", logtime=TRUE, shapeF=TRUE,
+  normal=c(list(b1="asymptote", b2="inflection", b3="scale", b4=NA, b5="asymmetry", b6="additive"), powF, lstime, basedists$normal),
+  gamma=c(list(b1="asymptote", b2="inflection", b3="shape", b4=NA, b5="asymmetry", b6="additive", logtime=TRUE, shapeF=TRUE,
                z=function(t, b2, b3) t * (b3 - 1) / b2,
                zinv=function(z, b2, b3) z * b2 / (b3 - 1),
                b2fromz=function(t, z, b3) t * (b3 - 1) / z,
                h=function(t) t),
           powF, basedists$gamma),
-  linear=list(b1="slope", b2="intercept", b3=NA, b4=NA, b5=NA, linear=TRUE, logtime=FALSE)
+  linear=list(b1="slope", b2=NA, b3=NA, b4=NA, b5=NA, b6="intercept", linear=TRUE, logtime=FALSE),
+  chapmanrichards=c(list(b1="asymptote", b2="inflection", b3="scale", b4=NA, b5=NA, b6="additive"),
+                    startcurve(function(b2, b3, b4) exp((b2 - b4) / b3))),
+  beta=list(b1="asymptote", b2="inflection", b3="scale", b4=NA, b5=NA, b6="additive", start=TRUE, logtime=FALSE,
+            # u = (t - b4) / D on (0, 1), D = b2 + b3 - b4 = te - b4, d = b3 / D
+            G=function(t, b2, b3, b4){
+              D <- b2 + b3 - b4
+              d <- b3 / D
+              u <- pmin(pmax((t - b4) / D, 0), 1)
+              ifelse(t > b4, (1 + (1 - u) / d) * u^(1 / d), 0)
+            },
+            tq=function(q, b2, b3, b4){
+              D <- b2 + b3 - b4
+              d <- b3 / D
+              u <- vapply(q, function(qi) if (!is.finite(qi) || qi <= 0 || qi >= 1 || !is.finite(d) || d <= 0 || d >= 1) NA_real_ else
+                uniroot(function(u) (1 + (1 - u) / d) * u^(1 / d) - qi, c(0, 1), tol=1e-14)$root, numeric(1))
+              b4 + D * u
+            },
+            mr=function(b2, b3, b4){
+              D <- b2 + b3 - b4
+              d <- b3 / D
+              if (!all(is.finite(c(D, d))) || b3 <= 0 || d >= 1) return(c(t=NA, G=NA, r=NA))
+              c(t=b2, G=2 * (1 - d)^(1 / d), r=(1 + 1 / d) * (1 - d)^(1 / d - 1) / D)
+            })
 )
 
-# links of the parameters b1-b5 of a model m (see gcmodels): the possible links of each parameter, the
+# links of the parameters b1-b6 of a model m (see gcmodels): the possible links of each parameter, the
 # first one is the default. The scale b3 may have the inverse link, so that its linear predictor is
 # the rate 1/b3. The log link keeps a parameter positive: the asymptote b1, the times b2 and b4 (the
 # threshold of a truncated curve), and b3; the logit link keeps the asymptote b1 in (0, 1), for
@@ -129,7 +178,8 @@ modellinks <- function(m){
        b2=if (m$b2 %in% c("inflection", "halfway")) c("identity", "log") else "identity",
        b3=if (m$b3 %in% "scale") c("identity", "inverse", "log") else if (m$b3 %in% c("slope", "shape")) c("identity", "log") else "identity",
        b4=c("identity", "log"),
-       b5=c("identity", "log"))
+       b5=c("identity", "log"),
+       b6=c("identity", "log"))
 }
 
 # names of the links, in the order of their index in the TMB templates
@@ -140,11 +190,11 @@ linkindex <- function(link){
   match(link, linknames)
 }
 
-# parameters b1-b5 from their linear predictors eta (a vector, or a matrix with a column for each
+# parameters b1-b6 from their linear predictors eta (a vector, or a matrix with a column for each
 # parameter), by the inverse links lnk (see linkindex)
 linkpars <- function(lnk, eta){
-  if (is.matrix(eta)) return(do.call(cbind, lapply(1:5, function(k) linkfun(lnk[k], eta[, k], inverse=TRUE))))
-  sapply(1:5, function(k) linkfun(lnk[k], eta[k], inverse=TRUE))
+  if (is.matrix(eta)) return(do.call(cbind, lapply(1:6, function(k) linkfun(lnk[k], eta[, k], inverse=TRUE))))
+  sapply(1:6, function(k) linkfun(lnk[k], eta[k], inverse=TRUE))
 }
 
 # link function (inverse=FALSE) or inverse link of a parameter, by its index (see linkindex)
@@ -167,15 +217,20 @@ modelindex <- function(model){
   which(model == names(gcmodels))
 }
 
+# TRUE for the curves that start at b4 (chapmanrichards, beta), which are always truncated
+isstart <- function(mod){
+  isTRUE(gcmodel(mod)$start)
+}
+
 # TRUE for the linear model, which is not a growth curve with an asymptote
 islinear <- function(mod){
   isTRUE(gcmodel(mod)$linear)
 }
 
-# roles of the parameters b1-b5 of a model (see gcmodels); truncated curves use b4 as their threshold
+# roles of the parameters b1-b6 of a model (see gcmodels); truncated curves use b4 as their threshold
 truncpars <- function(mod, trunc=FALSE){
   m <- gcmodel(mod)
-  roles <- c(m$b1, m$b2, m$b3, m$b4, m$b5)
+  roles <- c(m$b1, m$b2, m$b3, m$b4, m$b5, m$b6)
   if (trunc && !islinear(mod)) roles[4] <- "threshold"
   roles
 }
@@ -200,13 +255,14 @@ fitrate <- function(object){
 rate1 <- function(mod, f2, f3, f4, f5, trunc=FALSE){
   if (islinear(mod)) return(rep(1, max(length(f2), 1)))
   p <- cbind(f2, f3, f4, f5)
-  key <- do.call(paste, c(as.data.frame(p), sep=""))
+  key <- do.call(paste, c(as.data.frame(p), sep="
+"))
   first <- !duplicated(key)
   r <- vapply(which(first), function(i) maxrateR(mod, c(1, p[i, ]), trunc)[["rate"]], numeric(1))
   r[match(key, key[first])]
 }
 
-# parameters b1-b5 on their original scale from the linear predictors lpv of a curve of a fit, with b1
+# parameters b1-b6 on their original scale from the linear predictors lpv of a curve of a fit, with b1
 # the asymptote also for b1type="rate"
 curvepars <- function(fit, lpv){
   b <- linkpars(linkindex(fit$link), lpv)
@@ -236,27 +292,31 @@ logS4 <- function(m, f2, f3, f4, f5=1){
   ifelse(f4 > 0, logSG(m, m$z(ifelse(f4 > 0, f4, 1), f2, f3), f5, f3), 0)
 }
 
-# growth curve, same as gcmean in the TMB template: f1 G(z(t)) with the asymmetry f5, and truncated
-# at the threshold f4 (trunc=TRUE), f1 (G(z) - G(z4)) / (1 - G(z4)) for t > f4 and zero otherwise,
-# z4 = z(f4). The models on positive times are zero up to t = 0. The linear model is f1 t + f2.
-gcmeanR <- function(mod, t, f1, f2, f3, f4, f5=1, trunc=FALSE, b1rate=FALSE){
+# growth curve, same as the mean in the TMB template: f6 + f1 G(z(t)) with the asymmetry f5 and the
+# additive f6, and truncated at the threshold f4 (trunc=TRUE), f6 + f1 (G(z) - G(z4)) / (1 - G(z4)) for
+# t > f4 and f6 otherwise, z4 = z(f4). The models on positive times are f6 up to t = 0. The linear
+# model is f1 t + f6.
+gcmeanR <- function(mod, t, f1, f2, f3, f4, f5=1, trunc=FALSE, b1rate=FALSE, f6=0){
   m <- gcmodel(mod)
-  if (isTRUE(m$linear)) return(f1 * t + f2)
+  if (isTRUE(m$linear)) return(f1 * t + f6)
   # b1 as the maximum growth rate: the asymptote
   if (b1rate) f1 <- f1 / rate1(mod, f2, f3, f4, f5, trunc)
+  # curves that start at b4: truncation changes nothing
+  if (isTRUE(m$start)) return(f6 + f1 * m$G(t, f2, f3, f4))
   pos <- if (m$logtime) t > 0 else rep(TRUE, length(t))
   z <- m$z(ifelse(pos, t, 1), f2, f3)
   Ft <- if (!trunc) exp(logG(m, z, f5, f3)) else ifelse(t > f4, -expm1(logSG(m, z, f5, f3) - logS4(m, f2, f3, f4, f5)), 0)
-  ifelse(pos, Ft, 0) * f1
+  f6 + ifelse(pos, Ft, 0) * f1
 }
 
 # time at which a curve with parameters b2, b3 and asymmetry b5 reaches the fraction q of its
 # asymptote, as gctime in the TMB template (residual zero): zinv(Ginv(q)); truncated at the threshold
 # b4 (trunc=TRUE), zinv(SGinv((1 - q) S(z(b4)))). For the linear model, the time at which it reaches
-# the response q b1.
+# the response q b1 + b6, from the fraction q = (y - b6)/b1 (see timeq).
 gctimeR <- function(mod, q, b2, b3, b4=NA, b5=1, trunc=FALSE, b1=1){
   m <- gcmodel(mod)
-  if (isTRUE(m$linear)) return(q - b2 / b1)
+  if (isTRUE(m$linear)) return(q)
+  if (isTRUE(m$start)) return(m$tq(q, b2, b3, b4))
   z <- if (!trunc) Ginv(m, q, b5, b3) else SGinvlog(m, log1p(-q) + logS4(m, b2, b3, b4, b5), b5, b3)
   m$zinv(z, b2, b3)
 }

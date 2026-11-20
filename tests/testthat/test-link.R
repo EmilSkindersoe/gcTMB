@@ -3,7 +3,7 @@
 
 test_that("the links are the identity by default", {
   f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
-  expect_equal(f$link, c(b1="identity", b2="identity", b3="identity", b4="identity", b5="identity"))
+  expect_equal(f$link, c(b1="identity", b2="identity", b3="identity", b4="identity", b5="identity", b6="identity"))
   expect_true(any(grepl("identity link for all parameters", capture.output(print(f)))))
 })
 
@@ -59,7 +59,7 @@ test_that("link is checked", {
   # starting values outside the range of the link
   d$day <- d$day - 30
   expect_error(gcTMB(y ~ day, truncated=FALSE, data=d, link=c(b2="log")), "outside the range of its log link")
-  expect_error(gcTMB(y ~ day, truncated=FALSE, data=d, link=c(b6="inverse")), "parameter names")
+  expect_error(gcTMB(y ~ day, truncated=FALSE, data=d, link=c(b7="inverse")), "parameter names")
 })
 
 test_that("log and logit links reparameterise the curve, with the same fit", {

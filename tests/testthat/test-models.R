@@ -33,8 +33,8 @@ test_that("gaussian fits agree with nls, with the same standard errors (faba bea
 test_that("b4 is fixed at 0 and not used, and the asymmetry b5 is fixed at 1 by default", {
   d <- simgauss("logistic")
   f <- gcTMB(y ~ day, truncated=FALSE, data=d)
-  expect_equal(f$coefnames, paste("b", 1:5, ":(Intercept)", sep=""))
-  expect_equal(f$fix, c(FALSE, FALSE, FALSE, TRUE, TRUE))
+  expect_equal(f$coefnames, paste("b", 1:6, ":(Intercept)", sep=""))
+  expect_equal(f$fix, c(FALSE, FALSE, FALSE, TRUE, TRUE, TRUE))
   expect_equal(f$start[4:5], c(0, 1))
   expect_length(bcoef(f), 3)
   # a value for b4 does not change the curve
@@ -42,7 +42,7 @@ test_that("b4 is fixed at 0 and not used, and the asymmetry b5 is fixed at 1 by 
   expect_equal(f4$opt$objective, f$opt$objective)
   # a named fix without b5 keeps b5 fixed at 1
   ff <- gcTMB(y ~ day, truncated=FALSE, data=d, start=c(b1=coef(f)[[1]]), fix=c(b1=TRUE))
-  expect_equal(ff$fix, c(TRUE, FALSE, FALSE, TRUE, TRUE))
+  expect_equal(ff$fix, c(TRUE, FALSE, FALSE, TRUE, TRUE, TRUE))
   expect_equal(ff$start[5], 1)
   expect_error(gcTMB(y ~ day, truncated=FALSE, rform=b4 ~ 1 | day, data=d), "does not use b4")
   out <- capture.output(print(f))
@@ -62,7 +62,7 @@ test_that("starting values from the linearised curve are close to the estimates"
   for (m in models){
     d <- simgauss(m)
     sv <- gcTMBstart(y ~ day, truncated=FALSE, data=d, model=m)
-    expect_equal(names(sv), paste("b", 1:5, ":(Intercept)", sep=""))
+    expect_equal(names(sv), paste("b", 1:6, ":(Intercept)", sep=""))
     f <- gcTMB(y ~ day, truncated=FALSE, data=d, model=m)
     expect_equal(unname(sv[1:3]), unname(bcoef(f)), tolerance=0.1, label=m)
     expect_equal(unname(sv[4:5]), c(0, 1))

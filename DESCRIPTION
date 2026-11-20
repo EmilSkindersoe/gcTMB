@@ -1,6 +1,6 @@
 Package: gcTMB
 Title: Fitting Growth Curves Using the Template Model Builder
-Version: 0.1.0.9009
+Version: 0.1.0.9010
 Authors@R: 
     person("Emil", "Skindersoe", , "e.skindersoe@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0000-2172-1614"))
@@ -9,8 +9,9 @@ Description: Fits non-linear growth curves over time by maximum likelihood
     parameters and random effects, which are integrated out by the Laplace
     approximation, and autocorrelated residuals. The main function gcTMB()
     fits the logistic (Richards), Gompertz, Hill, Weibull, normal and gamma
-    growth curves, each with an asymmetry parameter, and a straight line for
-    comparison. The curves are parameterised by the asymptote (or, with
+    growth curves, each with an asymmetry parameter, the Chapman-Richards
+    and beta growth curves, each with an additive parameter,
+    and a straight line for comparison. The curves are parameterised by the asymptote (or, with
     b1type = "rate", the maximum growth rate), a time (of the maximum growth
     rate or of half the asymptote), a scale, slope or shape parameter, a
     threshold time before which a truncated curve is zero, and the

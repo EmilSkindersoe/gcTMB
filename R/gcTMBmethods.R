@@ -9,7 +9,7 @@
 #' @param interval Character string. The type of interval of predict: "none", "confidence" for confidence intervals of the mean, computed on the log scale for poisson and lognormal and on the logit scale for binomial and beta responses, or "prediction" for prediction intervals of a new observation with weight 1. Gaussian and lognormal models without random effects use t quantiles with n - p degrees of freedom and the unbiased residual variance, see \code{\link{gcTMB}}. For the gaussian and lognormal (on the log scale) families without boot, the prediction intervals use the normal (or t) distribution, and the variance of the random effects of new groups is added by the delta method. Otherwise they are quantiles of new observations simulated at nsim draws from the normal approximation of the fixed and random effects, with the variance parameters kept at their estimates, or at the bootstrap fits (see boot); with new random effects for new groups; for a binomial response as proportions, with the number of trials from the response in newdata (one for a binary response).
 #' @param level Numeric between 0 and 1. Confidence level of the intervals of predict
 #' @param digits Integer. Number of significant digits in the printed output
-#' @param type Character string. For residuals, the type of residuals: "pearson" (default), the response residuals divided by the standard deviation of the fitted distribution and multiplied by the square root of the weights; "response", the observed minus the fitted values, as proportions for a binomial response; or "quantile", randomised quantile residuals (Dunn and Smyth, 1996), which are standard normal under the model. The types "response", "pearson" and "normalized" are those of \code{residuals} of nlme. "normalized" (gaussian and lognormal) are the standardised residuals decorrelated by the autocorrelation of the fit (see \code{\link{corStruct}}): each standardised residual minus rho^dt times the previous one of its group, divided by sqrt(1 - rho^(2 dt)), independent standard normal under the model, as in nlme; without autocorrelation they are the pearson residuals, and so for the other families. For the gaussian family, the quantile residuals are multiplied by the square root of the weights, as precision weights with standard deviation sigma/sqrt(w); for the other families they do not use the weights, as a weighted log-likelihood is not the density of a distribution of the observation. The quantile residuals are random for the count families; use set.seed for reproducible values. For the lognormal family, the pearson and quantile residuals are the standardised residuals of log(y), (log(y) - log(f))/sigma, multiplied by the square root of the weights.
+#' @param type Character string. For residuals, the type of residuals: "pearson" (default), the response residuals divided by the standard deviation of the fitted distribution and multiplied by the square root of the weights; "response", the observed minus the fitted values, as proportions for a binomial response; or "quantile", randomised quantile residuals (Dunn and Smyth, 1996), which are standard normal under the model. The types "response", "pearson" and "normalized" are those of \code{residuals} of nlme. "normalized" (gaussian and lognormal) are the standardised residuals decorrelated by the autocorrelation of the fit (see \code{\link{corStruct}}): each standardised residual minus rho^dt times the previous one of its group, divided by sqrt(1 - rho^(2 dt)), independent standard normal under the model, as in nlme; without autocorrelation they are the pearson residuals; for the other families they are the pearson residuals, with a warning. For the gaussian family, the quantile residuals are multiplied by the square root of the weights, as precision weights with standard deviation sigma/sqrt(w); for the other families they do not use the weights, as a weighted log-likelihood is not the density of a distribution of the observation. The quantile residuals are random for the count families; use set.seed for reproducible values. For the lognormal family, the pearson and quantile residuals are the standardised residuals of log(y), (log(y) - log(f))/sigma, multiplied by the square root of the weights.
 #'   For predict, the type of prediction: "response" (default), the mean response at the times of newdata, or "parameters", the parameters b1-b3 of the curve of each row of newdata (with its covariates in fform and, with random=TRUE, the random effects of its groups); newdata then needs no time. The standard errors of the parameters are those of the estimates, by the delta method, and their confidence intervals are computed on the scale of the link and back-transformed; with random=TRUE, they include the uncertainty of the predicted random effects of the fitted groups. Prediction intervals of the parameters add the variance of the random effects of the terms without a fitted level, the parameters of a new group, and are not available with boot.
 #' @param nsim Integer. Number of response vectors to simulate; for predict, the number of parameter draws for simulated prediction intervals
 #' @param seed Integer or NULL. An optional seed for the random number generator
@@ -105,7 +105,7 @@ summary.gcTMB <- function(object, ...){
 
   # coefficient table of the free coefficients
   ests <- object$ssdrl
-  coefs <- ests[rownames(ests) %in% paste("b", 1:5, sep=""), , drop=FALSE]
+  coefs <- ests[rownames(ests) %in% paste("b", 1:6, sep=""), , drop=FALSE]
   rownames(coefs) <- object$coefnames[!object$fix]
   # NaN for a Hessian that is not positive definite, with a warning in the printed summary
   coefs[, 2] <- suppressWarnings(sqrt(diag(fixedcov(object))))[seq_len(nrow(coefs))]
@@ -261,8 +261,11 @@ residuals.gcTMB <- function(object, type=c("pearson", "response", "quantile", "n
   # normalized residuals: the standardised residuals of the gaussian and lognormal families, decorrelated
   # by the autocorrelation of the fit (Pinheiro and Bates, 2000); the pearson residuals otherwise
   if (type == "normalized"){
-    if (!(object$family %in% c("gaussian", "lognormal"))) type <- "pearson"
-    else {
+    if (!(object$family %in% c("gaussian", "lognormal"))){
+      warning("normalized residuals are only available for the gaussian and lognormal families; ",
+              "the pearson residuals of the ", object$family, " family are returned instead.", call.=FALSE)
+      type <- "pearson"
+    } else {
       r <- if (object$family == "lognormal") (log(y) - log(mu))/phi else (y - mu)/phi
       return(normalizeresid(object, r * sqrt(as.vector(dat$w))))
     }
@@ -361,7 +364,7 @@ predict.gcTMB <- function(object, newdata=NULL, random=TRUE, se.fit=FALSE, inter
   res
 }
 
-# design of the predictions for newdata: times, design matrices, linear predictors of b1-b5 (with the
+# design of the predictions for newdata: times, design matrices, linear predictors of b1-b6 (with the
 # random effects of the fitted levels if random=TRUE), the random effects design Zp for the TMB
 # template, and for each term the rows without a fitted level (newgroup)
 preddata <- function(object, newdata, random, covs=FALSE){
@@ -370,12 +373,12 @@ preddata <- function(object, newdata, random, covs=FALSE){
   x <- model.frame(form, data=newdata, na.action=na.pass)[, 1]
   n <- length(x)
   Xs <- lapply(object$fterms, function(ft) designmatrix(ft, newdata))
-  npi <- rep(1:5, sapply(Xs, ncol))
+  npi <- rep(1:6, sapply(Xs, ncol))
   ests <- object$ssdrl
   rn <- rownames(ests)
   cest <- object$start
-  cest[!object$fix] <- ests[rn %in% paste("b", 1:5, sep=""), 1]
-  eta <- sapply(1:5, function(i) as.vector(Xs[[i]] %*% cest[npi == i]))
+  cest[!object$fix] <- ests[rn %in% paste("b", 1:6, sep=""), 1]
+  eta <- sapply(1:6, function(i) as.vector(Xs[[i]] %*% cest[npi == i]))
   eta <- matrix(eta, nrow=n)
 
   # random effects of the fitted levels; levels not in the fitted data get zero
@@ -449,7 +452,7 @@ relevels <- function(object, newdata, use=TRUE, skip=FALSE, covs=TRUE){
 }
 
 # add the random effects U of term tm (a column for each random coefficient, a row for each level)
-# to the linear predictors eta of b1-b5, with the design blocks Zb of the term
+# to the linear predictors eta of b1-b6, with the design blocks Zb of the term
 addre <- function(eta, tm, Zb, U){
   for (k in seq_along(tm$pars)) eta[, tm$pars[k]] <- eta[, tm$pars[k]] + as.vector(Zb[[tm$zcol[k]]] %*% U[, k])
   eta
@@ -461,10 +464,10 @@ reloads <- function(tm, X){
   X[, tm$zcol, drop=FALSE]
 }
 
-# mean function at the linear predictors eta of b1-b5
+# mean function at the linear predictors eta of b1-b6
 predmean <- function(pd, eta){
   b <- linkpars(pd$lnk, eta)
-  as.vector(gcmeanR(pd$mod, pd$x, b[, 1], b[, 2], b[, 3], b[, 4], b[, 5], trunc=isTRUE(pd$trunc), b1rate=isTRUE(pd$b1rate)))
+  as.vector(gcmeanR(pd$mod, pd$x, b[, 1], b[, 2], b[, 3], b[, 4], b[, 5], trunc=isTRUE(pd$trunc), b1rate=isTRUE(pd$b1rate), f6=b[, 6]))
 }
 
 # standard errors of the predicted means by the delta method of TMB: the mean at the new times is
@@ -474,7 +477,7 @@ predictse <- function(object, pd){
   env <- object$obj$env
   dat <- env$data
   dat$xp <- pd$x
-  for (i in 1:5) dat[[paste("Xp", i, sep="")]] <- pd$Xs[[i]]
+  for (i in 1:6) dat[[paste("Xp", i, sep="")]] <- pd$Xs[[i]]
   # TMB reads sparse matrices in triplet form
   dat$Zp <- as(as(pd$Zp, "TsparseMatrix"), "generalMatrix")
   rnd <- !is.null(env$random)
@@ -487,7 +490,7 @@ predictse <- function(object, pd){
   unname(s[rownames(s) == "mu", 2])
 }
 
-# parameters b1-b5 of the curves in the rows of newdata (predict with type="parameters"), on their
+# parameters b1-b6 of the curves in the rows of newdata (predict with type="parameters"), on their
 # original scale or on the scale of their links: a matrix with a column for each parameter used by the
 # model, or with se.fit or an interval, a data frame with a row for each row of newdata and parameter.
 # Standard errors on the link scale by the delta method, as the linear predictors are linear in the
@@ -497,9 +500,9 @@ predictpars <- function(object, newdata, random, se.fit, interval, level, boot, 
   for (v in setdiff(all.vars(object$formula[[3]]), names(newdata))) newdata[[v]] <- NA
   pd <- preddata(object, newdata, random, covs=interval == "prediction")
   n <- length(pd$x)
-  used <- setdiff(1:5, unusedpars(pd$mod, isTRUE(pd$trunc)))
-  # b4 and b5 only if they are not at their defaults
-  for (k in 4:5) if (atdefault(object, k)) used <- setdiff(used, k)
+  used <- setdiff(1:6, unusedpars(pd$mod, isTRUE(pd$trunc)))
+  # b4, b5 and b6 only if they are not at their defaults
+  for (k in 4:6) if (atdefault(object, k)) used <- setdiff(used, k)
   pnames <- paste("b", used, sep="")
   out <- function(eta) if (scale == "link") eta else linkpars(pd$lnk, eta)
   fit <- out(pd$eta)[, used, drop=FALSE]
@@ -521,13 +524,13 @@ predictpars <- function(object, newdata, random, se.fit, interval, level, boot, 
     hi <- pd$eta + z*se
     if (interval == "prediction"){
       # new groups: the variance of the random effects of the terms without a fitted level
-      sdp <- sapply(1:5, function(k) sqrt(se[, k]^2 + newgroupvar(object, pd, outer(rep(1, n), 1:5 == k))))
+      sdp <- sapply(1:6, function(k) sqrt(se[, k]^2 + newgroupvar(object, pd, outer(rep(1, n), 1:6 == k))))
       sdp <- matrix(sdp, nrow=n)
       lo <- pd$eta - z*sdp
       hi <- pd$eta + z*sdp
     }
     # standard errors on the original scale: times the derivative of the inverse link
-    if (scale == "original") se <- se * sapply(1:5, function(k) dlinkinv(pd$lnk[k], pd$eta[, k]))
+    if (scale == "original") se <- se * sapply(1:6, function(k) dlinkinv(pd$lnk[k], pd$eta[, k]))
   } else {
     if (interval == "prediction") stop("prediction intervals of the parameters are not available with boot.")
     draws <- bootdraws(object, getboot(object, boot, nsim, seed), random)
@@ -554,7 +557,7 @@ predictpars <- function(object, newdata, random, se.fit, interval, level, boot, 
   res
 }
 
-# standard errors of the linear predictors of b1-b5 in pd, a column for each parameter, by the delta
+# standard errors of the linear predictors of b1-b6 in pd, a column for each parameter, by the delta
 # method: they are linear in the free coefficients and, with random=TRUE, in the random effects of the
 # fitted levels, with the joint covariance of both
 predparse <- function(object, pd){
@@ -568,18 +571,18 @@ predparse <- function(object, pd){
   # derivatives of the linear predictors w.r.t. each parameter in id; draweta includes the fixed coefficients
   e0 <- draweta(object, pd, numeric(np))
   J <- lapply(id, function(j) draweta(object, pd, replace(numeric(np), j, 1)) - e0)
-  se <- sapply(1:5, function(k){
+  se <- sapply(1:6, function(k){
     Jk <- matrix(sapply(J, function(Jj) Jj[, k]), nrow=length(pd$x))
     sqrt(rowSums((Jk %*% C) * Jk))
   })
   matrix(se, nrow=length(pd$x))
 }
 
-# linear predictors of b1-b5 at a parameter vector par (as obj$env$par), with the random effects of
+# linear predictors of b1-b6 at a parameter vector par (as obj$env$par), with the random effects of
 # the fitted levels in pd (none for random=FALSE)
 draweta <- function(object, pd, par){
   pl <- object$obj$env$parList(par=par)
-  eta <- matrix(sapply(1:5, function(i) as.vector(pd$Xs[[i]] %*% pl[[paste("b", i, sep="")]])), ncol=5)
+  eta <- matrix(sapply(1:6, function(i) as.vector(pd$Xs[[i]] %*% pl[[paste("b", i, sep="")]])), ncol=6)
   uoff <- 0
   for (t in seq_along(object$reterms)){
     tm <- object$reterms[[t]]
@@ -742,13 +745,13 @@ predci <- function(fit, se, family, z){
 }
 
 # variance of the mean from the random effects of the terms without a fitted level in each row, by
-# the delta method with numerical derivatives of the mean w.r.t. the linear predictors of b1-b5, or of a
-# function with the derivatives g (a column for each of b1-b5)
+# the delta method with numerical derivatives of the mean w.r.t. the linear predictors of b1-b6, or of a
+# function with the derivatives g (a column for each of b1-b6)
 newgroupvar <- function(object, pd, g=NULL){
   n <- length(pd$x)
   v <- numeric(n)
   if (length(object$reterms) == 0 || !any(pd$newgroup)) return(v)
-  if (is.null(g)) g <- sapply(1:5, function(k){
+  if (is.null(g)) g <- sapply(1:6, function(k){
     h <- 1e-5*pmax(1, abs(pd$eta[, k]))
     e1 <- e2 <- pd$eta
     e1[, k] <- e1[, k] + h
@@ -926,7 +929,7 @@ recov <- function(object){
 }
 
 
-# free coefficients b1-b5 at their lower or upper bound, named
+# free coefficients b1-b6 at their lower or upper bound, named
 atbound <- function(object){
   nb <- sum(!object$fix)
   est <- object$opt$par[seq_len(nb)]
@@ -940,7 +943,7 @@ atbound <- function(object){
 # links of a fit, as text: the identity link for all parameters, or the parameters with other links
 # and the identity link for the others
 linktext <- function(link, model, trunc=FALSE){
-  used <- setdiff(1:5, unusedpars(modelindex(model), trunc))
+  used <- setdiff(1:6, unusedpars(modelindex(model), trunc))
   link <- link[used]
   other <- link[link != "identity"]
   if (length(other) == 0) return("identity link for all parameters")
@@ -950,14 +953,14 @@ linktext <- function(link, model, trunc=FALSE){
 # TRUE for a fit with the asymmetry b5 fixed at the symmetric curve, b5 = 1 for all curves (the default)
 symmetric <- function(object) atdefault(object, 5)
 
-# TRUE for a fit with all coefficients of parameter k (4 or 5) fixed at its default, b4 = 0 (the
-# truncation at t = 0) or b5 = 1 (the symmetric curve), for all curves
+# TRUE for a fit with all coefficients of parameter k (4, 5 or 6) fixed at its default, b4 = 0 (the
+# truncation at t = 0), b5 = 1 (the symmetric curve) or b6 = 0 (no additive constant), for all curves
 atdefault <- function(object, k){
-  npi <- rep(1:5, vapply(object$Xs, ncol, integer(1)))
+  npi <- rep(1:6, vapply(object$Xs, ncol, integer(1)))
   ik <- npi == k
   if (!all(object$fix[ik])) return(FALSE)
   b <- linkfun(linkindex(object$link[[k]]), as.vector(object$Xs[[k]] %*% object$start[ik]), inverse=TRUE)
-  all(abs(b - c(0, 1)[k - 3]) < 1e-8)
+  all(abs(b - c(0, 1, 0)[k - 3]) < 1e-8)
 }
 
 # description of the truncation of a fit for print and summary, and of b1 as the maximum growth rate
@@ -969,9 +972,9 @@ trunctext <- function(object){
 
 # coefficients fixed by the user, named; the parameters the model does not use are always fixed
 userfixed <- function(object){
-  npi <- as.integer(sub("^b([1-5]):.*", "\\1", object$coefnames))
-  # b4 = 0 and b5 = 1, fixed by default, are not listed
-  sym <- (npi == 4 & atdefault(object, 4)) | (npi == 5 & atdefault(object, 5))
+  npi <- as.integer(sub("^b([1-6]):.*", "\\1", object$coefnames))
+  # b4 = 0, b5 = 1 and b6 = 0, fixed by default, are not listed
+  sym <- (npi == 4 & atdefault(object, 4)) | (npi == 5 & atdefault(object, 5)) | (npi == 6 & atdefault(object, 6))
   ufix <- object$fix & !(npi %in% unusedpars(modelindex(object$model), fittrunc(object))) & !sym
   setNames(object$start[ufix], object$coefnames[ufix])
 }
@@ -1017,7 +1020,7 @@ varscale <- function(object){
 }
 
 # covariance of the estimated parameters: the inverse Hessian, with the block of the coefficients
-# b1-b5 scaled by varscale for small-sample inference
+# b1-b6 scaled by varscale for small-sample inference
 fixedcov <- function(object){
   vc <- object$sdrl$cov.fixed
   s <- varscale(object)

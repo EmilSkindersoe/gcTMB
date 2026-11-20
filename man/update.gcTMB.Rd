@@ -12,7 +12,7 @@
 \item{...}{Without fixef, VarCorr, sigma and rho: the arguments of \code{\link{gcTMB}} to change, as in
 \code{\link[stats]{update}}.}
 
-\item{fixef}{Named numeric vector or NULL. New values of coefficients of b1-b5, named as in
+\item{fixef}{Named numeric vector or NULL. New values of coefficients of b1-b6, named as in
 \code{\link{fixef}} (e.g. "b1:(Intercept)"), or by the parameter (e.g. "b1") for a parameter with
 a single coefficient. Coefficients fixed in the fit, such as the asymmetry b5 (1 by default), can
 be set too, e.g. \code{fixef=c(b5=4)}; they stay fixed.}
@@ -39,7 +39,7 @@ its parameters set to new values, e.g. as the true model of a simulation study (
 the arguments in \code{...} changed, as \code{\link[stats]{update}}.
 }
 \details{
-Every parameter of the model can be set: the coefficients of b1-b5 (\code{fixef}, including
+Every parameter of the model can be set: the coefficients of b1-b6 (\code{fixef}, including
 coefficients fixed in the fit), the covariance matrices of the random effects (\code{VarCorr}), the
 residual standard deviation or dispersion (\code{sigma}) and the autocorrelation (\code{rho}),
 i.e. all the entries of \code{coef}. The parameters that are not given keep their values, and the random effects are the conditional

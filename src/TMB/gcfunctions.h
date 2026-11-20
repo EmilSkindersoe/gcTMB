@@ -31,7 +31,10 @@ Type linkinv(int lnk, Type eta){
 //   mod 5 normal:   F standard normal,   z = (t - f2) / f3
 //   mod 6 gamma:    F gamma with shape f3, z = t (f3 - 1) / f2, the gamma distribution function with
 //                   shape f3 and scale f2 / (f3 - 1), whose density has its mode at f2
-//   mod 7 linear:   f(t) = f1 t + f2, for comparison; f3-f5 are not used, and it is not truncated
+//   mod 7 linear:   f(t) = f1 t, for comparison, plus the intercept f6 added by the templates; f2-f5 are
+//                   not used, and it is not truncated
+//   mod 8-9 chapmanrichards and beta: curves that start at f4, see gcstart below
+// The templates add the additive parameter f6 to the curve, f6 + f(t) (the intercept of the linear model).
 // f1 is the asymptote. f2 is the time of the maximum growth rate (the inflection point) for logistic,
 // gompertz, weibull, normal and gamma, and the time of half the asymptote for hill. f3 is the scale on
 // the time axis (logistic, gompertz, normal), positive, the slope of the hill
@@ -227,14 +230,96 @@ Type gclogS4(int mod, Type f2, Type f3, Type f4, Type f5){
   return CppAD::CondExpGt(f4, Type(0), gclogSG(mod, gcz(mod, f4p, f2, f3), f3, f5), Type(0));
 }
 
+// Models that start at the threshold f4, where the curve itself is zero (it is zero up to f4 as well),
+// so that a truncation at f4 changes nothing (they are always fitted as truncated curves); they do
+// not use f5:
+//   mod 8 chapmanrichards: f(t) = f1 (1 - exp(-(t - f4) / f3))^c, c = exp((f2 - f4) / f3), with the
+//     inflection point f2 for c > 1 (f2 > f4), the scale f3 and the start f4
+//   mod 9 beta (Yin et al. 2003): f(t) = f1 (1 + (te - t) / (te - f2)) ((t - f4) / (te - f4))^((te - f4) / (te - f2))
+//     for f4 < t < te, and f1 from the end of growth te = f2 + f3 on: the time f2 of the maximum
+//     growth rate, the duration f3 of the growth after it, and the start f4. With u = (t - f4) / D,
+//     D = te - f4, and d = f3 / D: G(u) = (1 + (1 - u) / d) u^(1 / d), 0 < u < 1.
+inline bool gcstart(int mod){
+  return mod >= 8;
+}
+
+// exponent c of the chapmanrichards curve
+template<class Type>
+Type gccr(Type f2, Type f3, Type f4){
+  return exp((f2 - f4) / f3);
+}
+
+// fraction G of the asymptote reached at time t by a curve starting at f4, for t > f4; t is clamped
+// to just after the start (and to the end of growth of the beta curve), so that both branches of the
+// conditional expressions in gcmean are finite
+template<class Type>
+Type gcGstart(int mod, Type t, Type f2, Type f3, Type f4){
+  Type eps = Type(1e-10);
+  if (mod == 9){
+    Type D = f2 + f3 - f4;
+    Type d = f3 / D;
+    Type u = (t - f4) / D;
+    u = CppAD::CondExpGt(u, eps, u, eps);
+    u = CppAD::CondExpLt(u, Type(1), u, Type(1));
+    return (1 + (1 - u) / d) * exp(log(u) / d);
+  }
+  Type z = (t - f4) / f3;
+  z = CppAD::CondExpGt(z, eps, z, eps);
+  return exp(gccr(f2, f3, f4) * logspace_sub(Type(0), Type(-z)));
+}
+
+// time at which a curve starting at f4 reaches the fraction q of its asymptote. The beta curve has no
+// closed form: Newton steps from the root found in double precision by bisection, whose derivatives
+// are those of the implicit function (the starting point is a constant of the tape, which is only
+// evaluated at the parameters it was taped at, as in gcTime)
+template<class Type>
+Type gctimestart(int mod, Type q, Type f2, Type f3, Type f4){
+  if (mod != 9){
+    Type z = -logspace_sub(Type(0), Type(log(q) / gccr(f2, f3, f4)));
+    return f4 + f3 * z;
+  }
+  Type D = f2 + f3 - f4;
+  Type d = f3 / D;
+  double dd = asDouble(d), qd = asDouble(q);
+  double lo = 0, hi = 1;
+  for (int k = 0; k < 100; k++){
+    double m = (lo + hi) / 2;
+    double g = (1 + (1 - m) / dd) * pow(m, 1 / dd);
+    if (g < qd) lo = m; else hi = m;
+  }
+  Type u = Type((lo + hi) / 2);
+  for (int k = 0; k < 3; k++){
+    Type g = (1 + (1 - u) / d) * exp(log(u) / d);
+    Type dg = exp((1 / d - 1) * log(u)) / d * (1 - u) * (1 + 1 / d);
+    u = u - (g - q) / dg;
+  }
+  return f4 + D * u;
+}
+
+// maximum growth rate of a curve starting at f4 with asymptote 1: at the inflection point f2 of the
+// chapmanrichards curve, (1 - 1/c)^(c - 1) / f3 (guarded for curves without an inflection point after
+// the start); at f2 for the beta curve, (1 + 1/d) (1 - d)^(1/d - 1) / D
+template<class Type>
+Type gcrate1start(int mod, Type f2, Type f3, Type f4){
+  if (mod == 9){
+    Type D = f2 + f3 - f4;
+    Type d = f3 / D;
+    return (1 + 1 / d) * exp((1 / d - 1) * log(1 - d)) / D;
+  }
+  Type c = gccr(f2, f3, f4);
+  Type cc = CppAD::CondExpGt(c, Type(1), c, Type(2));
+  return CppAD::CondExpGt(c, Type(1), Type(exp((cc - 1) * log(1 - 1 / cc)) / f3), Type(1 / f3));
+}
+
 // growth curve f(t) = f1 G(z(t)), with the asymmetry f5. trunc = 1: G truncated at the threshold f4,
 // as a distribution function truncated from below: (G(z) - G(z4)) / (1 - G(z4)) = 1 - S(z) / S(z4)
 // for t > f4 and 0 for t <= f4, z4 = z(f4), S = 1 - G; computed by the survival function for
 // thresholds far beyond f2. The time t is data, so the models on positive times can branch on t <= 0.
-// The linear model is f1 t + f2.
+// The linear model is f1 t (plus f6).
 template<class Type>
 Type gcmean(int mod, int trunc, Type t, Type f1, Type f2, Type f3, Type f4, Type f5){
-  if (mod == 7) return f1 * t + f2;
+  if (mod == 7) return f1 * t;
+  if (gcstart(mod)) return f1 * CppAD::CondExpGt(t, f4, gcGstart(mod, t, f2, f3, f4), Type(0));
   if (gclogtime(mod) && asDouble(t) <= 0) return Type(0) * f1;
   Type z = gcz(mod, t, f2, f3);
   if (trunc == 1){
@@ -255,6 +340,7 @@ Type gcmean(int mod, int trunc, Type t, Type f1, Type f2, Type f3, Type f4, Type
 template<class Type>
 Type gcrate1(int mod, int trunc, Type f2, Type f3, Type f4, Type f5){
   if (mod == 7) return Type(1);
+  if (gcstart(mod)) return gcrate1start(mod, f2, f3, f4);
   Type tm = f2;
   Type r0;
   switch (mod){
@@ -307,7 +393,8 @@ Type gcasym(int b1rate, int mod, int trunc, Type f1, Type f2, Type f3, Type f4, 
 template<class Type>
 Type gctime(int mod, int trunc, Type q, Type f1, Type f2, Type f3, Type f4, Type f5, Type r){
   Type qr = q - r / f1;
-  if (mod == 7) return qr - f2 / f1;
+  if (mod == 7) return qr;
+  if (gcstart(mod)) return gctimestart(mod, qr, f2, f3, f4);
   Type z;
   if (trunc == 1){
     z = gcSGinvlog(mod, Type(log(1 - qr) + gclogS4(mod, f2, f3, f4, f5)), f3, f5);

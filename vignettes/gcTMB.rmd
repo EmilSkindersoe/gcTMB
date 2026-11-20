@@ -30,7 +30,7 @@ The package gcTMB fits growth curves over time by maximum likelihood with the Te
 
 ## Growth models
 
-The growth models are curves $f(t) = b_1 F(z(t))$ that increase from 0 towards the asymptote $b_1$, with a function $F$ increasing from 0 to 1 and a transformed time $z(t)$:
+The growth models are curves $f(t) = b_1 F(z(t))$ that increase from 0 towards the asymptote $b_1$, with a function $F$ increasing from 0 to 1 and a transformed time $z(t)$. The explanatory variable $t$ is usually time, but can be any variable along which the response grows towards an asymptote, e.g. the diameter of trees in a height-diameter model:
 
 | Model | $f(t)$ | $b_2$ | $b_3$ |
 |:--|:--|:--|:--|
@@ -40,9 +40,11 @@ The growth models are curves $f(t) = b_1 F(z(t))$ that increase from 0 towards t
 | weibull | $b_1 (1 - \exp(-\frac{b_3 - 1}{b_3} (t/b_2)^{b_3}))$ | inflection point | shape |
 | normal | $b_1 \Phi((t - b_2)/b_3)$ | inflection point, half the asymptote | scale |
 | gamma | $b_1 F_\Gamma(t;\ b_3, b_2/(b_3 - 1))$ | inflection point | shape |
-| linear | $b_1 t + b_2$ | intercept | not used |
+| chapmanrichards | $b_1 (1 - \exp(-(t - b_4)/b_3))^{\exp((b_2 - b_4)/b_3)}$ | inflection point | scale |
+| beta | $b_1 (1 + \frac{t_e - t}{t_e - b_2}) (\frac{t - b_4}{t_e - b_4})^{(t_e - b_4)/(t_e - b_2)}$, $t_e = b_2 + b_3$ | inflection point | duration after $b_2$ |
+| linear | $b_1 t + b_6$, intercept $b_6$ | not used | not used |
 
-Two further parameters complete the curves: the threshold $b_4$, before which a truncated curve is zero (by default fixed at 0, the time of sowing; `fix = c(b4 = FALSE)` estimates it), and the asymmetry $b_5$ (by default fixed at 1, the curves above; `fix = c(b5 = FALSE)` estimates it, e.g. the Richards curve for the logistic model). With `b1type = "rate"`, $b_1$ is the maximum growth rate instead of the asymptote. Each parameter can have a link, e.g. `link = c(b3 = "inverse")` for the rate $1/b_3$ or `link = c(b1 = "log")` for effects as ratios. The vignette *Growth models and their parameters* gives all the formulas, the inflection points and maximum growth rates of each model, and the asymmetric curves.
+Two further parameters complete the curves: the threshold $b_4$, before which a truncated curve is zero (by default fixed at 0, the time of sowing; `fix = c(b4 = FALSE)` estimates it), the asymmetry $b_5$ (by default fixed at 1, the curves above; `fix = c(b5 = FALSE)` estimates it, e.g. the Richards curve for the logistic model), and the additive $b_6$ (by default fixed at 0; the curve is $b_6 + f(t)$, e.g. `start = c(b6 = 1.3)` for the breast height in a height-diameter model). The Chapman-Richards and beta curves start at $b_4$, where they are zero themselves, and have no asymmetry; the Chapman-Richards curve is the Richards curve with a negative asymmetry. With `b1type = "rate"`, $b_1$ is the maximum growth rate instead of the asymptote. Each parameter can have a link, e.g. `link = c(b3 = "inverse")` for the rate $1/b_3$ or `link = c(b1 = "log")` for effects as ratios. The vignette *Growth models and their parameters* gives all the formulas, the inflection points and maximum growth rates of each model, and the asymmetric curves.
 
 ## Fitting a growth curve
 
@@ -59,7 +61,8 @@ The growth models are compared by information criteria, e.g. AIC or the criteria
 
 ```{r}
 fits <- lapply(c(logistic = "logistic", gompertz = "gompertz", hill = "hill", weibull = "weibull",
-                 normal = "normal", gamma = "gamma"),
+                 normal = "normal", gamma = "gamma", chapmanrichards = "chapmanrichards",
+                 beta = "beta"),
                function(m) gcTMB(height ~ DAS, data = FabaHeights25, model = m))
 criteria(fits, which = c("AIC", "BIC"))
 ```
@@ -76,6 +79,21 @@ ggplot(FabaHeights25, aes(x = DAS, y = height)) +
   labs(x = "Days after sowing", y = "Height") +
   theme_minimal()
 confint(fit, method = "wald")
+```
+
+## Other data sets
+
+Besides the faba bean data, the package has growth data from other fields: `BerkeleyGrowth` (heights and weights of children from birth to 21 years), `SorghumMaize` (biomass of three crops at two input levels) and `PineHeightDiameter` (heights and diameters of Scots pine trees). The x-axis need not be time: in a height-diameter model the height grows with the diameter, from the breast height of 1.3 m, fixed with the additive $b_6$:
+
+```{r, fig.width = 6, fig.height = 4}
+fithd <- gcTMB(height ~ dbh, rform = b1 ~ 1 | plot, data = PineHeightDiameter,
+               model = "chapmanrichards", start = c(b6 = 1.3))
+nd <- data.frame(dbh = seq(0, 52, by = 0.5))
+ggplot(PineHeightDiameter, aes(x = dbh, y = height)) +
+  geom_point(colour = "grey60", size = 0.8) +
+  geom_line(data = cbind(nd, height = predict(fithd, newdata = nd, random = FALSE)), colour = "blue") +
+  labs(x = "Diameter at breast height (cm)", y = "Height (m)") +
+  theme_minimal()
 ```
 
 ## Fixed and random effects
@@ -115,6 +133,8 @@ fitp <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, 
 genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
 cbind(genotypes, predict(fitp, newdata = genotypes, type = "parameters", random = FALSE))
 ```
+
+`plot()` checks a count model with randomised quantile residuals (Dunn and Smyth, 1996), which are standard normal under the model. The simulations of `simulate()` can also be used for simulation-based residuals, e.g. with the package DHARMa; see the vignette *Fixed and random effects*.
 
 ## Timing and maximum growth rates
 
@@ -160,6 +180,8 @@ c(true = corpars(fitrec), estimate = corpars(fitsim))
 The vignette *Autocorrelation and simulation* repeats this for many data sets. In simulation studies, `control = list(sdreport = FALSE, restart = TRUE)` skips the standard errors and optimises a fit that does not converge once more from its estimates, and `converged()` checks the fits.
 
 ## References
+
+Dunn, P.K. and Smyth, G.K. (1996). Randomized quantile residuals. *Journal of Computational and Graphical Statistics* 5, 236--244. doi:10.1080/10618600.1996.10474708.
 
 Pinheiro, J.C. and Bates, D.M. (2000). *Mixed-Effects Models in S and S-PLUS*. Springer, New York.
 

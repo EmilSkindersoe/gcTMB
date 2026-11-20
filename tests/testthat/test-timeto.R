@@ -63,7 +63,7 @@ test_that("timeto with newdata gives the times of the curve of each row", {
   L[1, 1] <- L[2, 3] <- L[3, 5] <- 1
   L[1, 2] <- L[2, 4] <- L[3, 6] <- 1
   expect_equal(unname(coef(timeto(f, 90, curves=L))), unname(coef(tt)[4]))
-  expect_error(timeto(f), "8 model coefficients")
+  expect_error(timeto(f), "9 model coefficients")
   expect_error(timeto(f, newdata=data.frame(x=1)), "covariates of fform")
   expect_error(timeto(f, curves=L, newdata=data.frame(trt="a")), "either curves or newdata")
 })

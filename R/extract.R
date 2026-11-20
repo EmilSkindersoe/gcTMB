@@ -18,9 +18,9 @@
 #' @param ... Not used.
 #'
 #' @return
-#' \code{fixef} returns the coefficients of the parameters b1-b5, named as in \code{coef}: the
+#' \code{fixef} returns the coefficients of the parameters b1-b6, named as in \code{coef}: the
 #' estimated coefficients and the coefficients fixed by the user (e.g. an asymmetry b5 fixed at a
-#' value other than 1), without the variance parameters and without the defaults b4 = 0 and b5 = 1.
+#' value other than 1), without the variance parameters and without the defaults b4 = 0, b5 = 1 and b6 = 0.
 #'
 #' \code{ranef} returns a list with a data frame for each random effect term, named by its grouping
 #' factor: a row for each level and a column for each random coefficient (e.g. b1, or b1:x for a

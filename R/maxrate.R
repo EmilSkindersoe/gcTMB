@@ -6,7 +6,7 @@
 #' bootstrap intervals.
 #'
 #' @param x A gcTMB object, the result of \code{\link{gcTMB}}.
-#' @param curves Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see \code{\link{timeto}}; default is the identity matrix, for models without covariates in fform.
+#' @param curves Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 6 rows (b1-b6) and one column for each model coefficient, see \code{\link{timeto}}; default is the identity matrix, for models without covariates in fform.
 #' @param newdata Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves.
 #'
 #' @details The curves are the population curves, with all random effects at zero; the standard
@@ -65,11 +65,11 @@ maxrate <- function(x, curves=NULL, newdata=NULL){
     # population curves: not named by the grouping variables of the random effects
     curves <- newdatacurves(x, newdata, groups=FALSE)
   }
-  if (is.null(curves)) curves <- diag(5)
+  if (is.null(curves)) curves <- diag(6)
   if (!is.list(curves)) curves <- list(curves)
   # unnamed curves: no name for a single curve, numbered otherwise
   if (is.null(names(curves))) names(curves) <- if (length(curves) == 1) "" else seq_along(curves)
-  curves <- checkcurves(x, curves, is.null(newdata))
+  curves <- fillcurves(x, curves, is.null(newdata))
 
   pv <- x$start
   nb <- sum(!x$fix)
@@ -84,11 +84,11 @@ maxrate <- function(x, curves=NULL, newdata=NULL){
     lpv <- as.vector(L %*% pv)
     id <- (i - 1)*nq + seq_len(nq)
     est[id] <- maxratevalue(x, lpv)
-    # derivatives w.r.t. the linear predictors of b1-b5, by central differences
-    g <- sapply(1:5, function(j){
+    # derivatives w.r.t. the linear predictors of b1-b6, by central differences
+    g <- sapply(1:6, function(j){
       if (all(L[j, !x$fix] == 0)) return(rep(0, nq))
       h <- 1e-5 * max(1, abs(lpv[j]))
-      e <- replace(numeric(5), j, h)
+      e <- replace(numeric(6), j, h)
       (maxratevalue(x, lpv + e) - maxratevalue(x, lpv - e)) / (2*h)
     })
     grad[id, ] <- (matrix(g, nrow=nq) %*% L)[, !x$fix, drop=FALSE]
@@ -114,23 +114,7 @@ curvelabels <- function(label, curve){
   ifelse(curve == "", label, paste(label, curve, sep=":"))
 }
 
-# curves as a list of matrices with 5 rows and one column for each coefficient of the fit; a matrix
-# without a row for the asymmetry b5 keeps b5 of the fit, when it is a single coefficient
-checkcurves <- function(x, curves, hint=TRUE){
-  ncf <- length(x$start)
-  npi <- rep(1:5, vapply(x$Xs, ncol, integer(1)))
-  lapply(curves, function(L){
-    if (!is.matrix(L) || nrow(L) != 5 || ncol(L) != ncf){
-      stop("each matrix in curves must have 5 rows (b1-b5) and one column for each of the ", ncf,
-           " model coefficients: ", paste(x$coefnames, collapse=", "), ".",
-           if (hint && ncf > 5) " Alternatively, give the covariate values of the curves in newdata.")
-    }
-    if (sum(npi == 5) == 1 && all(L[5, ] == 0)) L[5, npi == 5] <- 1
-    L
-  })
-}
-
-# tmax, rate and fraction of a curve of the fit with the parameters lpv (b1-b5 on the scale of the
+# tmax, rate and fraction of a curve of the fit with the parameters lpv (b1-b6 on the scale of the
 # linear predictors)
 maxratevalue <- function(fit, lpv){
   b <- curvepars(fit, lpv)
@@ -205,12 +189,18 @@ dGdt <- function(mod, t, b2, b3, a){
   g * dz
 }
 
-# tmax, rate and fraction of a curve with the parameters b (b1-b5 on their original scale); truncated
+# tmax, rate and fraction of a curve with the parameters b (b1-b6 on their original scale; the additive b6
+# changes neither); the fraction is of the asymptote b1 above b6; truncated
 # at b4 (trunc=TRUE): the curve without truncation scaled by 1/S4 beyond b4, with S4 = 1 - G(z(b4))
 maxrateR <- function(mod, b, trunc=FALSE){
   b <- as.numeric(b)
   # the linear model grows at the constant rate b1, without an inflection point
   if (islinear(mod)) return(c(tmax=NA, rate=b[1], fraction=NA))
+  # curves that start at b4: truncation changes nothing
+  if (isstart(mod)){
+    m0 <- gcmodel(mod)$mr(b[2], b[3], b[4])
+    return(c(tmax=m0[["t"]], rate=b[1]*m0[["r"]], fraction=m0[["G"]]))
+  }
   m0 <- maxrate0(mod, b[2], b[3], b[5])
   out <- c(tmax=m0[["t"]], rate=b[1]*m0[["r"]], fraction=m0[["G"]])
   if (!trunc) return(out)
@@ -383,6 +373,8 @@ profile.maxrateTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progres
         # tmax is b2 plus a shift for the curves on the time axis, and b2 times a factor on the log
         # time axis, given b3 and b5; beyond the threshold of a truncated curve
         if (trunc && v <= b[4]) return(NA)
+        # the curves that start at b4 have their inflection point at b2
+        if (isstart(mod)) return(suppressWarnings(linkfun(lnk[ps], v)))
         u <- maxrate0(mod, if (m$logtime) 1 else 0, b[3], b[5])[["t"]]
         p <- if (m$logtime) v/u else v - u
       } else {
@@ -425,7 +417,7 @@ profilesolved <- function(fit, L, ps, solvefun, t0, se, name, level, maxit){
   Hfull <- tryCatch(solve(fit$sdrl$cov.fixed), error=function(e) NULL)
   lo <- if (is.null(fit$lower)) rep(-Inf, length(par0)) else fit$lower
   up <- if (is.null(fit$upper)) rep(Inf, length(par0)) else fit$upper
-  oth <- setdiff(1:5, ps)
+  oth <- setdiff(1:6, ps)
 
   w <- L[ps, free]
   if (all(w == 0)) stop(name, " does not depend on an estimated coefficient of b", ps, ".")
@@ -449,7 +441,7 @@ profilesolved <- function(fit, L, ps, solvefun, t0, se, name, level, maxit){
   jacobian <- function(e, tt){
     h <- 1e-6
     d <- sapply(oth, function(j){
-      hj <- replace(numeric(5), j, h)
+      hj <- replace(numeric(6), j, h)
       (solvefun(tt, e$lpv + hj) - solvefun(tt, e$lpv - hj)) / (2*h)
     })
     J <- diag(length(par0))[, -kp, drop=FALSE]

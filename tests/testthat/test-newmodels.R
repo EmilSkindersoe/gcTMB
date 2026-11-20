@@ -1,7 +1,7 @@
 # The normal and gamma distribution functions and the linear model:
 #   normal: b1 Phi((t - b2)/b3)
 #   gamma:  b1 P(b3, t (b3 - 1)/b2), shape b3 and scale b2/(b3 - 1), zero up to t = 0
-#   linear: b1 t + b2
+#   linear: b1 t + b6
 
 test_that("the curves are the normal and gamma distribution functions and the line", {
   t <- c(-2, 0, 5, 20, 30, 45, 80)
@@ -10,7 +10,7 @@ test_that("the curves are the normal and gamma distribution functions and the li
   expect_equal(gcTMB:::gcmeanR(5, t, 50, 30, 6, 0, 2), 50*pnorm((t - 30)/6)^2)
   expect_equal(gcTMB:::gcmeanR(6, t, 50, 30, 4, 0), ifelse(t > 0, 50*pgamma(tp, 4, scale=10), 0))
   expect_equal(gcTMB:::gcmeanR(6, t, 50, 30, 4, 0, 0.5), ifelse(t > 0, 50*pgamma(tp, 4, scale=10)^0.5, 0))
-  expect_equal(gcTMB:::gcmeanR(7, t, 2, 5, 0, 0), 2*t + 5)
+  expect_equal(gcTMB:::gcmeanR(7, t, 2, 0, 0, 0, f6=5), 2*t + 5)
   # truncated curves
   expect_equal(gcTMB:::gcmeanR(5, t, 50, 30, 6, 10, trunc=TRUE),
                ifelse(t > 10, 50*(pnorm((t - 30)/6) - pnorm(-20/6))/(1 - pnorm(-20/6)), 0))
@@ -24,7 +24,7 @@ test_that("the curves are the normal and gamma distribution functions and the li
       }
     }
   }
-  expect_equal(gcTMB:::gctimeR(7, 50/2, 5, NA, b1=2), (50 - 5)/2)
+  expect_equal(gcTMB:::gctimeR(7, (50 - 5)/2, 0, NA, b1=2), (50 - 5)/2)
 })
 
 test_that("b2 is the inflection point of the symmetric normal and gamma curves", {
@@ -41,7 +41,7 @@ test_that("b2 is the inflection point of the symmetric normal and gamma curves",
                    tolerance=1e-3, label=paste(mod, a))
     }
   }
-  expect_equal(gcTMB:::maxrateR(7, c(2, 5, 0, 0, 1)), c(tmax=NA, rate=2, fraction=NA))
+  expect_equal(gcTMB:::maxrateR(7, c(2, 0, 0, 0, 1, 5)), c(tmax=NA, rate=2, fraction=NA))
 })
 
 test_that("normal and gamma fits agree with nls", {
@@ -68,7 +68,7 @@ test_that("the linear model is least squares, without truncation and without an 
   l <- lm(height ~ DAS, data=FabaHeights25)
   expect_equal(unname(bcoef(f)), unname(rev(coef(l))), tolerance=1e-6)
   expect_false(f$truncated)
-  expect_equal(f$fix, c(FALSE, FALSE, TRUE, TRUE, TRUE))
+  expect_equal(f$fix, c(FALSE, TRUE, TRUE, TRUE, TRUE, FALSE))
   expect_false(any(grepl("truncated", capture.output(print(f)))))
   expect_equal(unname(sqrt(diag(vcov(f))[1:2])), unname(rev(sqrt(diag(vcov(l))))), tolerance=1e-5)
   tt <- timeto(f, level=50, type="absolute")

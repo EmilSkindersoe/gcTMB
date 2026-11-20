@@ -1,4 +1,4 @@
-# the indexing of random effects over terms, levels and coefficients: the linear model f(t) = b1 t + b2
+# the indexing of random effects over terms, levels and coefficients: the linear model f(t) = b1 t + b6
 # with random effects is a linear mixed model, so gcTMB and lme4 (by maximum likelihood) give the same
 # likelihood, variance components and predicted random effects, matched by level name
 
@@ -20,13 +20,13 @@ reindexdata <- function(){
 test_that("random effects of several terms, nested and crossed factors and slopes agree with lme4", {
   skip_if_not_installed("lme4")
   d <- reindexdata()
-  cases <- list(list(r=b1 + b2 ~ 1 | g, f=NULL, l=y ~ t + (1 + t | g)),
-                list(r=list(b1 ~ 1 | g, b2 ~ 1 | h), f=NULL, l=y ~ t + (0 + t | g) + (1 | h)),
-                list(r=b2 ~ 1 | a/g, f=NULL, l=y ~ t + (1 | a/g)),
-                list(r=b2 ~ x | g, f=b2 ~ x, l=y ~ t + x + (1 + x | g)),
-                list(r=list(b1 + b2 ~ 1 | g, b2 ~ 1 | h), f=NULL, l=y ~ t + (1 + t | g) + (1 | h)))
-  # columns of lme4's ranef for the random coefficients of gcTMB: b1 is the slope in t, b2 the intercept
-  lcol <- c(b1="t", b2="(Intercept)", "b2:x"="x")
+  cases <- list(list(r=b1 + b6 ~ 1 | g, f=NULL, l=y ~ t + (1 + t | g)),
+                list(r=list(b1 ~ 1 | g, b6 ~ 1 | h), f=NULL, l=y ~ t + (0 + t | g) + (1 | h)),
+                list(r=b6 ~ 1 | a/g, f=NULL, l=y ~ t + (1 | a/g)),
+                list(r=b6 ~ x | g, f=b6 ~ x, l=y ~ t + x + (1 + x | g)),
+                list(r=list(b1 + b6 ~ 1 | g, b6 ~ 1 | h), f=NULL, l=y ~ t + (1 + t | g) + (1 | h)))
+  # columns of lme4's ranef for the random coefficients of gcTMB: b1 is the slope in t, b6 the intercept
+  lcol <- c(b1="t", b6="(Intercept)", "b6:x"="x")
   for (k in seq_along(cases)){
     cs <- cases[[k]]
     # the nested case is singular: the variance of the outer factor is zero, as for lme4
@@ -51,7 +51,7 @@ test_that("random effects of several terms, nested and crossed factors and slope
     expect_equal(unname(attr(simulate(f, seed=1, random=FALSE, newdata=nd), "mean")[[1]]), unname(predict(m, newdata=nd)), tolerance=1e-5)
   }
   # times of fitted groups, with their predicted random effects
-  f <- gcTMB(y ~ t, rform=b1 + b2 ~ 1 | g, data=d, model="linear")
+  f <- gcTMB(y ~ t, rform=b1 + b6 ~ 1 | g, data=d, model="linear")
   cf <- coef(lme4::lmer(y ~ t + (1 + t | g), data=d, REML=FALSE))$g
   tt <- timeto(f, level=30, type="absolute", newdata=data.frame(g=c("g7", "g2")))
   expect_equal(unname(coef(tt)), (30 - cf[c("g7", "g2"), "(Intercept)"])/cf[c("g7", "g2"), "t"], tolerance=1e-5)
@@ -79,16 +79,16 @@ test_that("simulate uses the fitted model, not the last parameters evaluated by 
 test_that("a double bar makes all random coefficients independent, as pdDiag of nlme", {
   d <- reindexdata()
   # across the parameters: the same as a list of one formula per parameter
-  fdv <- gcTMB(y ~ t, rform=b1 + b2 ~ 1 || g, data=d, model="linear")
-  fl <- gcTMB(y ~ t, rform=list(b1 ~ 1 | g, b2 ~ 1 | g), data=d, model="linear")
-  fc <- gcTMB(y ~ t, rform=b1 + b2 ~ 1 | g, data=d, model="linear")
+  fdv <- gcTMB(y ~ t, rform=b1 + b6 ~ 1 || g, data=d, model="linear")
+  fl <- gcTMB(y ~ t, rform=list(b1 ~ 1 | g, b6 ~ 1 | g), data=d, model="linear")
+  fc <- gcTMB(y ~ t, rform=b1 + b6 ~ 1 | g, data=d, model="linear")
   expect_length(fdv$reterms, 2)
   expect_equal(as.numeric(logLik(fdv)), as.numeric(logLik(fl)))
   expect_equal(unname(unlist(VarCorr(fdv))), unname(unlist(VarCorr(fl))))
   expect_false(isTRUE(all.equal(as.numeric(logLik(fdv)), as.numeric(logLik(fc)))))
   # across the parameters and the intercepts and slopes, against lme4
   skip_if_not_installed("lme4")
-  fx <- gcTMB(y ~ t, fform=b2 ~ x, rform=b1 + b2 ~ x || g, data=d, model="linear")
+  fx <- gcTMB(y ~ t, fform=b6 ~ x, rform=b1 + b6 ~ x || g, data=d, model="linear")
   expect_length(fx$reterms, 4)
   m <- suppressMessages(lme4::lmer(y ~ t + x + (0 + t | g) + (0 + t:x | g) + (1 | g) + (0 + x | g), data=d, REML=FALSE,
                                    control=lme4::lmerControl(optimizer="bobyqa")))

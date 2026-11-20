@@ -54,7 +54,7 @@ simre <- function(m="logistic", ng=12, sd1=5, sd2=1, sd=1, seed=3, b=truepars){
 # gcTMB coefficients without the variance parameters
 bcoef <- function(fit){
   cf <- coef(fit)
-  cf[grepl("^b[1-5]:", names(cf))]
+  cf[grepl("^b[1-6]:", names(cf))]
 }
 
 # nls fit of model m to the faba bean heights of the package (FabaHeights25)

@@ -5,7 +5,7 @@
 #'
 #' @param x A gcTMB object, the result of \code{\link{gcTMB}}.
 #' @param level Numeric vector. Levels in percent of the asymptote b1, between 0 and 100 (default 50): the time t p at which the curve reaches p percent of b1, the time at which the transformed time z(t) is Finv(p/100), with the inverse Finv of F of the model (see \code{\link{gcTMB}}): b2 + b3 Finv(p/100) for the logistic and gompertz models, b2 (p/(100 - p))^(1/b3) for the hill model. For the logistic, normal and hill models without truncation, t 50 is b2. For a curve truncated at the threshold b4 (the default of \code{\link{gcTMB}}), the levels are of the truncated curve, at Finv(p/100 + (1 - p/100) F(z(b4))). For \code{type="absolute"}, values of the response; the linear model, which has no asymptote, has only these.
-#' @param curves Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curve, with 5 rows (b1-b5) and one column for each model coefficient, or a list of such matrices; default is the identity matrix, for models without covariates in fform. Each matrix is paired with an entry of level.
+#' @param curves Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curve, with 6 rows (b1-b6) and one column for each model coefficient, or a list of such matrices (matrices with 5 rows, b1-b5, are still accepted); default is the identity matrix, for models without covariates in fform. Each matrix is paired with an entry of level.
 #' @param newdata Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves; the time is not needed. With grouping variables of the random effects, the curves of fitted groups, see Details. The times are computed at each entry of level for each row, named by the covariate and group values (or by the row names of newdata, if set).
 #' @param random Logical. If TRUE, the times of rows of newdata with fitted groups are conditional on their random effects, and for the other random effect terms, the variance-covariance matrix of the random effects is included in the standard error estimation. If FALSE, the times are for the population curves.
 #' @param residual Logical. If TRUE, the residual variance is included in the standard error estimation (gaussian family only)
@@ -57,7 +57,7 @@ timeto <- function(x, level=50, curves=NULL, newdata=NULL, random=TRUE, residual
     curves <- rep(nl, length(level))
     level <- rep(level, each=length(nl))
   }
-  if (is.null(curves)) curves <- diag(5)
+  if (is.null(curves)) curves <- diag(6)
   if (!is.list(curves)) curves <- list(curves)
   # unnamed curves: no name for a single curve, numbered otherwise
   if (is.null(names(curves))) names(curves) <- if (length(curves) == 1) "" else seq_along(curves)
@@ -73,21 +73,7 @@ timeto <- function(x, level=50, curves=NULL, newdata=NULL, random=TRUE, residual
     }
   }
   ncf <- length(x$start)
-  # a curves without a row for the asymmetry b5 keeps b5 of the fit, when it is a single coefficient
-  npi <- rep(1:5, vapply(x$Xs, ncol, integer(1)))
-  if (sum(npi == 5) == 1){
-    curves <- lapply(curves, function(L){
-      if (is.matrix(L) && nrow(L) == 5 && ncol(L) == ncf && all(L[5, ] == 0)) L[5, npi == 5] <- 1
-      L
-    })
-  }
-  for (L in curves){
-    if (!is.matrix(L) || nrow(L) != 5 || ncol(L) != ncf){
-      stop("each matrix in curves must have 5 rows (b1-b5) and one column for each of the ", ncf,
-           " model coefficients: ", paste(x$coefnames, collapse=", "), ".",
-           if (is.null(newdata) && ncf > 5) " Alternatively, give the covariate values of the curves in newdata.")
-    }
-  }
+  curves <- fillcurves(x, curves, is.null(newdata))
   if (!absolute && islinear(modelindex(x$model))) stop("the linear model has no asymptote; use type=\"absolute\" for the times at which it reaches given responses.")
   if (!absolute && any(level <= 0 | level >= 100)) stop("level must be between 0 and 100 percent of the asymptote.")
 
@@ -103,11 +89,11 @@ timeto <- function(x, level=50, curves=NULL, newdata=NULL, random=TRUE, residual
   uhat <- if (length(terms) > 0) x$sdrl$par.random else numeric(0)
   nu <- length(uhat)
 
-  # random effects of each time: the weights W of the fitted random effects on b1-b5, for the rows of
+  # random effects of each time: the weights W of the fitted random effects on b1-b6, for the rows of
   # newdata with a fitted group (random=TRUE), and the terms whose variance is added for a new group
   # (random=TRUE, no fitted level)
   nt <- length(curves)
-  W <- rep(list(matrix(0, 5, nu)), nt)
+  W <- rep(list(matrix(0, 6, nu)), nt)
   newterm <- matrix(random, nt, length(terms))
   # columns of each term for a new group (intercept, covariates of slopes), for each time
   loads <- lapply(terms, function(tm) reloads(tm, matrix(as.numeric(tm$cnms == "(Intercept)"), nt, length(tm$cnms), byrow=TRUE)))
@@ -144,15 +130,15 @@ timeto <- function(x, level=50, curves=NULL, newdata=NULL, random=TRUE, residual
       next
     }
 
-    # time and its gradient w.r.t. (b1-b5, u1-u5, r) from the gcTime TMB template
+    # time and its gradient w.r.t. (b1-b6, u1-u6, r) from the gcTime TMB template
     tobj <- MakeADFun(list(model="gcTime", mod=mod, trunc=as.integer(fittrunc(x)), b1rate=as.integer(fitrate(x)), lnk=as.integer(lnk), absolute=as.integer(absolute), q=q),
                       list(b=lpv, u=u, r=0),
                       ADreport=TRUE, DLL="gcTMB_TMBExports", silent=TRUE)
     tl[i] <- tobj$fn()
     tgrad <- tobj$gr()
-    gu <- tgrad[6:10]
+    gu <- tgrad[7:12]
     gnew <- unlist(lapply(seq_along(terms), function(t) gu[terms[[t]]$pars] * loads[[t]][i, ] * newterm[i, t]))
-    grad[i, ] <- c((tgrad[1:5] %*% curves[[i]])[!x$fix], gu %*% W[[i]], gnew, tgrad[11])
+    grad[i, ] <- c((tgrad[1:6] %*% curves[[i]])[!x$fix], gu %*% W[[i]], gnew, tgrad[13])
   }
 
   # covariance of the free coefficients and the fitted random effects: jointly for times of fitted
@@ -177,16 +163,16 @@ timeto <- function(x, level=50, curves=NULL, newdata=NULL, random=TRUE, residual
 }
 
 # fraction of the asymptote at a time with level q (absolute=FALSE) or response q (absolute=TRUE), for
-# the parameters lpv (b1-b5 on the scale of the linear predictors) of the curve
+# the parameters lpv (b1-b6 on the scale of the linear predictors) of the curve
 timeq <- function(fit, q, lpv, absolute){
   if (!absolute) return(q)
   b <- curvepars(fit, lpv)
-  q / b[1]
+  (q - b[6]) / b[1]
 }
 
-# weights of the fitted random effects u on b1-b5 for row r of the random effect design rl of newdata
+# weights of the fitted random effects u on b1-b6 for row r of the random effect design rl of newdata
 reweights <- function(object, rl, r){
-  w <- matrix(0, 5, length(object$sdrl$par.random))
+  w <- matrix(0, 6, length(object$sdrl$par.random))
   uoff <- 0
   for (t in seq_along(object$reterms)){
     tm <- object$reterms[[t]]
@@ -197,7 +183,7 @@ reweights <- function(object, rl, r){
   w
 }
 
-# joint covariance of the free coefficients b1-b5 (all fixed parameters with all=TRUE) and the
+# joint covariance of the free coefficients b1-b6 (all fixed parameters with all=TRUE) and the
 # prediction errors of the random effects, from the joint precision matrix of sdreport; the likelihood
 # is unchanged, so the Hessian of the fit is reused
 jointcov <- function(object, all=FALSE){
@@ -210,7 +196,7 @@ jointcov <- function(object, all=FALSE){
   as.matrix(C)[id, id, drop=FALSE]
 }
 
-# linear functions of the curves in the rows of newdata: the rows of the design matrices of b1-b5,
+# linear functions of the curves in the rows of newdata: the rows of the design matrices of b1-b6,
 # named by the values of the covariates in fform and the grouping variables in newdata, or by the
 # row names of newdata if set
 newdatacurves <- function(x, newdata, groups=TRUE){
@@ -220,10 +206,10 @@ newdatacurves <- function(x, newdata, groups=TRUE){
   if (length(miss) > 0) stop("newdata needs the covariates of fform: ", paste(miss, collapse=", "), ".")
   Xs <- lapply(x$fterms, function(ft) designmatrix(ft, newdata))
   if (any(sapply(Xs, anyNA))) stop("newdata has missing values in the covariates of fform.")
-  npi <- rep(1:5, sapply(Xs, ncol))
+  npi <- rep(1:6, sapply(Xs, ncol))
   L <- lapply(seq_len(nrow(newdata)), function(r){
-    L <- matrix(0, 5, length(npi))
-    for (i in 1:5) L[i, npi == i] <- Xs[[i]][r, ]
+    L <- matrix(0, 6, length(npi))
+    for (i in 1:6) L[i, npi == i] <- Xs[[i]][r, ]
     L
   })
   # grouping variables of the random effects in newdata
@@ -237,4 +223,24 @@ newdatacurves <- function(x, newdata, groups=TRUE){
     names(L) <- seq_len(nrow(newdata))
   }
   L
+}
+
+# curves as matrices with 6 rows (b1-b6) and one column for each coefficient of the fit x. A matrix
+# with 5 rows (b1-b5, as before b6 was added) gets a row for b6, and also columns for the
+# coefficients of b6 if it has none. A matrix with a zero row for the
+# asymmetry b5 or the additive b6 keeps that parameter of the fit, when it is a single coefficient.
+fillcurves <- function(x, curves, nonewdata=TRUE){
+  ncf <- length(x$start)
+  npi <- rep(1:6, vapply(x$Xs, ncol, integer(1)))
+  lapply(curves, function(L){
+    if (is.matrix(L) && nrow(L) == 5 && ncol(L) == sum(npi != 6)) L <- cbind(L, matrix(0, 5, sum(npi == 6)))
+    if (is.matrix(L) && nrow(L) == 5 && ncol(L) == ncf) L <- rbind(L, 0)
+    if (!is.matrix(L) || nrow(L) != 6 || ncol(L) != ncf){
+      stop("each matrix in curves must have 6 rows (b1-b6) and one column for each of the ", ncf,
+           " model coefficients: ", paste(x$coefnames, collapse=", "), ".",
+           if (nonewdata && ncf > 6) " Alternatively, give the covariate values of the curves in newdata.")
+    }
+    for (k in 5:6) if (sum(npi == k) == 1 && all(L[k, ] == 0)) L[k, npi == k] <- 1
+    L
+  })
 }

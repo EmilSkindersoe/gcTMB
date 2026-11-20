@@ -139,3 +139,44 @@ fitp0 <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID,
 AIC(fitp0, fitp)
 ```
 
+### Checking a count model
+
+For count data the Pearson residuals are not normal, even for a correct model. `plot()` therefore uses randomised quantile residuals by default (Dunn and Smyth, 1996). Each residual is the fitted distribution function at the observation, $F(y)$, mapped to the normal scale with $\Phi^{-1}$. For counts, $F$ jumps at each integer, so a value is drawn uniformly between $F(y - 1)$ and $F(y)$. Under the model the residuals are standard normal, so the QQ plot is compared with the identity line. The draws are random, and `seed` makes the plots reproducible.
+
+```{r, fig.width = 7, fig.height = 5}
+plot(fitp, seed = 1)
+```
+
+The QQ plot does not show whether the residuals of a plant are correlated over time. The correlation of consecutive quantile residuals of the same plant does:
+
+```{r}
+lag1 <- function(r, id, time){
+  o <- order(id, time)
+  r <- r[o]; id <- id[o]
+  same <- which(id[-1] == id[-length(id)])
+  cor(r[same], r[same + 1])
+}
+set.seed(1)
+lag1(residuals(fitp, type = "quantile"), FabaCounts23$Tube_ID, FabaCounts23$DAS)
+```
+
+For this model the correlation is close to zero. Without correlation, values within about $\pm 0.12$ are expected for these data. The same check on a model with one curve for all genotypes, still with a random asymptote for each plant, gives a clear correlation:
+
+```{r}
+fitp1 <- update(fitp, fform = NULL)
+set.seed(1)
+lag1(residuals(fitp1, type = "quantile"), FabaCounts23$Tube_ID, FabaCounts23$DAS)
+AIC(fitp1, fitp)
+```
+
+The pods are running totals per plant. In `fitp1`, a plant of a genotype that sets pods later than average stays below the common curve for several counts in a row, and a random asymptote cannot shift the curve in time. The QQ plots of `fitp1` look acceptable, so this check adds information that `plot()` does not give. The time of the maximum growth rate of each genotype, $b_2$, in `fitp` removes the correlation.
+
+The correlation structures `corAR1()` and `corCAR1()` (vignette *Autocorrelation and simulation*) are only available for the gaussian and lognormal families.
+
+The simulations of `simulate()` can also be used for simulation-based residuals, for example with the package DHARMa (Hartig, 2026) and its function `createDHARMa()`. With `random = FALSE`, the simulations are conditional on the predicted random effects, like the residuals of `plot()`, and the simulation-based residuals are then essentially the same as the quantile residuals. With `random = TRUE`, new random effects are drawn for each simulation. Note that `random` means the opposite in `fitted()` and `residuals()`, where `random = TRUE` includes the predicted random effects.
+
+## References
+
+Dunn, P.K. and Smyth, G.K. (1996). Randomized quantile residuals. *Journal of Computational and Graphical Statistics* 5, 236--244. doi:10.1080/10618600.1996.10474708.
+
+Hartig, F. (2026). *DHARMa: Residual Diagnostics for Hierarchical (Multi-Level / Mixed) Regression Models*. R package version 0.5.1, doi:10.32614/CRAN.package.DHARMa.

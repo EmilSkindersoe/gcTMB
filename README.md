@@ -4,6 +4,7 @@ gcTMB
 <img src="man/figures/logo.png" align="right" height="139" alt="gcTMB hex sticker" />
 
 <!-- badges: start -->
+
 [![R-CMD-check](https://github.com/emilskindersoe/gcTMB/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/emilskindersoe/gcTMB/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
@@ -19,9 +20,12 @@ automatic differentiation.
 ## Features
 
 - **Growth models**: logistic (Richards), Gompertz, Hill, Weibull,
-  normal and gamma curves, each with an asymmetry parameter, and a
-  straight line for comparison; optionally truncated at a threshold time
-  before which the response is zero (e.g. emergence, or the first pods).
+  normal and gamma curves, each with an asymmetry parameter, the
+  Chapman-Richards and beta curves, which start at a given time, an
+  additive constant for all of them, and a straight line for comparison.
+  The x-axis need not be time, e.g. height-diameter models of trees;
+  optionally truncated at a threshold time before which the response is
+  zero (e.g. emergence, or the first pods).
 - **Interpretable parameters**: the asymptote (or the maximum growth
   rate, `b1type = "rate"`), the time of the maximum growth rate or of
   half the asymptote, a scale, slope or shape, the threshold and the
@@ -63,7 +67,8 @@ pak::pak("EmilSkindersoe/gcTMB")
 
 ## Documentation
 
-The website <https://emilskindersoe.github.io/gcTMB/> has all the help pages and the vignettes as web pages.
+The website <https://emilskindersoe.github.io/gcTMB/> has all the help
+pages and the vignettes as web pages.
 
 The vignettes introduce the package with worked examples on faba bean
 data:
@@ -106,7 +111,9 @@ z(t):
 | `"weibull"` | b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)) | inflection point | shape, \> 1 |
 | `"normal"` | b1 Phi((t - b2)/b3) | inflection point | scale |
 | `"gamma"` | b1 F(t), with F the CDF of the gamma distribution with shape b3 and scale b2/(b3 - 1) | inflection point | shape, \> 1 |
-| `"linear"` | b1 t + b2, for comparison | intercept | not used |
+| `"chapmanrichards"` | b1 (1 - exp(-(t - b4)/b3))^c, c = exp((b2 - b4)/b3) | inflection point | scale |
+| `"beta"` | b1 (1 + (te - t)/(te - b2)) ((t - b4)/(te - b4))^((te - b4)/(te - b2)), te = b2 + b3 | inflection point | duration of growth after b2 |
+| `"linear"` | b1 t + b6, for comparison, with the intercept b6 | not used | not used |
 
 b1 is the asymptote approached at late times, and the slope of the
 linear model, which has no asymptote and is not truncated. The Hill,
@@ -127,6 +134,17 @@ becomes the Richards curve b1 / (1 + b5 exp(-(t - b2)/b3))^(1/b5), the
 Hill model b1 / (1 + (b2/t)<sup>b3)</sup>b5, the Weibull, normal and
 gamma models a power b5 of F, and the Gompertz model b1 (1 - (1 -
 exp(-exp(-(t - b2)/b3)))^b5), a power of its survival function.
+
+The Chapman-Richards and beta curves start at b4 (0 by default), where
+they are zero themselves, and have no asymmetry b5; the Chapman-Richards
+curve is the Richards curve with a negative asymmetry -1/c, which
+reaches zero at b4.
+
+All the models have an additive parameter b6, fixed at 0 unless given in
+`start` or estimated with `fix = c(b6 = FALSE)` (it is the estimated
+intercept of the linear model): the curve b6 + f(t) grows from b6
+towards b6 + b1, e.g. from the breast height of 1.3 m in a
+height-diameter model, `start = c(b6 = 1.3)`.
 
 With `b1type = "rate"`, b1 is the maximum growth rate of the curve
 instead of its asymptote, so that covariates and random effects on b1
@@ -262,7 +280,7 @@ The curves of the plants and the population curves of the treatments:
 plot(fit1, type = "curves", times = seq(0, 61, by = 0.5))
 ```
 
-![Fitted growth curves of the faba bean plants and the population curves of the treatments](man/figures/README-curves-1.png)<!-- -->
+<img src="man/figures/README-curves-1.png" alt="Fitted growth curves of the faba bean plants and the population curves of the treatments"  />
 
 The times to reach 90% of the asymptote for each treatment:
 
@@ -348,10 +366,11 @@ likelihoods compare with nlme fits with `method = "ML"`. See `?gcTMB`,
 
 ## Acknowledgements
 
-gcTMB started as a fork of [drcTMB](https://github.com/daniel-gerhard/drcTMB)
-by Daniel Gerhard, which fits dose-response curves with the Template Model
-Builder. It has since been developed into a standalone package for growth
-curves, but builds on the ideas and code of drcTMB.
+gcTMB started as a fork of
+[drcTMB](https://github.com/daniel-gerhard/drcTMB) by Daniel Gerhard,
+which fits dose-response curves with the Template Model Builder. It has
+since been developed into a standalone package for growth curves, but
+builds on the ideas and code of drcTMB.
 
 ## License
 

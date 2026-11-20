@@ -19,10 +19,10 @@ Type gcTMB(objective_function<Type>* obj) {
   DATA_INTEGER(mod);
   DATA_INTEGER(trunc);     // 1: curve truncated at the threshold b4
   DATA_INTEGER(b1rate);    // 1: b1 is the maximum growth rate instead of the asymptote
-  DATA_IVECTOR(lnk);       // links of b1-b5: 1 = identity, 2 = inverse, 3 = log, 4 = logit
+  DATA_IVECTOR(lnk);       // links of b1-b6: 1 = identity, 2 = inverse, 3 = log, 4 = logit
   DATA_IVECTOR(tnp);       // random effect terms: number of random coefficients per term
   DATA_IVECTOR(tnl);       // number of levels per term
-  DATA_IVECTOR(tpar);      // parameter indices (0-4) of the random coefficients of all terms, concatenated
+  DATA_IVECTOR(tpar);      // parameter indices (0-5) of the random coefficients of all terms, concatenated
   DATA_IVECTOR(tzb);       // first column in Z (and Zp) of the design block of each random coefficient
   DATA_INTEGER(simre);     // simulate: 1 = new random effects, 0 = keep the fitted ones
   DATA_VECTOR(y);
@@ -34,6 +34,7 @@ Type gcTMB(objective_function<Type>* obj) {
   DATA_MATRIX(X3);
   DATA_MATRIX(X4);
   DATA_MATRIX(X5);
+  DATA_MATRIX(X6);
   DATA_SPARSE_MATRIX(Z);   // design blocks of all terms, side by side: a column for each level, with the
                            // covariate of a random slope (1 for intercepts); zero columns without random effects
   DATA_VECTOR(xp);         // predictions (predict with se.fit): times, length zero otherwise
@@ -42,6 +43,7 @@ Type gcTMB(objective_function<Type>* obj) {
   DATA_MATRIX(Xp3);
   DATA_MATRIX(Xp4);
   DATA_MATRIX(Xp5);
+  DATA_MATRIX(Xp6);
   DATA_SPARSE_MATRIX(Zp);  // random effects of the fitted levels; zero rows for population predictions
   DATA_INTEGER(cortype);   // autocorrelation of the residuals within groups: 0 = none, 1 = AR(1), 2 = CAR(1)
   DATA_IVECTOR(corprev);   // previous observation (zero-based) of the same group in time, -1 for the first; length n
@@ -53,6 +55,7 @@ Type gcTMB(objective_function<Type>* obj) {
   PARAMETER_VECTOR(b3);
   PARAMETER_VECTOR(b4);
   PARAMETER_VECTOR(b5);
+  PARAMETER_VECTOR(b6);
   PARAMETER_VECTOR(u);     // length zero without random effects
   PARAMETER_VECTOR(theta); // length zero without random effects
   PARAMETER(log_sigma);    // log sd (gaussian; of log(y) for lognormal), precision (beta, betabinomial), size (nbinom2) or dispersion (nbinom1);
@@ -82,7 +85,7 @@ Type gcTMB(objective_function<Type>* obj) {
   // random effects: column k of Zu is added to the linear predictor of b(k+1)
   // term t has tnl(t) levels and tnp(t) random coefficients (intercepts or slopes) of the parameters
   // tpar, with design blocks at columns tzb of Z, correlated within a term and independent between terms
-  matrix<Type> Zu(n, 5);
+  matrix<Type> Zu(n, 6);
   Zu.setZero();
   // simulated random effects (the fitted ones for simre = 0), in the order of u, and means
   vector<Type> usim(u.size());
@@ -149,6 +152,7 @@ Type gcTMB(objective_function<Type>* obj) {
   vector<Type> Xb3 = X3 * b3;
   vector<Type> Xb4 = X4 * b4;
   vector<Type> Xb5 = X5 * b5;
+  vector<Type> Xb6 = X6 * b6;
 
   Type f;
   vector<Type> fv(n);
@@ -157,8 +161,9 @@ Type gcTMB(objective_function<Type>* obj) {
     Type f3 = linkinv(lnk(2), Type(Xb3(i) + Zu(i, 2)));
     Type f4 = linkinv(lnk(3), Type(Xb4(i) + Zu(i, 3)));
     Type f5 = linkinv(lnk(4), Type(Xb5(i) + Zu(i, 4)));
+    Type f6 = linkinv(lnk(5), Type(Xb6(i) + Zu(i, 5)));
     Type f1 = gcasym(b1rate, mod, trunc, linkinv(lnk(0), Type(Xb1(i) + Zu(i, 0))), f2, f3, f4, f5);
-    f = gcmean(mod, trunc, x(i), f1, f2, f3, f4, f5);
+    f = f6 + gcmean(mod, trunc, x(i), f1, f2, f3, f4, f5);
     fv(i) = f;
     if (!correlated){
       nll += -w(i) * loglik(fam, y(i), f, bn(i), phi);
@@ -228,7 +233,7 @@ Type gcTMB(objective_function<Type>* obj) {
   // mean at the times xp, for standard errors of the predictions by the delta method
   int npred = xp.size();
   if (npred > 0){
-    matrix<Type> Zup(npred, 5);
+    matrix<Type> Zup(npred, 6);
     Zup.setZero();
     int uoff = 0, poff = 0;
     for (int t = 0; t < nt; t++){
@@ -247,14 +252,16 @@ Type gcTMB(objective_function<Type>* obj) {
     vector<Type> Xpb3 = Xp3 * b3;
     vector<Type> Xpb4 = Xp4 * b4;
     vector<Type> Xpb5 = Xp5 * b5;
+    vector<Type> Xpb6 = Xp6 * b6;
     vector<Type> mu(npred);
     for (int i = 0; i < npred; i++){
       Type f2 = linkinv(lnk(1), Type(Xpb2(i) + Zup(i, 1)));
       Type f3 = linkinv(lnk(2), Type(Xpb3(i) + Zup(i, 2)));
       Type f4 = linkinv(lnk(3), Type(Xpb4(i) + Zup(i, 3)));
       Type f5 = linkinv(lnk(4), Type(Xpb5(i) + Zup(i, 4)));
+      Type f6 = linkinv(lnk(5), Type(Xpb6(i) + Zup(i, 5)));
       Type f1 = gcasym(b1rate, mod, trunc, linkinv(lnk(0), Type(Xpb1(i) + Zup(i, 0))), f2, f3, f4, f5);
-      mu(i) = gcmean(mod, trunc, xp(i), f1, f2, f3, f4, f5);
+      mu(i) = f6 + gcmean(mod, trunc, xp(i), f1, f2, f3, f4, f5);
     }
     ADREPORT(mu);
   }

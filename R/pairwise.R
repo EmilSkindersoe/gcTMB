@@ -24,7 +24,7 @@
 #' @param x A gcTMB object, the result of \code{\link{gcTMB}}.
 #' @param newdata Data frame. The values of the covariates in fform, one row for each curve to compare;
 #'   the rows are named as in \code{\link{timeto}}.
-#' @param parm Character string. The parameter to compare, "b1" to "b5"
+#' @param parm Character string. The parameter to compare, "b1" to "b6"
 #' @param adjust Character string. Adjustment for the number of pairs: "tukey" (default) for the
 #'   single-step adjustment of the p-values and simultaneous confidence intervals, a method of
 #'   \code{\link{p.adjust}} for adjusted p-values only, e.g. "holm", or "none"
@@ -44,8 +44,8 @@
 #' @export
 pairwise <- function(x, newdata, parm="b1", adjust="tukey", level=0.95, nsim=1e5){
   if (!inherits(x, "gcTMB")) stop("x must be a gcTMB object.")
-  k <- match(parm, paste("b", 1:5, sep=""))
-  if (length(parm) != 1 || is.na(k)) stop("parm must be one of b1, b2, b3, b4 and b5.")
+  k <- match(parm, paste("b", 1:6, sep=""))
+  if (length(parm) != 1 || is.na(k)) stop("parm must be one of b1, b2, b3, b4, b5 and b6.")
   adjust <- match.arg(adjust, c("tukey", p.adjust.methods))
   # the linear function of the coefficients for each row, named as the curves of timeto
   L <- newdatacurves(x, newdata, groups=FALSE)

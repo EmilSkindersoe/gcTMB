@@ -15,7 +15,7 @@ pairwise(x, newdata, parm = "b1", adjust = "tukey", level = 0.95, nsim = 1e+05)
 \item{newdata}{Data frame. The values of the covariates in fform, one row for each curve to compare;
 the rows are named as in \code{\link{timeto}}.}
 
-\item{parm}{Character string. The parameter to compare, "b1" to "b5"}
+\item{parm}{Character string. The parameter to compare, "b1" to "b6"}
 
 \item{adjust}{Character string. Adjustment for the number of pairs: "tukey" (default) for the
 single-step adjustment of the p-values and simultaneous confidence intervals, a method of
