@@ -67,11 +67,12 @@ without an inflection point: its `tmax` and `fraction` are NA.
 
 A truncated curve (the default of
 [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md), at
-b4 = 0) is the curve without truncation, scaled by 1/(1 - G(z(b4)))
-beyond its threshold b4. It has its maximum growth rate at the
-inflection point of the curve without truncation if that is after the
-threshold, and otherwise just after the threshold, where the slope jumps
-from zero: then `tmax` is b4 and `fraction` zero.
+b4 = 0) is the curve without truncation, f(t), shifted down to zero at
+its threshold b4 and rescaled, b1 (f(t) - f(b4))/(b1 - f(b4)) beyond b4.
+It has its maximum growth rate at the inflection point of the curve
+without truncation if that is after the threshold, and otherwise just
+after the threshold, where the slope jumps from zero: then `tmax` is b4
+and `fraction` zero.
 
 The standard errors are by the delta method, with numerical derivatives
 of the quantities with respect to the parameters of the curves. Profile

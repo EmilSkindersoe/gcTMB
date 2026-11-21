@@ -31,8 +31,9 @@ gcTMBstart(
 
 - form:
 
-  Formula, with the names of the response and the time variable, e.g.
-  `weight ~ day`
+  Formula, with the names of the response and the explanatory variable x
+  (usually time), e.g. `weight ~ day`, see
+  [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md).
 
 - fform:
 
@@ -57,10 +58,10 @@ gcTMBstart(
 
   Logical vector or NULL. A vector with the same length as start. If
   TRUE, a model coefficient is fixed to the starting value. The
-  threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1
-  unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates
-  them. Without truncation, b4 is not used and always fixed, at 0 unless
-  given in start.
+  threshold b4 and the asymmetry (or intercept) b5 are fixed by default,
+  at 0 and 1 unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE)
+  estimates them. Without truncation, b4 is not used and always fixed,
+  at 0 unless given in start.
 
 - weights:
 
@@ -74,7 +75,8 @@ gcTMBstart(
 - model:
 
   Character string. The growth model: "logistic", "gompertz", "hill",
-  "weibull", "normal", "gamma" or "linear", see
+  "weibull", "beta", "beta_capped", "normal", "gamma",
+  "chapmanrichards", "wykoff", "preecebaines" or "linear", see
   [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md).
 
 - truncated:
@@ -124,31 +126,35 @@ coefficient.
 ## Details
 
 Method "lm" linearises the growth curve: for a given asymptote b1, the
-mean response at each time t, relative to b1, gives Finv(y/b1) = z(t),
-with the inverse Finv of the function F of the model (qlogis for
-logistic and hill, -log(-log(q)) for gompertz, log(-log(1 - q)) for
-weibull) and the transformed time z(t) (see
-[`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)),
-which is linear in the time t (logistic, gompertz) or in log(t) (hill,
-weibull). A linear regression of Finv(y/b1) on t or log(t) gives b2 and
-b3 from its intercept and slope, e.g. b3 as the inverse of the slope and
-b2 as the time at which the line crosses zero for the logistic model;
-with b2 or b3 given in `start`, only the other one is estimated. The
-weibull shape b3 starts at least at 1.1. The observed responses often do
-not reach the asymptote yet, so b1 is profiled: for asymptotes from just
-above the largest mean response to four times it, the linearised fit
-gives b2 and b3, b1 is refitted by least squares for this curve, and the
-asymptote with the smallest residual sum of squares is used. Mean
-responses below 1\\ linearised curve and are left out. With covariates
-in `fform`, the pooled starting value of each parameter is projected
-onto its design matrix, giving the intercept or each group the pooled
-value and contrasts a value of zero. The threshold b4, fixed at 0 by
-default, starts when estimated where the curve without truncation
-reaches 1\\ time with a positive count, and for the lognormal and beta
-families before all times, as positive responses are impossible before
-the threshold. The asymmetry b5 starts at 1, the symmetric curve, with
-which b2 and b3 are linearised unless b5 is given in start; b4 without
-truncation starts at 0.
+mean response y at each time t is transformed to a straight line in t or
+log(t): log(y/(b1 - y)) = (t - b2)/b3 for the logistic curve,
+-log(-log(y/b1)) = (t - b2)/b3 for gompertz, qnorm(y/b1) = (t - b2)/b3
+for normal, log(y/(b1 - y)) = b3 (log t - log b2) for hill, and
+log(-log(1 - y/b1)) = b3 (log t - log b2) + log((b3 - 1)/b3) for
+weibull. A linear regression of the transformed responses on t or log(t)
+gives b2 and b3 from its intercept and slope, e.g. b3 as the inverse of
+the slope and b2 as the time at which the line crosses zero for the
+logistic model; with b2 or b3 given in `start`, only the other one is
+estimated. The weibull shape b3 starts at least at 1.1. The observed
+responses often do not reach the asymptote yet, so b1 is profiled: for
+asymptotes from just above the largest mean response to four times it,
+the linearised fit gives b2 and b3, b1 is refitted by least squares for
+this curve, and the asymptote with the smallest residual sum of squares
+is used. Mean responses below 1\\ linearised curve and are left out.
+With covariates in `fform`, the pooled starting value of each parameter
+is projected onto its design matrix, giving the intercept or each group
+the pooled value and contrasts a value of zero. The threshold b4, fixed
+at 0 by default, starts when estimated where the curve without
+truncation reaches 1\\ time with a positive count, and for the lognormal
+and beta families before all times, as positive responses are impossible
+before the threshold. The asymmetry b5 starts at 1, the symmetric curve,
+with which b2 and b3 are linearised unless b5 is given in start; b4
+without truncation starts at 0.
+
+The beta, beta_capped, chapmanrichards and wykoff curves are not
+linearised: b1-b3 are fitted by least squares to the mean responses
+(above the intercept log(b5) of chapmanrichards and wykoff, when b5 is
+given in start), with b4 at 0 or its value in start.
 
 Method "grid" evaluates the negative log-likelihood (without random
 effects) at all combinations of a grid of parameter values and returns

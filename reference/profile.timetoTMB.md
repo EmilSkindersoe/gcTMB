@@ -3,10 +3,11 @@
 Profiles the (marginal) log-likelihood for the times estimated by
 [`timeto`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md).
 At each value of a time, the model is reparameterised: the time, e.g.
-b2 + b3 Finv(q) for the logistic model, can be solved for b2, so one
-coefficient of b2 is computed from the time and the other coefficients,
-which are re-optimised. For truncated curves, the time also depends on
-b2 through the threshold b4, and b2 is found numerically.
+b2 + b3 log(q/(1 - q)) for the logistic model, can be solved for b2, so
+one coefficient of b2 is computed from the time and the other
+coefficients, which are re-optimised. For truncated curves, the time
+also depends on b2 through the threshold b4, and b2 is found
+numerically.
 
 ## Usage
 

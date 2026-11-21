@@ -15,29 +15,43 @@ gives a short overview of all the features.
 
 ## Growth models
 
-All models but the linear one are functions $`f(t)`$ of time, increasing
-from 0 towards the asymptote $`b_1`$, e.g. the logistic curve
-$`f(t) = b_1/(1 + \exp(-(t - b_2)/b_3))`$:
+The logistic, Gompertz, Hill, Weibull, beta, normal and gamma curves are
+sigmoid growth curves, often used in agronomy and ecology, e.g. for the
+growth of plants and crops over a season. The Chapman-Richards and
+Wykoff curves are height-diameter models, common in forestry, and the
+Preece-Baines curve is a model of human growth in height. All models but
+the linear one are functions $`f(t)`$ of time, increasing from 0 (or
+from an intercept) towards the asymptote $`b_1`$, e.g. the logistic
+curve $`f(t) = b_1/(1 + \exp(-(t - b_2)/b_3))`$. The variable on the
+x-axis need not be time: it can be any variable along which the response
+grows towards an asymptote, e.g. the diameter of trees in a
+height-diameter model; we write $`t`$ throughout.
 
 - $`b_1`$ is the asymptote, the response approached at late times,
 - $`b_2`$ is the time of the maximum growth rate, the inflection point
-  of the curve (logistic, Gompertz, Weibull, normal, gamma), or the time
-  of half the asymptote (Hill),
+  of the curve (logistic, Gompertz, Weibull, beta, normal, gamma,
+  Chapman-Richards, Wykoff), the time of half the asymptote (Hill), or
+  the middle of puberty (Preece-Baines),
 - $`b_3`$ is the scale of the curve on the time axis (logistic,
-  Gompertz, normal), its slope on the log time axis (Hill), or its shape
-  (Weibull, gamma).
+  Gompertz, normal, Chapman-Richards), its slope on the log time axis
+  (Hill), its shape (Weibull, gamma), the end of growth (beta), or the
+  height in the middle of puberty (Preece-Baines); the Wykoff curve does
+  not use it.
 
-The parameter $`b_4`$ is the threshold of truncated curves, and $`b_5`$
-the asymmetry of the curve (both below).
+The parameter $`b_4`$ is the threshold of truncated curves, the start of
+growth of the beta curve, the intercept of the Chapman-Richards and
+Wykoff curves, or the rate of growth before puberty (Preece-Baines), and
+$`b_5`$ the asymmetry of the curve or the rate of growth during puberty
+(Preece-Baines) (all below).
 
 #### Scale, slope and shape
 
 The parameter $`b_3`$ sets how long the growth takes, but in three
 different ways:
 
-- A **scale** (logistic, Gompertz, normal) is in units of time. The
-  curve depends on time only through $`(t - b_2)/b_3`$, so $`b_3`$
-  stretches the curve along the time axis around $`b_2`$ without
+- A **scale** (logistic, Gompertz, normal, Chapman-Richards) is in units
+  of time. The curve depends on time only through $`(t - b_2)/b_3`$, so
+  $`b_3`$ stretches the curve along the time axis around $`b_2`$ without
   changing its form: doubling $`b_3`$ doubles the duration of the growth
   and halves the maximum growth rate. A larger scale means slower
   growth. The time from 10% to 90% of the asymptote is a fixed multiple
@@ -96,6 +110,35 @@ it reaches half of its asymptote at $`b_2`$.
 For positive times, with the shape $`b_3 > 1`$; parameterised so that
 $`b_2`$ is the inflection point, the time of the maximum growth rate.
 
+#### beta
+
+``` math
+ f(t) = b_1 \left(1 + \frac{b_3 - t}{b_3 - b_2}\right) \left(\frac{t - b_4}{b_3 - b_4}\right)^{\frac{b_3 - b_4}{b_3 - b_2}} 
+```
+
+for $`b_4 < t < 2 b_3 - b_2`$, and zero otherwise: the beta growth
+function of Yin et al. (2003), which reaches its maximum
+$`b_1 = w_{\max}`$ at the end of growth $`b_3 = t_e`$, with zero slope,
+and then falls back to zero at $`2 b_3 - b_2`$ (the dashed line of their
+Figure 1A), for responses that decline after their maximum, e.g. biomass
+lost after maturity. $`b_2 = t_m`$ is the time of the maximum growth
+rate and $`b_4 = t_b`$ the start of growth, with $`b_4 < b_2 < b_3`$.
+Yin et al. give the curve for $`t_b = 0`$ (their eqn 8); as their growth
+rate depends on time only through $`t - t_b`$ and $`t_e - t`$, its
+integral from $`t_b`$ is the same curve with the time measured from
+$`t_b`$, the curve above. The levels of
+[`timeto()`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md)
+and the maximum growth rate of
+[`maxrate()`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md)
+are those of the rising part, up to $`b_3`$.
+
+#### beta_capped
+
+The same curve up to the end of growth $`b_3`$, and $`b_1`$ from $`b_3`$
+on: the beta sigmoid growth function of Yin et al. (2003), for
+determinate growth that stops at its maximum. It is the only curve that
+reaches its asymptote at a finite time.
+
 #### normal
 
 ``` math
@@ -119,6 +162,68 @@ For positive times; parameterised so that $`b_2`$, the mode of the gamma
 density, is the inflection point. The curve approaches the asymptote
 more slowly than it leaves zero, the more so for a small shape $`b_3`$,
 and tends to the normal curve for a large shape.
+
+#### chapmanrichards
+
+``` math
+ f(t) = b_4 + b_1 \left(1 - \exp\left(-\frac{t}{b_3}\right)\right)^{c}, \qquad c = \exp\left(\frac{b_2}{b_3}\right), 
+```
+
+for $`t > 0`$, and $`b_4`$ up to $`t = 0`$. The Chapman-Richards curve
+grows from the intercept $`b_4`$ at $`t = 0`$ (by default $`b_4 = 0`$),
+e.g. the breast height of 1.3 m in a height-diameter model of trees,
+`start = c(b4 = 1.3)`; `fix = c(b4 = FALSE)` estimates it. $`b_2`$ is
+its inflection point and $`b_3`$ its scale, the inverse of the rate
+$`k = 1/b_3`$ of the usual form $`b_1 (1 - \mathrm{e}^{-k t})^c`$; the
+exponent $`c`$ is not a separate parameter, but follows from
+$`b_2 = b_3 \log c`$. Model M8 of Ciceu et al. (2020),
+$`1.3 + a (1 - \mathrm{e}^{-k D})^c`$ for the diameter $`D`$, has
+$`b_4 = 1.3`$, $`b_1 = a`$, $`b_3 = 1/k`$ and $`b_2 = \log(c)/k`$. The
+curve approaches the asymptote more slowly than it leaves zero.
+
+It is the Richards curve below (the logistic model with an asymmetry
+$`b_5`$) with a negative asymmetry $`b_5 = -1/c`$:
+$`\left(1 + b_5 \exp\left(-\frac{t - b_2}{b_3}\right)\right)^{-1/b_5} = \left(1 - \frac{1}{c} \exp\left(-\frac{t - b_2}{b_3}\right)\right)^{c}`$,
+which is the curve above. The Richards curve with $`b_5 > 0`$ approaches
+zero only as $`t \to -\infty`$, whereas the Chapman-Richards curve, with
+$`-1 < b_5 < 0`$, reaches zero at $`t = 0`$; between the two,
+$`b_5 \to 0`$, lies the Gompertz curve.
+
+#### wykoff
+
+``` math
+ f(t) = b_4 + b_1 \exp\left(-\frac{s}{t + 1}\right), \qquad s = 2 (b_2 + 1), 
+```
+
+for $`t > -1`$, and $`b_4`$ before: the curve of Wykoff et al. (1982),
+$`\exp(a + b/(t + 1))`$ with $`a = \log b_1`$ and $`b = -s`$, model M9
+of Ciceu et al. (2020) with $`b_4 = 1.3`$ for the breast height. $`b_2`$
+is the inflection point, where the curve reaches
+$`\mathrm{e}^{-2} \approx 14\%`$ of its asymptote, and $`b_4`$ the
+intercept as for the Chapman-Richards curve; the curve does not use
+$`b_3`$. It approaches the asymptote slowly, as $`1/t`$.
+
+#### preecebaines
+
+``` math
+ f(t) = b_1 - \frac{2 (b_1 - b_3)}{\exp(b_4 (t - b_2)) + \exp(b_5 (t - b_2))} 
+```
+
+Model 1 of Preece and Baines (1978) for human growth in height: the
+adult height $`b_1`$, the age $`b_2`$ in the middle of puberty, the
+height $`b_3`$ at that age, and the rates $`b_4`$ and $`b_5`$ of growth
+before and during puberty, $`0 < b_4 < b_5`$; the rates $`b_4`$ and
+$`b_5`$ are estimated by default. Unlike the other curves, it does not
+grow from zero: its growth rate is highest in early childhood and falls
+until the take-off of the pubertal growth spurt, rises to the peak
+height velocity, and then falls to zero at the adult height. It is never
+truncated.
+[`maxrate()`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md)
+gives the peak of the pubertal spurt, and
+[`timeto()`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md)
+the ages at which a percentage of the adult height $`b_1`$ is reached;
+`b1type = "rate"` is not available, as the growth rate is proportional
+to $`b_1 - b_3`$ rather than to $`b_1`$.
 
 #### linear
 
@@ -151,7 +256,16 @@ curve without truncation. By default $`b_4`$ is fixed at 0, so that the
 curve starts at zero at $`t = 0`$, e.g. at sowing; `fix = c(b4 = FALSE)`
 estimates it, and `truncated = FALSE` gives the curves without
 truncation. The Hill and Weibull curves are zero up to $`t = 0`$ anyway,
-so a threshold at or below 0 does not change them.
+so a threshold at or below 0 does not change them. The Chapman-Richards,
+beta and Wykoff curves are never truncated: the beta curve is zero up to
+its start $`b_4`$ anyway, and $`b_4`$ is the intercept of the other two.
+For the Chapman-Richards and Wykoff curves, $`b_1`$ is the growth above
+the intercept $`b_4`$, so that the levels of
+[`timeto()`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md)
+in percent and the results of
+[`maxrate()`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md)
+do not depend on it, while the responses of `timeto(type = "absolute")`
+include it.
 
 #### Maximum growth rate and inflection point
 
@@ -166,9 +280,24 @@ slope of the curve at $`t_m`$, are:
 | gompertz | $`b_2`$ | $`\mathrm{e}^{-1} \approx 0.37`$ | $`\dfrac{b_1}{\mathrm{e}^1 b_3}`$ |
 | hill | $`b_2 \left(\dfrac{b_3 - 1}{b_3 + 1}\right)^{1/b_3}`$ | $`\dfrac{b_3 - 1}{2 b_3}`$ | $`\dfrac{b_1}{b_2} \dfrac{(b_3 - 1)^{1 - 1/b_3} (b_3 + 1)^{1 + 1/b_3}}{4 b_3}`$ |
 | weibull | $`b_2`$ | $`1 - \mathrm{e}^{-(b_3 - 1)/b_3}`$ | $`\dfrac{b_1}{b_2} (b_3 - 1) \mathrm{e}^{-(b_3 - 1)/b_3}`$ |
+| beta, beta_capped | $`b_2`$ | $`2 (1 - d)^{1/d}`$ | $`\dfrac{b_1}{b_3 - b_4} \left(1 + \dfrac{1}{d}\right) (1 - d)^{1/d - 1}`$ |
 | normal | $`b_2`$ | $`1/2`$ | $`\dfrac{b_1}{\sqrt{2\pi}\, b_3}`$ |
 | gamma | $`b_2`$ | $`F_\Gamma\left(b_2;\ b_3, \dfrac{b_2}{b_3 - 1}\right)`$ | $`\dfrac{b_1}{b_2} \dfrac{(b_3 - 1)^{b_3} \mathrm{e}^{-(b_3 - 1)}}{\Gamma(b_3)}`$ |
+| chapmanrichards | $`b_2`$ | $`(1 - 1/c)^c`$ | $`\dfrac{b_1}{b_3} (1 - 1/c)^{c - 1}`$ |
+| wykoff | $`b_2`$ | $`\mathrm{e}^{-2} \approx 0.14`$ | $`\dfrac{2 b_1 \mathrm{e}^{-2}}{b_2 + 1}`$ |
+| preecebaines | $`b_2 + \dfrac{\log w}{b_5 - b_4}`$, the pubertal peak | $`f(t_m)/b_1`$ | $`2 (b_1 - b_3) \dfrac{b_4 + b_5 w}{(1 + w)^2} w^{-b_4/(b_5 - b_4)}`$ |
 | linear | none | none | $`b_1`$ at all times |
+
+with $`c = \exp(b_2/b_3)`$ for Chapman-Richards (for $`b_2 > 0`$; the
+proportion and the rate are those of the growth above the intercept
+$`b_4`$), and $`d = (b_3 - b_2)/(b_3 - b_4)`$ for beta, and $`w`$ the
+larger root of $`b_5^2 w^2 - (b_4^2 - 4 b_4 b_5 + b_5^2) w + b_4^2 = 0`$
+for Preece-Baines, which has a pubertal peak if
+$`b_5 / b_4 > 3 + 2 \sqrt{2} \approx 5.8`$ (the smaller root is the
+take-off, the minimum of the growth rate before the peak); for
+$`b_4 = 0`$, the maximum growth rate of the beta curve is
+$`c_m = b_1 \frac{2 b_3 - b_2}{b_3 (b_3 - b_2)} (b_2/b_3)^{b_2/(b_3 - b_2)}`$
+of Yin et al. (2003).
 
 The proportion of total growth at inflection tells how much of the
 growth has occurred when the growth is fastest. The Hill curve has an
@@ -197,11 +326,12 @@ Gompertz, Weibull, normal and gamma curves need $`b_5`$ fixed at 1 with
 
 #### Asymmetry
 
-Each model has an asymmetry parameter $`b_5 > 0`$, with $`b_5 = 1`$ the
-curves above. By default $`b_5`$ is fixed at 1; `fix = c(b5 = FALSE)`
-estimates it, and the log link, `link = c(b5 = "log")`, keeps it
-positive. The truncation applies to the asymmetric curves in the same
-way.
+Each model but the beta, beta_capped, Chapman-Richards, Wykoff,
+Preece-Baines and linear ones has an asymmetry parameter $`b_5 > 0`$,
+with $`b_5 = 1`$ the curves above. By default $`b_5`$ is fixed at 1;
+`fix = c(b5 = FALSE)` estimates it, and the log link,
+`link = c(b5 = "log")`, keeps it positive. The truncation applies to the
+asymmetric curves in the same way.
 
 - logistic, the Richards curve:
   ``` math
@@ -296,10 +426,11 @@ summary(fit)
 ```
 
 Starting values are found from the data by a linearisation of the curve:
-for a given asymptote $`b_1`$, $`F^{-1}(y / b_1) = (t - b_2)/b_3`$ is
-linear in time, so a linear regression of the transformed mean responses
-on time gives $`b_2`$ and $`b_3`$. The asymptote is profiled, as the
-observations often do not reach it yet.
+for a given asymptote $`b_1`$, the logistic curve gives
+$`\log(y / (b_1 - y)) = (t - b_2)/b_3`$, a straight line in time, so a
+linear regression of the transformed mean responses on time gives
+$`b_2`$ and $`b_3`$, and similarly for the other sigmoid curves. The
+asymptote is profiled, as the observations often do not reach it yet.
 [`gcTMBstart()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md)
 shows the starting values; the `start` argument provides starting values
 for some or all of the parameters, and the `fix` argument fixes
@@ -332,12 +463,22 @@ estimated parameters:
   `fix = c(b5 = FALSE)`, on the log scale;
 - all five parameters, `fix = c(b4 = FALSE, b5 = FALSE)`.
 
-The straight line, which has only $`b_1`$ and $`b_2`$, is shown with the
-first set. The coefficients are printed for the logistic model only.
+The beta, beta_capped, Chapman-Richards and Wykoff curves have no
+asymmetry, so their fits with $`b_5`$ are those without it; their
+$`b_4`$ is the start of growth (beta, beta_capped) or the intercept
+(Chapman-Richards, Wykoff). The heights of the faba beans do not decline
+within the observed days, so the beta curve puts its end of growth
+beyond them. The Preece-Baines curve, a model of human growth over two
+decades rather than of the growth of a plant over a season, estimates
+all five parameters in every set. The straight line, which has only the
+slope $`b_1`$ and the intercept $`b_2`$, is shown with the first set.
+The coefficients are printed for the logistic model only.
 
 ``` r
 
-growth <- c(logistic = "logistic", gompertz = "gompertz", hill = "hill", weibull = "weibull", normal = "normal", gamma = "gamma")
+growth <- c(logistic = "logistic", gompertz = "gompertz", hill = "hill", weibull = "weibull", beta = "beta",
+            beta_capped = "beta_capped", normal = "normal", gamma = "gamma", chapmanrichards = "chapmanrichards", wykoff = "wykoff",
+            preecebaines = "preecebaines")
 sets <- list("b1, b2, b3" = list(),
              "b1, b2, b3, b4" = list(fix = c(b4 = FALSE)),
              "b1, b2, b3, b5" = list(fix = c(b5 = FALSE), link = c(b5 = "log")),
@@ -374,13 +515,18 @@ the optimiser did not converge are marked with an asterisk.
 aictab <- sapply(allfits, function(fs) sapply(names(growth), function(m)
   paste0(format(round(AIC(fs[[m]]), 1), nsmall = 1), if (fs[[m]]$opt$convergence != 0) "*" else "")))
 noquote(aictab)
-#>          b1, b2, b3 b1, b2, b3, b4 b1, b2, b3, b5 b1, b2, b3, b4, b5
-#> logistic 1406.5     1408.5         1408.5         1410.4            
-#> gompertz 1407.7     1409.3         1408.4         1410.4            
-#> hill     1409.9     1411.9         1408.4         1410.4*           
-#> weibull  1407.8     1409.8*        1408.4         1410.4*           
-#> normal   1406.4     1408.4         1408.4         1410.4            
-#> gamma    1409.7     1411.7         1410.2*        1412.2*
+#>                 b1, b2, b3 b1, b2, b3, b4 b1, b2, b3, b5 b1, b2, b3, b4, b5
+#> logistic        1406.5     1408.5         1408.5         1410.4            
+#> gompertz        1407.7     1409.3         1408.4         1410.4            
+#> hill            1409.9     1411.9         1408.4         1410.4*           
+#> weibull         1407.8     1409.8*        1408.4         1410.4*           
+#> beta            1406.8     1408.7         1406.8         1408.7            
+#> beta_capped     1406.8     1408.7         1406.8         1408.7            
+#> normal          1406.4     1408.4         1408.4         1410.4            
+#> gamma           1409.7     1411.7         1410.2*        1412.2*           
+#> chapmanrichards 1410.1     1409.0         1410.1         1409.0            
+#> wykoff          1416.1     1411.6         1416.1         1411.6            
+#> preecebaines    1410.4     1410.4         1410.4         1410.4
 AIC(allfits[["b1, b2, b3"]]$linear)
 #> [1] 1443.592
 ```
@@ -403,21 +549,21 @@ for (set in names(sets)) print(curveplot(set))
 
 ![](growth-models_files/figure-html/unnamed-chunk-6-1.png)![](growth-models_files/figure-html/unnamed-chunk-6-2.png)![](growth-models_files/figure-html/unnamed-chunk-6-3.png)![](growth-models_files/figure-html/unnamed-chunk-6-4.png)
 
-The curves of the six growth models are close to each other within the
-observed days, and differ mostly in their extrapolation. The estimated
-threshold $`b_4`$ is only identified by observations near it, such as
-zero responses before the growth starts. The heights are positive at all
-observation times, from day 14, so the threshold of the logistic curve
-stays near zero, and that of the Gompertz curve moves far below zero,
-where the curve is no longer truncated. For the Hill, Weibull and gamma
-curves, which are zero up to $`t = 0`$ anyway, a threshold below zero
-has no effect at all; the optimiser may then stop with the threshold at
-zero and report no convergence, with the same curve as without the
-threshold. The asymmetry of the gamma curve is not identified on these
-data either: its shape grows without bound, towards the normal curve. An
-estimated threshold is more useful for counts with zeros before the
-growth starts, as for the pods in the vignette *Fixed and random
-effects*.
+The curves of the eleven growth models are close to each other within
+the observed days, and differ mostly in their extrapolation. The
+estimated threshold $`b_4`$ is only identified by observations near it,
+such as zero responses before the growth starts. The heights are
+positive at all observation times, from day 14, so the threshold of the
+logistic curve stays near zero, and that of the Gompertz curve moves far
+below zero, where the curve is no longer truncated. For the Hill,
+Weibull and gamma curves, which are zero up to $`t = 0`$ anyway, a
+threshold below zero has no effect at all; the optimiser may then stop
+with the threshold at zero and report no convergence, with the same
+curve as without the threshold. The asymmetry of the gamma curve is not
+identified on these data either: its shape grows without bound, towards
+the normal curve. An estimated threshold is more useful for counts with
+zeros before the growth starts, as for the pods in the vignette *Fixed
+and random effects*.
 
 ### Predictions
 
@@ -522,11 +668,11 @@ coef(fit)[["b3:(Intercept)"]]
 
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws
 validation plots: residuals against the fitted values and against time,
-and a normal QQ plot of the randomised quantile residuals. With
-`type = c("validation", "curves")`, the data with the fitted curve are
-added as the last graph. The repeated measurements of the same plants
-are not independent; the random effects of the plants (vignette *Fixed
-and random effects*) account for that.
+and a normal QQ plot of the randomised quantile residuals (Dunn and
+Smyth, 1996). With `type = c("validation", "curves")`, the data with the
+fitted curve are added as the last graph. The repeated measurements of
+the same plants are not independent; the random effects of the plants
+(vignette *Fixed and random effects*) account for that.
 
 ``` r
 
@@ -585,3 +731,26 @@ ggplot(FabaHeights25, aes(x = DAS, y = height, colour = trt)) +
 ```
 
 ![](growth-models_files/figure-html/unnamed-chunk-13-1.png)
+
+## References
+
+Ciceu, A., Garcia-Duro, J., Seceleanu, I. and Badea, O. (2020). A
+generalized nonlinear mixed-effects height-diameter model for Norway
+spruce in mixed-uneven aged stands. *Forest Ecology and Management* 477,
+118507.
+
+Dunn, P.K. and Smyth, G.K. (1996). Randomized quantile residuals.
+*Journal of Computational and Graphical Statistics* 5, 236–244.
+<doi:10.1080/10618600.1996.10474708>.
+
+Preece, M.A. and Baines, M.J. (1978). A new family of mathematical
+models describing the human growth curve. *Annals of Human Biology* 5,
+1–24.
+
+Wykoff, W.R., Crookston, N.L. and Stage, A.R. (1982). *User’s guide to
+the stand prognosis model*. General Technical Report INT-133, USDA
+Forest Service, Ogden, Utah.
+
+Yin, X., Goudriaan, J., Lantinga, E.A., Vos, J. and Spiertz, H.J.
+(2003). A flexible sigmoid function of determinate growth. *Annals of
+Botany* 91, 361–371.

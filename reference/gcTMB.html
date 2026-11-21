@@ -11,7 +11,7 @@ the Laplace approximation."><meta property="og:image" content="https://emilskind
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9009</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9011</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,7 +81,7 @@ the Laplace approximation.</p>
 
 
 <dl><dt id="arg-form">form<a class="anchor" aria-label="anchor" href="#arg-form"></a></dt>
-<dd><p>Formula, with the names of the response and the time variable, e.g. <code>weight ~ day</code></p></dd>
+<dd><p>Formula, with the names of the response and the explanatory variable x, e.g. <code>weight ~ day</code>. x is usually time, but can be any variable along which the response grows towards an asymptote, e.g. the diameter of trees in a height-diameter model <code>height ~ dbh</code>.</p></dd>
 
 
 <dt id="arg-fform">fform<a class="anchor" aria-label="anchor" href="#arg-fform"></a></dt>
@@ -124,11 +124,11 @@ weights of the log-likelihood; with a correlation structure, they are precision 
 
 
 <dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
-<dd><p>Character string. The growth model: "logistic" (default), "gompertz", "hill", "weibull", "normal" or "gamma", each with an asymmetry parameter b5, or "linear" for a straight line, see Details.</p></dd>
+<dd><p>Character string. The growth model: "logistic" (default), "gompertz", "hill", "weibull", "normal" or "gamma", each with an asymmetry parameter b5, "beta" or "beta_capped" for determinate growth, "chapmanrichards" or "wykoff" for height-diameter models in forestry, "preecebaines" for human growth in height, or "linear" for a straight line, see Details.</p></dd>
 
 
 <dt id="arg-truncated">truncated<a class="anchor" aria-label="anchor" href="#arg-truncated"></a></dt>
-<dd><p>Logical. If TRUE (default), the curve is truncated at a threshold time b4, by default fixed at 0: the response is zero up to b4 and then grows, see Details. FALSE for the curves without truncation.</p></dd>
+<dd><p>Logical. If TRUE (default), the curve is truncated at a threshold time b4, by default fixed at 0: the response is zero up to b4 and then grows, see Details. FALSE for the curves without truncation. The beta, beta_capped, chapmanrichards, wykoff and preecebaines curves are never truncated.</p></dd>
 
 
 <dt id="arg-link">link<a class="anchor" aria-label="anchor" href="#arg-link"></a></dt>
@@ -170,19 +170,18 @@ a correlation structure, the weights are precision weights, with residual varian
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The growth models are of the form f(t) = b1 F(z(t)), with a distribution function F
-increasing from 0 to 1 and a transformed time z(t):</p><ul><li><p>logistic: f(t) = b1 / (1 + exp(-(t - b2)/b3)), with the logistic F(z) = 1/(1 + exp(-z)) and
-z = (t - b2)/b3; symmetric around b2, where the curve reaches half of its asymptote;</p></li>
-<li><p>gompertz: f(t) = b1 exp(-exp(-(t - b2)/b3)), F(z) = exp(-exp(-z)) and z = (t - b2)/b3;
-it reaches exp(-1), about 37\<!-- %, of its asymptote at b2 and approaches the asymptote more slowly -->
-than it leaves zero;</p></li>
-<li><p>hill: f(t) = b1 / (1 + (b2/t)^b3), the logistic F of z = b3 (log t - log b2), a logistic
-curve on the log time axis (log-logistic); b2 is the time at which the curve reaches half of its
+    <p>The logistic, gompertz, hill, weibull, normal and gamma curves are sigmoid growth curves,
+often used in agronomy and ecology; they increase from 0 towards the asymptote b1:</p><ul><li><p>logistic: f(t) = b1 / (1 + exp(-(t - b2)/b3)), symmetric around b2, where the curve
+reaches half of its asymptote;</p></li>
+<li><p>gompertz: f(t) = b1 exp(-exp(-(t - b2)/b3)); it reaches exp(-1), about 37\<!-- %, of its -->
+asymptote at b2 and approaches the asymptote more slowly than it leaves zero;</p></li>
+<li><p>hill: f(t) = b1 / (1 + (b2/t)^b3), a logistic curve in log t (log-logistic),
+b1 / (1 + exp(-b3 (log t - log b2))); b2 is the time at which the curve reaches half of its
 asymptote, and b3 the slope on the log time axis;</p></li>
-<li><p>weibull: f(t) = b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)), F(z) = 1 - exp(-exp(z)) and
-z = b3 (log t - log b2) + log((b3 - 1)/b3); b2 is the inflection point and b3 &gt; 1 the shape;</p></li>
-<li><p>normal: f(t) = b1 Phi((t - b2)/b3), the standard normal distribution function Phi of
-z = (t - b2)/b3; symmetric around b2, where the curve reaches half of its asymptote;</p></li>
+<li><p>weibull: f(t) = b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)); b2 is the inflection point and b3 &gt; 1
+the shape;</p></li>
+<li><p>normal: f(t) = b1 Phi((t - b2)/b3), with the standard normal distribution function Phi;
+symmetric around b2, where the curve reaches half of its asymptote;</p></li>
 <li><p>gamma: f(t) = b1 F(t), with F the cumulative distribution function (CDF) of the gamma
 distribution with shape b3 &gt; 1 and scale b2/(b3 - 1), whose density has its mode at b2: b2 is the inflection
 point and b3 the shape;</p></li>
@@ -190,6 +189,29 @@ point and b3 the shape;</p></li>
 with the growth curves. It has no asymptote, does not use b3-b5 and is not truncated;
 <code><a href="timeto.html">timeto</a></code> gives the times at which it reaches given responses
 (<code>type="absolute"</code>), and <code><a href="maxrate.html">maxrate</a></code> its constant rate b1.</p></li>
+</ul><p>Five more curves are never truncated: the beta curves of determinate growth, the height-diameter
+models chapmanrichards and wykoff, common in forestry, and the preecebaines model of human growth:</p><ul><li><p>chapmanrichards: f(t) = b4 + b1 (1 - exp(-t/b3))^c with c = exp(b2/b3), the
+Chapman-Richards curve, zero above the intercept b4 up to t = 0: b2 is the inflection point, b3
+the scale and b4 the intercept, fixed at 0 by default, e.g. the breast height of 1.3 m in a
+height-diameter model, <code>start=c(b4=1.3)</code>. Model M8 of Ciceu et al. (2020),
+1.3 + a (1 - exp(-k t))^c, has b4 = 1.3, b1 = a, b3 = 1/k and b2 = log(c)/k;</p></li>
+<li><p>beta: the beta growth function of Yin et al. (2003), eqn 8 (with b4 = 0 there),
+f(t) = b1 (1 + (b3 - t)/(b3 - b2)) ((t - b4)/(b3 - b4))^((b3 - b4)/(b3 - b2)) for
+b4 &lt; t &lt; 2 b3 - b2, and zero otherwise: b1 is the maximum w_max, b2 the time t_m of the maximum
+growth rate, b3 the end of growth t_e, where the curve reaches b1, and b4 the start of growth
+t_b, b4 &lt; b2 &lt; b3. After b3 the curve falls back to zero at 2 b3 - b2, for responses that
+decline after their maximum, e.g. biomass lost after maturity;</p></li>
+<li><p>beta_capped: the same curve up to b3, and b1 from b3 on, the beta sigmoid growth function
+of Yin et al. for determinate growth that stops at its maximum;</p></li>
+<li><p>wykoff: f(t) = b4 + b1 exp(-s/(t + 1)) with s = 2 (b2 + 1), the curve of Wykoff et al. (1982),
+exp(a + b/(t + 1)) with a = log(b1) and b = -s (model M9 of Ciceu et al. 2020): b2 is the
+inflection point, where the curve reaches exp(-2) of its asymptote, and b4 the intercept as for
+chapmanrichards; it does not use b3;</p></li>
+<li><p>preecebaines: model 1 of Preece and Baines (1978) for human growth in height,
+f(t) = b1 - 2 (b1 - b3)/(exp(b4 (t - b2)) + exp(b5 (t - b2))): the adult height b1, the age b2 in
+the middle of puberty, the height b3 at b2, and the rates b4 &lt; b5 of growth before and during
+puberty, which are estimated by default. <code><a href="maxrate.html">maxrate</a></code> gives the peak of the pubertal
+growth spurt (the peak height velocity); <code>b1type="rate"</code> is not available.</p></li>
 </ul><p><strong>Relation to nlme.</strong> Parts of the interface follow the package nlme (Pinheiro and Bates,
 2000), so that models can be moved between <code><a href="https://rdrr.io/pkg/nlme/man/nlme.html" class="external-link">nlme::nlme</a></code>/<code><a href="https://rdrr.io/pkg/nlme/man/gnls.html" class="external-link">nlme::gnls</a></code> and gcTMB:</p><ul><li><p>the fixed and random effects are formulas for the parameters, as the arguments <code>fixed</code>
 and <code>random</code> of <code><a href="https://rdrr.io/pkg/nlme/man/nlme.html" class="external-link">nlme::nlme</a></code>: <code>fform=b1 + b2 ~ trt</code> or
@@ -233,6 +255,15 @@ anyway.</p>
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Pinheiro, J.C. and Bates, D.M. (2000). Mixed-Effects Models in S and S-PLUS.
 Springer, New York.</p>
+<p>Ciceu, A., Garcia-Duro, J., Seceleanu, I. and Badea, O. (2020). A generalized nonlinear
+mixed-effects height-diameter model for Norway spruce in mixed-uneven aged stands. Forest
+Ecology and Management 477, 118507.</p>
+<p>Preece, M.A. and Baines, M.J. (1978). A new family of mathematical models describing the human
+growth curve. Annals of Human Biology 5, 1-24.</p>
+<p>Wykoff, W.R., Crookston, N.L. and Stage, A.R. (1982). User's guide to the stand prognosis model.
+General Technical Report INT-133, USDA Forest Service, Ogden, Utah.</p>
+<p>Yin, X., Goudriaan, J., Lantinga, E.A., Vos, J. and Spiertz, H.J. (2003). A flexible sigmoid
+function of determinate growth. Annals of Botany 91, 361-371.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -272,7 +303,10 @@ Springer, New York.</p>
 <span class="r-in"><span><span class="va">fitn</span> <span class="op">&lt;-</span> <span class="fu">gcTMB</span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, model<span class="op">=</span><span class="st">"normal"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fitgam</span> <span class="op">&lt;-</span> <span class="fu">gcTMB</span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, model<span class="op">=</span><span class="st">"gamma"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fitlin</span> <span class="op">&lt;-</span> <span class="fu">gcTMB</span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, model<span class="op">=</span><span class="st">"linear"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">fitg</span>, <span class="va">fith</span>, <span class="va">fitw</span>, <span class="va">fitn</span>, <span class="va">fitgam</span>, <span class="va">fitlin</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fitcr</span> <span class="op">&lt;-</span> <span class="fu">gcTMB</span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, model<span class="op">=</span><span class="st">"chapmanrichards"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fitb</span> <span class="op">&lt;-</span> <span class="fu">gcTMB</span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, model<span class="op">=</span><span class="st">"beta_capped"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fitwy</span> <span class="op">&lt;-</span> <span class="fu">gcTMB</span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, model<span class="op">=</span><span class="st">"wykoff"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">fitg</span>, <span class="va">fith</span>, <span class="va">fitw</span>, <span class="va">fitn</span>, <span class="va">fitgam</span>, <span class="va">fitlin</span>, <span class="va">fitcr</span>, <span class="va">fitb</span>, <span class="va">fitwy</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        df      AIC</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> fit     4 1406.470</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> fitg    4 1407.658</span>
@@ -281,6 +315,25 @@ Springer, New York.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> fitn    4 1406.412</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> fitgam  4 1409.685</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> fitlin  3 1443.592</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> fitcr   4 1410.100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> fitb    4 1406.751</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> fitwy   3 1416.150</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># a height-diameter model from the breast height of 1.3 m, the intercept b4</span></span></span>
+<span class="r-in"><span><span class="fu">gcTMB</span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">dbh</span>, data<span class="op">=</span><span class="va">PineHeightDiameter</span>, model<span class="op">=</span><span class="st">"chapmanrichards"</span>, start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4<span class="op">=</span><span class="fl">1.3</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> gcTMB(form = height ~ dbh, data = PineHeightDiameter, start = c(b4 = 1.3), </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     model = "chapmanrichards")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Model:  chapmanrichards</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Family: gaussian, identity link for all parameters</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept)  b2:(Intercept)  b3:(Intercept)  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         45.719           2.954          50.883  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed: b4:(Intercept) = 1.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Residual standard deviation: 2.434</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># the Richards curve: the logistic model with an estimated asymmetry b5</span></span></span>
 <span class="r-in"><span><span class="va">fitr5</span> <span class="op">&lt;-</span> <span class="fu">gcTMB</span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, fix<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b5<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span></span>
@@ -358,16 +411,16 @@ Springer, New York.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Pairwise differences of b1 (maximum growth rate):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                   Estimate Std.Error t value p.value  lower    upper</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.3   0.0149    0.0776   0.193  0.9997 -0.199  0.22851</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.5  -0.2053    0.0822  -2.498  0.0946 -0.432  0.02101</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.6  -0.2180    0.0835  -2.611  0.0715 -0.448  0.01188</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.8  -0.1624    0.0839  -1.937  0.3016 -0.393  0.06853</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.5  -0.2203    0.0794  -2.774  0.0472 -0.439 -0.00163</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.6  -0.2330    0.0807  -2.885  0.0344 -0.455 -0.01063</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.8  -0.1774    0.0811  -2.186  0.1884 -0.401  0.04607</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.5 - trt=0.6  -0.0127    0.0849  -0.150  0.9998 -0.247  0.22107</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.5 - trt=0.8   0.0429    0.0854   0.502  0.9872 -0.192  0.27804</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.6 - trt=0.8   0.0556    0.0867   0.642  0.9689 -0.183  0.29427</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.3   0.0149    0.0776   0.193  0.9997 -0.199  0.22877</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.5  -0.2053    0.0822  -2.498  0.0944 -0.432  0.02129</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.6  -0.2180    0.0835  -2.611  0.0717 -0.448  0.01216</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.8  -0.1624    0.0839  -1.937  0.3009 -0.394  0.06881</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.5  -0.2203    0.0794  -2.774  0.0478 -0.439 -0.00137</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.6  -0.2330    0.0807  -2.885  0.0350 -0.456 -0.01036</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.8  -0.1774    0.0811  -2.186  0.1898 -0.401  0.04634</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.5 - trt=0.6  -0.0127    0.0849  -0.150  0.9999 -0.247  0.22135</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.5 - trt=0.8   0.0429    0.0854   0.502  0.9873 -0.193  0.27832</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.6 - trt=0.8   0.0556    0.0867   0.642  0.9686 -0.183  0.29456</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Wald t tests on 189 degrees of freedom; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits.</span>
 <span class="r-in"><span></span></span>

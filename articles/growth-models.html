@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9009</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9011</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Growth models and their parameters</h1>
             
-            <h4 data-toc-skip class="date">2026-11-20</h4>
+            <h4 data-toc-skip class="date">2026-11-21</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/growth-models.Rmd" class="external-link"><code>vignettes/growth-models.Rmd</code></a></small>
       <div class="d-none name"><code>growth-models.Rmd</code></div>
@@ -82,12 +82,22 @@ gives a short overview of all the features.</p>
 <div class="section level2">
 <h2 id="growth-models">Growth models<a class="anchor" aria-label="anchor" href="#growth-models"></a>
 </h2>
-<p>All models but the linear one are functions
+<p>The logistic, Gompertz, Hill, Weibull, beta, normal and gamma curves
+are sigmoid growth curves, often used in agronomy and ecology, e.g. for
+the growth of plants and crops over a season. The Chapman-Richards and
+Wykoff curves are height-diameter models, common in forestry, and the
+Preece-Baines curve is a model of human growth in height. All models but
+the linear one are functions
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(t)</annotation></semantics></math>
-of time, increasing from 0 towards the asymptote
+of time, increasing from 0 (or from an intercept) towards the asymptote
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>,
 e.g. the logistic curve
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(t) = b_1/(1 + \exp(-(t - b_2)/b_3))</annotation></semantics></math>:</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(t) = b_1/(1 + \exp(-(t - b_2)/b_3))</annotation></semantics></math>.
+The variable on the x-axis need not be time: it can be any variable
+along which the response grows towards an asymptote, e.g. the diameter
+of trees in a height-diameter model; we write
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+throughout.</p>
 <ul>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
@@ -95,19 +105,24 @@ is the asymptote, the response approached at late times,</li>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
 is the time of the maximum growth rate, the inflection point of the
-curve (logistic, Gompertz, Weibull, normal, gamma), or the time of half
-the asymptote (Hill),</li>
+curve (logistic, Gompertz, Weibull, beta, normal, gamma,
+Chapman-Richards, Wykoff), the time of half the asymptote (Hill), or the
+middle of puberty (Preece-Baines),</li>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
-is the scale of the curve on the time axis (logistic, Gompertz, normal),
-its slope on the log time axis (Hill), or its shape (Weibull,
-gamma).</li>
+is the scale of the curve on the time axis (logistic, Gompertz, normal,
+Chapman-Richards), its slope on the log time axis (Hill), its shape
+(Weibull, gamma), the end of growth (beta), or the height in the middle
+of puberty (Preece-Baines); the Wykoff curve does not use it.</li>
 </ul>
 <p>The parameter
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
-is the threshold of truncated curves, and
+is the threshold of truncated curves, the start of growth of the beta
+curve, the intercept of the Chapman-Richards and Wykoff curves, or the
+rate of growth before puberty (Preece-Baines), and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>
-the asymmetry of the curve (both below).</p>
+the asymmetry of the curve or the rate of growth during puberty
+(Preece-Baines) (all below).</p>
 <div class="section level4">
 <h4 id="scale-slope-and-shape">Scale, slope and shape<a class="anchor" aria-label="anchor" href="#scale-slope-and-shape"></a>
 </h4>
@@ -115,8 +130,9 @@ the asymmetry of the curve (both below).</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
 sets how long the growth takes, but in three different ways:</p>
 <ul>
-<li>A <strong>scale</strong> (logistic, Gompertz, normal) is in units of
-time. The curve depends on time only through
+<li>A <strong>scale</strong> (logistic, Gompertz, normal,
+Chapman-Richards) is in units of time. The curve depends on time only
+through
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">(t - b_2)/b_3</annotation></semantics></math>,
 so
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
@@ -159,8 +175,8 @@ Duration of growth from 10% to 90% of the asymptote (table removed from the vign
   logistic t90 - t10 = 2 log(9) b3 = 4.39 b3; gompertz 3.08 b3; normal 2 qnorm(0.9) b3 = 2.56 b3;
   hill t90 / t10 = 81^(1/b3); weibull t90 / t10 = (log 10 / log(10/9))^(1/b3) = 21.9^(1/b3);
   gamma: no closed form, coefficient of variation of the times of growth 1/sqrt(b3).
-Checks of the durations: logistic F(z) = 0.1, 0.9 at z = -log 9, log 9; gompertz exp(-exp(-z)) = 0.1, 0.9
-at z = -0.834, 2.250; normal at z = -/+1.2816; hill: logistic in b3 (log t - log b2), so
+Checks of the durations: logistic 10% and 90% at (t - b2)/b3 = -log 9, log 9; gompertz at (t - b2)/b3 = -0.834,
+2.250; normal at (t - b2)/b3 = -/+1.2816; hill: logistic in b3 (log t - log b2), so
 b3 log(t90/t10) = 2 log 9; weibull: the shift of z cancels, b3 log(t90/t10) = log(log 10 / log(10/9));
 gamma with shape k = b3: mean k theta, sd sqrt(k) theta.
 -->
@@ -206,6 +222,54 @@ parameterised so that
 is the inflection point, the time of the maximum growth rate.</p>
 </div>
 <div class="section level4">
+<h4 id="beta">beta<a class="anchor" aria-label="anchor" href="#beta"></a>
+</h4>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><mfrac><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><mi>t</mi></mrow><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub></mrow><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub></mrow><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow></mfrac></msup></mrow><annotation encoding="application/x-tex"> f(t) = b_1 \left(1 + \frac{b_3 - t}{b_3 - b_2}\right) \left(\frac{t - b_4}{b_3 - b_4}\right)^{\frac{b_3 - b_4}{b_3 - b_2}} </annotation></semantics></math></p>
+<p>for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>&lt;</mo><mi>t</mi><mo>&lt;</mo><mn>2</mn><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">b_4 &lt; t &lt; 2 b_3 - b_2</annotation></semantics></math>,
+and zero otherwise: the beta growth function of Yin et al. (2003), which
+reaches its maximum
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><mo>=</mo><msub><mi>w</mi><mi mathvariant="normal">max</mi></msub></mrow><annotation encoding="application/x-tex">b_1 = w_{\max}</annotation></semantics></math>
+at the end of growth
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>=</mo><msub><mi>t</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">b_3 = t_e</annotation></semantics></math>,
+with zero slope, and then falls back to zero at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">2 b_3 - b_2</annotation></semantics></math>
+(the dashed line of their Figure 1A), for responses that decline after
+their maximum, e.g. biomass lost after maturity.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>2</mn></msub><mo>=</mo><msub><mi>t</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">b_2 = t_m</annotation></semantics></math>
+is the time of the maximum growth rate and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>=</mo><msub><mi>t</mi><mi>b</mi></msub></mrow><annotation encoding="application/x-tex">b_4 = t_b</annotation></semantics></math>
+the start of growth, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>&lt;</mo><msub><mi>b</mi><mn>2</mn></msub><mo>&lt;</mo><msub><mi>b</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">b_4 &lt; b_2 &lt; b_3</annotation></semantics></math>.
+Yin et al. give the curve for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mi>b</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t_b = 0</annotation></semantics></math>
+(their eqn 8); as their growth rate depends on time only through
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>−</mo><msub><mi>t</mi><mi>b</mi></msub></mrow><annotation encoding="application/x-tex">t - t_b</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mi>e</mi></msub><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">t_e - t</annotation></semantics></math>,
+its integral from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>b</mi></msub><annotation encoding="application/x-tex">t_b</annotation></semantics></math>
+is the same curve with the time measured from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>b</mi></msub><annotation encoding="application/x-tex">t_b</annotation></semantics></math>,
+the curve above. The levels of <code><a href="../reference/timeto.html">timeto()</a></code> and the maximum
+growth rate of <code><a href="../reference/maxrate.html">maxrate()</a></code> are those of the rising part, up
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>.</p>
+</div>
+<div class="section level4">
+<h4 id="beta_capped">beta_capped<a class="anchor" aria-label="anchor" href="#beta_capped"></a>
+</h4>
+<p>The same curve up to the end of growth
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
+from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
+on: the beta sigmoid growth function of Yin et al. (2003), for
+determinate growth that stops at its maximum. It is the only curve that
+reaches its asymptote at a finite time.</p>
+</div>
+<div class="section level4">
 <h4 id="normal">normal<a class="anchor" aria-label="anchor" href="#normal"></a>
 </h4>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mi mathvariant="normal">Φ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><msub><mi>b</mi><mn>3</mn></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex"> f(t) = b_1 \Phi\left(\frac{t - b_2}{b_3}\right) </annotation></semantics></math></p>
@@ -239,6 +303,126 @@ approaches the asymptote more slowly than it leaves zero, the more so
 for a small shape
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
 and tends to the normal curve for a large shape.</p>
+</div>
+<div class="section level4">
+<h4 id="chapmanrichards">chapmanrichards<a class="anchor" aria-label="anchor" href="#chapmanrichards"></a>
+</h4>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>b</mi><mn>4</mn></msub><mo>+</mo><msub><mi>b</mi><mn>1</mn></msub><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi mathvariant="normal">exp</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mfrac><mi>t</mi><msub><mi>b</mi><mn>3</mn></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mi>c</mi></msup><mo>,</mo><mspace width="2.0em"></mspace><mi>c</mi><mo>=</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>b</mi><mn>2</mn></msub><msub><mi>b</mi><mn>3</mn></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex"> f(t) = b_4 + b_1 \left(1 - \exp\left(-\frac{t}{b_3}\right)\right)^{c}, \qquad c = \exp\left(\frac{b_2}{b_3}\right), </annotation></semantics></math></p>
+<p>for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t &gt; 0</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+up to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t = 0</annotation></semantics></math>.
+The Chapman-Richards curve grows from the intercept
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t = 0</annotation></semantics></math>
+(by default
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b_4 = 0</annotation></semantics></math>),
+e.g. the breast height of 1.3 m in a height-diameter model of trees,
+<code>start = c(b4 = 1.3)</code>; <code>fix = c(b4 = FALSE)</code>
+estimates it.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
+is its inflection point and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
+its scale, the inverse of the rate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>1</mn><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">k = 1/b_3</annotation></semantics></math>
+of the usual form
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msup><mi mathvariant="normal">e</mi><mrow><mi>−</mi><mi>k</mi><mi>t</mi></mrow></msup><msup><mo stretchy="false" form="postfix">)</mo><mi>c</mi></msup></mrow><annotation encoding="application/x-tex">b_1 (1 - \mathrm{e}^{-k t})^c</annotation></semantics></math>;
+the exponent
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+is not a separate parameter, but follows from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>2</mn></msub><mo>=</mo><msub><mi>b</mi><mn>3</mn></msub><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">b_2 = b_3 \log c</annotation></semantics></math>.
+Model M8 of Ciceu et al. (2020),
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1.3</mn><mo>+</mo><mi>a</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msup><mi mathvariant="normal">e</mi><mrow><mi>−</mi><mi>k</mi><mi>D</mi></mrow></msup><msup><mo stretchy="false" form="postfix">)</mo><mi>c</mi></msup></mrow><annotation encoding="application/x-tex">1.3 + a (1 - \mathrm{e}^{-k D})^c</annotation></semantics></math>
+for the diameter
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>,
+has
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>=</mo><mn>1.3</mn></mrow><annotation encoding="application/x-tex">b_4 = 1.3</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><mo>=</mo><mi>a</mi></mrow><annotation encoding="application/x-tex">b_1 = a</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>=</mo><mn>1</mn><mi>/</mi><mi>k</mi></mrow><annotation encoding="application/x-tex">b_3 = 1/k</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>2</mn></msub><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>c</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>k</mi></mrow><annotation encoding="application/x-tex">b_2 = \log(c)/k</annotation></semantics></math>.
+The curve approaches the asymptote more slowly than it leaves zero.</p>
+<p>It is the Richards curve below (the logistic model with an asymmetry
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>)
+with a negative asymmetry
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>5</mn></msub><mo>=</mo><mi>−</mi><mn>1</mn><mi>/</mi><mi>c</mi></mrow><annotation encoding="application/x-tex">b_5 = -1/c</annotation></semantics></math>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><msub><mi>b</mi><mn>5</mn></msub><mi mathvariant="normal">exp</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mfrac><mrow><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><msub><mi>b</mi><mn>3</mn></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>−</mi><mn>1</mn><mi>/</mi><msub><mi>b</mi><mn>5</mn></msub></mrow></msup><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mfrac><mn>1</mn><mi>c</mi></mfrac><mi mathvariant="normal">exp</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mfrac><mrow><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><msub><mi>b</mi><mn>3</mn></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mi>c</mi></msup></mrow><annotation encoding="application/x-tex">\left(1 + b_5 \exp\left(-\frac{t - b_2}{b_3}\right)\right)^{-1/b_5} = \left(1 - \frac{1}{c} \exp\left(-\frac{t - b_2}{b_3}\right)\right)^{c}</annotation></semantics></math>,
+which is the curve above. The Richards curve with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>5</mn></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b_5 &gt; 0</annotation></semantics></math>
+approaches zero only as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>→</mo><mi>−</mi><mi>∞</mi></mrow><annotation encoding="application/x-tex">t \to -\infty</annotation></semantics></math>,
+whereas the Chapman-Richards curve, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mn>1</mn><mo>&lt;</mo><msub><mi>b</mi><mn>5</mn></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">-1 &lt; b_5 &lt; 0</annotation></semantics></math>,
+reaches zero at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t = 0</annotation></semantics></math>;
+between the two,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>5</mn></msub><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b_5 \to 0</annotation></semantics></math>,
+lies the Gompertz curve.</p>
+</div>
+<div class="section level4">
+<h4 id="wykoff">wykoff<a class="anchor" aria-label="anchor" href="#wykoff"></a>
+</h4>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>b</mi><mn>4</mn></msub><mo>+</mo><msub><mi>b</mi><mn>1</mn></msub><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mfrac><mi>s</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><mi>s</mi><mo>=</mo><mn>2</mn><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>2</mn></msub><mo>+</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex"> f(t) = b_4 + b_1 \exp\left(-\frac{s}{t + 1}\right), \qquad s = 2 (b_2 + 1), </annotation></semantics></math></p>
+<p>for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>&gt;</mo><mi>−</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">t &gt; -1</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+before: the curve of Wykoff et al. (1982),
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>+</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\exp(a + b/(t + 1))</annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msub><mi>b</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">a = \log b_1</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>=</mo><mi>−</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">b = -s</annotation></semantics></math>,
+model M9 of Ciceu et al. (2020) with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>=</mo><mn>1.3</mn></mrow><annotation encoding="application/x-tex">b_4 = 1.3</annotation></semantics></math>
+for the breast height.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
+is the inflection point, where the curve reaches
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="normal">e</mi><mrow><mi>−</mi><mn>2</mn></mrow></msup><mo>≈</mo><mn>14</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">\mathrm{e}^{-2} \approx 14\%</annotation></semantics></math>
+of its asymptote, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+the intercept as for the Chapman-Richards curve; the curve does not use
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>.
+It approaches the asymptote slowly, as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">1/t</annotation></semantics></math>.</p>
+</div>
+<div class="section level4">
+<h4 id="preecebaines">preecebaines<a class="anchor" aria-label="anchor" href="#preecebaines"></a>
+</h4>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mo>−</mo><mfrac><mrow><mn>2</mn><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo>−</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>4</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>5</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex"> f(t) = b_1 - \frac{2 (b_1 - b_3)}{\exp(b_4 (t - b_2)) + \exp(b_5 (t - b_2))} </annotation></semantics></math></p>
+<p>Model 1 of Preece and Baines (1978) for human growth in height: the
+adult height
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>,
+the age
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
+in the middle of puberty, the height
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
+at that age, and the rates
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>
+of growth before and during puberty,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>&lt;</mo><msub><mi>b</mi><mn>4</mn></msub><mo>&lt;</mo><msub><mi>b</mi><mn>5</mn></msub></mrow><annotation encoding="application/x-tex">0 &lt; b_4 &lt; b_5</annotation></semantics></math>;
+the rates
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>
+are estimated by default. Unlike the other curves, it does not grow from
+zero: its growth rate is highest in early childhood and falls until the
+take-off of the pubertal growth spurt, rises to the peak height
+velocity, and then falls to zero at the adult height. It is never
+truncated. <code><a href="../reference/maxrate.html">maxrate()</a></code> gives the peak of the pubertal spurt,
+and <code><a href="../reference/timeto.html">timeto()</a></code> the ages at which a percentage of the adult
+height
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
+is reached; <code>b1type = "rate"</code> is not available, as the growth
+rate is proportional to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><mo>−</mo><msub><mi>b</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">b_1 - b_3</annotation></semantics></math>
+rather than to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>.</p>
 </div>
 <div class="section level4">
 <h4 id="linear">linear<a class="anchor" aria-label="anchor" href="#linear"></a>
@@ -285,7 +469,20 @@ e.g. at sowing; <code>fix = c(b4 = FALSE)</code> estimates it, and
 <code>truncated = FALSE</code> gives the curves without truncation. The
 Hill and Weibull curves are zero up to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t = 0</annotation></semantics></math>
-anyway, so a threshold at or below 0 does not change them.</p>
+anyway, so a threshold at or below 0 does not change them. The
+Chapman-Richards, beta and Wykoff curves are never truncated: the beta
+curve is zero up to its start
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+anyway, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+is the intercept of the other two. For the Chapman-Richards and Wykoff
+curves,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
+is the growth above the intercept
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>,
+so that the levels of <code><a href="../reference/timeto.html">timeto()</a></code> in percent and the results
+of <code><a href="../reference/maxrate.html">maxrate()</a></code> do not depend on it, while the responses of
+<code>timeto(type = "absolute")</code> include it.</p>
 </div>
 <div class="section level4">
 <h4 id="maximum-growth-rate-and-inflection-point">Maximum growth rate and inflection point<a class="anchor" aria-label="anchor" href="#maximum-growth-rate-and-inflection-point"></a>
@@ -346,16 +543,42 @@ are:</p>
 <td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mstyle displaystyle="true"><mfrac><msub><mi>b</mi><mn>1</mn></msub><msub><mi>b</mi><mn>2</mn></msub></mfrac></mstyle><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><msup><mi mathvariant="normal">e</mi><mrow><mi>−</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub></mrow></msup></mrow><annotation encoding="application/x-tex">\dfrac{b_1}{b_2} (b_3 - 1) \mathrm{e}^{-(b_3 - 1)/b_3}</annotation></semantics></math></td>
 </tr>
 <tr class="odd">
+<td align="left">beta, beta_capped</td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math></td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>d</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mn>1</mn><mi>/</mi><mi>d</mi></mrow></msup></mrow><annotation encoding="application/x-tex">2 (1 - d)^{1/d}</annotation></semantics></math></td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mstyle displaystyle="true"><mfrac><msub><mi>b</mi><mn>1</mn></msub><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub></mrow></mfrac></mstyle><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><mstyle displaystyle="true"><mfrac><mn>1</mn><mi>d</mi></mfrac></mstyle><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>d</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mn>1</mn><mi>/</mi><mi>d</mi><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">\dfrac{b_1}{b_3 - b_4} \left(1 + \dfrac{1}{d}\right) (1 - d)^{1/d - 1}</annotation></semantics></math></td>
+</tr>
+<tr class="even">
 <td align="left">normal</td>
 <td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math></td>
 <td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">1/2</annotation></semantics></math></td>
 <td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mstyle displaystyle="true"><mfrac><msub><mi>b</mi><mn>1</mn></msub><mrow><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt><mspace width="0.167em"></mspace><msub><mi>b</mi><mn>3</mn></msub></mrow></mfrac></mstyle><annotation encoding="application/x-tex">\dfrac{b_1}{\sqrt{2\pi}\, b_3}</annotation></semantics></math></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">gamma</td>
 <td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math></td>
 <td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mi mathvariant="normal">Γ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>b</mi><mn>2</mn></msub><mo>;</mo><mspace width="0.222em"></mspace><msub><mi>b</mi><mn>3</mn></msub><mo>,</mo><mstyle displaystyle="true"><mfrac><msub><mi>b</mi><mn>2</mn></msub><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><mn>1</mn></mrow></mfrac></mstyle><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">F_\Gamma\left(b_2;\ b_3, \dfrac{b_2}{b_3 - 1}\right)</annotation></semantics></math></td>
 <td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mstyle displaystyle="true"><mfrac><msub><mi>b</mi><mn>1</mn></msub><msub><mi>b</mi><mn>2</mn></msub></mfrac></mstyle><mstyle displaystyle="true"><mfrac><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><mn>1</mn><msup><mo stretchy="false" form="postfix">)</mo><msub><mi>b</mi><mn>3</mn></msub></msup><msup><mi mathvariant="normal">e</mi><mrow><mi>−</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow><mrow><mi mathvariant="normal">Γ</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">\dfrac{b_1}{b_2} \dfrac{(b_3 - 1)^{b_3} \mathrm{e}^{-(b_3 - 1)}}{\Gamma(b_3)}</annotation></semantics></math></td>
+</tr>
+<tr class="even">
+<td align="left">chapmanrichards</td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math></td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mn>1</mn><mi>/</mi><mi>c</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>c</mi></msup></mrow><annotation encoding="application/x-tex">(1 - 1/c)^c</annotation></semantics></math></td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mstyle displaystyle="true"><mfrac><msub><mi>b</mi><mn>1</mn></msub><msub><mi>b</mi><mn>3</mn></msub></mfrac></mstyle><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mn>1</mn><mi>/</mi><mi>c</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>c</mi><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">\dfrac{b_1}{b_3} (1 - 1/c)^{c - 1}</annotation></semantics></math></td>
+</tr>
+<tr class="odd">
+<td align="left">wykoff</td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math></td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="normal">e</mi><mrow><mi>−</mi><mn>2</mn></mrow></msup><mo>≈</mo><mn>0.14</mn></mrow><annotation encoding="application/x-tex">\mathrm{e}^{-2} \approx 0.14</annotation></semantics></math></td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mstyle displaystyle="true"><mfrac><mrow><mn>2</mn><msub><mi>b</mi><mn>1</mn></msub><msup><mi mathvariant="normal">e</mi><mrow><mi>−</mi><mn>2</mn></mrow></msup></mrow><mrow><msub><mi>b</mi><mn>2</mn></msub><mo>+</mo><mn>1</mn></mrow></mfrac></mstyle><annotation encoding="application/x-tex">\dfrac{2 b_1 \mathrm{e}^{-2}}{b_2 + 1}</annotation></semantics></math></td>
+</tr>
+<tr class="even">
+<td align="left">preecebaines</td>
+<td align="left">
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>2</mn></msub><mo>+</mo><mstyle displaystyle="true"><mfrac><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mi>w</mi></mrow><mrow><msub><mi>b</mi><mn>5</mn></msub><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub></mrow></mfrac></mstyle></mrow><annotation encoding="application/x-tex">b_2 + \dfrac{\log w}{b_5 - b_4}</annotation></semantics></math>,
+the pubertal peak</td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>b</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">f(t_m)/b_1</annotation></semantics></math></td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo>−</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo><mstyle displaystyle="true"><mfrac><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>+</mo><msub><mi>b</mi><mn>5</mn></msub><mi>w</mi></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mi>w</mi><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow></mfrac></mstyle><msup><mi>w</mi><mrow><mi>−</mi><msub><mi>b</mi><mn>4</mn></msub><mi>/</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>5</mn></msub><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">2 (b_1 - b_3) \dfrac{b_4 + b_5 w}{(1 + w)^2} w^{-b_4/(b_5 - b_4)}</annotation></semantics></math></td>
 </tr>
 <tr class="odd">
 <td align="left">linear</td>
@@ -367,6 +590,26 @@ at all times</td>
 </tr>
 </tbody>
 </table>
+<p>with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>2</mn></msub><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">c = \exp(b_2/b_3)</annotation></semantics></math>
+for Chapman-Richards (for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>2</mn></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b_2 &gt; 0</annotation></semantics></math>;
+the proportion and the rate are those of the growth above the intercept
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>),
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">d = (b_3 - b_2)/(b_3 - b_4)</annotation></semantics></math>
+for beta, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+the larger root of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>b</mi><mn>5</mn><mn>2</mn></msubsup><msup><mi>w</mi><mn>2</mn></msup><mo>−</mo><mo stretchy="false" form="prefix">(</mo><msubsup><mi>b</mi><mn>4</mn><mn>2</mn></msubsup><mo>−</mo><mn>4</mn><msub><mi>b</mi><mn>4</mn></msub><msub><mi>b</mi><mn>5</mn></msub><mo>+</mo><msubsup><mi>b</mi><mn>5</mn><mn>2</mn></msubsup><mo stretchy="false" form="postfix">)</mo><mi>w</mi><mo>+</mo><msubsup><mi>b</mi><mn>4</mn><mn>2</mn></msubsup><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b_5^2 w^2 - (b_4^2 - 4 b_4 b_5 + b_5^2) w + b_4^2 = 0</annotation></semantics></math>
+for Preece-Baines, which has a pubertal peak if
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>5</mn></msub><mi>/</mi><msub><mi>b</mi><mn>4</mn></msub><mo>&gt;</mo><mn>3</mn><mo>+</mo><mn>2</mn><msqrt><mn>2</mn></msqrt><mo>≈</mo><mn>5.8</mn></mrow><annotation encoding="application/x-tex">b_5 / b_4 &gt; 3 + 2 \sqrt{2} \approx 5.8</annotation></semantics></math>
+(the smaller root is the take-off, the minimum of the growth rate before
+the peak); for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b_4 = 0</annotation></semantics></math>,
+the maximum growth rate of the beta curve is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>c</mi><mi>m</mi></msub><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mfrac><mrow><mn>2</mn><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><mrow><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>2</mn></msub><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub><msup><mo stretchy="false" form="postfix">)</mo><mrow><msub><mi>b</mi><mn>2</mn></msub><mi>/</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">c_m = b_1 \frac{2 b_3 - b_2}{b_3 (b_3 - b_2)} (b_2/b_3)^{b_2/(b_3 - b_2)}</annotation></semantics></math>
+of Yin et al. (2003).</p>
 <!--
 Truncation at the default threshold b4 = 0 (kept as a note, not shown in the vignette):
 p0 = f(0)/b1 is the proportion of the asymptote the curve without truncation reaches at t = 0:
@@ -381,7 +624,8 @@ The truncation at b4 = 0 scales the curve by 1/(1 - p0) after t = 0, so for b2 >
 point stays at t_m, and, with G0 = f(t_m)/b1 and r0 = r_max of the curves without truncation,
   f_b4(t_m)/b1 = (G0 - p0)/(1 - p0),   r_max = r0/(1 - p0)   (truncated curve f_b4, b4 = 0).
 For the Hill, Weibull and gamma curves p0 = 0 and nothing changes.
---><p>The proportion of total growth at inflection tells how much of the
+-->
+<p>The proportion of total growth at inflection tells how much of the
 growth has occurred when the growth is fastest. The Hill curve has an
 inflection point at a positive time only for
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">b_3 &gt; 1</annotation></semantics></math>.
@@ -422,7 +666,8 @@ fixed at 1 with <code>b1type = "rate"</code>.</p>
 <div class="section level4">
 <h4 id="asymmetry">Asymmetry<a class="anchor" aria-label="anchor" href="#asymmetry"></a>
 </h4>
-<p>Each model has an asymmetry parameter
+<p>Each model but the beta, beta_capped, Chapman-Richards, Wykoff,
+Preece-Baines and linear ones has an asymmetry parameter
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>5</mn></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b_5 &gt; 0</annotation></semantics></math>,
 with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>5</mn></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">b_5 = 1</annotation></semantics></math>
@@ -532,17 +777,18 @@ time in the formula, and the growth model in <code>model</code>.</p>
 <p>Starting values are found from the data by a linearisation of the
 curve: for a given asymptote
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mi>/</mi><msub><mi>b</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">F^{-1}(y / b_1) = (t - b_2)/b_3</annotation></semantics></math>
-is linear in time, so a linear regression of the transformed mean
+the logistic curve gives
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo>−</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">\log(y / (b_1 - y)) = (t - b_2)/b_3</annotation></semantics></math>,
+a straight line in time, so a linear regression of the transformed mean
 responses on time gives
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>.
-The asymptote is profiled, as the observations often do not reach it
-yet. <code><a href="../reference/gcTMBstart.html">gcTMBstart()</a></code> shows the starting values; the
-<code>start</code> argument provides starting values for some or all of
-the parameters, and the <code>fix</code> argument fixes parameters at
-these values.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
+and similarly for the other sigmoid curves. The asymptote is profiled,
+as the observations often do not reach it yet. <code><a href="../reference/gcTMBstart.html">gcTMBstart()</a></code>
+shows the starting values; the <code>start</code> argument provides
+starting values for some or all of the parameters, and the
+<code>fix</code> argument fixes parameters at these values.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/gcTMBstart.html">gcTMBstart</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data <span class="op">=</span> <span class="va">FabaHeights25</span>, model <span class="op">=</span> <span class="st">"logistic"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; b1:(Intercept) b2:(Intercept) b3:(Intercept) b4:(Intercept) b5:(Intercept) </span></span>
@@ -585,14 +831,27 @@ log scale;</li>
 <li>all five parameters,
 <code>fix = c(b4 = FALSE, b5 = FALSE)</code>.</li>
 </ul>
-<p>The straight line, which has only
+<p>The beta, beta_capped, Chapman-Richards and Wykoff curves have no
+asymmetry, so their fits with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>
+are those without it; their
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+is the start of growth (beta, beta_capped) or the intercept
+(Chapman-Richards, Wykoff). The heights of the faba beans do not decline
+within the observed days, so the beta curve puts its end of growth
+beyond them. The Preece-Baines curve, a model of human growth over two
+decades rather than of the growth of a plant over a season, estimates
+all five parameters in every set. The straight line, which has only the
+slope
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
-and
+and the intercept
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>,
 is shown with the first set. The coefficients are printed for the
 logistic model only.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">growth</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>logistic <span class="op">=</span> <span class="st">"logistic"</span>, gompertz <span class="op">=</span> <span class="st">"gompertz"</span>, hill <span class="op">=</span> <span class="st">"hill"</span>, weibull <span class="op">=</span> <span class="st">"weibull"</span>, normal <span class="op">=</span> <span class="st">"normal"</span>, gamma <span class="op">=</span> <span class="st">"gamma"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">growth</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>logistic <span class="op">=</span> <span class="st">"logistic"</span>, gompertz <span class="op">=</span> <span class="st">"gompertz"</span>, hill <span class="op">=</span> <span class="st">"hill"</span>, weibull <span class="op">=</span> <span class="st">"weibull"</span>, beta <span class="op">=</span> <span class="st">"beta"</span>,</span>
+<span>            beta_capped <span class="op">=</span> <span class="st">"beta_capped"</span>, normal <span class="op">=</span> <span class="st">"normal"</span>, gamma <span class="op">=</span> <span class="st">"gamma"</span>, chapmanrichards <span class="op">=</span> <span class="st">"chapmanrichards"</span>, wykoff <span class="op">=</span> <span class="st">"wykoff"</span>,</span>
+<span>            preecebaines <span class="op">=</span> <span class="st">"preecebaines"</span><span class="op">)</span></span>
 <span><span class="va">sets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"b1, b2, b3"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>             <span class="st">"b1, b2, b3, b4"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>             <span class="st">"b1, b2, b3, b5"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b5 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b5 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -625,13 +884,18 @@ where the optimiser did not converge are marked with an asterisk.</p>
 <code class="sourceCode R"><span><span class="va">aictab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">allfits</span>, <span class="kw">function</span><span class="op">(</span><span class="va">fs</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">growth</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fs</span><span class="op">[[</span><span class="va">m</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>, nsmall <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, <span class="kw">if</span> <span class="op">(</span><span class="va">fs</span><span class="op">[[</span><span class="va">m</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">opt</span><span class="op">$</span><span class="va">convergence</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">)</span> <span class="st">"*"</span> <span class="kw">else</span> <span class="st">""</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/noquote.html" class="external-link">noquote</a></span><span class="op">(</span><span class="va">aictab</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          b1, b2, b3 b1, b2, b3, b4 b1, b2, b3, b5 b1, b2, b3, b4, b5</span></span>
-<span><span class="co">#&gt; logistic 1406.5     1408.5         1408.5         1410.4            </span></span>
-<span><span class="co">#&gt; gompertz 1407.7     1409.3         1408.4         1410.4            </span></span>
-<span><span class="co">#&gt; hill     1409.9     1411.9         1408.4         1410.4*           </span></span>
-<span><span class="co">#&gt; weibull  1407.8     1409.8*        1408.4         1410.4*           </span></span>
-<span><span class="co">#&gt; normal   1406.4     1408.4         1408.4         1410.4            </span></span>
-<span><span class="co">#&gt; gamma    1409.7     1411.7         1410.2*        1412.2*</span></span>
+<span><span class="co">#&gt;                 b1, b2, b3 b1, b2, b3, b4 b1, b2, b3, b5 b1, b2, b3, b4, b5</span></span>
+<span><span class="co">#&gt; logistic        1406.5     1408.5         1408.5         1410.4            </span></span>
+<span><span class="co">#&gt; gompertz        1407.7     1409.3         1408.4         1410.4            </span></span>
+<span><span class="co">#&gt; hill            1409.9     1411.9         1408.4         1410.4*           </span></span>
+<span><span class="co">#&gt; weibull         1407.8     1409.8*        1408.4         1410.4*           </span></span>
+<span><span class="co">#&gt; beta            1406.8     1408.7         1406.8         1408.7            </span></span>
+<span><span class="co">#&gt; beta_capped     1406.8     1408.7         1406.8         1408.7            </span></span>
+<span><span class="co">#&gt; normal          1406.4     1408.4         1408.4         1410.4            </span></span>
+<span><span class="co">#&gt; gamma           1409.7     1411.7         1410.2*        1412.2*           </span></span>
+<span><span class="co">#&gt; chapmanrichards 1410.1     1409.0         1410.1         1409.0            </span></span>
+<span><span class="co">#&gt; wykoff          1416.1     1411.6         1416.1         1411.6            </span></span>
+<span><span class="co">#&gt; preecebaines    1410.4     1410.4         1410.4         1410.4</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">allfits</span><span class="op">[[</span><span class="st">"b1, b2, b3"</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">linear</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1443.592</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -648,7 +912,7 @@ where the optimiser did not converge are marked with an asterisk.</p>
 <span><span class="op">}</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">set</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">sets</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu">curveplot</span><span class="op">(</span><span class="va">set</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="growth-models_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="growth-models_files/figure-html/unnamed-chunk-6-2.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="growth-models_files/figure-html/unnamed-chunk-6-3.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"><img src="growth-models_files/figure-html/unnamed-chunk-6-4.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
-<p>The curves of the six growth models are close to each other within
+<p>The curves of the eleven growth models are close to each other within
 the observed days, and differ mostly in their extrapolation. The
 estimated threshold
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
@@ -758,11 +1022,11 @@ additively on the rate instead of the scale.</p>
 </h3>
 <p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws validation plots: residuals against the
 fitted values and against time, and a normal QQ plot of the randomised
-quantile residuals. With <code>type = c("validation", "curves")</code>,
-the data with the fitted curve are added as the last graph. The repeated
-measurements of the same plants are not independent; the random effects
-of the plants (vignette <em>Fixed and random effects</em>) account for
-that.</p>
+quantile residuals (Dunn and Smyth, 1996). With
+<code>type = c("validation", "curves")</code>, the data with the fitted
+curve are added as the last graph. The repeated measurements of the same
+plants are not independent; the random effects of the plants (vignette
+<em>Fixed and random effects</em>) account for that.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"validation"</span>, <span class="st">"curves"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="growth-models_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
@@ -814,6 +1078,26 @@ intervals:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="growth-models_files/figure-html/unnamed-chunk-13-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<p>Ciceu, A., Garcia-Duro, J., Seceleanu, I. and Badea, O. (2020). A
+generalized nonlinear mixed-effects height-diameter model for Norway
+spruce in mixed-uneven aged stands. <em>Forest Ecology and
+Management</em> 477, 118507.</p>
+<p>Dunn, P.K. and Smyth, G.K. (1996). Randomized quantile residuals.
+<em>Journal of Computational and Graphical Statistics</em> 5, 236–244.
+<a href="doi:10.1080/10618600.1996.10474708" class="uri">doi:10.1080/10618600.1996.10474708</a>.</p>
+<p>Preece, M.A. and Baines, M.J. (1978). A new family of mathematical
+models describing the human growth curve. <em>Annals of Human
+Biology</em> 5, 1–24.</p>
+<p>Wykoff, W.R., Crookston, N.L. and Stage, A.R. (1982). <em>User’s
+guide to the stand prognosis model</em>. General Technical Report
+INT-133, USDA Forest Service, Ogden, Utah.</p>
+<p>Yin, X., Goudriaan, J., Lantinga, E.A., Vos, J. and Spiertz, H.J.
+(2003). A flexible sigmoid function of determinate growth. <em>Annals of
+Botany</em> 91, 361–371.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

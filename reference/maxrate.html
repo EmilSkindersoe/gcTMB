@@ -13,7 +13,7 @@ bootstrap intervals."><meta property="og:image" content="https://emilskindersoe.
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9009</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9011</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -98,7 +98,7 @@ point at a positive time only for b3 b5 &gt; 1; otherwise they grow fastest at t
 unbounded rate for the hill curve, and the results are NA. The linear model grows at the constant
 rate b1, without an inflection point: its <code>tmax</code> and <code>fraction</code> are NA.</p>
 <p>A truncated curve (the default of <code><a href="gcTMB.html">gcTMB</a></code>, at b4 = 0) is the curve without truncation,
-scaled by 1/(1 - G(z(b4))) beyond its threshold b4. It has its maximum growth rate at the
+f(t), shifted down to zero at its threshold b4 and rescaled, b1 (f(t) - f(b4))/(b1 - f(b4)) beyond b4. It has its maximum growth rate at the
 inflection point of the curve without truncation if that is after the threshold, and otherwise
 just after the threshold, where the slope jumps from zero: then <code>tmax</code> is b4 and
 <code>fraction</code> zero.</p>

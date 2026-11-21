@@ -105,27 +105,27 @@ simulate(object, nsim = 1, seed = NULL, random = TRUE, newdata = NULL, ...)
   each standardised residual minus rho^dt times the previous one of its
   group, divided by sqrt(1 - rho^(2 dt)), independent standard normal
   under the model, as in nlme; without autocorrelation they are the
-  pearson residuals, and so for the other families. For the gaussian
-  family, the quantile residuals are multiplied by the square root of
-  the weights, as precision weights with standard deviation
-  sigma/sqrt(w); for the other families they do not use the weights, as
-  a weighted log-likelihood is not the density of a distribution of the
-  observation. The quantile residuals are random for the count families;
-  use set.seed for reproducible values. For the lognormal family, the
-  pearson and quantile residuals are the standardised residuals of
-  log(y), (log(y) - log(f))/sigma, multiplied by the square root of the
-  weights. For predict, the type of prediction: "response" (default),
-  the mean response at the times of newdata, or "parameters", the
-  parameters b1-b3 of the curve of each row of newdata (with its
-  covariates in fform and, with random=TRUE, the random effects of its
-  groups); newdata then needs no time. The standard errors of the
-  parameters are those of the estimates, by the delta method, and their
-  confidence intervals are computed on the scale of the link and
-  back-transformed; with random=TRUE, they include the uncertainty of
-  the predicted random effects of the fitted groups. Prediction
-  intervals of the parameters add the variance of the random effects of
-  the terms without a fitted level, the parameters of a new group, and
-  are not available with boot.
+  pearson residuals; for the other families they are the pearson
+  residuals, with a warning. For the gaussian family, the quantile
+  residuals are multiplied by the square root of the weights, as
+  precision weights with standard deviation sigma/sqrt(w); for the other
+  families they do not use the weights, as a weighted log-likelihood is
+  not the density of a distribution of the observation. The quantile
+  residuals are random for the count families; use set.seed for
+  reproducible values. For the lognormal family, the pearson and
+  quantile residuals are the standardised residuals of log(y), (log(y) -
+  log(f))/sigma, multiplied by the square root of the weights. For
+  predict, the type of prediction: "response" (default), the mean
+  response at the times of newdata, or "parameters", the parameters
+  b1-b3 of the curve of each row of newdata (with its covariates in
+  fform and, with random=TRUE, the random effects of its groups);
+  newdata then needs no time. The standard errors of the parameters are
+  those of the estimates, by the delta method, and their confidence
+  intervals are computed on the scale of the link and back-transformed;
+  with random=TRUE, they include the uncertainty of the predicted random
+  effects of the fitted groups. Prediction intervals of the parameters
+  add the variance of the random effects of the terms without a fitted
+  level, the parameters of a new group, and are not available with boot.
 
 - newdata:
 

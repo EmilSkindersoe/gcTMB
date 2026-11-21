@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9009</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9011</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>gcTMB: an overview</h1>
             
-            <h4 data-toc-skip class="date">2026-11-20</h4>
+            <h4 data-toc-skip class="date">2026-11-21</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/gcTMB.rmd" class="external-link"><code>vignettes/gcTMB.rmd</code></a></small>
       <div class="d-none name"><code>gcTMB.rmd</code></div>
@@ -103,13 +103,20 @@ recovery of the autocorrelation parameter.</li>
 <h2 id="growth-models">Growth models<a class="anchor" aria-label="anchor" href="#growth-models"></a>
 </h2>
 <p>The growth models are curves
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(t) = b_1 F(z(t))</annotation></semantics></math>
-that increase from 0 towards the asymptote
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>,
-with a function
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
-increasing from 0 to 1 and a transformed time
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">z(t)</annotation></semantics></math>:</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(t)</annotation></semantics></math>
+that increase from 0, or from the intercept
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+for the Chapman-Richards and Wykoff curves, towards the asymptote
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>.
+The logistic, Gompertz, Hill, Weibull, beta, normal and gamma curves are
+sigmoid growth curves, often used in agronomy and ecology; the
+Chapman-Richards and Wykoff curves are height-diameter models, common in
+forestry; and the Preece-Baines curve is a model of human growth in
+height. The explanatory variable
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+is usually time, but can be any variable along which the response grows
+towards an asymptote, e.g. the diameter of trees in a height-diameter
+model:</p>
 <table class="table">
 <colgroup>
 <col width="25%">
@@ -149,6 +156,28 @@ increasing from 0 to 1 and a transformed time
 <td align="left">shape</td>
 </tr>
 <tr class="odd">
+<td align="left">beta</td>
+<td align="left">
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mfrac><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><mi>t</mi></mrow><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow></mfrac><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">(</mo><mfrac><mrow><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub></mrow><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub></mrow></mfrac><msup><mo stretchy="false" form="postfix">)</mo><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">b_1 (1 + \frac{b_3 - t}{b_3 - b_2}) (\frac{t - b_4}{b_3 - b_4})^{(b_3 - b_4)/(b_3 - b_2)}</annotation></semantics></math>,
+zero again at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">2 b_3 - b_2</annotation></semantics></math>
+</td>
+<td align="left">inflection point</td>
+<td align="left">end of growth</td>
+</tr>
+<tr class="even">
+<td align="left">beta_capped</td>
+<td align="left">the same up to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
+from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
+on</td>
+<td align="left">inflection point</td>
+<td align="left">end of growth</td>
+</tr>
+<tr class="odd">
 <td align="left">normal</td>
 <td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><mi mathvariant="normal">Φ</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b_1 \Phi((t - b_2)/b_3)</annotation></semantics></math></td>
 <td align="left">inflection point, half the asymptote</td>
@@ -161,6 +190,26 @@ increasing from 0 to 1 and a transformed time
 <td align="left">shape</td>
 </tr>
 <tr class="odd">
+<td align="left">chapmanrichards</td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>+</mo><msub><mi>b</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mi>t</mi><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">)</mo><mrow><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>2</mn></msub><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">b_4 + b_1 (1 - \exp(-t/b_3))^{\exp(b_2/b_3)}</annotation></semantics></math></td>
+<td align="left">inflection point</td>
+<td align="left">scale</td>
+</tr>
+<tr class="even">
+<td align="left">wykoff</td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>+</mo><msub><mi>b</mi><mn>1</mn></msub><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mn>2</mn><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>2</mn></msub><mo>+</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>+</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b_4 + b_1 \exp(-2 (b_2 + 1)/(t + 1))</annotation></semantics></math></td>
+<td align="left">inflection point</td>
+<td align="left">not used</td>
+</tr>
+<tr class="odd">
+<td align="left">preecebaines</td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><mo>−</mo><mfrac><mrow><mn>2</mn><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo>−</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>4</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>5</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">b_1 - \frac{2 (b_1 - b_3)}{\exp(b_4 (t - b_2)) + \exp(b_5 (t - b_2))}</annotation></semantics></math></td>
+<td align="left">middle of puberty</td>
+<td align="left">height at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
+</td>
+</tr>
+<tr class="even">
 <td align="left">linear</td>
 <td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><mi>t</mi><mo>+</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">b_1 t + b_2</annotation></semantics></math></td>
 <td align="left">intercept</td>
@@ -176,7 +225,22 @@ asymmetry
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>
 (by default fixed at 1, the curves above;
 <code>fix = c(b5 = FALSE)</code> estimates it, e.g. the Richards curve
-for the logistic model). With <code>b1type = "rate"</code>,
+for the logistic model). The beta, Chapman-Richards and Wykoff curves
+are never truncated and have no asymmetry; the beta curve falls back to
+zero after its maximum at the end of growth
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
+while <code>"beta_capped"</code> stays at it:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+is the start of growth of the beta curve, and the intercept of the other
+two (by default 0, e.g. <code>start = c(b4 = 1.3)</code> for the breast
+height in a height-diameter model); the Chapman-Richards curve is the
+Richards curve with a negative asymmetry. The Preece-Baines curve of
+human growth in height has the rates
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>
+of growth before and during puberty, estimated by default. With
+<code>b1type = "rate"</code>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
 is the maximum growth rate instead of the asymptote. Each parameter can
 have a link, e.g. <code>link = c(b3 = "inverse")</code> for the rate
@@ -189,48 +253,58 @@ asymmetric curves.</p>
 <div class="section level2">
 <h2 id="fitting-a-growth-curve">Fitting a growth curve<a class="anchor" aria-label="anchor" href="#fitting-a-growth-curve"></a>
 </h2>
-<p>The data set <code>FabaHeights25</code> contains the heights of 25
-faba bean plants at five treatment levels, measured on eight days after
-sowing (<code>DAS</code>). <code><a href="../reference/gcTMB.html">gcTMB()</a></code> takes the response and
-the time in the formula and the growth model in <code>model</code>;
-starting values are found automatically (<code><a href="../reference/gcTMBstart.html">gcTMBstart()</a></code>).</p>
+<p>The data set <code>FabaHeights26</code> contains the heights (cm) of
+320 faba bean plants in a field trial, five plants on each of 64 plots,
+with four genotypes on two soil types, irrigated or not, measured on 14
+days between 28 and 122 days after sowing (<code>DAS</code>).
+<code><a href="../reference/gcTMB.html">gcTMB()</a></code> takes the response and the time in the formula and
+the growth model in <code>model</code>; starting values are found
+automatically (<code><a href="../reference/gcTMBstart.html">gcTMBstart()</a></code>).</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://emilskindersoe.github.io/gcTMB/">gcTMB</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data <span class="op">=</span> <span class="va">FabaHeights25</span>, model <span class="op">=</span> <span class="st">"logistic"</span><span class="op">)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, data <span class="op">=</span> <span class="va">FabaHeights26</span>, model <span class="op">=</span> <span class="st">"logistic"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; gcTMB(form = height ~ DAS, data = FabaHeights25, model = "logistic")</span></span>
+<span><span class="co">#&gt; gcTMB(form = Height ~ DAS, data = FabaHeights26, model = "logistic")</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model:  logistic, truncated at b4 = 0</span></span>
 <span><span class="co">#&gt; Family: gaussian, identity link for all parameters</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Number of observations: 200</span></span>
-<span><span class="co">#&gt; Log-likelihood: -699.2 (df = 4), AIC: 1406, BIC: 1420</span></span>
+<span><span class="co">#&gt; Number of observations: 4315</span></span>
+<span><span class="co">#&gt; Log-likelihood: -16742 (df = 4), AIC: 33493, BIC: 33518</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;                Estimate Std. Error</span></span>
-<span><span class="co">#&gt; b1:(Intercept)   120.79      3.652</span></span>
-<span><span class="co">#&gt; b2:(Intercept)    30.73      0.682</span></span>
-<span><span class="co">#&gt; b3:(Intercept)    12.88      0.977</span></span>
+<span><span class="co">#&gt; b1:(Intercept)   69.197      0.300</span></span>
+<span><span class="co">#&gt; b2:(Intercept)   58.469      0.205</span></span>
+<span><span class="co">#&gt; b3:(Intercept)    8.383      0.182</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residual standard deviation: 8.043 on 197 degrees of freedom</span></span>
+<span><span class="co">#&gt; Residual standard deviation: 11.72 on 4312 degrees of freedom</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 3.4e-08</span></span></code></pre></div>
+<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 2.7e-06</span></span></code></pre></div>
 <p>The growth models are compared by information criteria, e.g. AIC or
 the criteria of <code><a href="../reference/criteria.html">criteria()</a></code>:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>logistic <span class="op">=</span> <span class="st">"logistic"</span>, gompertz <span class="op">=</span> <span class="st">"gompertz"</span>, hill <span class="op">=</span> <span class="st">"hill"</span>, weibull <span class="op">=</span> <span class="st">"weibull"</span>,</span>
-<span>                 normal <span class="op">=</span> <span class="st">"normal"</span>, gamma <span class="op">=</span> <span class="st">"gamma"</span><span class="op">)</span>,</span>
-<span>               <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data <span class="op">=</span> <span class="va">FabaHeights25</span>, model <span class="op">=</span> <span class="va">m</span><span class="op">)</span><span class="op">)</span></span>
+<span>                 beta <span class="op">=</span> <span class="st">"beta"</span>, beta_capped <span class="op">=</span> <span class="st">"beta_capped"</span>, normal <span class="op">=</span> <span class="st">"normal"</span>, gamma <span class="op">=</span> <span class="st">"gamma"</span>,</span>
+<span>                 chapmanrichards <span class="op">=</span> <span class="st">"chapmanrichards"</span>, wykoff <span class="op">=</span> <span class="st">"wykoff"</span>, preecebaines <span class="op">=</span> <span class="st">"preecebaines"</span>,</span>
+<span>                 linear <span class="op">=</span> <span class="st">"linear"</span><span class="op">)</span>,</span>
+<span>               <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, data <span class="op">=</span> <span class="va">FabaHeights26</span>, model <span class="op">=</span> <span class="va">m</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/criteria.html">criteria</a></span><span class="op">(</span><span class="va">fits</span>, which <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AIC"</span>, <span class="st">"BIC"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;               AIC      BIC</span></span>
-<span><span class="co">#&gt; logistic 1406.470 1419.663</span></span>
-<span><span class="co">#&gt; gompertz 1407.658 1420.851</span></span>
-<span><span class="co">#&gt; hill     1409.892 1423.085</span></span>
-<span><span class="co">#&gt; weibull  1407.757 1420.950</span></span>
-<span><span class="co">#&gt; normal   1406.412 1419.605</span></span>
-<span><span class="co">#&gt; gamma    1409.685 1422.878</span></span></code></pre></div>
+<span><span class="co">#&gt;                      AIC      BIC</span></span>
+<span><span class="co">#&gt; logistic        33492.78 33518.26</span></span>
+<span><span class="co">#&gt; gompertz        33603.23 33628.71</span></span>
+<span><span class="co">#&gt; hill            33551.00 33576.48</span></span>
+<span><span class="co">#&gt; weibull         33486.91 33512.39</span></span>
+<span><span class="co">#&gt; beta            34275.95 34301.43</span></span>
+<span><span class="co">#&gt; beta_capped     33517.79 33543.27</span></span>
+<span><span class="co">#&gt; normal          33493.81 33519.29</span></span>
+<span><span class="co">#&gt; gamma           33535.44 33560.92</span></span>
+<span><span class="co">#&gt; chapmanrichards 33606.41 33631.89</span></span>
+<span><span class="co">#&gt; wykoff          35078.23 35097.34</span></span>
+<span><span class="co">#&gt; preecebaines    33491.05 33529.27</span></span>
+<span><span class="co">#&gt; linear          35753.14 35772.25</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> gives confidence intervals of the mean by the
 delta method and prediction intervals of new observations;
 <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> gives profile likelihood (default), Wald or
@@ -239,77 +313,118 @@ parametric bootstrap intervals of the parameters, and
 <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws validation plots of the residuals and the
 fitted curves.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">nd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>DAS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">80</span>, by <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">nd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>DAS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">125</span>, by <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">ci</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">nd</span>, <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="va">nd</span>, interval <span class="op">=</span> <span class="st">"confidence"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">FabaHeights25</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">DAS</span>, y <span class="op">=</span> <span class="va">height</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">FabaHeights26</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">DAS</span>, y <span class="op">=</span> <span class="va">Height</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="st">"grey60"</span>, size <span class="op">=</span> <span class="fl">0.6</span>, position <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_jitter.html" class="external-link">position_jitter</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">0.5</span>, height <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ci</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">DAS</span>, ymin <span class="op">=</span> <span class="va">lwr</span>, ymax <span class="op">=</span> <span class="va">upr</span><span class="op">)</span>, inherit.aes <span class="op">=</span> <span class="cn">FALSE</span>, fill <span class="op">=</span> <span class="st">"blue"</span>, alpha <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ci</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">fit</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Days after sowing"</span>, y <span class="op">=</span> <span class="st">"Height"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Days after sowing"</span>, y <span class="op">=</span> <span class="st">"Height (cm)"</span>, title <span class="op">=</span> <span class="st">"Logistic curve with 95% confidence interval"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="gcTMB_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span>, method <span class="op">=</span> <span class="st">"wald"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                    2.5 %     97.5 %</span></span>
-<span><span class="co">#&gt; b1:(Intercept) 113.58225 127.987982</span></span>
-<span><span class="co">#&gt; b2:(Intercept)  29.38463  32.075332</span></span>
-<span><span class="co">#&gt; b3:(Intercept)  10.95416  14.807390</span></span>
-<span><span class="co">#&gt; sigma            7.23722   8.804241</span></span></code></pre></div>
+<span><span class="co">#&gt;                    2.5 %    97.5 %</span></span>
+<span><span class="co">#&gt; b1:(Intercept) 68.609783 69.784886</span></span>
+<span><span class="co">#&gt; b2:(Intercept) 58.066586 58.870628</span></span>
+<span><span class="co">#&gt; b3:(Intercept)  8.025585  8.740651</span></span>
+<span><span class="co">#&gt; sigma          11.473127 11.967608</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="other-data-sets">Other data sets<a class="anchor" aria-label="anchor" href="#other-data-sets"></a>
+</h2>
+<p>The other faba bean data sets, <code>FabaHeights25</code> (heights of
+25 plants grown in tubes at five treatment levels) and
+<code>FabaCounts23</code> (counts of pods), are used in the vignettes
+<em>Growth models and their parameters</em> and <em>Fixed and random
+effects</em>, and for the counts below. Besides the faba bean data, the
+package has growth data from other fields: <code>BerkeleyGrowth</code>
+(heights and weights of children from birth to 21 years, used in the
+vignette <em>Timing and maximum growth rates</em> with the Preece-Baines
+curve), <code>SorghumMaize</code> (biomass of three crops at two input
+levels, used in the vignette <em>Autocorrelation and simulation</em>
+with the beta curve) and <code>PineHeightDiameter</code> (heights and
+diameters of Scots pine trees, used in the vignette <em>Fixed and random
+effects</em>). The x-axis need not be time: in a height-diameter model
+the height grows with the diameter, from the breast height of 1.3 m, the
+intercept
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+of the Chapman-Richards curve:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fithd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">dbh</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plot</span>, data <span class="op">=</span> <span class="va">PineHeightDiameter</span>,</span>
+<span>               model <span class="op">=</span> <span class="st">"chapmanrichards"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">1.3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">nd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>dbh <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">52</span>, by <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">PineHeightDiameter</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dbh</span>, y <span class="op">=</span> <span class="va">height</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="st">"grey60"</span>, size <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">nd</span>, height <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fithd</span>, newdata <span class="op">=</span> <span class="va">nd</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Diameter at breast height (cm)"</span>, y <span class="op">=</span> <span class="st">"Height (m)"</span>,</span>
+<span>       title <span class="op">=</span> <span class="st">"Scots pines: Chapman-Richards curve from breast height"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="gcTMB_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="fixed-and-random-effects">Fixed and random effects<a class="anchor" aria-label="anchor" href="#fixed-and-random-effects"></a>
 </h2>
 <p>Covariates on the parameters are formulas in <code>fform</code>, and
 random effects in <code>rform</code>, as in <code><a href="https://rdrr.io/pkg/nlme/man/nlme.html" class="external-link">nlme::nlme</a></code>.
-Here the treatment acts on the asymptote
+Here the soil type and the irrigation, and their interaction, act on the
+asymptote
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
 and the time of the maximum growth rate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>,
 and each plant has correlated random effects on both:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">trt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">Treatment</span><span class="op">)</span></span>
-<span><span class="va">trts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>trt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">trt</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">fitre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">trt</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plant_ID</span>, data <span class="op">=</span> <span class="va">FabaHeights25</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fitre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Soil</span> <span class="op">*</span> <span class="va">Treatment</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plant_ID</span>,</span>
+<span>               data <span class="op">=</span> <span class="va">FabaHeights26</span><span class="op">)</span></span>
 <span><span class="va">fitre</span></span>
 <span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; gcTMB(form = height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + </span></span>
-<span><span class="co">#&gt;     b2 ~ 1 | plant_ID, data = FabaHeights25)</span></span>
+<span><span class="co">#&gt; gcTMB(form = Height ~ DAS, fform = b1 + b2 ~ Soil * Treatment, </span></span>
+<span><span class="co">#&gt;     rform = b1 + b2 ~ 1 | Plant_ID, data = FabaHeights26)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model:  logistic, truncated at b4 = 0</span></span>
 <span><span class="co">#&gt; Family: gaussian, identity link for all parameters</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
-<span><span class="co">#&gt; b1:(Intercept)       b1:trt0.3       b1:trt0.5       b1:trt0.6       b1:trt0.8  </span></span>
-<span><span class="co">#&gt;       115.7637         -1.9226          9.7398         10.6189          8.2848  </span></span>
-<span><span class="co">#&gt; b2:(Intercept)       b2:trt0.3       b2:trt0.5       b2:trt0.6       b2:trt0.8  </span></span>
-<span><span class="co">#&gt;        30.8173         -1.4951          0.1777          0.6744          0.9027  </span></span>
-<span><span class="co">#&gt; b3:(Intercept)  </span></span>
-<span><span class="co">#&gt;        12.8471  </span></span>
+<span><span class="co">#&gt;                     b1:(Intercept)                        b1:SoilSandy  </span></span>
+<span><span class="co">#&gt;                             83.080                             -11.185  </span></span>
+<span><span class="co">#&gt;           b1:TreatmentNotIrrigated  b1:SoilSandy:TreatmentNotIrrigated  </span></span>
+<span><span class="co">#&gt;                             -9.083                             -13.350  </span></span>
+<span><span class="co">#&gt;                     b2:(Intercept)                        b2:SoilSandy  </span></span>
+<span><span class="co">#&gt;                             60.917                              -1.153  </span></span>
+<span><span class="co">#&gt;           b2:TreatmentNotIrrigated  b2:SoilSandy:TreatmentNotIrrigated  </span></span>
+<span><span class="co">#&gt;                             -2.892                              -3.749  </span></span>
+<span><span class="co">#&gt;                     b3:(Intercept)  </span></span>
+<span><span class="co">#&gt;                              7.955  </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
-<span><span class="co">#&gt;  Groups   Name Std.Dev. Corr </span></span>
-<span><span class="co">#&gt;  plant_ID b1   8.834         </span></span>
-<span><span class="co">#&gt;           b2   2.395    -0.32</span></span>
+<span><span class="co">#&gt;  Groups   Name Std.Dev. Corr</span></span>
+<span><span class="co">#&gt;  Plant_ID b1   9.483        </span></span>
+<span><span class="co">#&gt;           b2   2.194    0.35</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residual standard deviation: 2.076</span></span></code></pre></div>
+<span><span class="co">#&gt; Residual standard deviation: 3.709</span></span>
+<span><span class="va">trts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>Soil <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Loamy"</span>, <span class="st">"Sandy"</span><span class="op">)</span>, Treatment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Irrigated"</span>, <span class="st">"NotIrrigated"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova()</a></code> gives likelihood ratio tests of nested models,
 for the fixed effects and for the random effects;
 <code>test = "boot"</code> a parametric bootstrap test, and
 <code>test = "F"</code> F-tests for models without random effects.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fitre0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plant_ID</span>, data <span class="op">=</span> <span class="va">FabaHeights25</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fitre0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Soil</span> <span class="op">+</span> <span class="va">Treatment</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plant_ID</span>,</span>
+<span>                data <span class="op">=</span> <span class="va">FabaHeights26</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">fitre0</span>, <span class="va">fitre</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Likelihood ratio tests of gcTMB models</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;        npar    AIC    BIC  logLik deviance     LR Df Pr(&gt;LR)</span></span>
-<span><span class="co">#&gt; fitre0    7 1041.3 1064.4 -513.67   1027.3                  </span></span>
-<span><span class="co">#&gt; fitre    15 1046.3 1095.8 -508.17   1016.3 11.006  8  0.2014</span></span></code></pre></div>
+<span><span class="co">#&gt;        npar   AIC   BIC logLik deviance     LR Df   Pr(&gt;LR)    </span></span>
+<span><span class="co">#&gt; fitre0   11 25367 25437 -12672    25345                        </span></span>
+<span><span class="co">#&gt; fitre    13 25313 25396 -12644    25287 57.771  2 2.852e-13 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
 <p><code>plot(type = "curves")</code> draws the curves of the plants and
 the population curves of the treatments:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fitre</span>, type <span class="op">=</span> <span class="st">"curves"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">61</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, draw <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="va">p</span><span class="op">$</span><span class="va">curves</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Days after sowing"</span>, y <span class="op">=</span> <span class="st">"Height"</span>, colour <span class="op">=</span> <span class="st">"Treatment"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="gcTMB_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fitre</span>, type <span class="op">=</span> <span class="st">"curves"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">125</span>, by <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>, draw <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">p</span><span class="op">$</span><span class="va">curves</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Days after sowing"</span>, y <span class="op">=</span> <span class="st">"Height (cm)"</span>, colour <span class="op">=</span> <span class="st">"Soil, irrigation"</span>,</span>
+<span>                title <span class="op">=</span> <span class="st">"Curve of each plant (thin) and of each treatment (thick)"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="gcTMB_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p><code><a href="../reference/gcTMB-extract.html">fixef()</a></code>, <code><a href="../reference/gcTMB-extract.html">ranef()</a></code> and <code><a href="../reference/gcTMB-extract.html">VarCorr()</a></code>
 extract the fixed effects, the predicted random effects and their
 covariance matrices. Random effects can have several terms, nested or
@@ -327,18 +442,23 @@ six genotypes; the plants have no pods at the first counts, so the
 threshold
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>,
 the time of the first pods, is estimated.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Genotype</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Tube_ID</span>, data <span class="op">=</span> <span class="va">FabaCounts23</span>,</span>
 <span>              family <span class="op">=</span> <span class="st">"poisson"</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">genotypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Genotype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">FabaCounts23</span><span class="op">$</span><span class="va">Genotype</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">genotypes</span>, <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitp</span>, newdata <span class="op">=</span> <span class="va">genotypes</span>, type <span class="op">=</span> <span class="st">"parameters"</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Genotype        b1       b2       b3 b4</span></span>
-<span><span class="co">#&gt; 1   Aurora 14.599604 70.05332 1.338929 65</span></span>
-<span><span class="co">#&gt; 2    Capri 11.197692 69.20293 1.338929 65</span></span>
-<span><span class="co">#&gt; 3   ILB938  9.120942 69.04494 1.338929 65</span></span>
-<span><span class="co">#&gt; 4     Lynx 19.581598 72.79717 1.338929 65</span></span>
-<span><span class="co">#&gt; 5  Melodie 25.297229 73.29756 1.338929 65</span></span>
-<span><span class="co">#&gt; 6   Navara 17.779349 72.65386 1.338929 65</span></span></code></pre></div>
+<span><span class="co">#&gt; 1   Aurora 14.599634 70.05332 1.338935 65</span></span>
+<span><span class="co">#&gt; 2    Capri 11.197618 69.20292 1.338935 65</span></span>
+<span><span class="co">#&gt; 3   ILB938  9.120981 69.04494 1.338935 65</span></span>
+<span><span class="co">#&gt; 4     Lynx 19.581583 72.79718 1.338935 65</span></span>
+<span><span class="co">#&gt; 5  Melodie 25.297268 73.29758 1.338935 65</span></span>
+<span><span class="co">#&gt; 6   Navara 17.779358 72.65387 1.338935 65</span></span></code></pre></div>
+<p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> checks a count model with randomised quantile
+residuals (Dunn and Smyth, 1996), which are standard normal under the
+model. The simulations of <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> can also be used for
+simulation-based residuals, e.g. with the package DHARMa; see the
+vignette <em>Fixed and random effects</em>.</p>
 </div>
 <div class="section level2">
 <h2 id="timing-and-maximum-growth-rates">Timing and maximum growth rates<a class="anchor" aria-label="anchor" href="#timing-and-maximum-growth-rates"></a>
@@ -349,38 +469,31 @@ percentage of their asymptote (or a given response,
 growth rate, its timing and the fraction of the asymptote reached then,
 with standard errors by automatic differentiation and the delta method,
 and confidence intervals by <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code>:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/timeto.html">timeto</a></span><span class="op">(</span><span class="va">fitre</span>, level <span class="op">=</span> <span class="fl">90</span>, newdata <span class="op">=</span> <span class="va">trts</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Times to reach the percentages of the asymptote:</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;             Estimate Std.Error</span></span>
-<span><span class="co">#&gt; 90%:trt=0.1     60.3      1.24</span></span>
-<span><span class="co">#&gt; 90%:trt=0.3     58.9      1.21</span></span>
-<span><span class="co">#&gt; 90%:trt=0.5     60.4      1.24</span></span>
-<span><span class="co">#&gt; 90%:trt=0.6     60.9      1.25</span></span>
-<span><span class="co">#&gt; 90%:trt=0.8     61.1      1.25</span></span>
-<span><span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fitp</span>, newdata <span class="op">=</span> <span class="va">genotypes</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                                       Estimate Std.Error</span></span>
+<span><span class="co">#&gt; 90%:Soil=Loamy,Treatment=Irrigated        78.4     0.298</span></span>
+<span><span class="co">#&gt; 90%:Soil=Sandy,Treatment=Irrigated        77.2     0.302</span></span>
+<span><span class="co">#&gt; 90%:Soil=Loamy,Treatment=NotIrrigated     75.5     0.300</span></span>
+<span><span class="co">#&gt; 90%:Soil=Sandy,Treatment=NotIrrigated     70.6     0.321</span></span>
+<span><span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fitre</span>, newdata <span class="op">=</span> <span class="va">trts</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;                           Estimate Std.Error</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Aurora        70.053  0.468917</span></span>
-<span><span class="co">#&gt; rate:Genotype=Aurora         2.789  0.488086</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Aurora     0.489  0.005255</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Capri         69.203  0.464834</span></span>
-<span><span class="co">#&gt; rate:Genotype=Capri          2.181  0.400920</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Capri      0.478  0.009651</span></span>
-<span><span class="co">#&gt; tmax:Genotype=ILB938        69.045  0.553904</span></span>
-<span><span class="co">#&gt; rate:Genotype=ILB938         1.786  0.382495</span></span>
-<span><span class="co">#&gt; fraction:Genotype=ILB938     0.476  0.011624</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Lynx          72.797  0.391537</span></span>
-<span><span class="co">#&gt; rate:Genotype=Lynx           3.667  0.506602</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Lynx       0.499  0.000776</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Melodie       73.298  0.388651</span></span>
-<span><span class="co">#&gt; rate:Genotype=Melodie        4.733  0.639956</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Melodie    0.499  0.000580</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Navara        72.654  0.399790</span></span>
-<span><span class="co">#&gt; rate:Genotype=Navara         3.331  0.485188</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Navara     0.498  0.000860</span></span></code></pre></div>
+<span><span class="co">#&gt;                                            Estimate Std.Error</span></span>
+<span><span class="co">#&gt; tmax:Soil=Loamy,Treatment=Irrigated          60.917  2.68e-01</span></span>
+<span><span class="co">#&gt; rate:Soil=Loamy,Treatment=Irrigated           2.612  3.75e-02</span></span>
+<span><span class="co">#&gt; fraction:Soil=Loamy,Treatment=Irrigated       0.500  1.43e-05</span></span>
+<span><span class="co">#&gt; tmax:Soil=Sandy,Treatment=Irrigated          59.764  2.75e-01</span></span>
+<span><span class="co">#&gt; rate:Soil=Sandy,Treatment=Irrigated           2.261  3.65e-02</span></span>
+<span><span class="co">#&gt; fraction:Soil=Sandy,Treatment=Irrigated       0.500  1.66e-05</span></span>
+<span><span class="co">#&gt; tmax:Soil=Loamy,Treatment=NotIrrigated       58.025  2.71e-01</span></span>
+<span><span class="co">#&gt; rate:Soil=Loamy,Treatment=NotIrrigated        2.327  3.68e-02</span></span>
+<span><span class="co">#&gt; fraction:Soil=Loamy,Treatment=NotIrrigated    0.500  2.00e-05</span></span>
+<span><span class="co">#&gt; tmax:Soil=Sandy,Treatment=NotIrrigated       53.123  2.97e-01</span></span>
+<span><span class="co">#&gt; rate:Soil=Sandy,Treatment=NotIrrigated        1.556  3.51e-02</span></span>
+<span><span class="co">#&gt; fraction:Soil=Sandy,Treatment=NotIrrigated    0.499  3.68e-05</span></span></code></pre></div>
 <p>With <code>b1type = "rate"</code>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
 is the maximum growth rate, so that covariates on
@@ -388,34 +501,34 @@ is the maximum growth rate, so that covariates on
 are effects on the maximum growth rate: <code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova()</a></code> tests
 whether they differ, and <code><a href="../reference/pairwise.html">pairwise()</a></code> compares all pairs of
 genotypes, with simultaneous confidence intervals.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Genotype</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Tube_ID</span>, data <span class="op">=</span> <span class="va">FabaCounts23</span>,</span>
 <span>               family <span class="op">=</span> <span class="st">"poisson"</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, b1type <span class="op">=</span> <span class="st">"rate"</span>, link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/pairwise.html">pairwise</a></span><span class="op">(</span><span class="va">fitpr</span>, newdata <span class="op">=</span> <span class="va">genotypes</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Pairwise differences of b1 (maximum growth rate) on the scale of its log link:</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;                                    Estimate Std.Error z value p.value  lower</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78767 -0.360</span></span>
+<span><span class="co">#&gt; Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78771 -0.360</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=ILB938    0.4572     0.231   1.976 0.35585 -0.202</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=Lynx     -0.2753     0.231  -1.192 0.84196 -0.933</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=Melodie  -0.5368     0.245  -2.191 0.24139 -1.235</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=Navara   -0.1767     0.232  -0.762 0.97484 -0.838</span></span>
 <span><span class="co">#&gt; Genotype=Capri - Genotype=ILB938     0.1570     0.218   0.722 0.98021 -0.463</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Lynx      -0.5755     0.217  -2.650 0.08513 -1.194</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00444 -1.498</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24384 -1.099</span></span>
+<span><span class="co">#&gt; Genotype=Capri - Genotype=Lynx      -0.5754     0.217  -2.649 0.08514 -1.194</span></span>
+<span><span class="co">#&gt; Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00443 -1.498</span></span>
+<span><span class="co">#&gt; Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24385 -1.099</span></span>
 <span><span class="co">#&gt; Genotype=ILB938 - Genotype=Lynx     -0.7324     0.217  -3.376 0.00970 -1.351</span></span>
 <span><span class="co">#&gt; Genotype=ILB938 - Genotype=Melodie  -0.9940     0.232  -4.288 0.00032 -1.655</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04185 -1.255</span></span>
-<span><span class="co">#&gt; Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87005 -0.921</span></span>
+<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04186 -1.255</span></span>
+<span><span class="co">#&gt; Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87004 -0.921</span></span>
 <span><span class="co">#&gt; Genotype=Lynx - Genotype=Navara      0.0985     0.218   0.453 0.99757 -0.521</span></span>
-<span><span class="co">#&gt; Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63191 -0.302</span></span>
+<span><span class="co">#&gt; Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63192 -0.302</span></span>
 <span><span class="co">#&gt;                                      upper ratio ratio.lower ratio.upper</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=Capri    0.9600 1.350       0.698       2.612</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=ILB938   1.1164 1.580       0.817       3.054</span></span>
+<span><span class="co">#&gt; Genotype=Aurora - Genotype=ILB938   1.1165 1.580       0.817       3.054</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=Lynx     0.3828 0.759       0.393       1.466</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=Melodie  0.1613 0.585       0.291       1.175</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Navara   0.4841 0.838       0.433       1.623</span></span>
+<span><span class="co">#&gt; Genotype=Aurora - Genotype=Navara   0.4842 0.838       0.433       1.623</span></span>
 <span><span class="co">#&gt; Genotype=Capri - Genotype=ILB938    0.7769 1.170       0.629       2.175</span></span>
 <span><span class="co">#&gt; Genotype=Capri - Genotype=Lynx      0.0434 0.562       0.303       1.044</span></span>
 <span><span class="co">#&gt; Genotype=Capri - Genotype=Melodie  -0.1763 0.433       0.224       0.838</span></span>
@@ -441,17 +554,17 @@ of residuals at times
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fitrec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fitre</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corCAR1</a></span><span class="op">(</span>form <span class="op">=</span> <span class="op">~</span> <span class="va">DAS</span> <span class="op">|</span> <span class="va">plant_ID</span><span class="op">)</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fitrec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fitre</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corCAR1</a></span><span class="op">(</span>value <span class="op">=</span> <span class="fl">0.9</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">DAS</span> <span class="op">|</span> <span class="va">Plant_ID</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fitrec</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       rho </span></span>
-<span><span class="co">#&gt; 0.9593852</span></span>
+<span><span class="co">#&gt; 0.8516009</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">fitre</span>, <span class="va">fitrec</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Likelihood ratio tests of gcTMB models</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;        npar     AIC    BIC  logLik deviance     LR Df   Pr(&gt;LR)    </span></span>
-<span><span class="co">#&gt; fitre    15 1046.34 1095.8 -508.17  1016.34                        </span></span>
-<span><span class="co">#&gt; fitrec   16  993.54 1046.3 -480.77   961.54 54.799  1 1.335e-13 ***</span></span>
+<span><span class="co">#&gt;        npar   AIC   BIC logLik deviance     LR Df   Pr(&gt;LR)    </span></span>
+<span><span class="co">#&gt; fitre    13 25313 25396 -12644    25287                        </span></span>
+<span><span class="co">#&gt; fitrec   14 25098 25188 -12535    25070 216.78  1 &lt; 2.2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
 <p><code>residuals(type = "normalized")</code> gives residuals that are
@@ -467,14 +580,15 @@ the observed times or for new times and individuals in
 residuals; <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> sets the parameters of a true model.
 Refitting the model to simulated data recovers its parameters, e.g. the
 autocorrelation:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>DAS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">70</span>, by <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, plant_ID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"p"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span>, trt <span class="op">=</span> <span class="st">"0.1"</span><span class="op">)</span></span>
-<span><span class="va">design</span><span class="op">$</span><span class="va">height</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">fitrec</span>, nsim <span class="op">=</span> <span class="fl">1</span>, seed <span class="op">=</span> <span class="fl">1</span>, newdata <span class="op">=</span> <span class="va">design</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="va">fitsim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plant_ID</span>, data <span class="op">=</span> <span class="va">design</span>,</span>
-<span>                correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corCAR1</a></span><span class="op">(</span>form <span class="op">=</span> <span class="op">~</span> <span class="va">DAS</span> <span class="op">|</span> <span class="va">plant_ID</span><span class="op">)</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>DAS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">28</span>, <span class="fl">122</span>, by <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>, Plant_ID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"p"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span>, Soil <span class="op">=</span> <span class="st">"Loamy"</span>,</span>
+<span>                      Treatment <span class="op">=</span> <span class="st">"Irrigated"</span><span class="op">)</span></span>
+<span><span class="va">design</span><span class="op">$</span><span class="va">Height</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">fitrec</span>, nsim <span class="op">=</span> <span class="fl">1</span>, seed <span class="op">=</span> <span class="fl">1</span>, newdata <span class="op">=</span> <span class="va">design</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="va">fitsim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plant_ID</span>, data <span class="op">=</span> <span class="va">design</span>,</span>
+<span>                correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corCAR1</a></span><span class="op">(</span>value <span class="op">=</span> <span class="fl">0.9</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">DAS</span> <span class="op">|</span> <span class="va">Plant_ID</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>true <span class="op">=</span> <span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fitrec</span><span class="op">)</span>, estimate <span class="op">=</span> <span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fitsim</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     true.rho estimate.rho </span></span>
-<span><span class="co">#&gt;    0.9593852    0.9572968</span></span></code></pre></div>
+<span><span class="co">#&gt;    0.8516009    0.8150597</span></span></code></pre></div>
 <p>The vignette <em>Autocorrelation and simulation</em> repeats this for
 many data sets. In simulation studies,
 <code>control = list(sdreport = FALSE, restart = TRUE)</code> skips the
@@ -484,6 +598,9 @@ from its estimates, and <code><a href="../reference/converged.html">converged()<
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
+<p>Dunn, P.K. and Smyth, G.K. (1996). Randomized quantile residuals.
+<em>Journal of Computational and Graphical Statistics</em> 5, 236–244.
+<a href="doi:10.1080/10618600.1996.10474708" class="uri">doi:10.1080/10618600.1996.10474708</a>.</p>
 <p>Pinheiro, J.C. and Bates, D.M. (2000). <em>Mixed-Effects Models in S
 and S-PLUS</em>. Springer, New York.</p>
 <p>Zuur, A.F., Ieno, E.N., Walker, N.J., Saveliev, A.A. and Smith, G.M.

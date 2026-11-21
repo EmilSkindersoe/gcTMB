@@ -5,19 +5,22 @@ Template Model Builder ('TMB'), with covariates on the parameters and
 random effects, which are integrated out by the Laplace approximation,
 and autocorrelated residuals. The main function gcTMB() fits the
 logistic (Richards), Gompertz, Hill, Weibull, normal and gamma growth
-curves, each with an asymmetry parameter, and a straight line for
-comparison. The curves are parameterised by the asymptote (or, with
-b1type = "rate", the maximum growth rate), a time (of the maximum growth
-rate or of half the asymptote), a scale, slope or shape parameter, a
-threshold time before which a truncated curve is zero, and the
-asymmetry, each with an identity, log, logit or inverse link, and any of
-them can be fixed. The response can follow a Gaussian, lognormal,
-Poisson, binomial, beta-binomial, beta or negative binomial (nbinom1,
-nbinom2) distribution, with case weights. Fixed effects are formulas for
-each parameter, e.g. b1 + b2 ~ treatment, and random effects are written
-as in 'nlme', e.g. b1 + b2 ~ 1 \| individual: they can be correlated
-across the parameters, with several terms, nested or crossed grouping
-factors and random slopes. The Gaussian and lognormal residuals can be
+curves, each with an asymmetry parameter, the Chapman-Richards and
+Wykoff curves with an intercept, e.g. for height-diameter models, the
+beta growth function, capped at its maximum or not, the Preece-Baines
+model of human growth, and a straight line for comparison. The curves
+are parameterised by the asymptote (or, with b1type = "rate", the
+maximum growth rate), a time (of the maximum growth rate or of half the
+asymptote), a scale, slope or shape parameter, a threshold time before
+which a truncated curve is zero, and the asymmetry, each with an
+identity, log, logit or inverse link, and any of them can be fixed. The
+response can follow a Gaussian, lognormal, Poisson, binomial,
+beta-binomial, beta or negative binomial (nbinom1, nbinom2)
+distribution, with case weights. Fixed effects are formulas for each
+parameter, e.g. b1 + b2 ~ treatment, and random effects are written as
+in 'nlme', e.g. b1 + b2 ~ 1 \| individual: they can be correlated across
+the parameters, with several terms, nested or crossed grouping factors
+and random slopes. The Gaussian and lognormal residuals can be
 autocorrelated within individuals, with the first-order autoregressive
 structures corAR1() and continuous-time corCAR1() of 'nlme', whose
 objects are accepted as well. Starting values are found by a
@@ -54,11 +57,12 @@ an overview shows most of the features in one document.
 
 [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)
 fits the growth curves: logistic (Richards), Gompertz, Hill, Weibull,
-normal and gamma, each with an asymmetry b5, and a straight line. The
-parameters are the asymptote b1 (or the maximum growth rate,
-`b1type="rate"`), the time b2 of the maximum growth rate or of half the
-asymptote, the scale, slope or shape b3, the threshold b4 of a truncated
-curve and the asymmetry b5, each with a link and optionally fixed.
+normal and gamma, each with an asymmetry b5, the Chapman-Richards, beta
+and Wykoff curves, and a straight line. The parameters are the asymptote
+b1 (or the maximum growth rate, `b1type="rate"`), the time b2 of the
+maximum growth rate or of half the asymptote, the scale, slope or shape
+b3, the threshold b4 of a truncated curve and the asymmetry b5, each
+with a link and optionally fixed.
 [`gcTMBstart`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md)
 gives the starting values and
 [`gcTMBcontrol`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBcontrol.md)
@@ -145,6 +149,16 @@ an overview of most features;
 [`vignette("timing-rates")`](https://emilskindersoe.github.io/gcTMB/articles/timing-rates.md)
 and
 [`vignette("autocorrelation-simulation")`](https://emilskindersoe.github.io/gcTMB/articles/autocorrelation-simulation.md).
+
+## See also
+
+Useful links:
+
+- <https://emilskindersoe.github.io/gcTMB/>
+
+- <https://github.com/EmilSkindersoe/gcTMB>
+
+- Report bugs at <https://github.com/EmilSkindersoe/gcTMB/issues>
 
 ## Author
 

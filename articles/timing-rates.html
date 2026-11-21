@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9009</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9011</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Timing and maximum growth rates</h1>
             
-            <h4 data-toc-skip class="date">2026-11-20</h4>
+            <h4 data-toc-skip class="date">2026-11-21</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/timing-rates.Rmd" class="external-link"><code>vignettes/timing-rates.Rmd</code></a></small>
       <div class="d-none name"><code>timing-rates.Rmd</code></div>
@@ -71,145 +71,253 @@
     
 <p>This vignette covers the times at which growth curves reach a level
 of their asymptote, <code><a href="../reference/timeto.html">timeto()</a></code>, and the maximum growth rates
-and their timing, <code><a href="../reference/maxrate.html">maxrate()</a></code>, with treatment effects for the
-heights of faba bean plants and genotype effects for counts of pods. The
-table of the inflection points and maximum growth rates of the growth
-models is in the vignette <em>Growth models and their
-parameters</em>.</p>
-<p>The models of the vignettes <em>Growth models and their
-parameters</em> and <em>Fixed and random effects</em>: a single logistic
-curve, a curve for each treatment with random effects of the plants, and
-a Poisson model of the pods with a curve for each genotype and a random
-asymptote of each plant:</p>
+and their timing, <code><a href="../reference/maxrate.html">maxrate()</a></code>, for the heights of children of
+the Berkeley Child Guidance Study. The table of the inflection points
+and maximum growth rates of the growth models is in the vignette
+<em>Growth models and their parameters</em>.</p>
+<div class="section level2">
+<h2 id="the-berkeley-data">The Berkeley data<a class="anchor" aria-label="anchor" href="#the-berkeley-data"></a>
+</h2>
+<p>The data set <code>BerkeleyGrowth</code> contains the heights (cm) of
+66 boys and 70 girls born in Berkeley, California, in 1928-29, measured
+from birth to 21 years (Tuddenham and Snyder, 1954). Human growth in
+height is not a single sigmoid curve: it slows down through childhood,
+speeds up in the pubertal growth spurt, and stops at the adult height.
+Model 1 of Preece and Baines (1978) describes this with five
+parameters,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mo>−</mo><mfrac><mrow><mn>2</mn><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo>−</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>4</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>5</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex"> h(t) = b_1 - \frac{2 (b_1 - b_3)}{\exp(b_4 (t - b_2)) + \exp(b_5 (t - b_2))}, </annotation></semantics></math></p>
+<p>the adult height
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>,
+the age
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
+in the middle of puberty, the height
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
+at that age, and the rates
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>
+of growth before and during puberty. The heights were measured from 1.75
+years on; the model is fitted from 2 years, first for the girls:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://emilskindersoe.github.io/gcTMB/">gcTMB</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
-<span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">trt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">Treatment</span><span class="op">)</span></span>
-<span><span class="va">trts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>trt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">trt</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data <span class="op">=</span> <span class="va">FabaHeights25</span>, model <span class="op">=</span> <span class="st">"logistic"</span><span class="op">)</span></span>
-<span><span class="va">fitre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">trt</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plant_ID</span>, data <span class="op">=</span> <span class="va">FabaHeights25</span><span class="op">)</span></span>
-<span><span class="va">fitp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Genotype</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Tube_ID</span>, data <span class="op">=</span> <span class="va">FabaCounts23</span>,</span>
-<span>              family <span class="op">=</span> <span class="st">"poisson"</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">genotypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Genotype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">FabaCounts23</span><span class="op">$</span><span class="va">Genotype</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">berkeley</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">BerkeleyGrowth</span>, <span class="va">age</span> <span class="op">&gt;=</span> <span class="fl">2</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">height</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">girls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">berkeley</span>, <span class="va">sex</span> <span class="op">==</span> <span class="st">"female"</span><span class="op">)</span></span>
+<span><span class="va">fitg</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, data <span class="op">=</span> <span class="va">girls</span>, model <span class="op">=</span> <span class="st">"preecebaines"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fitg</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; gcTMB(form = height ~ age, data = girls, model = "preecebaines")</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Model:  preecebaines</span></span>
+<span><span class="co">#&gt; Family: gaussian, identity link for all parameters</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Number of observations: 1911</span></span>
+<span><span class="co">#&gt; Log-likelihood: -6089 (df = 6), AIC: 12190, BIC: 12223</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;                Estimate Std. Error</span></span>
+<span><span class="co">#&gt; b1:(Intercept) 166.3370      0.324</span></span>
+<span><span class="co">#&gt; b2:(Intercept)  11.9346      0.107</span></span>
+<span><span class="co">#&gt; b3:(Intercept) 154.0120      0.473</span></span>
+<span><span class="co">#&gt; b4:(Intercept)   0.1181      0.004</span></span>
+<span><span class="co">#&gt; b5:(Intercept)   0.8819      0.058</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residual standard deviation: 5.863 on 1906 degrees of freedom</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 6.9e-06</span></span>
+<span><span class="va">ages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">21</span>, by <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">girls</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">age</span>, y <span class="op">=</span> <span class="va">height</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>group <span class="op">=</span> <span class="va">id</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"grey70"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">ages</span>, height <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitg</span>, newdata <span class="op">=</span> <span class="va">ages</span><span class="op">)</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"blue"</span>, linewidth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Age (years)"</span>, y <span class="op">=</span> <span class="st">"Height (cm)"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="timing-rates_files/figure-html/unnamed-chunk-1-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+</div>
 <div class="section level2">
 <h2 id="time-to-reach-a-level-of-the-asymptote">Time to reach a level of the asymptote<a class="anchor" aria-label="anchor" href="#time-to-reach-a-level-of-the-asymptote"></a>
 </h2>
 <p><code><a href="../reference/timeto.html">timeto()</a></code> gives the times at which a curve reaches a
-percentage of its asymptote,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>2</mn></msub><mo>+</mo><msub><mi>b</mi><mn>3</mn></msub><msup><mi>F</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mi>/</mi><mn>100</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b_2 + b_3 F^{-1}(p/100)</annotation></semantics></math>,
-with standard errors by automatic differentiation. With
-<code>type = "absolute"</code>, the times at which the curve reaches
-given responses, here a height of 50cm.</p>
+percentage of its asymptote, here the ages at which the girls reach 90%,
+95% and 99% of their adult height, with standard errors by automatic
+differentiation. With <code>type = "absolute"</code>, the times at which
+the curve reaches given responses, here a height of 150 cm.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">tt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/timeto.html">timeto</a></span><span class="op">(</span><span class="va">fit</span>, level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">50</span>, <span class="fl">90</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">tt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/timeto.html">timeto</a></span><span class="op">(</span><span class="va">fitg</span>, level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">95</span>, <span class="fl">99</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">tt</span></span>
 <span><span class="co">#&gt; Times to reach the percentages of the asymptote:</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     Estimate Std.Error</span></span>
-<span><span class="co">#&gt; 10%     10.8     0.423</span></span>
-<span><span class="co">#&gt; 50%     32.9     0.911</span></span>
-<span><span class="co">#&gt; 90%     60.3     2.743</span></span>
-<span><span class="fu"><a href="../reference/timeto.html">timeto</a></span><span class="op">(</span><span class="va">fit</span>, level <span class="op">=</span> <span class="fl">50</span>, type <span class="op">=</span> <span class="st">"absolute"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 90%     11.3    0.0627</span></span>
+<span><span class="co">#&gt; 95%     12.6    0.1002</span></span>
+<span><span class="co">#&gt; 99%     14.9    0.2183</span></span>
+<span><span class="fu"><a href="../reference/timeto.html">timeto</a></span><span class="op">(</span><span class="va">fitg</span>, level <span class="op">=</span> <span class="fl">150</span>, type <span class="op">=</span> <span class="st">"absolute"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Times to reach the responses:</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;      Estimate Std.Error</span></span>
-<span><span class="co">#&gt; y=50     28.8     0.336</span></span></code></pre></div>
+<span><span class="co">#&gt;       Estimate Std.Error</span></span>
+<span><span class="co">#&gt; y=150     11.3    0.0439</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> gives profile likelihood intervals by default,
 <code>method = "wald"</code> Wald intervals and
 <code>method = "boot"</code> parametric bootstrap intervals.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">tt</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        2.5 %   97.5 %</span></span>
-<span><span class="co">#&gt; 10% 10.02726 11.69745</span></span>
-<span><span class="co">#&gt; 50% 31.32441 35.05932</span></span>
-<span><span class="co">#&gt; 90% 55.61967 66.81695</span></span>
+<span><span class="co">#&gt; 90% 11.15086 11.39731</span></span>
+<span><span class="co">#&gt; 95% 12.46196 12.85775</span></span>
+<span><span class="co">#&gt; 99% 14.47672 15.33976</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">tt</span>, method <span class="op">=</span> <span class="st">"wald"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;         2.5 %   97.5 %</span></span>
-<span><span class="co">#&gt; 10%  9.997343 11.66661</span></span>
-<span><span class="co">#&gt; 50% 31.109239 34.70278</span></span>
-<span><span class="co">#&gt; 90% 54.875711 65.69606</span></span></code></pre></div>
+<span><span class="co">#&gt;        2.5 %   97.5 %</span></span>
+<span><span class="co">#&gt; 90% 11.14867 11.39441</span></span>
+<span><span class="co">#&gt; 95% 12.45152 12.84439</span></span>
+<span><span class="co">#&gt; 99% 14.44944 15.30572</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="maximum-growth-rate">Maximum growth rate<a class="anchor" aria-label="anchor" href="#maximum-growth-rate"></a>
 </h2>
 <p><code><a href="../reference/maxrate.html">maxrate()</a></code> gives the time of the maximum growth rate
-(<code>tmax</code>), the inflection point of the curve, the maximum
-growth rate there (<code>rate</code>), and the proportion of total
-growth at that time,
+(<code>tmax</code>), the maximum growth rate there (<code>rate</code>),
+and the proportion of total growth at that time,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>b</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">f(t_m)/b_1</annotation></semantics></math>
 (<code>fraction</code>). The standard errors are by the delta method.
 <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> gives profile likelihood intervals for
 <code>tmax</code> and <code>rate</code> by default, and Wald intervals
 for <code>fraction</code>; <code>method = "wald"</code> and
-<code>method = "boot"</code> as for <code><a href="../reference/timeto.html">timeto()</a></code>. For the
-logistic curve truncated at
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b_4 = 0</annotation></semantics></math>,
-<code>tmax</code> is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>;
-<code>rate</code> is slightly above and <code>fraction</code> slightly
-below the values
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>4</mn><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b_1/(4 b_3)</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">1/2</annotation></semantics></math>
-of the curve without truncation in the table of the growth models, as
-the truncation shifts the curve down to zero at
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t = 0</annotation></semantics></math>
-and rescales it.</p>
+<code>method = "boot"</code> as for <code><a href="../reference/timeto.html">timeto()</a></code>. The growth
+rate of the Preece-Baines curve is highest in early childhood and falls
+until the take-off of the pubertal growth spurt; <code><a href="../reference/maxrate.html">maxrate()</a></code>
+gives the peak of the spurt, the peak height velocity, and the age at
+which it is reached. It is close to, but not the same as, the middle of
+puberty
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">mr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fitg</span><span class="op">)</span></span>
 <span><span class="va">mr</span></span>
 <span><span class="co">#&gt; Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;          Estimate Std.Error</span></span>
-<span><span class="co">#&gt; tmax       30.730   0.68220</span></span>
-<span><span class="co">#&gt; rate        2.560   0.09415</span></span>
-<span><span class="co">#&gt; fraction    0.454   0.00778</span></span>
+<span><span class="co">#&gt; tmax       10.866   0.19993</span></span>
+<span><span class="co">#&gt; rate        6.830   0.18381</span></span>
+<span><span class="co">#&gt; fraction    0.883   0.00762</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">mr</span><span class="op">)</span></span>
 <span><span class="co">#&gt;               2.5 %     97.5 %</span></span>
-<span><span class="co">#&gt; tmax     29.4384590 32.1825247</span></span>
-<span><span class="co">#&gt; rate      2.3803996  2.7522120</span></span>
-<span><span class="co">#&gt; fraction  0.4386425  0.4693352</span></span></code></pre></div>
+<span><span class="co">#&gt; tmax     10.4171679 11.2174743</span></span>
+<span><span class="co">#&gt; rate      6.4965849  7.2257125</span></span>
+<span><span class="co">#&gt; fraction  0.8684475  0.8983488</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="timing-and-maximum-growth-rates-of-the-treatments">Timing and maximum growth rates of the treatments<a class="anchor" aria-label="anchor" href="#timing-and-maximum-growth-rates-of-the-treatments"></a>
+<h2 id="timing-and-maximum-growth-rates-of-boys-and-girls">Timing and maximum growth rates of boys and girls<a class="anchor" aria-label="anchor" href="#timing-and-maximum-growth-rates-of-boys-and-girls"></a>
 </h2>
+<p>Covariates on all five parameters give a curve for each sex, and
+random effects of the children on the adult height, the middle of
+puberty and the rate during puberty a curve for each child. The default
+starting values pool the boys and the girls, and are far from the curve
+of either sex when all five parameters differ between the sexes; the
+fits of each sex give better starting values, the coefficients of the
+boys and the differences of the girls from them:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fitb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">berkeley</span>, <span class="va">sex</span> <span class="op">==</span> <span class="st">"male"</span><span class="op">)</span>, model <span class="op">=</span> <span class="st">"preecebaines"</span><span class="op">)</span></span>
+<span><span class="va">cb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fitb</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
+<span><span class="va">cg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fitg</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
+<span><span class="va">fitre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b3</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">+</span> <span class="va">b5</span> <span class="op">~</span> <span class="va">sex</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b5</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">id</span>,</span>
+<span>               data <span class="op">=</span> <span class="va">berkeley</span>, model <span class="op">=</span> <span class="st">"preecebaines"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">cb</span>, <span class="va">cg</span> <span class="op">-</span> <span class="va">cb</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>               control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: the optimiser did not converge: false convergence (8)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fitre</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; gcTMB(form = height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, </span></span>
+<span><span class="co">#&gt;     rform = b1 + b2 + b5 ~ 1 | id, data = berkeley, start = as.vector(rbind(cb, </span></span>
+<span><span class="co">#&gt;         cg - cb)), model = "preecebaines", control = list(restart = TRUE))</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Model:  preecebaines</span></span>
+<span><span class="co">#&gt; Family: gaussian, identity link for all parameters</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Number of observations: 3801, groups: id 136</span></span>
+<span><span class="co">#&gt; Log-likelihood: -8820 (df = 17), AIC: 17674, BIC: 17780</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;                 Estimate Std. Error</span></span>
+<span><span class="co">#&gt; b1:(Intercept) 184.96761      0.383</span></span>
+<span><span class="co">#&gt; b1:sexfemale   -15.47509      0.496</span></span>
+<span><span class="co">#&gt; b2:(Intercept)  14.79657      0.211</span></span>
+<span><span class="co">#&gt; b2:sexfemale    -2.26792      0.296</span></span>
+<span><span class="co">#&gt; b3:(Intercept) 168.79822      0.226</span></span>
+<span><span class="co">#&gt; b3:sexfemale   -13.67711      0.333</span></span>
+<span><span class="co">#&gt; b4:(Intercept)   0.08631      0.001</span></span>
+<span><span class="co">#&gt; b4:sexfemale     0.01575      0.002</span></span>
+<span><span class="co">#&gt; b5:(Intercept)   0.60790      0.020</span></span>
+<span><span class="co">#&gt; b5:sexfemale     0.01405      0.028</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Random effects:</span></span>
+<span><span class="co">#&gt;  Groups Name Std.Dev. Corr       </span></span>
+<span><span class="co">#&gt;  id     b1   2.2010              </span></span>
+<span><span class="co">#&gt;         b2   1.6534   -0.96      </span></span>
+<span><span class="co">#&gt;         b5   0.1216    0.43 -0.52</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residual standard deviation: 2.087</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Optimiser: false convergence (8), maximum absolute gradient 0.0065</span></span>
+<span><span class="fu"><a href="../reference/converged.html">converged</a></span><span class="op">(</span><span class="va">fitre</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>With 17 parameters and strongly correlated random effects, the
+optimiser stops with a gradient above
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>3</mn></mrow></msup><annotation encoding="application/x-tex">10^{-3}</annotation></semantics></math>;
+<code>control = list(restart = TRUE)</code> optimises once more from the
+estimates, which no longer improves the log-likelihood, so that
+<code><a href="../reference/converged.html">converged()</a></code> accepts the fit (see the vignette
+<em>Autocorrelation and simulation</em>).</p>
 <p><code><a href="../reference/timeto.html">timeto()</a></code> and <code><a href="../reference/maxrate.html">maxrate()</a></code> with
 <code>newdata</code> give the times and rates of the curves of each row,
-here the population curves of the treatments
-(<code>random = FALSE</code>) of the model with random effects of the
-plants:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/timeto.html">timeto</a></span><span class="op">(</span><span class="va">fitre</span>, level <span class="op">=</span> <span class="fl">90</span>, newdata <span class="op">=</span> <span class="va">trts</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+here the population curves of the sexes
+(<code>random = FALSE</code>):</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sexes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"male"</span>, <span class="st">"female"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/timeto.html">timeto</a></span><span class="op">(</span><span class="va">fitre</span>, level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">99</span><span class="op">)</span>, newdata <span class="op">=</span> <span class="va">sexes</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Times to reach the percentages of the asymptote:</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;             Estimate Std.Error</span></span>
-<span><span class="co">#&gt; 90%:trt=0.1     60.3      1.24</span></span>
-<span><span class="co">#&gt; 90%:trt=0.3     58.9      1.21</span></span>
-<span><span class="co">#&gt; 90%:trt=0.5     60.4      1.24</span></span>
-<span><span class="co">#&gt; 90%:trt=0.6     60.9      1.25</span></span>
-<span><span class="co">#&gt; 90%:trt=0.8     61.1      1.25</span></span>
-<span><span class="va">mrre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fitre</span>, newdata <span class="op">=</span> <span class="va">trts</span><span class="op">)</span></span>
-<span><span class="va">mrre</span></span>
+<span><span class="co">#&gt;                Estimate Std.Error</span></span>
+<span><span class="co">#&gt; 90%:sex=male       14.4     0.162</span></span>
+<span><span class="co">#&gt; 90%:sex=female     12.1     0.150</span></span>
+<span><span class="co">#&gt; 99%:sex=male       19.4     0.290</span></span>
+<span><span class="co">#&gt; 99%:sex=female     16.9     0.268</span></span>
+<span><span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fitre</span>, newdata <span class="op">=</span> <span class="va">sexes</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;                  Estimate Std.Error</span></span>
-<span><span class="co">#&gt; tmax:trt=0.1       30.817   1.14107</span></span>
-<span><span class="co">#&gt; rate:trt=0.1        2.457   0.09484</span></span>
-<span><span class="co">#&gt; fraction:trt=0.1    0.455   0.00446</span></span>
-<span><span class="co">#&gt; tmax:trt=0.3       29.322   1.13761</span></span>
-<span><span class="co">#&gt; rate:trt=0.3        2.441   0.09632</span></span>
-<span><span class="co">#&gt; fraction:trt=0.3    0.449   0.00501</span></span>
-<span><span class="co">#&gt; tmax:trt=0.5       30.995   1.13233</span></span>
-<span><span class="co">#&gt; rate:trt=0.5        2.661   0.09567</span></span>
-<span><span class="co">#&gt; fraction:trt=0.5    0.455   0.00436</span></span>
-<span><span class="co">#&gt; tmax:trt=0.6       31.492   1.13281</span></span>
-<span><span class="co">#&gt; rate:trt=0.6        2.671   0.09521</span></span>
-<span><span class="co">#&gt; fraction:trt=0.6    0.457   0.00418</span></span>
-<span><span class="co">#&gt; tmax:trt=0.8       31.720   1.13525</span></span>
-<span><span class="co">#&gt; rate:trt=0.8        2.618   0.09471</span></span>
-<span><span class="co">#&gt; fraction:trt=0.8    0.458   0.00412</span></span></code></pre></div>
+<span><span class="co">#&gt;                     Estimate Std.Error</span></span>
+<span><span class="co">#&gt; tmax:sex=male         13.050    0.1991</span></span>
+<span><span class="co">#&gt; rate:sex=male          6.326    0.1717</span></span>
+<span><span class="co">#&gt; fraction:sex=male      0.855    0.0047</span></span>
+<span><span class="co">#&gt; tmax:sex=female       10.019    0.3102</span></span>
+<span><span class="co">#&gt; rate:sex=female        6.221    0.1468</span></span>
+<span><span class="co">#&gt; fraction:sex=female    0.828    0.0107</span></span></code></pre></div>
+<p>The girls reach the middle of puberty, the peak of their growth spurt
+and their adult height about two years earlier than the boys.
+<code><a href="../reference/pairwise.html">pairwise()</a></code> compares a parameter between the rows of
+<code>newdata</code> by Wald tests, here the middle of puberty
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
+(see below for the details of <code><a href="../reference/pairwise.html">pairwise()</a></code>):</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/pairwise.html">pairwise</a></span><span class="op">(</span><span class="va">fitre</span>, newdata <span class="op">=</span> <span class="va">sexes</span>, parm <span class="op">=</span> <span class="st">"b2"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Pairwise differences of b2 (location in time):</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;                       Estimate Std.Error z value p.value lower upper</span></span>
+<span><span class="co">#&gt; sex=male - sex=female     2.27     0.296    7.67  &lt;2e-16  1.68  2.85</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits.</span></span></code></pre></div>
+<p>The height and the growth rate of the population curves of the sexes,
+the growth rate by the differences of the predicted heights:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">nd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">sexes</span>, <span class="va">ages</span><span class="op">)</span></span>
+<span><span class="va">nd</span><span class="op">$</span><span class="va">height</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitre</span>, newdata <span class="op">=</span> <span class="va">nd</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">nd</span><span class="op">$</span><span class="va">rate</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/ave.html" class="external-link">ave</a></span><span class="op">(</span><span class="va">nd</span><span class="op">$</span><span class="va">height</span>, <span class="va">nd</span><span class="op">$</span><span class="va">sex</span>, FUN <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">h</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">h</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span><span class="va">curves</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">nd</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span>, <span class="st">"age"</span><span class="op">)</span><span class="op">]</span>, value <span class="op">=</span> <span class="va">nd</span><span class="op">$</span><span class="va">height</span>, panel <span class="op">=</span> <span class="st">"Height (cm)"</span><span class="op">)</span>,</span>
+<span>                <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">nd</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span>, <span class="st">"age"</span><span class="op">)</span><span class="op">]</span>, value <span class="op">=</span> <span class="va">nd</span><span class="op">$</span><span class="va">rate</span>, panel <span class="op">=</span> <span class="st">"Growth rate (cm/year)"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">curves</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">age</span>, y <span class="op">=</span> <span class="va">value</span>, colour <span class="op">=</span> <span class="va">sex</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">panel</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Age (years)"</span>, y <span class="op">=</span> <span class="cn">NULL</span>, colour <span class="op">=</span> <span class="st">"Sex"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="timing-rates_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="section level3">
-<h3 id="treatment-effects-on-the-maximum-growth-rate">Treatment effects on the maximum growth rate<a class="anchor" aria-label="anchor" href="#treatment-effects-on-the-maximum-growth-rate"></a>
+<h3 id="effects-on-the-maximum-growth-rate">Effects on the maximum growth rate<a class="anchor" aria-label="anchor" href="#effects-on-the-maximum-growth-rate"></a>
 </h3>
 <p>With <code>b1type = "rate"</code>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
@@ -217,280 +325,135 @@ is the maximum growth rate of the curve instead of its asymptote (see
 <em>The maximum growth rate as a parameter</em> in the vignette
 <em>Growth models and their parameters</em>), so that covariates on
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
-are effects on the maximum growth rate. The model with the treatment
-effects on
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
-has the same number of parameters as <code>fitre</code>, but the random
-effects of the plants are now on their maximum growth rates rather than
-their asymptotes, a slightly different model. The log link gives the
-treatment effects as ratios of the rates.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fitrr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">trt</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plant_ID</span>, data <span class="op">=</span> <span class="va">FabaHeights25</span>,</span>
-<span>               b1type <span class="op">=</span> <span class="st">"rate"</span>, link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fitre</span>, <span class="va">fitrr</span><span class="op">)</span></span>
-<span><span class="co">#&gt;       df      AIC</span></span>
-<span><span class="co">#&gt; fitre 15 1046.344</span></span>
-<span><span class="co">#&gt; fitrr 15 1047.093</span></span></code></pre></div>
-<p>Whether the treatments have the same maximum growth rate is a
-likelihood ratio test of the models with and without the treatment
-effects on
+are effects on the maximum growth rate. This needs a curve whose maximum
+growth rate is proportional to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>,
-keeping those on
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fitrr0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">trt</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plant_ID</span>, data <span class="op">=</span> <span class="va">FabaHeights25</span>,</span>
-<span>                b1type <span class="op">=</span> <span class="st">"rate"</span>, link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">fitrr0</span>, <span class="va">fitrr</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Likelihood ratio tests of gcTMB models</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;        npar    AIC    BIC  logLik deviance    LR Df Pr(&gt;LR)</span></span>
-<span><span class="co">#&gt; fitrr0   11 1044.1 1080.4 -511.06   1022.1                 </span></span>
-<span><span class="co">#&gt; fitrr    15 1047.1 1096.6 -508.55   1017.1 5.024  4  0.2848</span></span></code></pre></div>
-<p><code><a href="../reference/pairwise.html">pairwise()</a></code> compares the maximum growth rates of all
-pairs of treatments (see the pods below for the details); with the log
-link, as ratios:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/pairwise.html">pairwise</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">trts</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Pairwise differences of b1 (maximum growth rate) on the scale of its log link:</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;                   Estimate Std.Error z value p.value  lower  upper ratio</span></span>
-<span><span class="co">#&gt; trt=0.1 - trt=0.3  0.00528    0.0523   0.101   1.000 -0.137 0.1480 1.005</span></span>
-<span><span class="co">#&gt; trt=0.1 - trt=0.5 -0.07783    0.0523  -1.488   0.571 -0.221 0.0649 0.925</span></span>
-<span><span class="co">#&gt; trt=0.1 - trt=0.6 -0.08482    0.0523  -1.621   0.486 -0.228 0.0579 0.919</span></span>
-<span><span class="co">#&gt; trt=0.1 - trt=0.8 -0.06376    0.0523  -1.218   0.741 -0.207 0.0791 0.938</span></span>
-<span><span class="co">#&gt; trt=0.3 - trt=0.5 -0.08310    0.0522  -1.591   0.505 -0.226 0.0594 0.920</span></span>
-<span><span class="co">#&gt; trt=0.3 - trt=0.6 -0.09010    0.0522  -1.724   0.420 -0.233 0.0525 0.914</span></span>
-<span><span class="co">#&gt; trt=0.3 - trt=0.8 -0.06904    0.0523  -1.321   0.679 -0.212 0.0736 0.933</span></span>
-<span><span class="co">#&gt; trt=0.5 - trt=0.6 -0.00699    0.0522  -0.134   1.000 -0.149 0.1355 0.993</span></span>
-<span><span class="co">#&gt; trt=0.5 - trt=0.8  0.01406    0.0522   0.269   0.999 -0.128 0.1566 1.014</span></span>
-<span><span class="co">#&gt; trt=0.6 - trt=0.8  0.02106    0.0523   0.403   0.995 -0.122 0.1636 1.021</span></span>
-<span><span class="co">#&gt;                   ratio.lower ratio.upper</span></span>
-<span><span class="co">#&gt; trt=0.1 - trt=0.3       0.872        1.16</span></span>
-<span><span class="co">#&gt; trt=0.1 - trt=0.5       0.802        1.07</span></span>
-<span><span class="co">#&gt; trt=0.1 - trt=0.6       0.796        1.06</span></span>
-<span><span class="co">#&gt; trt=0.1 - trt=0.8       0.813        1.08</span></span>
-<span><span class="co">#&gt; trt=0.3 - trt=0.5       0.798        1.06</span></span>
-<span><span class="co">#&gt; trt=0.3 - trt=0.6       0.792        1.05</span></span>
-<span><span class="co">#&gt; trt=0.3 - trt=0.8       0.809        1.08</span></span>
-<span><span class="co">#&gt; trt=0.5 - trt=0.6       0.861        1.15</span></span>
-<span><span class="co">#&gt; trt=0.5 - trt=0.8       0.879        1.17</span></span>
-<span><span class="co">#&gt; trt=0.6 - trt=0.8       0.886        1.18</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits, and ratios.</span></span></code></pre></div>
-<p>The treatments do not differ clearly in their maximum growth
-rates.</p>
-</div>
-</div>
-<div class="section level2">
-<h2 id="timing-and-maximum-growth-rates-of-the-genotypes">Timing and maximum growth rates of the genotypes<a class="anchor" aria-label="anchor" href="#timing-and-maximum-growth-rates-of-the-genotypes"></a>
-</h2>
-<p>The same functions apply to count data. For the pods, the times at
-which the population curve of each genotype reaches half of its
-asymptote, and the maximum growth rates, the most pods gained per day,
-of the Poisson model <code>fitp</code> with genotype effects on the
-asymptote:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/timeto.html">timeto</a></span><span class="op">(</span><span class="va">fitp</span>, level <span class="op">=</span> <span class="fl">50</span>, newdata <span class="op">=</span> <span class="va">genotypes</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Times to reach the percentages of the asymptote:</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;                      Estimate Std.Error</span></span>
-<span><span class="co">#&gt; 50%:Genotype=Aurora      70.1     0.459</span></span>
-<span><span class="co">#&gt; 50%:Genotype=Capri       69.3     0.440</span></span>
-<span><span class="co">#&gt; 50%:Genotype=ILB938      69.2     0.519</span></span>
-<span><span class="co">#&gt; 50%:Genotype=Lynx        72.8     0.393</span></span>
-<span><span class="co">#&gt; 50%:Genotype=Melodie     73.3     0.390</span></span>
-<span><span class="co">#&gt; 50%:Genotype=Navara      72.7     0.401</span></span>
-<span><span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fitp</span>, newdata <span class="op">=</span> <span class="va">genotypes</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;                           Estimate Std.Error</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Aurora        70.053  0.468917</span></span>
-<span><span class="co">#&gt; rate:Genotype=Aurora         2.789  0.488086</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Aurora     0.489  0.005255</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Capri         69.203  0.464834</span></span>
-<span><span class="co">#&gt; rate:Genotype=Capri          2.181  0.400920</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Capri      0.478  0.009651</span></span>
-<span><span class="co">#&gt; tmax:Genotype=ILB938        69.045  0.553904</span></span>
-<span><span class="co">#&gt; rate:Genotype=ILB938         1.786  0.382495</span></span>
-<span><span class="co">#&gt; fraction:Genotype=ILB938     0.476  0.011624</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Lynx          72.797  0.391537</span></span>
-<span><span class="co">#&gt; rate:Genotype=Lynx           3.667  0.506602</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Lynx       0.499  0.000776</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Melodie       73.298  0.388651</span></span>
-<span><span class="co">#&gt; rate:Genotype=Melodie        4.733  0.639956</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Melodie    0.499  0.000580</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Navara        72.654  0.399790</span></span>
-<span><span class="co">#&gt; rate:Genotype=Navara         3.331  0.485188</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Navara     0.498  0.000860</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="genotype-effects-on-the-maximum-growth-rate">Genotype effects on the maximum growth rate<a class="anchor" aria-label="anchor" href="#genotype-effects-on-the-maximum-growth-rate"></a>
-</h3>
-<p>The genotype effects of <code>fitp</code> are on the asymptote. With
-<code>b1type = "rate"</code>,
+which is not the case for the Preece-Baines curve. The growth spurt
+alone, from 8 years on, is a sigmoid curve above the height reached
+before it, as the Chapman-Richards curve with the intercept
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+estimated; with <code>b1type = "rate"</code> and the log link,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
-is the maximum growth rate, so the same formulas give genotype effects
-and random effects of the plants on the maximum growth rate, the most
-pods gained per day; the log link expresses the genotype effects as
-ratios of the rates. The random effects are now on the rate of each
-plant rather than its asymptote, which is a different model, here with a
-somewhat worse fit by AIC.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fitpr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Genotype</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Tube_ID</span>, data <span class="op">=</span> <span class="va">FabaCounts23</span>,</span>
-<span>               family <span class="op">=</span> <span class="st">"poisson"</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, b1type <span class="op">=</span> <span class="st">"rate"</span>, link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fitpr</span><span class="op">)</span></span>
+is the peak height velocity, and the effect of the sex a ratio of the
+rates. Each child has random effects on the peak height velocity, its
+timing and the height before the spurt:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spurt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">BerkeleyGrowth</span>, <span class="va">age</span> <span class="op">&gt;=</span> <span class="fl">8</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">height</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fitrr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">~</span> <span class="va">sex</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">id</span>, data <span class="op">=</span> <span class="va">spurt</span>,</span>
+<span>               model <span class="op">=</span> <span class="st">"chapmanrichards"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">120</span><span class="op">)</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, b1type <span class="op">=</span> <span class="st">"rate"</span>,</span>
+<span>               link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fitrr</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; gcTMB(form = pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ </span></span>
-<span><span class="co">#&gt;     1 | Tube_ID, data = FabaCounts23, fix = c(b4 = FALSE), family = "poisson", </span></span>
-<span><span class="co">#&gt;     link = c(b1 = "log"), b1type = "rate")</span></span>
+<span><span class="co">#&gt; gcTMB(form = height ~ age, fform = b1 + b2 + b4 ~ sex, rform = b1 + </span></span>
+<span><span class="co">#&gt;     b2 + b4 ~ 1 | id, data = spurt, start = c(b4 = 120), fix = c(b4 = FALSE), </span></span>
+<span><span class="co">#&gt;     model = "chapmanrichards", link = c(b1 = "log"), b1type = "rate")</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Model:  logistic, truncated at the threshold b4; b1 is the maximum growth rate</span></span>
-<span><span class="co">#&gt; Family: poisson, log link for b1, identity link for the other parameters</span></span>
+<span><span class="co">#&gt; Model:  chapmanrichards; b1 is the maximum growth rate</span></span>
+<span><span class="co">#&gt; Family: gaussian, log link for b1, identity link for the other parameters</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Number of observations: 263, groups: Tube_ID 22</span></span>
-<span><span class="co">#&gt; Log-likelihood: -356.4 (df = 15), AIC: 742.8, BIC: 796.3</span></span>
+<span><span class="co">#&gt; Number of observations: 2985, groups: id 136</span></span>
+<span><span class="co">#&gt; Log-likelihood: -6568 (df = 14), AIC: 13165, BIC: 13249</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
-<span><span class="co">#&gt;                    Estimate Std. Error</span></span>
-<span><span class="co">#&gt; b1:(Intercept)       1.0042      0.191</span></span>
-<span><span class="co">#&gt; b1:GenotypeCapri    -0.3002      0.232</span></span>
-<span><span class="co">#&gt; b1:GenotypeILB938   -0.4572      0.231</span></span>
-<span><span class="co">#&gt; b1:GenotypeLynx      0.2753      0.231</span></span>
-<span><span class="co">#&gt; b1:GenotypeMelodie   0.5368      0.245</span></span>
-<span><span class="co">#&gt; b1:GenotypeNavara    0.1767      0.232</span></span>
-<span><span class="co">#&gt; b2:(Intercept)      70.0041      0.469</span></span>
-<span><span class="co">#&gt; b2:GenotypeCapri    -0.6698      0.635</span></span>
-<span><span class="co">#&gt; b2:GenotypeILB938   -1.0464      0.711</span></span>
-<span><span class="co">#&gt; b2:GenotypeLynx      2.7625      0.553</span></span>
-<span><span class="co">#&gt; b2:GenotypeMelodie   3.3139      0.556</span></span>
-<span><span class="co">#&gt; b2:GenotypeNavara    2.6192      0.561</span></span>
-<span><span class="co">#&gt; b3:(Intercept)       1.3350      0.148</span></span>
-<span><span class="co">#&gt; b4:(Intercept)      65.0000      0.024</span></span>
+<span><span class="co">#&gt;                 Estimate Std. Error</span></span>
+<span><span class="co">#&gt; b1:(Intercept)   2.03604      0.012</span></span>
+<span><span class="co">#&gt; b1:sexfemale    -0.05426      0.018</span></span>
+<span><span class="co">#&gt; b2:(Intercept)  11.77429      0.111</span></span>
+<span><span class="co">#&gt; b2:sexfemale    -2.14747      0.160</span></span>
+<span><span class="co">#&gt; b3:(Intercept)   2.48214      0.029</span></span>
+<span><span class="co">#&gt; b4:(Intercept) 132.08293      0.658</span></span>
+<span><span class="co">#&gt; b4:sexfemale   -10.97591      1.008</span></span>
 <span><span class="co">#&gt; The coefficients of b1 are on the log scale.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
-<span><span class="co">#&gt;  Groups  Name Std.Dev.</span></span>
-<span><span class="co">#&gt;  Tube_ID b1   0.2643  </span></span>
+<span><span class="co">#&gt;  Groups Name Std.Dev. Corr       </span></span>
+<span><span class="co">#&gt;  id     b1   0.08792             </span></span>
+<span><span class="co">#&gt;         b2   0.87517  -0.68      </span></span>
+<span><span class="co">#&gt;         b4   5.00748  -0.11  0.43</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Pearson dispersion: 0.4938 (chi-square 122.5 on 248 df)</span></span>
+<span><span class="co">#&gt; Residual standard deviation: 1.748</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: converged, with the threshold b4 at an observation time (a kink of the likelihood), maximum absolute gradient 0.28</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fitp</span>, <span class="va">fitpr</span><span class="op">)</span></span>
-<span><span class="co">#&gt;       df      AIC</span></span>
-<span><span class="co">#&gt; fitp  15 737.1423</span></span>
-<span><span class="co">#&gt; fitpr 15 742.7615</span></span></code></pre></div>
-<p>Whether the genotypes have the same maximum growth rate is a
-likelihood ratio test of the models with and without the genotype
-effects on
+<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.0021</span></span>
+<span><span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;                     Estimate Std.Error</span></span>
+<span><span class="co">#&gt; tmax:sex=male         11.774  0.110728</span></span>
+<span><span class="co">#&gt; rate:sex=male          7.660  0.095471</span></span>
+<span><span class="co">#&gt; fraction:sex=male      0.366  0.000120</span></span>
+<span><span class="co">#&gt; tmax:sex=female        9.627  0.118476</span></span>
+<span><span class="co">#&gt; rate:sex=female        7.256  0.097516</span></span>
+<span><span class="co">#&gt; fraction:sex=female    0.364  0.000293</span></span></code></pre></div>
+<p>Whether boys and girls have the same peak height velocity is a
+likelihood ratio test of the models with and without the sex effect on
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>,
 keeping those on
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fitpr0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Genotype</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Tube_ID</span>, data <span class="op">=</span> <span class="va">FabaCounts23</span>,</span>
-<span>                family <span class="op">=</span> <span class="st">"poisson"</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, b1type <span class="op">=</span> <span class="st">"rate"</span>, link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">fitpr0</span>, <span class="va">fitpr</span><span class="op">)</span></span>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fitrr0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, fform <span class="op">=</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">~</span> <span class="va">sex</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">id</span>, data <span class="op">=</span> <span class="va">spurt</span>,</span>
+<span>                model <span class="op">=</span> <span class="st">"chapmanrichards"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">120</span><span class="op">)</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, b1type <span class="op">=</span> <span class="st">"rate"</span>,</span>
+<span>                link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">fitrr0</span>, <span class="va">fitrr</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Likelihood ratio tests of gcTMB models</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;        npar    AIC    BIC  logLik deviance     LR Df Pr(&gt;LR)  </span></span>
-<span><span class="co">#&gt; fitpr0   10 742.32 778.04 -361.16   722.32                    </span></span>
-<span><span class="co">#&gt; fitpr    15 742.76 796.34 -356.38   712.76 9.5615  5 0.08866 .</span></span>
+<span><span class="co">#&gt;        npar   AIC   BIC  logLik deviance     LR Df  Pr(&gt;LR)   </span></span>
+<span><span class="co">#&gt; fitrr0   13 13171 13249 -6572.5    13145                      </span></span>
+<span><span class="co">#&gt; fitrr    14 13165 13249 -6568.4    13137 8.1957  1 0.004199 **</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
 <p><code><a href="../reference/pairwise.html">pairwise()</a></code> compares the maximum growth rates of all
-pairs of genotypes by Wald tests. By default, the p-values and the
-confidence intervals are adjusted for the number of pairs by the
-single-step method, the generalisation of Tukey’s honestly significant
-differences to the correlated estimates of a model, so that the
-intervals cover all the differences simultaneously;
+pairs of rows of <code>newdata</code> by Wald tests. By default, the
+p-values and the confidence intervals are adjusted for the number of
+pairs by the single-step method, the generalisation of Tukey’s honestly
+significant differences to the correlated estimates of a model, so that
+the intervals cover all the differences simultaneously;
 <code>adjust = "holm"</code> and the other methods of
-<code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">p.adjust()</a></code> adjust the p-values only. With the log link, the
-differences are log ratios of the rates, and the ratios are given as
-well. The same works for the other parameters,
-e.g. <code>parm = "b2"</code> for the time of the maximum growth rate,
-which is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
-for the logistic curve.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/pairwise.html">pairwise</a></span><span class="op">(</span><span class="va">fitpr</span>, newdata <span class="op">=</span> <span class="va">genotypes</span><span class="op">)</span></span>
+<code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">p.adjust()</a></code> adjust the p-values only. With two sexes there
+is a single pair, and no adjustment. With the log link, the differences
+are log ratios of the rates, and the ratios are given as well. The same
+works for the other parameters, e.g. <code>parm = "b2"</code> as
+above.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/pairwise.html">pairwise</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Pairwise differences of b1 (maximum growth rate) on the scale of its log link:</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;                                    Estimate Std.Error z value p.value  lower</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78767 -0.360</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=ILB938    0.4572     0.231   1.976 0.35585 -0.202</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Lynx     -0.2753     0.231  -1.192 0.84196 -0.933</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Melodie  -0.5368     0.245  -2.191 0.24139 -1.235</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Navara   -0.1767     0.232  -0.762 0.97484 -0.838</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=ILB938     0.1570     0.218   0.722 0.98021 -0.463</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Lynx      -0.5755     0.217  -2.650 0.08513 -1.194</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00444 -1.498</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24384 -1.099</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Lynx     -0.7324     0.217  -3.376 0.00970 -1.351</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Melodie  -0.9940     0.232  -4.288 0.00032 -1.655</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04185 -1.255</span></span>
-<span><span class="co">#&gt; Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87005 -0.921</span></span>
-<span><span class="co">#&gt; Genotype=Lynx - Genotype=Navara      0.0985     0.218   0.453 0.99757 -0.521</span></span>
-<span><span class="co">#&gt; Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63191 -0.302</span></span>
-<span><span class="co">#&gt;                                      upper ratio ratio.lower ratio.upper</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Capri    0.9600 1.350       0.698       2.612</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=ILB938   1.1164 1.580       0.817       3.054</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Lynx     0.3828 0.759       0.393       1.466</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Melodie  0.1613 0.585       0.291       1.175</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Navara   0.4841 0.838       0.433       1.623</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=ILB938    0.7769 1.170       0.629       2.175</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Lynx      0.0434 0.562       0.303       1.044</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Melodie  -0.1763 0.433       0.224       0.838</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Navara    0.1448 0.621       0.333       1.156</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Lynx    -0.1142 0.481       0.259       0.892</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Melodie -0.3335 0.370       0.191       0.716</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Navara  -0.0127 0.531       0.285       0.987</span></span>
-<span><span class="co">#&gt; Genotype=Lynx - Genotype=Melodie    0.3978 0.770       0.398       1.489</span></span>
-<span><span class="co">#&gt; Genotype=Lynx - Genotype=Navara     0.7185 1.104       0.594       2.051</span></span>
-<span><span class="co">#&gt; Genotype=Melodie - Genotype=Navara  1.0223 1.433       0.739       2.780</span></span>
+<span><span class="co">#&gt;                       Estimate Std.Error z value p.value  lower upper ratio</span></span>
+<span><span class="co">#&gt; sex=male - sex=female   0.0543    0.0181       3 0.00278 0.0186  0.09  1.06</span></span>
+<span><span class="co">#&gt;                       ratio.lower ratio.upper</span></span>
+<span><span class="co">#&gt; sex=male - sex=female        1.02        1.09</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits, and ratios.</span></span></code></pre></div>
-<p>The overall likelihood ratio test is borderline, while the pairwise
-comparisons single out the largest differences: Melodie gains pods
-faster than ILB938 and Capri, and ILB938 more slowly than Lynx and
-Navara. The Wald tests rely on the normal approximation of the
-estimates, which is rougher than the likelihood ratio test with only 22
-plants.</p>
 <p><code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> with <code>type = "parameters"</code> gives
-the asymptote of the population curves as well, and
-<code><a href="../reference/maxrate.html">maxrate()</a></code> the rates, which are now
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">genotypes</span>, <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitpr</span>, newdata <span class="op">=</span> <span class="va">genotypes</span>, type <span class="op">=</span> <span class="st">"parameters"</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   Genotype       b1       b2       b3 b4 asymptote</span></span>
-<span><span class="co">#&gt; 1   Aurora 2.729829 70.00411 1.335024 65 14.242046</span></span>
-<span><span class="co">#&gt; 2    Capri 2.021911 69.33433 1.335024 65 10.392866</span></span>
-<span><span class="co">#&gt; 3   ILB938 1.728172 68.95766 1.335024 65  8.775883</span></span>
-<span><span class="co">#&gt; 4     Lynx 3.594822 72.76662 1.335024 65 19.139759</span></span>
-<span><span class="co">#&gt; 5  Melodie 4.669523 73.31797 1.335024 65 24.886716</span></span>
-<span><span class="co">#&gt; 6   Navara 3.257525 72.62328 1.335024 65 17.338073</span></span>
-<span><span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fitpr</span>, newdata <span class="op">=</span> <span class="va">genotypes</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;                           Estimate Std.Error</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Aurora        70.004  0.469411</span></span>
-<span><span class="co">#&gt; rate:Genotype=Aurora         2.730  0.521219</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Aurora     0.488  0.005415</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Capri         69.334  0.461600</span></span>
-<span><span class="co">#&gt; rate:Genotype=Capri          2.022  0.350818</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Capri      0.481  0.008514</span></span>
-<span><span class="co">#&gt; tmax:Genotype=ILB938        68.958  0.559077</span></span>
-<span><span class="co">#&gt; rate:Genotype=ILB938         1.728  0.297596</span></span>
-<span><span class="co">#&gt; fraction:Genotype=ILB938     0.474  0.012516</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Lynx          72.767  0.387531</span></span>
-<span><span class="co">#&gt; rate:Genotype=Lynx           3.595  0.616807</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Lynx       0.499  0.000783</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Melodie       73.318  0.392051</span></span>
-<span><span class="co">#&gt; rate:Genotype=Melodie        4.670  0.883134</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Melodie    0.499  0.000559</span></span>
-<span><span class="co">#&gt; tmax:Genotype=Navara        72.623  0.396269</span></span>
-<span><span class="co">#&gt; rate:Genotype=Navara         3.258  0.564664</span></span>
-<span><span class="co">#&gt; fraction:Genotype=Navara     0.498  0.000868</span></span></code></pre></div>
+the asymptote of the population curves as well. For the Chapman-Richards
+curve with an intercept, the asymptote is the growth above the intercept
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>,
+here the growth during the spurt above the height before it, about 50
+cm, so that the adult height is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+plus the asymptote:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span>, type <span class="op">=</span> <span class="st">"parameters"</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sex <span class="op">=</span> <span class="va">sexes</span><span class="op">$</span><span class="va">sex</span>, peak_rate <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b1"</span><span class="op">]</span>, height_before_spurt <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b4"</span><span class="op">]</span>,</span>
+<span>           growth_in_spurt <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"asymptote"</span><span class="op">]</span>, adult_height <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b4"</span><span class="op">]</span> <span class="op">+</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"asymptote"</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      sex peak_rate height_before_spurt growth_in_spurt adult_height</span></span>
+<span><span class="co">#&gt; 1   male  7.660229            132.0829        51.45961     183.5425</span></span>
+<span><span class="co">#&gt; 2 female  7.255630            121.1070        48.44774     169.5548</span></span></code></pre></div>
+<p>The adult heights agree with the asymptotes
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
+of the Preece-Baines curves of the sexes above.</p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<p>Preece, M.A. and Baines, M.J. (1978). A new family of mathematical
+models describing the human growth curve. <em>Annals of Human
+Biology</em> 5, 1–24.</p>
+<p>Tuddenham, R.D. and Snyder, M.M. (1954). Physical growth of
+California boys and girls from birth to eighteen years. <em>University
+of California Publications in Child Development</em> 1, 183–364.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

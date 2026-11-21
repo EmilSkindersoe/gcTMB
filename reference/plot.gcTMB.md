@@ -1,9 +1,9 @@
 # Plots of gcTMB models: validation and fitted curves
 
 Validation plots (`type="validation"`, the default): residuals against
-the fitted values, residuals against time, a normal QQ plot of the
-residuals, and normal QQ plots of the predicted random effects. Fitted
-curves (`type="curves"`): the data with the fitted curves. With
+the fitted values, residuals against x (e.g. time), a normal QQ plot of
+the residuals, and normal QQ plots of the predicted random effects.
+Fitted curves (`type="curves"`): the data with the fitted curves. With
 `type=c("validation", "curves")`, the curves plot is drawn last on the
 same page as the validation plots. The graphs are ggplot2 graphs.
 
@@ -41,7 +41,7 @@ plot(
 - which:
 
   Integer vector, a subset of 1:4. The validation plots to draw: 1
-  residuals against fitted values, 2 residuals against time, 3 normal QQ
+  residuals against fitted values, 2 residuals against x, 3 normal QQ
   plot of the residuals, 4 normal QQ plots of the predicted random
   effects (models with random effects only)
 
@@ -101,6 +101,13 @@ under the model, so their QQ plot is drawn with a warning. A lowess
 smoother (red) shows trends of the residuals against the fitted values
 and time.
 
+The simulations of
+[`simulate.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-methods.md)
+can also be used for simulation-based residuals, e.g. with
+`createDHARMa()` of the package DHARMa; with `random=FALSE`, the
+simulations are conditional on the predicted random effects, as the
+residuals of these plots.
+
 The QQ plots of the random effects (`which=4`) show the predicted random
 effects of each parameter and grouping factor. They are shrunk towards
 zero, so their spread is smaller than the estimated standard deviation,
@@ -113,8 +120,9 @@ effects, the curve of each individual (each combination of the grouping
 variables of the random effects) with its predicted random effects, and
 the population curves, with the random effects at zero, as thick lines
 for each combination of the covariates of the fixed effects (`fform`).
-Points and curves are coloured by these covariates. The covariates of an
-individual are taken from its first observation.
+Points and curves are coloured by these covariates. A single numeric
+covariate is shown on a continuous colour scale, with the population
+curves at its 10\\ first observation.
 
 ## Examples
 

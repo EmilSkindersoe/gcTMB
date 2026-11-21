@@ -92,6 +92,12 @@
   : Heights of faba bean plants in a field trial
 - [`FabaCounts23`](https://emilskindersoe.github.io/gcTMB/reference/FabaCounts23.md)
   : Flower and pod counts of faba bean plants
+- [`BerkeleyGrowth`](https://emilskindersoe.github.io/gcTMB/reference/BerkeleyGrowth.md)
+  : Heights and weights of children in the Berkeley Child Guidance Study
+- [`PineHeightDiameter`](https://emilskindersoe.github.io/gcTMB/reference/PineHeightDiameter.md)
+  : Heights and diameters of Scots pine trees
+- [`SorghumMaize`](https://emilskindersoe.github.io/gcTMB/reference/SorghumMaize.md)
+  : Biomass of sorghum and maize
 
 ## Package
 

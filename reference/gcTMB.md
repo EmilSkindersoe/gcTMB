@@ -35,8 +35,10 @@ gcTMB(
 
 - form:
 
-  Formula, with the names of the response and the time variable, e.g.
-  `weight ~ day`
+  Formula, with the names of the response and the explanatory variable
+  x, e.g. `weight ~ day`. x is usually time, but can be any variable
+  along which the response grows towards an asymptote, e.g. the diameter
+  of trees in a height-diameter model `height ~ dbh`.
 
 - fform:
 
@@ -132,13 +134,18 @@ gcTMB(
 
   Character string. The growth model: "logistic" (default), "gompertz",
   "hill", "weibull", "normal" or "gamma", each with an asymmetry
-  parameter b5, or "linear" for a straight line, see Details.
+  parameter b5, "beta" or "beta_capped" for determinate growth,
+  "chapmanrichards" or "wykoff" for height-diameter models in forestry,
+  "preecebaines" for human growth in height, or "linear" for a straight
+  line, see Details.
 
 - truncated:
 
   Logical. If TRUE (default), the curve is truncated at a threshold time
   b4, by default fixed at 0: the response is zero up to b4 and then
-  grows, see Details. FALSE for the curves without truncation.
+  grows, see Details. FALSE for the curves without truncation. The beta,
+  beta_capped, chapmanrichards, wykoff and preecebaines curves are never
+  truncated.
 
 - link:
 
@@ -213,27 +220,27 @@ A gcTMB object, with methods for `print`, `summary`, `coef`, `vcov`,
 
 ## Details
 
-The growth models are of the form f(t) = b1 F(z(t)), with a distribution
-function F increasing from 0 to 1 and a transformed time z(t):
+The logistic, gompertz, hill, weibull, normal and gamma curves are
+sigmoid growth curves, often used in agronomy and ecology; they increase
+from 0 towards the asymptote b1:
 
-- logistic: f(t) = b1 / (1 + exp(-(t - b2)/b3)), with the logistic F(z)
-  = 1/(1 + exp(-z)) and z = (t - b2)/b3; symmetric around b2, where the
-  curve reaches half of its asymptote;
+- logistic: f(t) = b1 / (1 + exp(-(t - b2)/b3)), symmetric around b2,
+  where the curve reaches half of its asymptote;
 
-- gompertz: f(t) = b1 exp(-exp(-(t - b2)/b3)), F(z) = exp(-exp(-z)) and
-  z = (t - b2)/b3; it reaches exp(-1), about 37\\ than it leaves zero;
+- gompertz: f(t) = b1 exp(-exp(-(t - b2)/b3)); it reaches exp(-1), about
+  37\\ asymptote at b2 and approaches the asymptote more slowly than it
+  leaves zero;
 
-- hill: f(t) = b1 / (1 + (b2/t)^b3), the logistic F of z = b3 (log t -
-  log b2), a logistic curve on the log time axis (log-logistic); b2 is
-  the time at which the curve reaches half of its asymptote, and b3 the
-  slope on the log time axis;
+- hill: f(t) = b1 / (1 + (b2/t)^b3), a logistic curve in log t
+  (log-logistic), b1 / (1 + exp(-b3 (log t - log b2))); b2 is the time
+  at which the curve reaches half of its asymptote, and b3 the slope on
+  the log time axis;
 
-- weibull: f(t) = b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)), F(z) = 1 -
-  exp(-exp(z)) and z = b3 (log t - log b2) + log((b3 - 1)/b3); b2 is the
+- weibull: f(t) = b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)); b2 is the
   inflection point and b3 \> 1 the shape;
 
-- normal: f(t) = b1 Phi((t - b2)/b3), the standard normal distribution
-  function Phi of z = (t - b2)/b3; symmetric around b2, where the curve
+- normal: f(t) = b1 Phi((t - b2)/b3), with the standard normal
+  distribution function Phi; symmetric around b2, where the curve
   reaches half of its asymptote;
 
 - gamma: f(t) = b1 F(t), with F the cumulative distribution function
@@ -249,6 +256,46 @@ function F increasing from 0 to 1 and a transformed time z(t):
   (`type="absolute"`), and
   [`maxrate`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md)
   its constant rate b1.
+
+Five more curves are never truncated: the beta curves of determinate
+growth, the height-diameter models chapmanrichards and wykoff, common in
+forestry, and the preecebaines model of human growth:
+
+- chapmanrichards: f(t) = b4 + b1 (1 - exp(-t/b3))^c with c =
+  exp(b2/b3), the Chapman-Richards curve, zero above the intercept b4 up
+  to t = 0: b2 is the inflection point, b3 the scale and b4 the
+  intercept, fixed at 0 by default, e.g. the breast height of 1.3 m in a
+  height-diameter model, `start=c(b4=1.3)`. Model M8 of Ciceu et al.
+  (2020), 1.3 + a (1 - exp(-k t))^c, has b4 = 1.3, b1 = a, b3 = 1/k and
+  b2 = log(c)/k;
+
+- beta: the beta growth function of Yin et al. (2003), eqn 8 (with b4 =
+  0 there), f(t) = b1 (1 + (b3 - t)/(b3 - b2)) ((t - b4)/(b3 -
+  b4))^((b3 - b4)/(b3 - b2)) for b4 \< t \< 2 b3 - b2, and zero
+  otherwise: b1 is the maximum w_max, b2 the time t_m of the maximum
+  growth rate, b3 the end of growth t_e, where the curve reaches b1, and
+  b4 the start of growth t_b, b4 \< b2 \< b3. After b3 the curve falls
+  back to zero at 2 b3 - b2, for responses that decline after their
+  maximum, e.g. biomass lost after maturity;
+
+- beta_capped: the same curve up to b3, and b1 from b3 on, the beta
+  sigmoid growth function of Yin et al. for determinate growth that
+  stops at its maximum;
+
+- wykoff: f(t) = b4 + b1 exp(-s/(t + 1)) with s = 2 (b2 + 1), the curve
+  of Wykoff et al. (1982), exp(a + b/(t + 1)) with a = log(b1) and b =
+  -s (model M9 of Ciceu et al. 2020): b2 is the inflection point, where
+  the curve reaches exp(-2) of its asymptote, and b4 the intercept as
+  for chapmanrichards; it does not use b3;
+
+- preecebaines: model 1 of Preece and Baines (1978) for human growth in
+  height, f(t) = b1 - 2 (b1 - b3)/(exp(b4 (t - b2)) + exp(b5 (t - b2))):
+  the adult height b1, the age b2 in the middle of puberty, the height
+  b3 at b2, and the rates b4 \< b5 of growth before and during puberty,
+  which are estimated by default.
+  [`maxrate`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md)
+  gives the peak of the pubertal growth spurt (the peak height
+  velocity); `b1type="rate"` is not available.
 
 **Relation to nlme.** Parts of the interface follow the package nlme
 (Pinheiro and Bates, 2000), so that models can be moved between
@@ -328,6 +375,23 @@ the rate anyway.
 Pinheiro, J.C. and Bates, D.M. (2000). Mixed-Effects Models in S and
 S-PLUS. Springer, New York.
 
+Ciceu, A., Garcia-Duro, J., Seceleanu, I. and Badea, O. (2020). A
+generalized nonlinear mixed-effects height-diameter model for Norway
+spruce in mixed-uneven aged stands. Forest Ecology and Management 477,
+118507.
+
+Preece, M.A. and Baines, M.J. (1978). A new family of mathematical
+models describing the human growth curve. Annals of Human Biology 5,
+1-24.
+
+Wykoff, W.R., Crookston, N.L. and Stage, A.R. (1982). User's guide to
+the stand prognosis model. General Technical Report INT-133, USDA Forest
+Service, Ogden, Utah.
+
+Yin, X., Goudriaan, J., Lantinga, E.A., Vos, J. and Spiertz, H.J.
+(2003). A flexible sigmoid function of determinate growth. Annals of
+Botany 91, 361-371.
+
 ## See also
 
 [`maxrate`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md)
@@ -369,7 +433,10 @@ fitw <- gcTMB(height ~ DAS, data=FabaHeights25, model="weibull")
 fitn <- gcTMB(height ~ DAS, data=FabaHeights25, model="normal")
 fitgam <- gcTMB(height ~ DAS, data=FabaHeights25, model="gamma")
 fitlin <- gcTMB(height ~ DAS, data=FabaHeights25, model="linear")
-AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin)
+fitcr <- gcTMB(height ~ DAS, data=FabaHeights25, model="chapmanrichards")
+fitb <- gcTMB(height ~ DAS, data=FabaHeights25, model="beta_capped")
+fitwy <- gcTMB(height ~ DAS, data=FabaHeights25, model="wykoff")
+AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin, fitcr, fitb, fitwy)
 #>        df      AIC
 #> fit     4 1406.470
 #> fitg    4 1407.658
@@ -378,6 +445,25 @@ AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin)
 #> fitn    4 1406.412
 #> fitgam  4 1409.685
 #> fitlin  3 1443.592
+#> fitcr   4 1410.100
+#> fitb    4 1406.751
+#> fitwy   3 1416.150
+
+# a height-diameter model from the breast height of 1.3 m, the intercept b4
+gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards", start=c(b4=1.3))
+#> Call:
+#> gcTMB(form = height ~ dbh, data = PineHeightDiameter, start = c(b4 = 1.3), 
+#>     model = "chapmanrichards")
+#> 
+#> Model:  chapmanrichards
+#> Family: gaussian, identity link for all parameters
+#> 
+#> Coefficients:
+#> b1:(Intercept)  b2:(Intercept)  b3:(Intercept)  
+#>         45.719           2.954          50.883  
+#> Fixed: b4:(Intercept) = 1.3
+#> 
+#> Residual standard deviation: 2.434
 
 # the Richards curve: the logistic model with an estimated asymmetry b5
 fitr5 <- gcTMB(height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE))
@@ -455,16 +541,16 @@ pairwise(fitr, newdata=data.frame(trt=levels(FabaHeights25$trt)))
 #> Pairwise differences of b1 (maximum growth rate):
 #> 
 #>                   Estimate Std.Error t value p.value  lower    upper
-#> trt=0.1 - trt=0.3   0.0149    0.0776   0.193  0.9997 -0.199  0.22851
-#> trt=0.1 - trt=0.5  -0.2053    0.0822  -2.498  0.0946 -0.432  0.02101
-#> trt=0.1 - trt=0.6  -0.2180    0.0835  -2.611  0.0715 -0.448  0.01188
-#> trt=0.1 - trt=0.8  -0.1624    0.0839  -1.937  0.3016 -0.393  0.06853
-#> trt=0.3 - trt=0.5  -0.2203    0.0794  -2.774  0.0472 -0.439 -0.00163
-#> trt=0.3 - trt=0.6  -0.2330    0.0807  -2.885  0.0344 -0.455 -0.01063
-#> trt=0.3 - trt=0.8  -0.1774    0.0811  -2.186  0.1884 -0.401  0.04607
-#> trt=0.5 - trt=0.6  -0.0127    0.0849  -0.150  0.9998 -0.247  0.22107
-#> trt=0.5 - trt=0.8   0.0429    0.0854   0.502  0.9872 -0.192  0.27804
-#> trt=0.6 - trt=0.8   0.0556    0.0867   0.642  0.9689 -0.183  0.29427
+#> trt=0.1 - trt=0.3   0.0149    0.0776   0.193  0.9997 -0.199  0.22877
+#> trt=0.1 - trt=0.5  -0.2053    0.0822  -2.498  0.0944 -0.432  0.02129
+#> trt=0.1 - trt=0.6  -0.2180    0.0835  -2.611  0.0717 -0.448  0.01216
+#> trt=0.1 - trt=0.8  -0.1624    0.0839  -1.937  0.3009 -0.394  0.06881
+#> trt=0.3 - trt=0.5  -0.2203    0.0794  -2.774  0.0478 -0.439 -0.00137
+#> trt=0.3 - trt=0.6  -0.2330    0.0807  -2.885  0.0350 -0.456 -0.01036
+#> trt=0.3 - trt=0.8  -0.1774    0.0811  -2.186  0.1898 -0.401  0.04634
+#> trt=0.5 - trt=0.6  -0.0127    0.0849  -0.150  0.9999 -0.247  0.22135
+#> trt=0.5 - trt=0.8   0.0429    0.0854   0.502  0.9873 -0.193  0.27832
+#> trt=0.6 - trt=0.8   0.0556    0.0867   0.642  0.9686 -0.183  0.29456
 #> 
 #> Wald t tests on 189 degrees of freedom; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits.
 

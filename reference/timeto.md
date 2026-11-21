@@ -28,18 +28,19 @@ timeto(
 - level:
 
   Numeric vector. Levels in percent of the asymptote b1, between 0 and
-  100 (default 50): the time t p at which the curve reaches p percent of
-  b1, the time at which the transformed time z(t) is Finv(p/100), with
-  the inverse Finv of F of the model (see
-  [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)):
-  b2 + b3 Finv(p/100) for the logistic and gompertz models, b2 (p/(100 -
-  p))^(1/b3) for the hill model. For the logistic, normal and hill
-  models without truncation, t 50 is b2. For a curve truncated at the
-  threshold b4 (the default of
+  100 (default 50): the time at which the curve reaches p percent of b1,
+  e.g. b2 + b3 log(p/(100 - p)) for the logistic curve, b2 - b3
+  log(-log(p/100)) for gompertz, and b2 (p/(100 - p))^(1/b3) for hill.
+  For the logistic, normal and hill curves without truncation, the time
+  of 50 percent is b2. For a curve truncated at the threshold b4 (the
+  default of
   [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)),
-  the levels are of the truncated curve, at Finv(p/100 + (1 - p/100)
-  F(z(b4))). For `type="absolute"`, values of the response; the linear
-  model, which has no asymptote, has only these.
+  the levels are of the truncated curve, the time at which the curve f
+  without truncation reaches f(b4) + p/100 (b1 - f(b4)). For the
+  chapmanrichards and wykoff curves, the levels are of the growth above
+  the intercept b4, and for preecebaines of the adult height b1. For
+  `type="absolute"`, values of the response; the linear model, which has
+  no asymptote, has only these.
 
 - curves:
 
