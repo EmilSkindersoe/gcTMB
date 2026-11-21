@@ -252,6 +252,7 @@ coefficients of that parameter):</p>
 <code class="sourceCode R"><span><span class="va">fitre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b3</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">+</span> <span class="va">b5</span> <span class="op">~</span> <span class="va">sex</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b5</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">id</span>,</span>
 <span>               data <span class="op">=</span> <span class="va">berkeley</span>, model <span class="op">=</span> <span class="st">"preecebaines"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">custom</span><span class="op">)</span>,</span>
 <span>               control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: the optimiser did not converge: false convergence (8)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fitre</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; gcTMB(form = height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, </span></span>
@@ -285,7 +286,7 @@ coefficients of that parameter):</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation: 2.087</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.02</span></span>
+<span><span class="co">#&gt; Optimiser: false convergence (8), maximum absolute gradient 0.0065</span></span>
 <span><span class="fu"><a href="../reference/converged.html">converged</a></span><span class="op">(</span><span class="va">fitre</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>With 17 parameters and strongly correlated random effects, the
@@ -388,32 +389,32 @@ timing and the height before the spurt:</p>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;                 Estimate Std. Error</span></span>
 <span><span class="co">#&gt; b1:(Intercept)   2.03604      0.012</span></span>
-<span><span class="co">#&gt; b1:sexfemale    -0.05427      0.018</span></span>
-<span><span class="co">#&gt; b2:(Intercept)  11.77428      0.111</span></span>
-<span><span class="co">#&gt; b2:sexfemale    -2.14746      0.160</span></span>
+<span><span class="co">#&gt; b1:sexfemale    -0.05426      0.018</span></span>
+<span><span class="co">#&gt; b2:(Intercept)  11.77429      0.111</span></span>
+<span><span class="co">#&gt; b2:sexfemale    -2.14747      0.160</span></span>
 <span><span class="co">#&gt; b3:(Intercept)   2.48214      0.029</span></span>
-<span><span class="co">#&gt; b4:(Intercept) 132.08294      0.658</span></span>
-<span><span class="co">#&gt; b4:sexfemale   -10.97586      1.008</span></span>
+<span><span class="co">#&gt; b4:(Intercept) 132.08293      0.658</span></span>
+<span><span class="co">#&gt; b4:sexfemale   -10.97591      1.008</span></span>
 <span><span class="co">#&gt; The coefficients of b1 are on the log scale.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;  Groups Name Std.Dev. Corr       </span></span>
 <span><span class="co">#&gt;  id     b1   0.08792             </span></span>
 <span><span class="co">#&gt;         b2   0.87517  -0.68      </span></span>
-<span><span class="co">#&gt;         b4   5.00747  -0.11  0.43</span></span>
+<span><span class="co">#&gt;         b4   5.00748  -0.11  0.43</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation: 1.748</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.0045</span></span>
+<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.0021</span></span>
 <span><span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;                     Estimate Std.Error</span></span>
 <span><span class="co">#&gt; tmax:sex=male         11.774  0.110728</span></span>
-<span><span class="co">#&gt; rate:sex=male          7.660  0.095470</span></span>
+<span><span class="co">#&gt; rate:sex=male          7.660  0.095471</span></span>
 <span><span class="co">#&gt; fraction:sex=male      0.366  0.000120</span></span>
-<span><span class="co">#&gt; tmax:sex=female        9.627  0.118475</span></span>
-<span><span class="co">#&gt; rate:sex=female        7.256  0.097515</span></span>
+<span><span class="co">#&gt; tmax:sex=female        9.627  0.118476</span></span>
+<span><span class="co">#&gt; rate:sex=female        7.256  0.097516</span></span>
 <span><span class="co">#&gt; fraction:sex=female    0.364  0.000293</span></span></code></pre></div>
 <p>Whether boys and girls have the same peak height velocity is a
 likelihood ratio test of the models with and without the sex effect on
@@ -469,8 +470,8 @@ plus the asymptote:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sex <span class="op">=</span> <span class="va">sexes</span><span class="op">$</span><span class="va">sex</span>, peak_rate <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b1"</span><span class="op">]</span>, height_before_spurt <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b4"</span><span class="op">]</span>,</span>
 <span>           growth_in_spurt <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"asymptote"</span><span class="op">]</span>, adult_height <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b4"</span><span class="op">]</span> <span class="op">+</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"asymptote"</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      sex peak_rate height_before_spurt growth_in_spurt adult_height</span></span>
-<span><span class="co">#&gt; 1   male  7.660234            132.0829        51.45962     183.5426</span></span>
-<span><span class="co">#&gt; 2 female  7.255623            121.1071        48.44767     169.5548</span></span></code></pre></div>
+<span><span class="co">#&gt; 1   male  7.660229            132.0829        51.45961     183.5425</span></span>
+<span><span class="co">#&gt; 2 female  7.255630            121.1070        48.44774     169.5548</span></span></code></pre></div>
 <p>The adult heights agree with the asymptotes
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
 of the Preece-Baines curves of the sexes above.</p>

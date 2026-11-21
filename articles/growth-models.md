@@ -570,15 +570,15 @@ and random effects*.
 With `interval = "confidence"`,
 [`predict()`](https://rdrr.io/r/stats/predict.html) adds standard errors
 and confidence intervals for the mean response by the delta method; with
-`interval = "prediction"`, the intervals are for a new observation.
+`interval = "prediction"`, the intervals are for a new observation
+(shown in
+[`vignette("gcTMB")`](https://emilskindersoe.github.io/gcTMB/articles/gcTMB.md)).
 
 ``` r
 
 nd <- data.frame(DAS = seq(0, 80, by = 0.1))
 ci <- predict(fit, newdata = nd, interval = "confidence")
-pi <- predict(fit, newdata = nd, interval = "prediction")
 ggplot(FabaHeights25, aes(x = DAS, y = height)) +
-  geom_ribbon(data = cbind(nd, pi), aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "blue", alpha = 0.1) +
   geom_ribbon(data = cbind(nd, ci), aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "blue", alpha = 0.25) +
   geom_line(data = cbind(nd, ci), aes(x = DAS, y = fit), colour = "blue") +
   geom_point() +

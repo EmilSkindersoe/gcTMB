@@ -201,6 +201,7 @@ parameter):
 fitre <- gcTMB(height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, rform = b1 + b2 + b5 ~ 1 | id,
                data = berkeley, model = "preecebaines", start = unname(custom),
                control = list(restart = TRUE))
+#> Warning: the optimiser did not converge: false convergence (8)
 summary(fitre)
 #> Call:
 #> gcTMB(form = height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, 
@@ -234,7 +235,7 @@ summary(fitre)
 #> 
 #> Residual standard deviation: 2.087
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.02
+#> Optimiser: false convergence (8), maximum absolute gradient 0.0065
 converged(fitre)
 #> [1] TRUE
 ```
@@ -348,32 +349,32 @@ summary(fitrr)
 #> Coefficients:
 #>                 Estimate Std. Error
 #> b1:(Intercept)   2.03604      0.012
-#> b1:sexfemale    -0.05427      0.018
-#> b2:(Intercept)  11.77428      0.111
-#> b2:sexfemale    -2.14746      0.160
+#> b1:sexfemale    -0.05426      0.018
+#> b2:(Intercept)  11.77429      0.111
+#> b2:sexfemale    -2.14747      0.160
 #> b3:(Intercept)   2.48214      0.029
-#> b4:(Intercept) 132.08294      0.658
-#> b4:sexfemale   -10.97586      1.008
+#> b4:(Intercept) 132.08293      0.658
+#> b4:sexfemale   -10.97591      1.008
 #> The coefficients of b1 are on the log scale.
 #> 
 #> Random effects:
 #>  Groups Name Std.Dev. Corr       
 #>  id     b1   0.08792             
 #>         b2   0.87517  -0.68      
-#>         b4   5.00747  -0.11  0.43
+#>         b4   5.00748  -0.11  0.43
 #> 
 #> Residual standard deviation: 1.748
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.0045
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.0021
 maxrate(fitrr, newdata = sexes)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
 #>                     Estimate Std.Error
 #> tmax:sex=male         11.774  0.110728
-#> rate:sex=male          7.660  0.095470
+#> rate:sex=male          7.660  0.095471
 #> fraction:sex=male      0.366  0.000120
-#> tmax:sex=female        9.627  0.118475
-#> rate:sex=female        7.256  0.097515
+#> tmax:sex=female        9.627  0.118476
+#> rate:sex=female        7.256  0.097516
 #> fraction:sex=female    0.364  0.000293
 ```
 
@@ -435,8 +436,8 @@ pars <- predict(fitrr, newdata = sexes, type = "parameters", random = FALSE)
 data.frame(sex = sexes$sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
            growth_in_spurt = pars[, "asymptote"], adult_height = pars[, "b4"] + pars[, "asymptote"])
 #>      sex peak_rate height_before_spurt growth_in_spurt adult_height
-#> 1   male  7.660234            132.0829        51.45962     183.5426
-#> 2 female  7.255623            121.1071        48.44767     169.5548
+#> 1   male  7.660229            132.0829        51.45961     183.5425
+#> 2 female  7.255630            121.1070        48.44774     169.5548
 ```
 
 The adult heights agree with the asymptotes $`b_1`$ of the Preece-Baines
