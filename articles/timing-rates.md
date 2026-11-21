@@ -158,15 +158,54 @@ differences of the girls from them:
 fitb <- gcTMB(height ~ age, data = subset(berkeley, sex == "male"), model = "preecebaines")
 cb <- coef(fitb)[1:5]
 cg <- coef(fitg)[1:5]
+```
+
+A starting vector has one entry for each coefficient, in the order of
+the coefficients of the model, which
+[`gcTMBstart()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md)
+gives with their names: for each parameter the intercept, here the boys,
+and the contrast of the girls. The default starting values are those of
+the pooled data, with the contrasts zero; the custom ones are the
+coefficients of the boys and the differences of the girls from them:
+
+``` r
+
+default <- gcTMBstart(height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, data = berkeley, model = "preecebaines")
+custom <- setNames(as.vector(rbind(cb, cg - cb)), names(default))
+round(cbind(default, custom), 3)
+#>                   default  custom
+#> b1:(Intercept)    190.906 180.572
+#> b1:sexfemale        0.000 -14.235
+#> b2:(Intercept)     20.000  14.123
+#> b2:sexfemale        0.000  -2.189
+#> b3:(Intercept)    183.243 166.584
+#> b3:sexfemale        0.000 -12.572
+#> b4:(Intercept)      0.109   0.099
+#> b4:sexfemale        0.000   0.019
+#> b5:(Intercept) 113206.324   0.790
+#> b5:sexfemale        0.000   0.092
+```
+
+Here the default values do not even describe the pooled data: with the
+boys and the girls together, the least squares fit of the starting
+values runs off to a step at the oldest age, $`b_2 = 20`$, with a huge
+rate $`b_5`$.
+
+The custom vector is given to `start` without its names (an unnamed
+vector in the order of the coefficients; a vector named by parameter,
+e.g. `c(b4 = 0.1)`, gives the value to all the coefficients of that
+parameter):
+
+``` r
+
 fitre <- gcTMB(height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, rform = b1 + b2 + b5 ~ 1 | id,
-               data = berkeley, model = "preecebaines", start = as.vector(rbind(cb, cg - cb)),
+               data = berkeley, model = "preecebaines", start = unname(custom),
                control = list(restart = TRUE))
-#> Warning: the optimiser did not converge: false convergence (8)
 summary(fitre)
 #> Call:
 #> gcTMB(form = height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, 
-#>     rform = b1 + b2 + b5 ~ 1 | id, data = berkeley, start = as.vector(rbind(cb, 
-#>         cg - cb)), model = "preecebaines", control = list(restart = TRUE))
+#>     rform = b1 + b2 + b5 ~ 1 | id, data = berkeley, start = unname(custom), 
+#>     model = "preecebaines", control = list(restart = TRUE))
 #> 
 #> Model:  preecebaines
 #> Family: gaussian, identity link for all parameters
@@ -195,7 +234,7 @@ summary(fitre)
 #> 
 #> Residual standard deviation: 2.087
 #> 
-#> Optimiser: false convergence (8), maximum absolute gradient 0.0065
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.02
 converged(fitre)
 #> [1] TRUE
 ```
@@ -271,7 +310,7 @@ ggplot(curves, aes(x = age, y = value, colour = sex)) +
   theme_minimal()
 ```
 
-![](timing-rates_files/figure-html/unnamed-chunk-8-1.png)
+![](timing-rates_files/figure-html/unnamed-chunk-10-1.png)
 
 ### Effects on the maximum growth rate
 
@@ -309,32 +348,32 @@ summary(fitrr)
 #> Coefficients:
 #>                 Estimate Std. Error
 #> b1:(Intercept)   2.03604      0.012
-#> b1:sexfemale    -0.05426      0.018
-#> b2:(Intercept)  11.77429      0.111
-#> b2:sexfemale    -2.14747      0.160
+#> b1:sexfemale    -0.05427      0.018
+#> b2:(Intercept)  11.77428      0.111
+#> b2:sexfemale    -2.14746      0.160
 #> b3:(Intercept)   2.48214      0.029
-#> b4:(Intercept) 132.08293      0.658
-#> b4:sexfemale   -10.97591      1.008
+#> b4:(Intercept) 132.08294      0.658
+#> b4:sexfemale   -10.97586      1.008
 #> The coefficients of b1 are on the log scale.
 #> 
 #> Random effects:
 #>  Groups Name Std.Dev. Corr       
 #>  id     b1   0.08792             
 #>         b2   0.87517  -0.68      
-#>         b4   5.00748  -0.11  0.43
+#>         b4   5.00747  -0.11  0.43
 #> 
 #> Residual standard deviation: 1.748
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.0021
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.0045
 maxrate(fitrr, newdata = sexes)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
 #>                     Estimate Std.Error
 #> tmax:sex=male         11.774  0.110728
-#> rate:sex=male          7.660  0.095471
+#> rate:sex=male          7.660  0.095470
 #> fraction:sex=male      0.366  0.000120
-#> tmax:sex=female        9.627  0.118476
-#> rate:sex=female        7.256  0.097516
+#> tmax:sex=female        9.627  0.118475
+#> rate:sex=female        7.256  0.097515
 #> fraction:sex=female    0.364  0.000293
 ```
 
@@ -396,8 +435,8 @@ pars <- predict(fitrr, newdata = sexes, type = "parameters", random = FALSE)
 data.frame(sex = sexes$sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
            growth_in_spurt = pars[, "asymptote"], adult_height = pars[, "b4"] + pars[, "asymptote"])
 #>      sex peak_rate height_before_spurt growth_in_spurt adult_height
-#> 1   male  7.660229            132.0829        51.45961     183.5425
-#> 2 female  7.255630            121.1070        48.44774     169.5548
+#> 1   male  7.660234            132.0829        51.45962     183.5426
+#> 2 female  7.255623            121.1071        48.44767     169.5548
 ```
 
 The adult heights agree with the asymptotes $`b_1`$ of the Preece-Baines

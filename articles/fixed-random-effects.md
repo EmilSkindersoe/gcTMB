@@ -311,16 +311,16 @@ summary(fitp)
 #> Coefficients:
 #>                    Estimate Std. Error
 #> b1:(Intercept)      14.5996      2.324
-#> b1:GenotypeCapri    -3.4020      2.974
+#> b1:GenotypeCapri    -3.4019      2.974
 #> b1:GenotypeILB938   -5.4787      2.957
-#> b1:GenotypeLynx      4.9819      3.233
+#> b1:GenotypeLynx      4.9820      3.233
 #> b1:GenotypeMelodie  10.6976      3.676
 #> b1:GenotypeNavara    3.1797      3.186
 #> b2:(Intercept)      70.0533      0.469
 #> b2:GenotypeCapri    -0.8504      0.640
 #> b2:GenotypeILB938   -1.0084      0.702
-#> b2:GenotypeLynx      2.7439      0.551
-#> b2:GenotypeMelodie   3.2443      0.552
+#> b2:GenotypeLynx      2.7438      0.551
+#> b2:GenotypeMelodie   3.2442      0.552
 #> b2:GenotypeNavara    2.6005      0.558
 #> b3:(Intercept)       1.3389      0.149
 #> b4:(Intercept)      65.0000      0.024
@@ -331,16 +331,16 @@ summary(fitp)
 #> 
 #> Pearson dispersion: 0.5005 (chi-square 124.1 on 248 df)
 #> 
-#> Optimiser: converged, with the threshold b4 at an observation time (a kink of the likelihood), maximum absolute gradient 3.2
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.27
 genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
 cbind(genotypes, predict(fitp, newdata = genotypes, type = "parameters", random = FALSE))
 #>   Genotype        b1       b2       b3 b4
-#> 1   Aurora 14.599634 70.05332 1.338935 65
-#> 2    Capri 11.197618 69.20292 1.338935 65
-#> 3   ILB938  9.120981 69.04494 1.338935 65
-#> 4     Lynx 19.581583 72.79718 1.338935 65
-#> 5  Melodie 25.297268 73.29758 1.338935 65
-#> 6   Navara 17.779358 72.65387 1.338935 65
+#> 1   Aurora 14.599604 70.05332 1.338929 65
+#> 2    Capri 11.197692 69.20293 1.338929 65
+#> 3   ILB938  9.120942 69.04494 1.338929 65
+#> 4     Lynx 19.581598 72.79717 1.338929 65
+#> 5  Melodie 25.297229 73.29756 1.338929 65
+#> 6   Navara 17.779349 72.65386 1.338929 65
 ```
 
 All the counts with the fitted curve of each plant, with its predicted

@@ -216,16 +216,47 @@ boys and the differences of the girls from them:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">berkeley</span>, <span class="va">sex</span> <span class="op">==</span> <span class="st">"male"</span><span class="op">)</span>, model <span class="op">=</span> <span class="st">"preecebaines"</span><span class="op">)</span></span>
 <span><span class="va">cb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fitb</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
-<span><span class="va">cg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fitg</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
-<span><span class="va">fitre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b3</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">+</span> <span class="va">b5</span> <span class="op">~</span> <span class="va">sex</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b5</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">id</span>,</span>
-<span>               data <span class="op">=</span> <span class="va">berkeley</span>, model <span class="op">=</span> <span class="st">"preecebaines"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">cb</span>, <span class="va">cg</span> <span class="op">-</span> <span class="va">cb</span><span class="op">)</span><span class="op">)</span>,</span>
+<span><span class="va">cg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fitg</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span></code></pre></div>
+<p>A starting vector has one entry for each coefficient, in the order of
+the coefficients of the model, which <code><a href="../reference/gcTMBstart.html">gcTMBstart()</a></code> gives
+with their names: for each parameter the intercept, here the boys, and
+the contrast of the girls. The default starting values are those of the
+pooled data, with the contrasts zero; the custom ones are the
+coefficients of the boys and the differences of the girls from them:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">default</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMBstart.html">gcTMBstart</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b3</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">+</span> <span class="va">b5</span> <span class="op">~</span> <span class="va">sex</span>, data <span class="op">=</span> <span class="va">berkeley</span>, model <span class="op">=</span> <span class="st">"preecebaines"</span><span class="op">)</span></span>
+<span><span class="va">custom</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">cb</span>, <span class="va">cg</span> <span class="op">-</span> <span class="va">cb</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">default</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">default</span>, <span class="va">custom</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                   default  custom</span></span>
+<span><span class="co">#&gt; b1:(Intercept)    190.906 180.572</span></span>
+<span><span class="co">#&gt; b1:sexfemale        0.000 -14.235</span></span>
+<span><span class="co">#&gt; b2:(Intercept)     20.000  14.123</span></span>
+<span><span class="co">#&gt; b2:sexfemale        0.000  -2.189</span></span>
+<span><span class="co">#&gt; b3:(Intercept)    183.243 166.584</span></span>
+<span><span class="co">#&gt; b3:sexfemale        0.000 -12.572</span></span>
+<span><span class="co">#&gt; b4:(Intercept)      0.109   0.099</span></span>
+<span><span class="co">#&gt; b4:sexfemale        0.000   0.019</span></span>
+<span><span class="co">#&gt; b5:(Intercept) 113206.324   0.790</span></span>
+<span><span class="co">#&gt; b5:sexfemale        0.000   0.092</span></span></code></pre></div>
+<p>Here the default values do not even describe the pooled data: with
+the boys and the girls together, the least squares fit of the starting
+values runs off to a step at the oldest age,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>2</mn></msub><mo>=</mo><mn>20</mn></mrow><annotation encoding="application/x-tex">b_2 = 20</annotation></semantics></math>,
+with a huge rate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>.</p>
+<p>The custom vector is given to <code>start</code> without its names
+(an unnamed vector in the order of the coefficients; a vector named by
+parameter, e.g. <code>c(b4 = 0.1)</code>, gives the value to all the
+coefficients of that parameter):</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fitre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b3</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">+</span> <span class="va">b5</span> <span class="op">~</span> <span class="va">sex</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b5</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">id</span>,</span>
+<span>               data <span class="op">=</span> <span class="va">berkeley</span>, model <span class="op">=</span> <span class="st">"preecebaines"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">custom</span><span class="op">)</span>,</span>
 <span>               control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: the optimiser did not converge: false convergence (8)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fitre</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; gcTMB(form = height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, </span></span>
-<span><span class="co">#&gt;     rform = b1 + b2 + b5 ~ 1 | id, data = berkeley, start = as.vector(rbind(cb, </span></span>
-<span><span class="co">#&gt;         cg - cb)), model = "preecebaines", control = list(restart = TRUE))</span></span>
+<span><span class="co">#&gt;     rform = b1 + b2 + b5 ~ 1 | id, data = berkeley, start = unname(custom), </span></span>
+<span><span class="co">#&gt;     model = "preecebaines", control = list(restart = TRUE))</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model:  preecebaines</span></span>
 <span><span class="co">#&gt; Family: gaussian, identity link for all parameters</span></span>
@@ -254,7 +285,7 @@ boys and the differences of the girls from them:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation: 2.087</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: false convergence (8), maximum absolute gradient 0.0065</span></span>
+<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.02</span></span>
 <span><span class="fu"><a href="../reference/converged.html">converged</a></span><span class="op">(</span><span class="va">fitre</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>With 17 parameters and strongly correlated random effects, the
@@ -268,7 +299,7 @@ estimates, which no longer improves the log-likelihood, so that
 <code>newdata</code> give the times and rates of the curves of each row,
 here the population curves of the sexes
 (<code>random = FALSE</code>):</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sexes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"male"</span>, <span class="st">"female"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/timeto.html">timeto</a></span><span class="op">(</span><span class="va">fitre</span>, level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">99</span><span class="op">)</span>, newdata <span class="op">=</span> <span class="va">sexes</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Times to reach the percentages of the asymptote:</span></span>
@@ -294,7 +325,7 @@ and their adult height about two years earlier than the boys.
 <code>newdata</code> by Wald tests, here the middle of puberty
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
 (see below for the details of <code><a href="../reference/pairwise.html">pairwise()</a></code>):</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/pairwise.html">pairwise</a></span><span class="op">(</span><span class="va">fitre</span>, newdata <span class="op">=</span> <span class="va">sexes</span>, parm <span class="op">=</span> <span class="st">"b2"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Pairwise differences of b2 (location in time):</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -304,7 +335,7 @@ and their adult height about two years earlier than the boys.
 <span><span class="co">#&gt; Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits.</span></span></code></pre></div>
 <p>The height and the growth rate of the population curves of the sexes,
 the growth rate by the differences of the predicted heights:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">sexes</span>, <span class="va">ages</span><span class="op">)</span></span>
 <span><span class="va">nd</span><span class="op">$</span><span class="va">height</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitre</span>, newdata <span class="op">=</span> <span class="va">nd</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">nd</span><span class="op">$</span><span class="va">rate</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/ave.html" class="external-link">ave</a></span><span class="op">(</span><span class="va">nd</span><span class="op">$</span><span class="va">height</span>, <span class="va">nd</span><span class="op">$</span><span class="va">sex</span>, FUN <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">h</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">h</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fl">0.05</span><span class="op">)</span></span>
@@ -315,7 +346,7 @@ the growth rate by the differences of the predicted heights:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">panel</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Age (years)"</span>, y <span class="op">=</span> <span class="cn">NULL</span>, colour <span class="op">=</span> <span class="st">"Sex"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="timing-rates_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="timing-rates_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="section level3">
 <h3 id="effects-on-the-maximum-growth-rate">Effects on the maximum growth rate<a class="anchor" aria-label="anchor" href="#effects-on-the-maximum-growth-rate"></a>
 </h3>
@@ -337,7 +368,7 @@ estimated; with <code>b1type = "rate"</code> and the log link,
 is the peak height velocity, and the effect of the sex a ratio of the
 rates. Each child has random effects on the peak height velocity, its
 timing and the height before the spurt:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spurt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">BerkeleyGrowth</span>, <span class="va">age</span> <span class="op">&gt;=</span> <span class="fl">8</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">height</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fitrr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">~</span> <span class="va">sex</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">id</span>, data <span class="op">=</span> <span class="va">spurt</span>,</span>
 <span>               model <span class="op">=</span> <span class="st">"chapmanrichards"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">120</span><span class="op">)</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, b1type <span class="op">=</span> <span class="st">"rate"</span>,</span>
@@ -357,32 +388,32 @@ timing and the height before the spurt:</p>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;                 Estimate Std. Error</span></span>
 <span><span class="co">#&gt; b1:(Intercept)   2.03604      0.012</span></span>
-<span><span class="co">#&gt; b1:sexfemale    -0.05426      0.018</span></span>
-<span><span class="co">#&gt; b2:(Intercept)  11.77429      0.111</span></span>
-<span><span class="co">#&gt; b2:sexfemale    -2.14747      0.160</span></span>
+<span><span class="co">#&gt; b1:sexfemale    -0.05427      0.018</span></span>
+<span><span class="co">#&gt; b2:(Intercept)  11.77428      0.111</span></span>
+<span><span class="co">#&gt; b2:sexfemale    -2.14746      0.160</span></span>
 <span><span class="co">#&gt; b3:(Intercept)   2.48214      0.029</span></span>
-<span><span class="co">#&gt; b4:(Intercept) 132.08293      0.658</span></span>
-<span><span class="co">#&gt; b4:sexfemale   -10.97591      1.008</span></span>
+<span><span class="co">#&gt; b4:(Intercept) 132.08294      0.658</span></span>
+<span><span class="co">#&gt; b4:sexfemale   -10.97586      1.008</span></span>
 <span><span class="co">#&gt; The coefficients of b1 are on the log scale.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;  Groups Name Std.Dev. Corr       </span></span>
 <span><span class="co">#&gt;  id     b1   0.08792             </span></span>
 <span><span class="co">#&gt;         b2   0.87517  -0.68      </span></span>
-<span><span class="co">#&gt;         b4   5.00748  -0.11  0.43</span></span>
+<span><span class="co">#&gt;         b4   5.00747  -0.11  0.43</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation: 1.748</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.0021</span></span>
+<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.0045</span></span>
 <span><span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;                     Estimate Std.Error</span></span>
 <span><span class="co">#&gt; tmax:sex=male         11.774  0.110728</span></span>
-<span><span class="co">#&gt; rate:sex=male          7.660  0.095471</span></span>
+<span><span class="co">#&gt; rate:sex=male          7.660  0.095470</span></span>
 <span><span class="co">#&gt; fraction:sex=male      0.366  0.000120</span></span>
-<span><span class="co">#&gt; tmax:sex=female        9.627  0.118476</span></span>
-<span><span class="co">#&gt; rate:sex=female        7.256  0.097516</span></span>
+<span><span class="co">#&gt; tmax:sex=female        9.627  0.118475</span></span>
+<span><span class="co">#&gt; rate:sex=female        7.256  0.097515</span></span>
 <span><span class="co">#&gt; fraction:sex=female    0.364  0.000293</span></span></code></pre></div>
 <p>Whether boys and girls have the same peak height velocity is a
 likelihood ratio test of the models with and without the sex effect on
@@ -391,7 +422,7 @@ keeping those on
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitrr0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, fform <span class="op">=</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">~</span> <span class="va">sex</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">id</span>, data <span class="op">=</span> <span class="va">spurt</span>,</span>
 <span>                model <span class="op">=</span> <span class="st">"chapmanrichards"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">120</span><span class="op">)</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, b1type <span class="op">=</span> <span class="st">"rate"</span>,</span>
 <span>                link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">)</span></span>
@@ -415,7 +446,7 @@ is a single pair, and no adjustment. With the log link, the differences
 are log ratios of the rates, and the ratios are given as well. The same
 works for the other parameters, e.g. <code>parm = "b2"</code> as
 above.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/pairwise.html">pairwise</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Pairwise differences of b1 (maximum growth rate) on the scale of its log link:</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -433,13 +464,13 @@ here the growth during the spurt above the height before it, about 50
 cm, so that the adult height is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
 plus the asymptote:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span>, type <span class="op">=</span> <span class="st">"parameters"</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sex <span class="op">=</span> <span class="va">sexes</span><span class="op">$</span><span class="va">sex</span>, peak_rate <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b1"</span><span class="op">]</span>, height_before_spurt <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b4"</span><span class="op">]</span>,</span>
 <span>           growth_in_spurt <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"asymptote"</span><span class="op">]</span>, adult_height <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b4"</span><span class="op">]</span> <span class="op">+</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"asymptote"</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      sex peak_rate height_before_spurt growth_in_spurt adult_height</span></span>
-<span><span class="co">#&gt; 1   male  7.660229            132.0829        51.45961     183.5425</span></span>
-<span><span class="co">#&gt; 2 female  7.255630            121.1070        48.44774     169.5548</span></span></code></pre></div>
+<span><span class="co">#&gt; 1   male  7.660234            132.0829        51.45962     183.5426</span></span>
+<span><span class="co">#&gt; 2 female  7.255623            121.1071        48.44767     169.5548</span></span></code></pre></div>
 <p>The adult heights agree with the asymptotes
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
 of the Preece-Baines curves of the sexes above.</p>
