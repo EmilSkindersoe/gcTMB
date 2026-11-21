@@ -76,11 +76,14 @@ criteria(fits, which = c("AIC", "BIC"))
 ```{r, fig.width = 6, fig.height = 4}
 nd <- data.frame(DAS = seq(0, 125, by = 0.5))
 ci <- cbind(nd, predict(fit, newdata = nd, interval = "confidence"))
+pi <- cbind(nd, predict(fit, newdata = nd, interval = "prediction"))
 ggplot(FabaHeights26, aes(x = DAS, y = Height)) +
+  geom_ribbon(data = pi, aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "red", alpha = 0.1) +
   geom_point(colour = "grey60", size = 0.6, position = position_jitter(width = 0.5, height = 0)) +
-  geom_ribbon(data = ci, aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "blue", alpha = 0.25) +
-  geom_line(data = ci, aes(y = fit), colour = "blue") +
-  labs(x = "Days after sowing", y = "Height (cm)", title = "Logistic curve with 95% confidence interval") +
+  geom_ribbon(data = ci, aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "red", alpha = 0.35) +
+  geom_line(data = ci, aes(y = fit), colour = "red") +
+  labs(x = "Days after sowing", y = "Height (cm)",
+       title = "Logistic curve with 95% confidence (dark) and prediction (light) intervals") +
   theme_minimal()
 confint(fit, method = "wald")
 ```
