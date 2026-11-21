@@ -403,6 +403,69 @@
 </div>
 </div>
 <div class="section level2">
+<h2 id="data-sets">Data sets<a class="anchor" aria-label="anchor" href="#data-sets"></a>
+</h2>
+<p>The package has six growth data sets, from plant science, human growth, forestry and crop science. Each is documented in its help page, e.g. <code><a href="reference/FabaHeights26.html">?FabaHeights26</a></code>, and used in the vignettes:</p>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="25%">
+<col width="25%">
+</colgroup>
+<thead><tr>
+<th>Data set</th>
+<th>Content</th>
+<th>Response</th>
+<th>Used in</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>FabaHeights26</code></td>
+<td>Heights of 320 faba bean plants in a 2026 field trial: four genotypes on two soil types, irrigated or not, 14 days between 28 and 122 days after sowing</td>
+<td>Height (cm)</td>
+<td><code><a href="articles/gcTMB.html">vignette("gcTMB")</a></code></td>
+</tr>
+<tr>
+<td><code>FabaHeights25</code></td>
+<td>Heights of 25 faba bean plants, five at each of five treatment levels, eight days between 14 and 61 days after sowing (2025)</td>
+<td>Height</td>
+<td>
+<code><a href="articles/growth-models.html">vignette("growth-models")</a></code>, the examples above</td>
+</tr>
+<tr>
+<td><code>FabaCounts23</code></td>
+<td>Counts of flowers and pods of 22 faba bean plants of six genotypes, twelve days between 61 and 79 days after sowing (2023)</td>
+<td>Counts</td>
+<td>
+<code><a href="articles/fixed-random-effects.html">vignette("fixed-random-effects")</a></code>, the example above</td>
+</tr>
+<tr>
+<td><code>BerkeleyGrowth</code></td>
+<td>Heights and weights of 66 boys and 70 girls of the Berkeley Child Guidance Study, from birth to 21 years (from the package sitar)</td>
+<td>Height, weight</td>
+<td>
+<code><a href="articles/timing-rates.html">vignette("timing-rates")</a></code>, with the Preece-Baines curve</td>
+</tr>
+<tr>
+<td><code>PineHeightDiameter</code></td>
+<td>Heights and diameters at breast height of 1678 Scots pine trees on 56 sample plots in eastern Finland (from the package lmfor)</td>
+<td>Height against diameter</td>
+<td>
+<code><a href="articles/fixed-random-effects.html">vignette("fixed-random-effects")</a></code>, with the Chapman-Richards curve</td>
+</tr>
+<tr>
+<td><code>SorghumMaize</code></td>
+<td>Above-ground biomass of fiber sorghum, sweet sorghum and maize at two input levels in four blocks, central Greece (from the package nlraa)</td>
+<td>Biomass</td>
+<td>
+<code><a href="articles/autocorrelation-simulation.html">vignette("autocorrelation-simulation")</a></code>, with the beta curve</td>
+</tr>
+</tbody>
+</table>
+<p>The raw faba bean data and the scripts that prepare all six data sets are in the directory <code>data-raw</code> of the source package.</p>
+</div>
+<div class="section level2">
 <h2 id="functions-and-methods">Functions and methods<a class="anchor" aria-label="anchor" href="#functions-and-methods"></a>
 </h2>
 <table class="table">

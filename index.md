@@ -393,6 +393,25 @@ pairwise(fitp, newdata = genotypes)
 #> Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits, and ratios.
 ```
 
+## Data sets
+
+The package has six growth data sets, from plant science, human growth,
+forestry and crop science. Each is documented in its help page,
+e.g. [`?FabaHeights26`](https://emilskindersoe.github.io/gcTMB/reference/FabaHeights26.md),
+and used in the vignettes:
+
+| Data set | Content | Response | Used in |
+|----|----|----|----|
+| `FabaHeights26` | Heights of 320 faba bean plants in a 2026 field trial: four genotypes on two soil types, irrigated or not, 14 days between 28 and 122 days after sowing | Height (cm) | [`vignette("gcTMB")`](https://emilskindersoe.github.io/gcTMB/articles/gcTMB.md) |
+| `FabaHeights25` | Heights of 25 faba bean plants, five at each of five treatment levels, eight days between 14 and 61 days after sowing (2025) | Height | [`vignette("growth-models")`](https://emilskindersoe.github.io/gcTMB/articles/growth-models.md), the examples above |
+| `FabaCounts23` | Counts of flowers and pods of 22 faba bean plants of six genotypes, twelve days between 61 and 79 days after sowing (2023) | Counts | [`vignette("fixed-random-effects")`](https://emilskindersoe.github.io/gcTMB/articles/fixed-random-effects.md), the example above |
+| `BerkeleyGrowth` | Heights and weights of 66 boys and 70 girls of the Berkeley Child Guidance Study, from birth to 21 years (from the package sitar) | Height, weight | [`vignette("timing-rates")`](https://emilskindersoe.github.io/gcTMB/articles/timing-rates.md), with the Preece-Baines curve |
+| `PineHeightDiameter` | Heights and diameters at breast height of 1678 Scots pine trees on 56 sample plots in eastern Finland (from the package lmfor) | Height against diameter | [`vignette("fixed-random-effects")`](https://emilskindersoe.github.io/gcTMB/articles/fixed-random-effects.md), with the Chapman-Richards curve |
+| `SorghumMaize` | Above-ground biomass of fiber sorghum, sweet sorghum and maize at two input levels in four blocks, central Greece (from the package nlraa) | Biomass | [`vignette("autocorrelation-simulation")`](https://emilskindersoe.github.io/gcTMB/articles/autocorrelation-simulation.md), with the beta curve |
+
+The raw faba bean data and the scripts that prepare all six data sets
+are in the directory `data-raw` of the source package.
+
 ## Functions and methods
 
 | Purpose | Functions |
