@@ -25,23 +25,23 @@ gcTMBstart(
 \arguments{
 \item{form}{Formula, with the names of the response and the explanatory variable x (usually time), e.g. \code{weight ~ day}, see \code{\link{gcTMB}}.}
 
-\item{fform}{Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1). A list of six right-hand side formulas, one for each of b1-b6 (X1 = ~ 1, ..., X6 = ~ 1), is also accepted, or of five for b1-b5.}
+\item{fform}{Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1). A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.}
 
 \item{data}{Data frame. Observations with missing values in the variables of the model or in the weights are left out.}
 
 \item{start}{Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced.}
 
-\item{fix}{Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4, the asymmetry b5 and the additive b6 are fixed by default, at 0, 1 and 0 unless given in start; fix=c(b4=FALSE), fix=c(b5=FALSE) or fix=c(b6=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.}
+\item{fix}{Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4 and the asymmetry (or intercept) b5 are fixed by default, at 0 and 1 unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.}
 
 \item{weights}{Numeric vector or NULL. Weights, one for each row of data.}
 
 \item{family}{Character string. The distribution of the response, see \code{\link{gcTMB}}.}
 
-\item{model}{Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "normal", "gamma", "chapmanrichards", "beta" or "linear", see \code{\link{gcTMB}}.}
+\item{model}{Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "beta", "beta_capped", "normal", "gamma", "chapmanrichards", "wykoff", "preecebaines" or "linear", see \code{\link{gcTMB}}.}
 
 \item{truncated}{Logical. If TRUE (default), the curve is truncated at a threshold b4, by default fixed at 0, see \code{\link{gcTMB}}.}
 
-\item{link}{Named character vector or NULL. Links of the parameters b1-b6, see \code{\link{gcTMB}}.}
+\item{link}{Named character vector or NULL. Links of the parameters b1-b5, see \code{\link{gcTMB}}.}
 
 \item{b1type}{Character string. The meaning of b1, "asymptote" (default) or "rate" for the maximum growth rate, see \code{\link{gcTMB}}.}
 
@@ -61,13 +61,13 @@ Computes starting values for the fixed-effect parameters of a growth curve,
 which can be inspected, modified, and passed to the \code{start} argument of \code{\link{gcTMB}}.
 }
 \details{
-Method "lm" linearises the growth curve: for a given asymptote b1, the mean response at each
-time t, relative to b1, gives Finv(y/b1) = z(t), with the inverse Finv of the function F of the
-model (qlogis for logistic and hill, -log(-log(q)) for gompertz, log(-log(1 - q)) for weibull) and
-the transformed time z(t) (see \code{\link{gcTMB}}), which is linear in the time t (logistic,
-gompertz) or in log(t) (hill, weibull). A linear regression of Finv(y/b1) on t or log(t) gives b2 and
-b3 from its intercept and slope, e.g. b3 as the inverse of the slope and b2 as the time at which the
-line crosses zero for the logistic model; with b2 or b3 given in \code{start}, only the other one is
+Method "lm" linearises the growth curve: for a given asymptote b1, the mean response y at each
+time t is transformed to a straight line in t or log(t): log(y/(b1 - y)) = (t - b2)/b3 for the
+logistic curve, -log(-log(y/b1)) = (t - b2)/b3 for gompertz, qnorm(y/b1) = (t - b2)/b3 for normal,
+log(y/(b1 - y)) = b3 (log t - log b2) for hill, and log(-log(1 - y/b1)) = b3 (log t - log b2) +
+log((b3 - 1)/b3) for weibull. A linear regression of the transformed responses on t or log(t)
+gives b2 and b3 from its intercept and slope, e.g. b3 as the inverse of the slope and b2 as the time
+at which the line crosses zero for the logistic model; with b2 or b3 given in \code{start}, only the other one is
 estimated. The weibull shape b3 starts at least at 1.1. The observed responses
 often do not reach the asymptote yet, so b1 is profiled: for asymptotes from just above the
 largest mean response to four times it, the linearised fit gives b2 and b3, b1 is refitted by least
@@ -80,11 +80,10 @@ without truncation reaches 1\\% of its asymptote; for the count families also be
 time with a positive count, and for the lognormal and beta families before all times, as positive
 responses are impossible before the threshold. The asymmetry b5 starts at 1, the symmetric curve,
 with which b2 and b3 are linearised unless b5 is given in start; b4 without truncation starts at 0.
-The additive b6 starts at 0, or at its value in start, and the curve above it is linearised.
 
-The curves that start at b4 (chapmanrichards, beta) are not linearised: b1-b3 are
-fitted by least squares to the mean responses, starting from a curve that reaches half the largest
-response at the time closest to it.
+The beta, beta_capped, chapmanrichards and wykoff curves are not linearised: b1-b3 are fitted by
+least squares to the mean responses (above the intercept log(b5) of chapmanrichards and wykoff,
+when b5 is given in start), with b4 at 0 or its value in start.
 
 Method "grid" evaluates the negative log-likelihood (without random effects) at all
 combinations of a grid of parameter values and returns the best grid point; parameters
@@ -100,5 +99,5 @@ gcTMBstart(height ~ DAS, data=FabaHeights25, model="gompertz")
 # with a given asymptote, from which b2 and b3 are linearised
 gcTMBstart(height ~ DAS, data=FabaHeights25, start=c(b1=120))
 # best point of a grid of b2 and b3 values
-gcTMBstart(height ~ DAS, data=FabaHeights25, method="grid", gsn=c(1, 10, 10, 1, 1, 1))
+gcTMBstart(height ~ DAS, data=FabaHeights25, method="grid", gsn=c(1, 10, 10, 1, 1))
 }

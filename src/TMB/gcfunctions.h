@@ -31,10 +31,10 @@ Type linkinv(int lnk, Type eta){
 //   mod 5 normal:   F standard normal,   z = (t - f2) / f3
 //   mod 6 gamma:    F gamma with shape f3, z = t (f3 - 1) / f2, the gamma distribution function with
 //                   shape f3 and scale f2 / (f3 - 1), whose density has its mode at f2
-//   mod 7 linear:   f(t) = f1 t, for comparison, plus the intercept f6 added by the templates; f2-f5 are
-//                   not used, and it is not truncated
-//   mod 8-9 chapmanrichards and beta: curves that start at f4, see gcstart below
-// The templates add the additive parameter f6 to the curve, f6 + f(t) (the intercept of the linear model).
+//   mod 7 linear:   f(t) = f1 t + f2, for comparison; f3-f5 are not used, and it is not truncated
+//   mod 8-10 chapmanrichards, beta and wykoff: never truncated, see gcstart below
+//   mod 11 preecebaines: model 1 of Preece and Baines (1978), never truncated, see gcpbmean below
+//   mod 12 beta: the beta curve of mod 9 without the cap at its maximum, see gcstart below
 // f1 is the asymptote. f2 is the time of the maximum growth rate (the inflection point) for logistic,
 // gompertz, weibull, normal and gamma, and the time of half the asymptote for hill. f3 is the scale on
 // the time axis (logistic, gompertz, normal), positive, the slope of the hill
@@ -230,56 +230,116 @@ Type gclogS4(int mod, Type f2, Type f3, Type f4, Type f5){
   return CppAD::CondExpGt(f4, Type(0), gclogSG(mod, gcz(mod, f4p, f2, f3), f3, f5), Type(0));
 }
 
-// Models that start at the threshold f4, where the curve itself is zero (it is zero up to f4 as well),
-// so that a truncation at f4 changes nothing (they are always fitted as truncated curves); they do
-// not use f5:
-//   mod 8 chapmanrichards: f(t) = f1 (1 - exp(-(t - f4) / f3))^c, c = exp((f2 - f4) / f3), with the
-//     inflection point f2 for c > 1 (f2 > f4), the scale f3 and the start f4
-//   mod 9 beta (Yin et al. 2003): f(t) = f1 (1 + (te - t) / (te - f2)) ((t - f4) / (te - f4))^((te - f4) / (te - f2))
-//     for f4 < t < te, and f1 from the end of growth te = f2 + f3 on: the time f2 of the maximum
-//     growth rate, the duration f3 of the growth after it, and the start f4. With u = (t - f4) / D,
-//     D = te - f4, and d = f3 / D: G(u) = (1 + (1 - u) / d) u^(1 / d), 0 < u < 1.
+// Models with their own curves, never truncated (beta is zero up to its start f4 anyway):
+//   mod 8 chapmanrichards: f(t) = f4 + f1 (1 - exp(-t / f3))^c, c = exp(f2 / f3), f4 up to t = 0:
+//     the inflection point f2, the scale f3 and the intercept f4, e.g. the breast height of
+//     height-diameter models; f5 is not used
+//   mod 9 beta_capped (Yin et al. 2003): f(t) = f1 (1 + (f3 - t) / (f3 - f2)) ((t - f4) / (f3 - f4))^((f3 - f4) / (f3 - f2))
+//     for f4 < t < f3, and f1 from the end of growth f3 on: the time f2 of the maximum growth rate,
+//     the end of growth f3 and the start f4, f4 < f2 < f3. With u = (t - f4) / D, D = f3 - f4, and
+//     d = (f3 - f2) / D: G(u) = (1 + (1 - u) / d) u^(1 / d), 0 < u < 1. f5 is not used.
+//   mod 12 beta: the same curve, eqn (8), not capped at f1 from the end of growth f3 on, but falling
+//     back to zero at u = 1 + d, the time 2 f3 - f2, and zero after it
+//   mod 10 wykoff (Wykoff et al. 1982): f(t) = f4 + f1 exp(-s / (t + 1)), s = 2 (f2 + 1), for t > -1
+//     and f4 before: the inflection point f2 and the intercept f4; f3 and f5 are not used. With
+//     f1 = exp(b1) and s = -b2, the curve exp(b1 + b2 / (t + 1)) of Wykoff et al.
 inline bool gcstart(int mod){
   return mod >= 8;
 }
 
-// exponent c of the chapmanrichards curve
+// Preece and Baines (1978), model 1: f(t) = f1 - 2 (f1 - f3) / (exp(f4 u) + exp(f5 u)), u = t - f2, with
+// the adult height f1, the age f2 of the middle of puberty, the height f3 at f2, and the rates f4 and
+// f5 before and during puberty
 template<class Type>
-Type gccr(Type f2, Type f3, Type f4){
-  return exp((f2 - f4) / f3);
+Type gcpbmean(Type t, Type f1, Type f2, Type f3, Type f4, Type f5){
+  Type u = t - f2;
+  return f1 - 2 * (f1 - f3) * exp(-logspace_add(Type(f4 * u), Type(f5 * u)));
 }
 
-// fraction G of the asymptote reached at time t by a curve starting at f4, for t > f4; t is clamped
-// to just after the start (and to the end of growth of the beta curve), so that both branches of the
-// conditional expressions in gcmean are finite
+// age at which the Preece-Baines curve reaches q f1: log(exp(f4 u) + exp(f5 u)) = L, increasing in u;
+// Newton steps from the root found in double precision by bisection (see gctimestart)
+template<class Type>
+Type gcpbtime(Type q, Type f1, Type f2, Type f3, Type f4, Type f5){
+  Type L = log(2 * (f1 - f3) / (f1 * (1 - q)));
+  double Ld = asDouble(L), a = asDouble(f4), b = asDouble(f5);
+  double lo = -1, hi = 1;
+  auto g = [a, b](double u){ double m = std::max(a * u, b * u); return m + std::log(std::exp(a * u - m) + std::exp(b * u - m)); };
+  for (int k = 0; k < 200 && g(lo) > Ld; k++) lo *= 2;
+  for (int k = 0; k < 200 && g(hi) < Ld; k++) hi *= 2;
+  for (int k = 0; k < 200; k++){
+    double mid = (lo + hi) / 2;
+    if (g(mid) < Ld) lo = mid; else hi = mid;
+  }
+  Type u = Type((lo + hi) / 2);
+  for (int k = 0; k < 3; k++){
+    Type lse = logspace_add(Type(f4 * u), Type(f5 * u));
+    Type dg = f4 + (f5 - f4) * exp(f5 * u - lse);
+    u = u - (lse - L) / dg;
+  }
+  return f2 + u;
+}
+
+// intercept f4 of the chapmanrichards and wykoff curves, zero for the other models
+template<class Type>
+Type gcintercept(int mod, Type f4){
+  return (mod == 8 || mod == 10) ? f4 : Type(0);
+}
+
+// time from which the curves grow: 0 for chapmanrichards, -1 for wykoff, and the start f4 for beta
+template<class Type>
+Type gcstartat(int mod, Type f4){
+  return mod == 8 ? Type(0) : (mod == 10 ? Type(-1) : f4);
+}
+
+// exponent c of the chapmanrichards curve
+template<class Type>
+Type gccr(Type f2, Type f3){
+  return exp(f2 / f3);
+}
+
+// fraction G of the asymptote reached at time t, after the time the curve grows from (gcstartat); t
+// is clamped to just after it (and to the end of growth of the beta curve), so that both branches of
+// the conditional expressions in gcmean are finite
 template<class Type>
 Type gcGstart(int mod, Type t, Type f2, Type f3, Type f4){
   Type eps = Type(1e-10);
-  if (mod == 9){
-    Type D = f2 + f3 - f4;
-    Type d = f3 / D;
+  if (mod == 10){
+    Type u = t + 1;
+    u = CppAD::CondExpGt(u, eps, u, eps);
+    return exp(-2 * (f2 + 1) / u);
+  }
+  if (mod == 9 || mod == 12){
+    Type D = f3 - f4;
+    Type d = (f3 - f2) / D;
     Type u = (t - f4) / D;
     u = CppAD::CondExpGt(u, eps, u, eps);
-    u = CppAD::CondExpLt(u, Type(1), u, Type(1));
-    return (1 + (1 - u) / d) * exp(log(u) / d);
+    if (mod == 9){
+      u = CppAD::CondExpLt(u, Type(1), u, Type(1));
+      return (1 + (1 - u) / d) * exp(log(u) / d);
+    }
+    // not capped: zero from u = 1 + d on, the other branch evaluated at a valid u
+    Type ue = 1 + d;
+    Type uc = CppAD::CondExpLt(u, ue, u, Type(1));
+    return CppAD::CondExpLt(u, ue, Type((1 + (1 - uc) / d) * exp(log(uc) / d)), Type(0));
   }
-  Type z = (t - f4) / f3;
+  Type z = t / f3;
   z = CppAD::CondExpGt(z, eps, z, eps);
-  return exp(gccr(f2, f3, f4) * logspace_sub(Type(0), Type(-z)));
+  return exp(gccr(f2, f3) * logspace_sub(Type(0), Type(-z)));
 }
 
-// time at which a curve starting at f4 reaches the fraction q of its asymptote. The beta curve has no
+// time at which the curve reaches the fraction q of its asymptote (above the intercept). The beta curve has no
 // closed form: Newton steps from the root found in double precision by bisection, whose derivatives
 // are those of the implicit function (the starting point is a constant of the tape, which is only
 // evaluated at the parameters it was taped at, as in gcTime)
 template<class Type>
 Type gctimestart(int mod, Type q, Type f2, Type f3, Type f4){
-  if (mod != 9){
-    Type z = -logspace_sub(Type(0), Type(log(q) / gccr(f2, f3, f4)));
-    return f4 + f3 * z;
+  if (mod == 10) return -1 - 2 * (f2 + 1) / log(q);
+  if (mod != 9 && mod != 12){
+    Type z = -logspace_sub(Type(0), Type(log(q) / gccr(f2, f3)));
+    return f3 * z;
   }
-  Type D = f2 + f3 - f4;
-  Type d = f3 / D;
+  Type D = f3 - f4;
+  Type d = (f3 - f2) / D;
   double dd = asDouble(d), qd = asDouble(q);
   double lo = 0, hi = 1;
   for (int k = 0; k < 100; k++){
@@ -296,17 +356,19 @@ Type gctimestart(int mod, Type q, Type f2, Type f3, Type f4){
   return f4 + D * u;
 }
 
-// maximum growth rate of a curve starting at f4 with asymptote 1: at the inflection point f2 of the
+// maximum growth rate of the curve with asymptote 1: at the inflection point f2 of the
 // chapmanrichards curve, (1 - 1/c)^(c - 1) / f3 (guarded for curves without an inflection point after
-// the start); at f2 for the beta curve, (1 + 1/d) (1 - d)^(1/d - 1) / D
+// t = 0); at f2 for the beta curve, (1 + 1/d) (1 - d)^(1/d - 1) / D; at f2 for the wykoff curve,
+// 4 exp(-2) / s
 template<class Type>
 Type gcrate1start(int mod, Type f2, Type f3, Type f4){
-  if (mod == 9){
-    Type D = f2 + f3 - f4;
-    Type d = f3 / D;
+  if (mod == 10) return 4 * exp(Type(-2)) / (2 * (f2 + 1));
+  if (mod == 9 || mod == 12){
+    Type D = f3 - f4;
+    Type d = (f3 - f2) / D;
     return (1 + 1 / d) * exp((1 / d - 1) * log(1 - d)) / D;
   }
-  Type c = gccr(f2, f3, f4);
+  Type c = gccr(f2, f3);
   Type cc = CppAD::CondExpGt(c, Type(1), c, Type(2));
   return CppAD::CondExpGt(c, Type(1), Type(exp((cc - 1) * log(1 - 1 / cc)) / f3), Type(1 / f3));
 }
@@ -315,11 +377,12 @@ Type gcrate1start(int mod, Type f2, Type f3, Type f4){
 // as a distribution function truncated from below: (G(z) - G(z4)) / (1 - G(z4)) = 1 - S(z) / S(z4)
 // for t > f4 and 0 for t <= f4, z4 = z(f4), S = 1 - G; computed by the survival function for
 // thresholds far beyond f2. The time t is data, so the models on positive times can branch on t <= 0.
-// The linear model is f1 t (plus f6).
+// The linear model is f1 t + f2. The chapmanrichards and wykoff curves add the intercept f4.
 template<class Type>
 Type gcmean(int mod, int trunc, Type t, Type f1, Type f2, Type f3, Type f4, Type f5){
-  if (mod == 7) return f1 * t;
-  if (gcstart(mod)) return f1 * CppAD::CondExpGt(t, f4, gcGstart(mod, t, f2, f3, f4), Type(0));
+  if (mod == 7) return f1 * t + f2;
+  if (mod == 11) return gcpbmean(t, f1, f2, f3, f4, f5);
+  if (gcstart(mod)) return gcintercept(mod, f4) + f1 * CppAD::CondExpGt(t, gcstartat(mod, f4), gcGstart(mod, t, f2, f3, f4), Type(0));
   if (gclogtime(mod) && asDouble(t) <= 0) return Type(0) * f1;
   Type z = gcz(mod, t, f2, f3);
   if (trunc == 1){
@@ -340,6 +403,8 @@ Type gcmean(int mod, int trunc, Type t, Type f1, Type f2, Type f3, Type f4, Type
 template<class Type>
 Type gcrate1(int mod, int trunc, Type f2, Type f3, Type f4, Type f5){
   if (mod == 7) return Type(1);
+  // preecebaines: b1 as the maximum growth rate is not available (checked in R)
+  if (mod == 11) return Type(1);
   if (gcstart(mod)) return gcrate1start(mod, f2, f3, f4);
   Type tm = f2;
   Type r0;
@@ -393,7 +458,8 @@ Type gcasym(int b1rate, int mod, int trunc, Type f1, Type f2, Type f3, Type f4, 
 template<class Type>
 Type gctime(int mod, int trunc, Type q, Type f1, Type f2, Type f3, Type f4, Type f5, Type r){
   Type qr = q - r / f1;
-  if (mod == 7) return qr;
+  if (mod == 7) return qr - f2 / f1;
+  if (mod == 11) return gcpbtime(qr, f1, f2, f3, f4, f5);
   if (gcstart(mod)) return gctimestart(mod, qr, f2, f3, f4);
   Type z;
   if (trunc == 1){

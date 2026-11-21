@@ -19,13 +19,16 @@ automatic differentiation.
 
 ## Features
 
-- **Growth models**: logistic (Richards), Gompertz, Hill, Weibull,
-  normal and gamma curves, each with an asymmetry parameter, the
-  Chapman-Richards and beta curves, which start at a given time, an
-  additive constant for all of them, and a straight line for comparison.
-  The x-axis need not be time, e.g. height-diameter models of trees;
-  optionally truncated at a threshold time before which the response is
-  zero (e.g. emergence, or the first pods).
+- **Growth models**: general growth curves (logistic or Richards,
+  Gompertz, Hill, Weibull, normal and gamma), each with an asymmetry
+  parameter and optionally truncated at a threshold time before which
+  the response is zero (e.g. emergence, or the first pods); the beta
+  growth function of determinate growth, e.g. of crops; for forestry,
+  the Chapman-Richards and Wykoff curves with an intercept,
+  e.g. height-diameter models of trees from breast height; for human
+  growth, the Preece-Baines model of growth in height through childhood
+  and puberty; and a straight line for comparison. The x-axis need not
+  be time.
 - **Interpretable parameters**: the asymptote (or the maximum growth
   rate, `b1type = "rate"`), the time of the maximum growth rate or of
   half the asymptote, a scale, slope or shape, the threshold and the
@@ -99,60 +102,89 @@ page, and `?gcTMB` describes the models in detail.
 
 ## Growth models
 
-The main function is `gcTMB()`. The models are of the form f(t) = b1
-F(z(t)), with a function F increasing from 0 to 1 and a transformed time
-z(t):
+The main function is `gcTMB()`. The response is a curve f(t) of the
+explanatory variable t, usually time. The first curves below (logistic,
+Gompertz, Hill, Weibull, beta, normal and gamma) are sigmoid growth
+curves, often used in agronomy and ecology, e.g. for the growth of
+plants, crops and animals over a season. The Chapman-Richards and Wykoff
+curves are height-diameter models, common in forestry, with the diameter
+of the trees as t. The Preece-Baines curve is a model of human growth in
+height through childhood and puberty.
 
-| `model` | f(t) | b2 | b3 |
-|----|----|----|----|
-| `"logistic"` | b1 / (1 + exp(-(t - b2)/b3)) | inflection point | scale |
-| `"gompertz"` | b1 exp(-exp(-(t - b2)/b3)) | inflection point | scale |
-| `"hill"` | b1 / (1 + (b2/t)^b3) | time of half the asymptote | slope on the log time axis |
-| `"weibull"` | b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)) | inflection point | shape, \> 1 |
-| `"normal"` | b1 Phi((t - b2)/b3) | inflection point | scale |
-| `"gamma"` | b1 F(t), with F the CDF of the gamma distribution with shape b3 and scale b2/(b3 - 1) | inflection point | shape, \> 1 |
-| `"chapmanrichards"` | b1 (1 - exp(-(t - b4)/b3))^c, c = exp((b2 - b4)/b3) | inflection point | scale |
-| `"beta"` | b1 (1 + (te - t)/(te - b2)) ((t - b4)/(te - b4))^((te - b4)/(te - b2)), te = b2 + b3 | inflection point | duration of growth after b2 |
-| `"linear"` | b1 t + b6, for comparison, with the intercept b6 | not used | not used |
+| `model` | f(t) | b2 | b3 | b4 |
+|----|----|----|----|----|
+| `"logistic"` | b1 / (1 + exp(-(t - b2)/b3)) | inflection point | scale | threshold |
+| `"gompertz"` | b1 exp(-exp(-(t - b2)/b3)) | inflection point | scale | threshold |
+| `"hill"` | b1 / (1 + (b2/t)^b3) | time of half the asymptote | slope on the log time axis | threshold |
+| `"weibull"` | b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)) | inflection point | shape, \> 1 | threshold |
+| `"beta"` | b1 (1 + (b3 - t)/(b3 - b2)) ((t - b4)/(b3 - b4))^((b3 - b4)/(b3 - b2)), back to 0 at 2 b3 - b2 | inflection point | end of growth | start of growth |
+| `"beta_capped"` | the same, staying at b1 from b3 on | inflection point | end of growth | start of growth |
+| `"normal"` | b1 Phi((t - b2)/b3) | inflection point | scale | threshold |
+| `"gamma"` | b1 Fgamma(t; b3, b2/(b3 - 1)) | inflection point | shape, \> 1 | threshold |
+| `"chapmanrichards"` | b4 + b1 (1 - exp(-t/b3))^exp(b2/b3) | inflection point | scale | intercept |
+| `"wykoff"` | b4 + b1 exp(-2 (b2 + 1)/(t + 1)) | inflection point | not used | intercept |
+| `"preecebaines"` | b1 - 2 (b1 - b3)/(exp(b4 (t - b2)) + exp(b5 (t - b2))) | middle of puberty | height at b2 | rate before puberty |
+| `"linear"` | b1 t + b2 | intercept | not used | not used |
 
-b1 is the asymptote approached at late times, and the slope of the
-linear model, which has no asymptote and is not truncated. The Hill,
-Weibull and gamma curves are for positive times. The links of the
-parameters can be chosen, e.g. `link = c(b1 = "log", b3 = "inverse")`,
-with the identity (default), log, logit (b1) or inverse (b3 of the
-logistic and Gompertz models, the rate 1/b3) links.
+b1 is the asymptote approached at late times (the maximum, reached at
+the end of growth b3, for the beta curves; the adult height for
+Preece-Baines), and the slope of the linear model, which has no
+asymptote. Phi is the standard normal distribution function, and
+Fgamma(t; k, theta) the distribution function of the gamma distribution
+with shape k and scale theta. The Hill, Weibull and gamma curves are for
+positive times. The links of the parameters can be chosen,
+e.g. `link = c(b1 = "log", b3 = "inverse")`, with the identity
+(default), log, logit (b1) or inverse (b3 of the logistic and Gompertz
+models, the rate 1/b3) links.
 
-By default, the curve is truncated at a threshold time b4, (F(z(t)) -
-F(z(b4)))/(1 - F(z(b4))), so that the response is zero up to b4. b4 is
-fixed at 0, so that the curve starts at zero at t = 0, unless estimated
-with `fix = c(b4 = FALSE)`; `truncated = FALSE` gives the curves without
+By default, the logistic, Gompertz, Hill, Weibull, normal and gamma
+curves f(t) are truncated at a threshold time b4: shifted down to zero
+at b4 and rescaled to keep the asymptote b1, b1 (f(t) - f(b4))/(b1 -
+f(b4)) for t \> b4, so that the response is zero up to b4. b4 is fixed
+at 0, so that the curve starts at zero at t = 0, unless estimated with
+`fix = c(b4 = FALSE)`; `truncated = FALSE` gives the curves without
 truncation.
 
-Each model has an asymmetry parameter b5 \> 0, fixed at 1 (the curves
-above) unless estimated with `fix = c(b5 = FALSE)`: the logistic model
-becomes the Richards curve b1 / (1 + b5 exp(-(t - b2)/b3))^(1/b5), the
-Hill model b1 / (1 + (b2/t)<sup>b3)</sup>b5, the Weibull, normal and
-gamma models a power b5 of F, and the Gompertz model b1 (1 - (1 -
+Each of these six models has an asymmetry parameter b5 \> 0, fixed at 1
+(the curves above) unless estimated with `fix = c(b5 = FALSE)`: the
+logistic model becomes the Richards curve b1 / (1 + b5 exp(-(t -
+b2)/b3))^(1/b5), the Hill model b1 / (1 + (b2/t)<sup>b3)</sup>b5, the
+Weibull, normal and gamma models b1 (f(t)/b1)^b5, a power of the curve
+relative to its asymptote, and the Gompertz model b1 (1 - (1 -
 exp(-exp(-(t - b2)/b3)))^b5), a power of its survival function.
 
-The Chapman-Richards and beta curves start at b4 (0 by default), where
-they are zero themselves, and have no asymmetry b5; the Chapman-Richards
-curve is the Richards curve with a negative asymmetry -1/c, which
-reaches zero at b4.
+The other curves are never truncated, and only the general growth curves
+have an asymmetry b5.
 
-All the models have an additive parameter b6, fixed at 0 unless given in
-`start` or estimated with `fix = c(b6 = FALSE)` (it is the estimated
-intercept of the linear model): the curve b6 + f(t) grows from b6
-towards b6 + b1, e.g. from the breast height of 1.3 m in a
-height-diameter model, `start = c(b6 = 1.3)`.
+- **Determinate growth**: the beta growth function (Yin et al. 2003)
+  grows from its start b4 to its maximum b1 at the end of growth b3.
+  `"beta"` continues the curve of Yin et al. beyond b3, back to zero at
+  2 b3 - b2, for responses that decline after their maximum;
+  `"beta_capped"` stays at b1 from b3 on, the beta sigmoid growth
+  function of Yin et al.
+- **Forestry**: the Chapman-Richards and Wykoff curves are
+  height-diameter models of trees (models M8 and M9 of Ciceu et
+  al. 2020), with the diameter as t. Their intercept b4 is fixed at 0
+  unless given in `start` or estimated with `fix = c(b4 = FALSE)`,
+  e.g. the breast height of 1.3 m, `start = c(b4 = 1.3)`. The
+  Chapman-Richards curve is the Richards curve with a negative
+  asymmetry.
+- **Human growth**: model 1 of Preece and Baines (1978) describes the
+  growth in height through childhood and puberty, with the adult height
+  b1, the age b2 in the middle of puberty, the height b3 at b2, and the
+  rates b4 and b5 of growth before and during puberty, estimated by
+  default. `maxrate()` gives the peak height velocity of the pubertal
+  growth spurt.
 
 With `b1type = "rate"`, b1 is the maximum growth rate of the curve
 instead of its asymptote, so that covariates and random effects on b1
 act on the maximum growth rate.
 
-Starting values come from a linearisation of the curve, Finv(y/b1) =
-z(t), linear in t or log(t), profiled over the asymptote b1, or from a
-grid search (`gcTMBstart()`).
+Starting values come from a linearisation of the curve, e.g. log(y/(b1 -
+y)) = (t - b2)/b3 for the logistic curve, a straight line in t (or in
+log t for the Hill and Weibull curves) whose intercept and slope give b2
+and b3, profiled over the asymptote b1, or from a grid search
+(`gcTMBstart()`).
 
 ## Examples
 

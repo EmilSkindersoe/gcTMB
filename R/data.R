@@ -97,16 +97,12 @@
 #'   R package, \url{https://CRAN.R-project.org/package=sitar}.
 #'
 #' @examples
-#' # the pubertal growth spurt of the girls: a logistic curve from age 8 on, above the estimated
-#' # height b6 before the spurt
-#' girls <- subset(BerkeleyGrowth, sex == "female" & age >= 8)
-#' fit <- gcTMB(height ~ age, data=girls, truncated=FALSE, fix=c(b6=FALSE))
+#' # the growth of the girls from 2 years on: the Preece-Baines curve, with the adult height b1 and
+#' # the middle of puberty b2, and the peak height velocity of the pubertal growth spurt
+#' girls <- subset(BerkeleyGrowth, sex == "female" & age >= 2)
+#' fit <- gcTMB(height ~ age, data=girls, model="preecebaines")
 #' coef(fit)
-#' \donttest{
-#' # with a random asymptote and timing of the spurt for each girl
-#' fitre <- gcTMB(height ~ age, rform=b1 + b2 ~ 1 | id, data=girls, truncated=FALSE, fix=c(b6=FALSE))
-#' summary(fitre)
-#' }
+#' maxrate(fit)
 "BerkeleyGrowth"
 
 #' Heights and diameters of Scots pine trees
@@ -135,9 +131,10 @@
 #'   in R. Chapman and Hall/CRC, New York. \doi{10.1201/9780429173462}
 #'
 #' @examples
-#' # a Chapman-Richards curve from the breast height b6 = 1.3, with a random asymptote of each plot
+#' # a Chapman-Richards curve from the breast height, the intercept b4 = 1.3, with a random asymptote
+#' # of each plot
 #' fit <- gcTMB(height ~ dbh, rform=b1 ~ 1 | plot, data=PineHeightDiameter,
-#'              model="chapmanrichards", start=c(b6=1.3))
+#'              model="chapmanrichards", start=c(b4=1.3))
 #' summary(fit)
 "PineHeightDiameter"
 
@@ -166,8 +163,8 @@
 #'   \url{https://CRAN.R-project.org/package=nlraa}.
 #'
 #' @examples
-#' # determinate growth from sowing, b4 = 141: the beta growth function, with an asymptote of each
-#' # crop and input level
+#' # growth from sowing, b4 = 141, to the end of growth b3, and the decline after it: the beta growth
+#' # function, with a maximum of each crop and input level
 #' fit <- gcTMB(Biomass ~ DOY, fform=b1 ~ Crop * Input, data=SorghumMaize, model="beta", start=c(b4=141))
 #' summary(fit)
 "SorghumMaize"

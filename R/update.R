@@ -5,7 +5,7 @@
 #' \code{\link{simulate.gcTMB}}); the model is not refitted. Without them, it refits the model with
 #' the arguments in \code{...} changed, as \code{\link[stats]{update}}.
 #'
-#' Every parameter of the model can be set: the coefficients of b1-b6 (\code{fixef}, including
+#' Every parameter of the model can be set: the coefficients of b1-b5 (\code{fixef}, including
 #' coefficients fixed in the fit), the covariance matrices of the random effects (\code{VarCorr}), the
 #' residual standard deviation or dispersion (\code{sigma}) and the autocorrelation (\code{rho}),
 #' i.e. all the entries of \code{coef}. The parameters that are not given keep their values, and the random effects are the conditional
@@ -20,7 +20,7 @@
 #' of \code{\link{gcTMB}}.
 #'
 #' @param object A gcTMB object, the result of \code{\link{gcTMB}}.
-#' @param fixef Named numeric vector or NULL. New values of coefficients of b1-b6, named as in
+#' @param fixef Named numeric vector or NULL. New values of coefficients of b1-b5, named as in
 #'   \code{\link{fixef}} (e.g. "b1:(Intercept)"), or by the parameter (e.g. "b1") for a parameter with
 #'   a single coefficient. Coefficients fixed in the fit, such as the asymmetry b5 (1 by default), can
 #'   be set too, e.g. \code{fixef=c(b5=4)}; they stay fixed.
@@ -64,7 +64,7 @@ update.gcTMB <- function(object, ..., fixef=NULL, VarCorr=NULL, sigma=NULL, rho=
 
   if (!is.null(fixef)){
     j <- matchcoefs(object, fixef)
-    npi <- as.integer(sub("^b([1-6]):.*", "\\1", object$coefnames))
+    npi <- as.integer(sub("^b([1-5]):.*", "\\1", object$coefnames))
     pos <- ave(npi, npi, FUN=seq_along)
     for (k in seq_along(j)){
       pl[[paste("b", npi[j[k]], sep="")]][pos[j[k]]] <- unname(fixef[k])

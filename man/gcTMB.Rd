@@ -29,7 +29,7 @@ gcTMB(
 \arguments{
 \item{form}{Formula, with the names of the response and the explanatory variable x, e.g. \code{weight ~ day}. x is usually time, but can be any variable along which the response grows towards an asymptote, e.g. the diameter of trees in a height-diameter model \code{height ~ dbh}.}
 
-\item{fform}{Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1). A list of six right-hand side formulas, one for each of b1-b6 (X1 = ~ 1, ..., X6 = ~ 1), is also accepted, or of five for b1-b5.}
+\item{fform}{Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1). A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.}
 
 \item{rform}{Formula, list of formulas, or NULL. Random effects: a formula of the form b1 + b2 ~ 1 | individual for random intercepts, or b1 ~ x | individual for random intercepts and slopes in a covariate x, or a list of such formulas, e.g. list(b1 + b2 ~ 1 | plant, b1 ~ 1 | plot). The random effects within a formula are correlated across the listed parameters and their intercepts and slopes; different formulas and the levels of nested factors (1 | plot/plant) are independent terms. With a double bar, all the random coefficients of the formula are independent, across the parameters as well as their intercepts and slopes: b1 + b2 ~ 1 || individual is list(b1 ~ 1 | individual, b2 ~ 1 | individual), a diagonal covariance matrix as random=pdDiag(b1 + b2 ~ 1) in nlme. A list of formulas combines the two into a block-diagonal covariance matrix: list(b1 + b2 ~ 1 | individual, b3 ~ 1 | individual) gives correlated random effects of b1 and b2, and a random effect of b3 independent of both, as random=pdBlocked(list(pdSymm(b1 + b2 ~ 1), pdSymm(b3 ~ 1))) in nlme. The random slopes of a parameter usually go with a fixed effect of the covariate in fform.}
 
@@ -37,24 +37,24 @@ gcTMB(
 
 \item{start}{Numeric vector or NULL. Starting values for each model coefficient. NA entries are replaced by the starting values of \code{\link{gcTMBstart}}. Alternatively, a vector named by parameter, e.g. c(b1=10), gives the same starting value to all coefficients of each named parameter.}
 
-\item{fix}{Logical vector or NULL. One entry for each model coefficient. If TRUE, a model coefficient is fixed to its value in start. Alternatively, a vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of the named parameters; their values must then be given in start, e.g. start=c(b1=10). The threshold b4, the asymmetry b5 and the additive b6 are fixed by default, at b4 = 0 (the curve starts at zero at t = 0), b5 = 1 (the symmetric curve) and b6 = 0 (no additive constant; the intercept b6 of the linear model is estimated) unless given in start; fix=c(b4=FALSE), fix=c(b5=FALSE) or fix=c(b6=FALSE), or an unnamed fix vector, estimates them. An unnamed start or fix vector without the coefficients of b6, which come last, is still accepted, with b6 fixed at 0. Without truncation, b4 is not used and always fixed, at 0 unless given in start.}
+\item{fix}{Logical vector or NULL. One entry for each model coefficient. If TRUE, a model coefficient is fixed to its value in start. Alternatively, a vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of the named parameters; their values must then be given in start, e.g. start=c(b1=10). The threshold b4 and the asymmetry b5 are fixed by default, at b4 = 0 (the curve starts at zero at t = 0) and b5 = 1 (the symmetric curve) unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE), or an unnamed fix vector, estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.}
 
 \item{weights}{Numeric vector or NULL. Weights, one for each row of data. Unlike the
 \code{weights} of nlme, which are variance functions (\code{varFunc}), these are numeric case
 weights of the log-likelihood; with a correlation structure, they are precision weights, as
 \code{weights=varFixed(~ 1/w)} in nlme.}
 
-\item{lower}{Numeric, a single value or a vector. Lower bounds for the model coefficients b1-b6, a single value or a vector with the same length as start. Bounds of fixed coefficients are ignored; variance parameters are unbounded.}
+\item{lower}{Numeric, a single value or a vector. Lower bounds for the model coefficients b1-b5, a single value or a vector with the same length as start. Bounds of fixed coefficients are ignored; variance parameters are unbounded.}
 
-\item{upper}{Numeric, a single value or a vector. Upper bounds for the model coefficients b1-b6, a single value or a vector with the same length as start.}
+\item{upper}{Numeric, a single value or a vector. Upper bounds for the model coefficients b1-b5, a single value or a vector with the same length as start.}
 
 \item{family}{Character string. The distribution of the response, one of "gaussian", "lognormal", "binomial", "betabinomial", "beta", "poisson", "nbinom2", and "nbinom1". For the lognormal family, log(y) is normal with mean log f(t) and standard deviation sigma: the curve f is the median of a positive response, with a constant coefficient of variation; the mean is f(t) exp(sigma^2/2). The negative binomial families are for overdispersed counts, with variance mu (1 + mu/theta) for nbinom2 and mu (1 + phi) for nbinom1, and the beta-binomial family for overdispersed binomial counts, with variance n mu (1 - mu) (1 + (n - 1)/(phi + 1)) for n trials, as in glmmTMB.}
 
-\item{model}{Character string. The growth model: "logistic" (default), "gompertz", "hill", "weibull", "normal" or "gamma", each with an asymmetry parameter b5 and an additive parameter b6, "chapmanrichards" or "beta", which start at b4, "linear" for a straight line, see Details.}
+\item{model}{Character string. The growth model: "logistic" (default), "gompertz", "hill", "weibull", "normal" or "gamma", each with an asymmetry parameter b5, "beta" or "beta_capped" for determinate growth, "chapmanrichards" or "wykoff" for height-diameter models in forestry, "preecebaines" for human growth in height, or "linear" for a straight line, see Details.}
 
-\item{truncated}{Logical. If TRUE (default), the curve is truncated at a threshold time b4, by default fixed at 0: the response is zero up to b4 and then grows, see Details. FALSE for the curves without truncation.}
+\item{truncated}{Logical. If TRUE (default), the curve is truncated at a threshold time b4, by default fixed at 0: the response is zero up to b4 and then grows, see Details. FALSE for the curves without truncation. The beta, beta_capped, chapmanrichards, wykoff and preecebaines curves are never truncated.}
 
-\item{link}{Named character vector or NULL. Links of the parameters b1-b6: NULL for the defaults (the identity link for all parameters), or links named by parameter, e.g. \code{link=c(b1="log", b3="inverse")}. The asymptote b1 has the link "identity" (default), "log" or "logit"; the times b2 and b4 (the threshold of a truncated curve) "identity" (default) or "log"; the asymmetry b5 "identity" (default) or "log", to keep it positive; the additive b6 "identity" (default) or "log"; and the scale b3 "identity" (default), "inverse", with which its coefficients are the growth rate 1/b3, or "log". The coefficients, and start, fix, lower, upper and curves of \code{\link{timeto}}, are on the scale of the links, see Details.}
+\item{link}{Named character vector or NULL. Links of the parameters b1-b5: NULL for the defaults (the identity link for all parameters), or links named by parameter, e.g. \code{link=c(b1="log", b3="inverse")}. The asymptote b1 has the link "identity" (default), "log" or "logit"; the times b2 and b4 (the threshold of a truncated curve) "identity" (default) or "log"; the asymmetry b5 "identity" (default) or "log", to keep it positive; and the scale b3 "identity" (default), "inverse", with which its coefficients are the growth rate 1/b3, or "log". The coefficients, and start, fix, lower, upper and curves of \code{\link{timeto}}, are on the scale of the links, see Details.}
 
 \item{b1type}{Character string. The meaning of b1: "asymptote" (default), or "rate" for the maximum growth rate of the curve, see Details. With "rate", covariates and random effects on b1 are effects on the maximum growth rate, which \code{\link{anova.gcTMB}} and \code{\link{pairwise}} can test.}
 
@@ -82,51 +82,54 @@ Fits a nonlinear growth curve over time by maximum likelihood with the Template 
 the Laplace approximation.
 }
 \details{
-The growth models are of the form f(t) = b1 F(z(t)), with a distribution function F
-increasing from 0 to 1 and a transformed time z(t):
+The logistic, gompertz, hill, weibull, normal and gamma curves are sigmoid growth curves,
+often used in agronomy and ecology; they increase from 0 towards the asymptote b1:
 \itemize{
-\item logistic: f(t) = b1 / (1 + exp(-(t - b2)/b3)), with the logistic F(z) = 1/(1 + exp(-z)) and
-z = (t - b2)/b3; symmetric around b2, where the curve reaches half of its asymptote;
-\item gompertz: f(t) = b1 exp(-exp(-(t - b2)/b3)), F(z) = exp(-exp(-z)) and z = (t - b2)/b3;
-it reaches exp(-1), about 37\\%, of its asymptote at b2 and approaches the asymptote more slowly
-than it leaves zero;
-\item hill: f(t) = b1 / (1 + (b2/t)^b3), the logistic F of z = b3 (log t - log b2), a logistic
-curve on the log time axis (log-logistic); b2 is the time at which the curve reaches half of its
+\item logistic: f(t) = b1 / (1 + exp(-(t - b2)/b3)), symmetric around b2, where the curve
+reaches half of its asymptote;
+\item gompertz: f(t) = b1 exp(-exp(-(t - b2)/b3)); it reaches exp(-1), about 37\\%, of its
+asymptote at b2 and approaches the asymptote more slowly than it leaves zero;
+\item hill: f(t) = b1 / (1 + (b2/t)^b3), a logistic curve in log t (log-logistic),
+b1 / (1 + exp(-b3 (log t - log b2))); b2 is the time at which the curve reaches half of its
 asymptote, and b3 the slope on the log time axis;
-\item weibull: f(t) = b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)), F(z) = 1 - exp(-exp(z)) and
-z = b3 (log t - log b2) + log((b3 - 1)/b3); b2 is the inflection point and b3 > 1 the shape;
-\item normal: f(t) = b1 Phi((t - b2)/b3), the standard normal distribution function Phi of
-z = (t - b2)/b3; symmetric around b2, where the curve reaches half of its asymptote;
+\item weibull: f(t) = b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)); b2 is the inflection point and b3 > 1
+the shape;
+\item normal: f(t) = b1 Phi((t - b2)/b3), with the standard normal distribution function Phi;
+symmetric around b2, where the curve reaches half of its asymptote;
 \item gamma: f(t) = b1 F(t), with F the cumulative distribution function (CDF) of the gamma
 distribution with shape b3 > 1 and scale b2/(b3 - 1), whose density has its mode at b2: b2 is the inflection
 point and b3 the shape;
-\item linear: f(t) = b1 t + b6, a straight line with slope b1 and intercept b6 (the additive
-parameter of the other models, estimated by default for this one), for comparison with the
-growth curves. It has no asymptote, does not use b2-b5 and is not truncated;
+\item linear: f(t) = b1 t + b2, a straight line with slope b1 and intercept b2, for comparison
+with the growth curves. It has no asymptote, does not use b3-b5 and is not truncated;
 \code{\link{timeto}} gives the times at which it reaches given responses
 (\code{type="absolute"}), and \code{\link{maxrate}} its constant rate b1.
 }
-Two curves start at b4, where they are zero themselves (and zero before it); they are always
-truncated at b4, which changes nothing but gives b4 its default, 0, and they have no asymmetry b5:
+Five more curves are never truncated: the beta curves of determinate growth, the height-diameter
+models chapmanrichards and wykoff, common in forestry, and the preecebaines model of human growth:
 \itemize{
-\item chapmanrichards: f(t) = b1 (1 - exp(-(t - b4)/b3))^c with c = exp((b2 - b4)/b3), the
-Chapman-Richards curve; b2 is the inflection point, b3 the scale and b4 the start.
-It is the Richards curve with a negative asymmetry -1/c, which reaches zero at b4. In the
-parameterisation alpha (1 - beta exp(-k t))^(1/(1 - m)) of the package growthmodels, alpha =
-b1, k = 1/b3, beta = exp(b4/b3) and m = 1 - exp(-(b2 - b4)/b3) < 1; m > 1 is the logistic
-model with the asymmetry b5 = m - 1 (Richards), and m -> 1 the gompertz model;
-\item beta: the beta growth function of Yin et al. (2003), f(t) = b1 (1 + (te - t)/(te - b2))
-((t - b4)/(te - b4))^((te - b4)/(te - b2)) for b4 < t < te, and b1 from the end of growth
-te = b2 + b3 on: b2 is the time of the maximum growth rate (b2 > b4), b3 the duration of the
-growth after it, and b4 the start of growth.
+\item chapmanrichards: f(t) = b4 + b1 (1 - exp(-t/b3))^c with c = exp(b2/b3), the
+Chapman-Richards curve, zero above the intercept b4 up to t = 0: b2 is the inflection point, b3
+the scale and b4 the intercept, fixed at 0 by default, e.g. the breast height of 1.3 m in a
+height-diameter model, \code{start=c(b4=1.3)}. Model M8 of Ciceu et al. (2020),
+1.3 + a (1 - exp(-k t))^c, has b4 = 1.3, b1 = a, b3 = 1/k and b2 = log(c)/k;
+\item beta: the beta growth function of Yin et al. (2003), eqn 8 (with b4 = 0 there),
+f(t) = b1 (1 + (b3 - t)/(b3 - b2)) ((t - b4)/(b3 - b4))^((b3 - b4)/(b3 - b2)) for
+b4 < t < 2 b3 - b2, and zero otherwise: b1 is the maximum w_max, b2 the time t_m of the maximum
+growth rate, b3 the end of growth t_e, where the curve reaches b1, and b4 the start of growth
+t_b, b4 < b2 < b3. After b3 the curve falls back to zero at 2 b3 - b2, for responses that
+decline after their maximum, e.g. biomass lost after maturity;
+\item beta_capped: the same curve up to b3, and b1 from b3 on, the beta sigmoid growth function
+of Yin et al. for determinate growth that stops at its maximum;
+\item wykoff: f(t) = b4 + b1 exp(-s/(t + 1)) with s = 2 (b2 + 1), the curve of Wykoff et al. (1982),
+exp(a + b/(t + 1)) with a = log(b1) and b = -s (model M9 of Ciceu et al. 2020): b2 is the
+inflection point, where the curve reaches exp(-2) of its asymptote, and b4 the intercept as for
+chapmanrichards; it does not use b3;
+\item preecebaines: model 1 of Preece and Baines (1978) for human growth in height,
+f(t) = b1 - 2 (b1 - b3)/(exp(b4 (t - b2)) + exp(b5 (t - b2))): the adult height b1, the age b2 in
+the middle of puberty, the height b3 at b2, and the rates b4 < b5 of growth before and during
+puberty, which are estimated by default. \code{\link{maxrate}} gives the peak of the pubertal
+growth spurt (the peak height velocity); \code{b1type="rate"} is not available.
 }
-\strong{Additive parameter b6.} All the growth curves have an additive parameter b6, fixed at 0
-by default (the intercept of the linear model, estimated by default): the curve is b6 + f(t), which starts from b6 instead of zero and
-approaches b6 + b1. b1 remains the growth above b6, so the levels of \code{\link{timeto}}, and the
-maximum growth rate and its timing of \code{\link{maxrate}}, do not depend on b6; the responses of
-\code{timeto(type="absolute")} include it. Fixed at a known value, it is e.g. the breast height of 1.3
-m in a height-diameter model of trees, \code{gcTMB(height ~ dbh, start=c(b6=1.3))}; with
-\code{fix=c(b6=FALSE)} it is estimated, e.g. the height of children at birth.
 \strong{Relation to nlme.} Parts of the interface follow the package nlme (Pinheiro and Bates,
 2000), so that models can be moved between \code{nlme::nlme}/\code{nlme::gnls} and gcTMB:
 \itemize{
@@ -184,8 +187,12 @@ fitn <- gcTMB(height ~ DAS, data=FabaHeights25, model="normal")
 fitgam <- gcTMB(height ~ DAS, data=FabaHeights25, model="gamma")
 fitlin <- gcTMB(height ~ DAS, data=FabaHeights25, model="linear")
 fitcr <- gcTMB(height ~ DAS, data=FabaHeights25, model="chapmanrichards")
-fitb <- gcTMB(height ~ DAS, data=FabaHeights25, model="beta")
-AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin, fitcr, fitb)
+fitb <- gcTMB(height ~ DAS, data=FabaHeights25, model="beta_capped")
+fitwy <- gcTMB(height ~ DAS, data=FabaHeights25, model="wykoff")
+AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin, fitcr, fitb, fitwy)
+
+# a height-diameter model from the breast height of 1.3 m, the intercept b4
+gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards", start=c(b4=1.3))
 
 # the Richards curve: the logistic model with an estimated asymmetry b5
 fitr5 <- gcTMB(height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE))
@@ -222,14 +229,20 @@ gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson")
 # no pods before a threshold b4, after which the count grows
 fitt <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
 coef(fitt)
-
-# an additive b6: plants that are already 20 cm tall at DAS = 0 grow by b1 to 20 + b1
-FabaHeights25$height20 <- FabaHeights25$height + 20
-coef(gcTMB(height20 ~ DAS, data=FabaHeights25, start=c(b6=20)))
 }
 \references{
 Pinheiro, J.C. and Bates, D.M. (2000). Mixed-Effects Models in S and S-PLUS.
 Springer, New York.
+
+Ciceu, A., Garcia-Duro, J., Seceleanu, I. and Badea, O. (2020). A generalized nonlinear
+mixed-effects height-diameter model for Norway spruce in mixed-uneven aged stands. Forest
+Ecology and Management 477, 118507.
+
+Preece, M.A. and Baines, M.J. (1978). A new family of mathematical models describing the human
+growth curve. Annals of Human Biology 5, 1-24.
+
+Wykoff, W.R., Crookston, N.L. and Stage, A.R. (1982). User's guide to the stand prognosis model.
+General Technical Report INT-133, USDA Forest Service, Ogden, Utah.
 
 Yin, X., Goudriaan, J., Lantinga, E.A., Vos, J. and Spiertz, H.J. (2003). A flexible sigmoid
 function of determinate growth. Annals of Botany 91, 361-371.

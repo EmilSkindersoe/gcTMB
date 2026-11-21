@@ -28,8 +28,8 @@ levels (water and nitrogen) in four blocks, on 11 days of the year from sowing, 
 303. Not every crop was sampled on every day.
 }
 \examples{
-# determinate growth from sowing, b4 = 141: the beta growth function, with an asymptote of each
-# crop and input level
+# growth from sowing, b4 = 141, to the end of growth b3, and the decline after it: the beta growth
+# function, with a maximum of each crop and input level
 fit <- gcTMB(Biomass ~ DOY, fform=b1 ~ Crop * Input, data=SorghumMaize, model="beta", start=c(b4=141))
 summary(fit)
 }

@@ -31,16 +31,12 @@ Tuddenham and Snyder (1954). The heights of the first 18 years of most of the ch
 \code{growth} data of the package fda.
 }
 \examples{
-# the pubertal growth spurt of the girls: a logistic curve from age 8 on, above the estimated
-# height b6 before the spurt
-girls <- subset(BerkeleyGrowth, sex == "female" & age >= 8)
-fit <- gcTMB(height ~ age, data=girls, truncated=FALSE, fix=c(b6=FALSE))
+# the growth of the girls from 2 years on: the Preece-Baines curve, with the adult height b1 and
+# the middle of puberty b2, and the peak height velocity of the pubertal growth spurt
+girls <- subset(BerkeleyGrowth, sex == "female" & age >= 2)
+fit <- gcTMB(height ~ age, data=girls, model="preecebaines")
 coef(fit)
-\donttest{
-# with a random asymptote and timing of the spurt for each girl
-fitre <- gcTMB(height ~ age, rform=b1 + b2 ~ 1 | id, data=girls, truncated=FALSE, fix=c(b6=FALSE))
-summary(fitre)
-}
+maxrate(fit)
 }
 \references{
 Tuddenham, R.D. and Snyder, M.M. (1954). Physical growth of California boys and girls

@@ -28,7 +28,9 @@
 #' combination of the grouping variables of the random effects) with its predicted random effects,
 #' and the population curves, with the random effects at zero, as thick lines for each combination
 #' of the covariates of the fixed effects (\code{fform}). Points and curves are coloured by these
-#' covariates. The covariates of an individual are taken from its first observation.
+#' covariates. A single numeric covariate is shown on a continuous colour scale, with the population
+#' curves at its 10\%, 50\% and 90\% quantiles. The covariates of an individual are taken from its
+#' first observation.
 #'
 #' @param x A gcTMB object, the result of \code{\link{gcTMB}}.
 #' @param type Character vector. "validation" (default) for the validation plots, "curves" for the
@@ -146,8 +148,19 @@ curveplot <- function(x, times=NULL, ngrid=200){
   }
   d$cov <- covlab(obs)
 
+  # a single numeric covariate: a continuous colour scale, and the population curves at its 10%, 50%
+  # and 90% quantiles
+  numcov <- length(covvars) == 1 && is.numeric(obs[[covvars]])
+  if (numcov){
+    covlab <- function(nd) nd[[covvars]]
+    d$cov <- covlab(obs)
+  }
+
   # population curves
-  if (length(covvars) > 0){
+  if (numcov){
+    pc <- data.frame(signif(unique(stats::quantile(obs[[covvars]], c(0.1, 0.5, 0.9), na.rm=TRUE, names=FALSE)), 3))
+    names(pc) <- covvars
+  } else if (length(covvars) > 0){
     pc <- unique(obs[, covvars, drop=FALSE])
     pc <- pc[stats::complete.cases(pc), , drop=FALSE]
   } else pc <- data.frame(row.names=1)
@@ -179,6 +192,7 @@ curveplot <- function(x, times=NULL, ngrid=200){
     if (!is.null(ig)) p <- p + ggplot2::geom_line(data=ig, ggplot2::aes(group=curve), alpha=0.5)
     p <- p + ggplot2::geom_line(data=pg, ggplot2::aes(group=curve), linewidth=1.2) +
       ggplot2::labs(colour=paste(covvars, collapse=", "))
+    if (numcov) p <- p + ggplot2::scale_colour_viridis_c(end=0.9)
   } else {
     p <- ggplot2::ggplot(d, ggplot2::aes(x=time, y=y)) +
       ggplot2::geom_point(alpha=0.6, colour="grey40")

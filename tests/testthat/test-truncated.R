@@ -86,7 +86,7 @@ test_that("b4 is only used by truncated curves", {
 test_that("by default the curves are truncated at b4 = 0, fixed", {
   f <- gcTMB(height ~ DAS, data=FabaHeights25)
   expect_true(f$truncated)
-  expect_equal(f$fix, c(FALSE, FALSE, FALSE, TRUE, TRUE, TRUE))
+  expect_equal(f$fix, c(FALSE, FALSE, FALSE, TRUE, TRUE))
   expect_equal(f$start[4:5], c(0, 1))
   out <- capture.output(print(f))
   expect_true(any(grepl("truncated at b4 = 0", out)))
@@ -103,7 +103,7 @@ test_that("by default the curves are truncated at b4 = 0, fixed", {
   }
   # an estimated threshold, and the log link of b4 needs a value
   fb <- gcTMB(height ~ DAS, data=FabaHeights25, fix=c(b4=FALSE))
-  expect_equal(fb$fix, c(FALSE, FALSE, FALSE, FALSE, TRUE, TRUE))
+  expect_equal(fb$fix, c(FALSE, FALSE, FALSE, FALSE, TRUE))
   expect_true(any(grepl("truncated at the threshold b4", capture.output(print(fb)))))
   expect_error(gcTMB(height ~ DAS, data=FabaHeights25, link=c(b4="log")), "outside the range of its log link")
 })

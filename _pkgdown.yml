@@ -6,7 +6,7 @@ template:
 home:
   title: "gcTMB: Fitting Growth Curves Using the Template Model Builder"
   description: >
-    Non-linear growth curves (logistic, Richards, Gompertz, Hill, Weibull and more) with
+    Non-linear growth curves (logistic, Richards, Gompertz, Hill, Weibull, Chapman-Richards, beta and more) with
     covariates, random effects and autocorrelated residuals, fitted by maximum likelihood with TMB.
 
 navbar:
@@ -50,6 +50,9 @@ reference:
   - FabaHeights25
   - FabaHeights26
   - FabaCounts23
+  - BerkeleyGrowth
+  - PineHeightDiameter
+  - SorghumMaize
 - title: Package
   contents:
   - gcTMB-package

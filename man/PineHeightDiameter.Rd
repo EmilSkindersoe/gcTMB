@@ -30,9 +30,10 @@ height-diameter models: the height grows with the diameter towards an asymptote,
 height of 1.3 m.
 }
 \examples{
-# a Chapman-Richards curve from the breast height b6 = 1.3, with a random asymptote of each plot
+# a Chapman-Richards curve from the breast height, the intercept b4 = 1.3, with a random asymptote
+# of each plot
 fit <- gcTMB(height ~ dbh, rform=b1 ~ 1 | plot, data=PineHeightDiameter,
-             model="chapmanrichards", start=c(b6=1.3))
+             model="chapmanrichards", start=c(b4=1.3))
 summary(fit)
 }
 \references{

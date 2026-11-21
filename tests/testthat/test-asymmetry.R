@@ -32,7 +32,7 @@ test_that("an estimated asymmetry agrees with nls, and timeto with the curve", {
   d <- data.frame(day=rep(seq(2, 60, by=4), 3))
   d$y <- gcTMB:::gcmeanR(1, d$day, 50, 20, 5, 0, 3) + rnorm(nrow(d), 0, 1)
   f <- gcTMB(y ~ day, truncated=FALSE, data=d, fix=c(b5=FALSE))
-  expect_equal(f$fix, c(FALSE, FALSE, FALSE, TRUE, FALSE, TRUE))
+  expect_equal(f$fix, c(FALSE, FALSE, FALSE, TRUE, FALSE))
   n <- nls(y ~ b1/(1 + b5*exp(-(day - b2)/b3))^(1/b5), data=d, start=list(b1=50, b2=20, b3=5, b5=3))
   expect_equal(unname(bcoef(f)), unname(coef(n)), tolerance=1e-4)
   b <- bcoef(f)

@@ -22,7 +22,7 @@
 #' For gaussian and lognormal (on the log scale) models without random effects, \code{test="F"} gives F-tests, as nls does for
 #' continuous responses: the reduction of the (weighted) residual sum of squares per additional
 #' parameter, divided by the residual mean square of the largest model, with n - p residual degrees
-#' of freedom for p coefficients b1-b6. The F-test is exact for linear models and accounts for the
+#' of freedom for p coefficients b1-b5. The F-test is exact for linear models and accounts for the
 #' estimation of the residual variance, which the likelihood ratio test does not, so it is usually
 #' preferable for small experiments.
 #'

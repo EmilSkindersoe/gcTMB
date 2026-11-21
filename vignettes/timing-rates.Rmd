@@ -21,30 +21,39 @@ knitr::opts_chunk$set(
 )
 ```
 
-This vignette covers the times at which growth curves reach a level of their asymptote, `timeto()`, and the maximum growth rates and their timing, `maxrate()`, with treatment effects for the heights of faba bean plants and genotype effects for counts of pods. The table of the inflection points and maximum growth rates of the growth models is in the vignette *Growth models and their parameters*.
+This vignette covers the times at which growth curves reach a level of their asymptote, `timeto()`, and the maximum growth rates and their timing, `maxrate()`, for the heights of children of the Berkeley Child Guidance Study. The table of the inflection points and maximum growth rates of the growth models is in the vignette *Growth models and their parameters*.
 
-The models of the vignettes *Growth models and their parameters* and *Fixed and random effects*: a single logistic curve, a curve for each treatment with random effects of the plants, and a Poisson model of the pods with a curve for each genotype and a random asymptote of each plant:
+## The Berkeley data
 
-```{r}
+The data set `BerkeleyGrowth` contains the heights (cm) of 66 boys and 70 girls born in Berkeley, California, in 1928-29, measured from birth to 21 years (Tuddenham and Snyder, 1954). Human growth in height is not a single sigmoid curve: it slows down through childhood, speeds up in the pubertal growth spurt, and stops at the adult height. Model 1 of Preece and Baines (1978) describes this with five parameters,
+
+$$ h(t) = b_1 - \frac{2 (b_1 - b_3)}{\exp(b_4 (t - b_2)) + \exp(b_5 (t - b_2))}, $$
+
+the adult height $b_1$, the age $b_2$ in the middle of puberty, the height $b_3$ at that age, and the rates $b_4$ and $b_5$ of growth before and during puberty. The heights were measured from 1.75 years on; the model is fitted from 2 years, first for the girls:
+
+```{r, fig.width = 6, fig.height = 4}
 library(gcTMB)
 library(ggplot2)
-FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-trts <- data.frame(trt = levels(FabaHeights25$trt))
-fit <- gcTMB(height ~ DAS, data = FabaHeights25, model = "logistic")
-fitre <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)
-fitp <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
-              family = "poisson", fix = c(b4 = FALSE))
-genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
+berkeley <- subset(BerkeleyGrowth, age >= 2 & !is.na(height))
+girls <- subset(berkeley, sex == "female")
+fitg <- gcTMB(height ~ age, data = girls, model = "preecebaines")
+summary(fitg)
+ages <- data.frame(age = seq(2, 21, by = 0.05))
+ggplot(girls, aes(x = age, y = height)) +
+  geom_line(aes(group = id), colour = "grey70") +
+  geom_line(data = cbind(ages, height = predict(fitg, newdata = ages)), colour = "blue", linewidth = 1) +
+  labs(x = "Age (years)", y = "Height (cm)") +
+  theme_minimal()
 ```
 
 ## Time to reach a level of the asymptote
 
-`timeto()` gives the times at which a curve reaches a percentage of its asymptote, $b_2 + b_3 F^{-1}(p/100)$, with standard errors by automatic differentiation. With `type = "absolute"`, the times at which the curve reaches given responses, here a height of 50cm.
+`timeto()` gives the times at which a curve reaches a percentage of its asymptote, here the ages at which the girls reach 90%, 95% and 99% of their adult height, with standard errors by automatic differentiation. With `type = "absolute"`, the times at which the curve reaches given responses, here a height of 150 cm.
 
 ```{r}
-tt <- timeto(fit, level = c(10, 50, 90))
+tt <- timeto(fitg, level = c(90, 95, 99))
 tt
-timeto(fit, level = 50, type = "absolute")
+timeto(fitg, level = 150, type = "absolute")
 ```
 
 `confint()` gives profile likelihood intervals by default, `method = "wald"` Wald intervals and `method = "boot"` parametric bootstrap intervals.
@@ -56,90 +65,100 @@ confint(tt, method = "wald")
 
 ## Maximum growth rate
 
-`maxrate()` gives the time of the maximum growth rate (`tmax`), the inflection point of the curve, the maximum growth rate there (`rate`), and the proportion of total growth at that time, $f(t_m)/b_1$ (`fraction`). The standard errors are by the delta method. `confint()` gives profile likelihood intervals for `tmax` and `rate` by default, and Wald intervals for `fraction`; `method = "wald"` and `method = "boot"` as for `timeto()`. For the logistic curve truncated at $b_4 = 0$, `tmax` is $b_2$; `rate` is slightly above and `fraction` slightly below the values $b_1/(4 b_3)$ and $1/2$ of the curve without truncation in the table of the growth models, as the truncation shifts the curve down to zero at $t = 0$ and rescales it.
+`maxrate()` gives the time of the maximum growth rate (`tmax`), the maximum growth rate there (`rate`), and the proportion of total growth at that time, $f(t_m)/b_1$ (`fraction`). The standard errors are by the delta method. `confint()` gives profile likelihood intervals for `tmax` and `rate` by default, and Wald intervals for `fraction`; `method = "wald"` and `method = "boot"` as for `timeto()`. The growth rate of the Preece-Baines curve is highest in early childhood and falls until the take-off of the pubertal growth spurt; `maxrate()` gives the peak of the spurt, the peak height velocity, and the age at which it is reached. It is close to, but not the same as, the middle of puberty $b_2$.
 
 ```{r, message = FALSE}
-mr <- maxrate(fit)
+mr <- maxrate(fitg)
 mr
 confint(mr)
 ```
 
-## Timing and maximum growth rates of the treatments
+## Timing and maximum growth rates of boys and girls
 
-`timeto()` and `maxrate()` with `newdata` give the times and rates of the curves of each row, here the population curves of the treatments (`random = FALSE`) of the model with random effects of the plants:
+Covariates on all five parameters give a curve for each sex, and random effects of the children on the adult height, the middle of puberty and the rate during puberty a curve for each child. The default starting values pool the boys and the girls, and are far from the curve of either sex when all five parameters differ between the sexes; the fits of each sex give better starting values, the coefficients of the boys and the differences of the girls from them:
 
 ```{r}
-timeto(fitre, level = 90, newdata = trts, random = FALSE)
-mrre <- maxrate(fitre, newdata = trts)
-mrre
+fitb <- gcTMB(height ~ age, data = subset(berkeley, sex == "male"), model = "preecebaines")
+cb <- coef(fitb)[1:5]
+cg <- coef(fitg)[1:5]
+fitre <- gcTMB(height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, rform = b1 + b2 + b5 ~ 1 | id,
+               data = berkeley, model = "preecebaines", start = as.vector(rbind(cb, cg - cb)),
+               control = list(restart = TRUE))
+summary(fitre)
+converged(fitre)
 ```
 
-### Treatment effects on the maximum growth rate
+With 17 parameters and strongly correlated random effects, the optimiser stops with a gradient above $10^{-3}$; `control = list(restart = TRUE)` optimises once more from the estimates, which no longer improves the log-likelihood, so that `converged()` accepts the fit (see the vignette *Autocorrelation and simulation*).
 
-With `b1type = "rate"`, $b_1$ is the maximum growth rate of the curve instead of its asymptote (see *The maximum growth rate as a parameter* in the vignette *Growth models and their parameters*), so that covariates on $b_1$ are effects on the maximum growth rate. The model with the treatment effects on $b_1$ and $b_2$ has the same number of parameters as `fitre`, but the random effects of the plants are now on their maximum growth rates rather than their asymptotes, a slightly different model. The log link gives the treatment effects as ratios of the rates.
+`timeto()` and `maxrate()` with `newdata` give the times and rates of the curves of each row, here the population curves of the sexes (`random = FALSE`):
 
 ```{r}
-fitrr <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25,
-               b1type = "rate", link = c(b1 = "log"))
-AIC(fitre, fitrr)
+sexes <- data.frame(sex = c("male", "female"))
+timeto(fitre, level = c(90, 99), newdata = sexes, random = FALSE)
+maxrate(fitre, newdata = sexes)
 ```
 
-Whether the treatments have the same maximum growth rate is a likelihood ratio test of the models with and without the treatment effects on $b_1$, keeping those on $b_2$:
+The girls reach the middle of puberty, the peak of their growth spurt and their adult height about two years earlier than the boys. `pairwise()` compares a parameter between the rows of `newdata` by Wald tests, here the middle of puberty $b_2$ (see below for the details of `pairwise()`):
 
 ```{r}
-fitrr0 <- gcTMB(height ~ DAS, fform = b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25,
-                b1type = "rate", link = c(b1 = "log"))
+pairwise(fitre, newdata = sexes, parm = "b2")
+```
+
+The height and the growth rate of the population curves of the sexes, the growth rate by the differences of the predicted heights:
+
+```{r, fig.width = 7, fig.height = 4}
+nd <- merge(sexes, ages)
+nd$height <- predict(fitre, newdata = nd, random = FALSE)
+nd$rate <- ave(nd$height, nd$sex, FUN = function(h) c(NA, diff(h)) / 0.05)
+curves <- rbind(data.frame(nd[, c("sex", "age")], value = nd$height, panel = "Height (cm)"),
+                data.frame(nd[, c("sex", "age")], value = nd$rate, panel = "Growth rate (cm/year)"))
+ggplot(curves, aes(x = age, y = value, colour = sex)) +
+  geom_line(na.rm = TRUE) +
+  facet_wrap(~ panel, scales = "free_y") +
+  labs(x = "Age (years)", y = NULL, colour = "Sex") +
+  theme_minimal()
+```
+
+### Effects on the maximum growth rate
+
+With `b1type = "rate"`, $b_1$ is the maximum growth rate of the curve instead of its asymptote (see *The maximum growth rate as a parameter* in the vignette *Growth models and their parameters*), so that covariates on $b_1$ are effects on the maximum growth rate. This needs a curve whose maximum growth rate is proportional to $b_1$, which is not the case for the Preece-Baines curve. The growth spurt alone, from 8 years on, is a sigmoid curve above the height reached before it, as the Chapman-Richards curve with the intercept $b_4$ estimated; with `b1type = "rate"` and the log link, $b_1$ is the peak height velocity, and the effect of the sex a ratio of the rates. Each child has random effects on the peak height velocity, its timing and the height before the spurt:
+
+```{r}
+spurt <- subset(BerkeleyGrowth, age >= 8 & !is.na(height))
+fitrr <- gcTMB(height ~ age, fform = b1 + b2 + b4 ~ sex, rform = b1 + b2 + b4 ~ 1 | id, data = spurt,
+               model = "chapmanrichards", start = c(b4 = 120), fix = c(b4 = FALSE), b1type = "rate",
+               link = c(b1 = "log"))
+summary(fitrr)
+maxrate(fitrr, newdata = sexes)
+```
+
+Whether boys and girls have the same peak height velocity is a likelihood ratio test of the models with and without the sex effect on $b_1$, keeping those on $b_2$ and $b_4$:
+
+```{r}
+fitrr0 <- gcTMB(height ~ age, fform = b2 + b4 ~ sex, rform = b1 + b2 + b4 ~ 1 | id, data = spurt,
+                model = "chapmanrichards", start = c(b4 = 120), fix = c(b4 = FALSE), b1type = "rate",
+                link = c(b1 = "log"))
 anova(fitrr0, fitrr)
 ```
 
-`pairwise()` compares the maximum growth rates of all pairs of treatments (see the pods below for the details); with the log link, as ratios:
+`pairwise()` compares the maximum growth rates of all pairs of rows of `newdata` by Wald tests. By default, the p-values and the confidence intervals are adjusted for the number of pairs by the single-step method, the generalisation of Tukey's honestly significant differences to the correlated estimates of a model, so that the intervals cover all the differences simultaneously; `adjust = "holm"` and the other methods of `p.adjust()` adjust the p-values only. With two sexes there is a single pair, and no adjustment. With the log link, the differences are log ratios of the rates, and the ratios are given as well. The same works for the other parameters, e.g. `parm = "b2"` as above.
 
 ```{r}
-pairwise(fitrr, newdata = trts)
+pairwise(fitrr, newdata = sexes)
 ```
 
-The treatments do not differ clearly in their maximum growth rates.
-
-## Timing and maximum growth rates of the genotypes
-
-The same functions apply to count data. For the pods, the times at which the population curve of each genotype reaches half of its asymptote, and the maximum growth rates, the most pods gained per day, of the Poisson model `fitp` with genotype effects on the asymptote:
+`predict()` with `type = "parameters"` gives the asymptote of the population curves as well. For the Chapman-Richards curve with an intercept, the asymptote is the growth above the intercept $b_4$, here the growth during the spurt above the height before it, about 50 cm, so that the adult height is $b_4$ plus the asymptote:
 
 ```{r}
-timeto(fitp, level = 50, newdata = genotypes, random = FALSE)
-maxrate(fitp, newdata = genotypes)
+pars <- predict(fitrr, newdata = sexes, type = "parameters", random = FALSE)
+data.frame(sex = sexes$sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
+           growth_in_spurt = pars[, "asymptote"], adult_height = pars[, "b4"] + pars[, "asymptote"])
 ```
 
-### Genotype effects on the maximum growth rate
+The adult heights agree with the asymptotes $b_1$ of the Preece-Baines curves of the sexes above.
 
-The genotype effects of `fitp` are on the asymptote. With `b1type = "rate"`, $b_1$ is the maximum growth rate, so the same formulas give genotype effects and random effects of the plants on the maximum growth rate, the most pods gained per day; the log link expresses the genotype effects as ratios of the rates. The random effects are now on the rate of each plant rather than its asymptote, which is a different model, here with a somewhat worse fit by AIC.
+## References
 
-```{r}
-fitpr <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
-               family = "poisson", fix = c(b4 = FALSE), b1type = "rate", link = c(b1 = "log"))
-summary(fitpr)
-AIC(fitp, fitpr)
-```
+Preece, M.A. and Baines, M.J. (1978). A new family of mathematical models describing the human growth curve. *Annals of Human Biology* 5, 1--24.
 
-Whether the genotypes have the same maximum growth rate is a likelihood ratio test of the models with and without the genotype effects on $b_1$, keeping those on $b_2$:
-
-```{r}
-fitpr0 <- gcTMB(pods ~ DAS, fform = b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
-                family = "poisson", fix = c(b4 = FALSE), b1type = "rate", link = c(b1 = "log"))
-anova(fitpr0, fitpr)
-```
-
-`pairwise()` compares the maximum growth rates of all pairs of genotypes by Wald tests. By default, the p-values and the confidence intervals are adjusted for the number of pairs by the single-step method, the generalisation of Tukey's honestly significant differences to the correlated estimates of a model, so that the intervals cover all the differences simultaneously; `adjust = "holm"` and the other methods of `p.adjust()` adjust the p-values only. With the log link, the differences are log ratios of the rates, and the ratios are given as well. The same works for the other parameters, e.g. `parm = "b2"` for the time of the maximum growth rate, which is $b_2$ for the logistic curve.
-
-```{r}
-pairwise(fitpr, newdata = genotypes)
-```
-
-The overall likelihood ratio test is borderline, while the pairwise comparisons single out the largest differences: Melodie gains pods faster than ILB938 and Capri, and ILB938 more slowly than Lynx and Navara. The Wald tests rely on the normal approximation of the estimates, which is rougher than the likelihood ratio test with only 22 plants.
-
-`predict()` with `type = "parameters"` gives the asymptote of the population curves as well, and `maxrate()` the rates, which are now $b_1$:
-
-```{r}
-cbind(genotypes, predict(fitpr, newdata = genotypes, type = "parameters", random = FALSE))
-maxrate(fitpr, newdata = genotypes)
-```
-
+Tuddenham, R.D. and Snyder, M.M. (1954). Physical growth of California boys and girls from birth to eighteen years. *University of California Publications in Child Development* 1, 183--364.

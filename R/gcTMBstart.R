@@ -3,13 +3,13 @@
 #' Computes starting values for the fixed-effect parameters of a growth curve,
 #' which can be inspected, modified, and passed to the \code{start} argument of \code{\link{gcTMB}}.
 #'
-#' Method "lm" linearises the growth curve: for a given asymptote b1, the mean response at each
-#' time t, relative to b1, gives Finv(y/b1) = z(t), with the inverse Finv of the function F of the
-#' model (qlogis for logistic and hill, -log(-log(q)) for gompertz, log(-log(1 - q)) for weibull) and
-#' the transformed time z(t) (see \code{\link{gcTMB}}), which is linear in the time t (logistic,
-#' gompertz) or in log(t) (hill, weibull). A linear regression of Finv(y/b1) on t or log(t) gives b2 and
-#' b3 from its intercept and slope, e.g. b3 as the inverse of the slope and b2 as the time at which the
-#' line crosses zero for the logistic model; with b2 or b3 given in \code{start}, only the other one is
+#' Method "lm" linearises the growth curve: for a given asymptote b1, the mean response y at each
+#' time t is transformed to a straight line in t or log(t): log(y/(b1 - y)) = (t - b2)/b3 for the
+#' logistic curve, -log(-log(y/b1)) = (t - b2)/b3 for gompertz, qnorm(y/b1) = (t - b2)/b3 for normal,
+#' log(y/(b1 - y)) = b3 (log t - log b2) for hill, and log(-log(1 - y/b1)) = b3 (log t - log b2) +
+#' log((b3 - 1)/b3) for weibull. A linear regression of the transformed responses on t or log(t)
+#' gives b2 and b3 from its intercept and slope, e.g. b3 as the inverse of the slope and b2 as the time
+#' at which the line crosses zero for the logistic model; with b2 or b3 given in \code{start}, only the other one is
 #' estimated. The weibull shape b3 starts at least at 1.1. The observed responses
 #' often do not reach the asymptote yet, so b1 is profiled: for asymptotes from just above the
 #' largest mean response to four times it, the linearised fit gives b2 and b3, b1 is refitted by least
@@ -22,11 +22,10 @@
 #' time with a positive count, and for the lognormal and beta families before all times, as positive
 #' responses are impossible before the threshold. The asymmetry b5 starts at 1, the symmetric curve,
 #' with which b2 and b3 are linearised unless b5 is given in start; b4 without truncation starts at 0.
-#' The additive b6 starts at 0, or at its value in start, and the curve above it is linearised.
 #'
-#' The curves that start at b4 (chapmanrichards, beta) are not linearised: b1-b3 are
-#' fitted by least squares to the mean responses, starting from a curve that reaches half the largest
-#' response at the time closest to it.
+#' The beta, beta_capped, chapmanrichards and wykoff curves are not linearised: b1-b3 are fitted by
+#' least squares to the mean responses (above the intercept log(b5) of chapmanrichards and wykoff,
+#' when b5 is given in start), with b4 at 0 or its value in start.
 #'
 #' Method "grid" evaluates the negative log-likelihood (without random effects) at all
 #' combinations of a grid of parameter values and returns the best grid point; parameters
@@ -38,15 +37,15 @@
 #' user-specified bounds.
 #'
 #' @param form Formula, with the names of the response and the explanatory variable x (usually time), e.g. \code{weight ~ day}, see \code{\link{gcTMB}}.
-#' @param fform Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1). A list of six right-hand side formulas, one for each of b1-b6 (X1 = ~ 1, ..., X6 = ~ 1), is also accepted, or of five for b1-b5.
+#' @param fform Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1). A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.
 #' @param data Data frame. Observations with missing values in the variables of the model or in the weights are left out.
 #' @param start Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced.
-#' @param fix Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4, the asymmetry b5 and the additive b6 are fixed by default, at 0, 1 and 0 unless given in start; fix=c(b4=FALSE), fix=c(b5=FALSE) or fix=c(b6=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.
+#' @param fix Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4 and the asymmetry (or intercept) b5 are fixed by default, at 0 and 1 unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.
 #' @param weights Numeric vector or NULL. Weights, one for each row of data.
 #' @param family Character string. The distribution of the response, see \code{\link{gcTMB}}.
-#' @param model Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "normal", "gamma", "chapmanrichards", "beta" or "linear", see \code{\link{gcTMB}}.
+#' @param model Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "beta", "beta_capped", "normal", "gamma", "chapmanrichards", "wykoff", "preecebaines" or "linear", see \code{\link{gcTMB}}.
 #' @param truncated Logical. If TRUE (default), the curve is truncated at a threshold b4, by default fixed at 0, see \code{\link{gcTMB}}.
-#' @param link Named character vector or NULL. Links of the parameters b1-b6, see \code{\link{gcTMB}}.
+#' @param link Named character vector or NULL. Links of the parameters b1-b5, see \code{\link{gcTMB}}.
 #' @param b1type Character string. The meaning of b1, "asymptote" (default) or "rate" for the maximum growth rate, see \code{\link{gcTMB}}.
 #' @param method Character string. One of "lm" or "grid".
 #' @param gsl Numeric vector or NULL. Lower bounds for the grid search, same length as start, on the scale of the coefficients (the rate 1/b3 for b3 with the inverse link); NA (or NULL) for the default range.
@@ -59,7 +58,7 @@
 #' # with a given asymptote, from which b2 and b3 are linearised
 #' gcTMBstart(height ~ DAS, data=FabaHeights25, start=c(b1=120))
 #' # best point of a grid of b2 and b3 values
-#' gcTMBstart(height ~ DAS, data=FabaHeights25, method="grid", gsn=c(1, 10, 10, 1, 1, 1))
+#' gcTMBstart(height ~ DAS, data=FabaHeights25, method="grid", gsn=c(1, 10, 10, 1, 1))
 #' @export
 #'
 gcTMBstart <- function(form, fform=NULL, data, start=NULL, fix=NULL, weights=NULL, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type=c("asymptote", "rate"), method="lm", gsl=NULL, gsu=NULL, gsn=NULL){
@@ -104,7 +103,7 @@ gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="
   # model
   mod <- modelindex(model)
   fam <- which(family == c("gaussian", "poisson", "binomial", "beta", "nbinom2", "nbinom1", "betabinomial", "lognormal"))
-  if (length(mod) != 1) stop("Unknown model: ", model, "; one of ", paste(names(gcmodels), collapse=", "), ".")
+  if (length(mod) != 1) stop("Unknown model: ", model, "; one of ", paste(modelnames, collapse=", "), ".")
   if (length(fam) != 1) stop("Unknown family: ", family, "; one of gaussian, lognormal, poisson, binomial, betabinomial, beta, nbinom2, nbinom1.")
   m <- gcmodel(mod)
   link <- parlinks(link, m, model)
@@ -129,9 +128,9 @@ gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="
   # random effects
   re <- reterms(rform, data)
   rpars <- unlist(lapply(re$terms, function(tm) tm$pars))
-  # the linear model is not truncated; the curves that start at b4 always are, which changes nothing
-  # but gives b4 its role
-  truncated <- (truncated || isstart(mod)) && !islinear(mod)
+  # the linear model and the models with the intercept b4 (chapmanrichards, wykoff) are not
+  # truncated; beta always is, as it is zero up to its start b4, which only gives b4 its role
+  truncated <- if (islinear(mod) || hasintercept(mod) || isFALSE(m$trunc)) FALSE else if (isstart(mod)) TRUE else truncated
   unused <- intersect(unusedpars(mod, truncated), rpars)
   if (length(unused) > 0) stop("The ", if (truncated) "truncated ", model, " model does not use ", paste("b", unused, sep="", collapse=", "), "; remove it from rform.")
 
@@ -141,7 +140,7 @@ gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="
   cor <- corsetup(correlation, data, weights, re$terms, function(t, data) termgroups(re$terms[[t]], data))
 
   list(y=y, x=mf[,2], w=weights, bn=bn, fam=fam, mod=mod, trunc=truncated, lnk=lnk, re=re,
-       Xs=Xs, fform=fform, fterms=fterms, npars=npars, npi=rep(1:6, npars),
+       Xs=Xs, fform=fform, fterms=fterms, npars=npars, npi=rep(1:5, npars),
        family=family, model=model, link=link, data=data, b1rate=identical(b1type, "rate"),
        correlation=correlation, cor=cor)
 }
@@ -149,6 +148,7 @@ gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="
 # b1 as the maximum growth rate: the gompertz, weibull, normal and gamma curves only with the
 # symmetric curves, b5 fixed at 1 (their maximum growth rate has no closed form otherwise)
 checkb1rate <- function(dd, start, fix){
+  if (isTRUE(dd$b1rate) && dd$model == "preecebaines") stop("b1type=\"rate\" is not available for the preecebaines model, whose maximum growth rate is not proportional to b1.")
   if (!isTRUE(dd$b1rate) || !(dd$model %in% c("gompertz", "weibull", "normal", "gamma"))) return(invisible())
   i5 <- which(dd$npi == 5)
   rpars <- unlist(lapply(dd$re$terms, function(tm) tm$pars))
@@ -189,9 +189,8 @@ lmstart <- function(dd, start, fix){
   if (isTRUE(dd$b1rate)) kn[1] <- FALSE
   # asymmetry b5: its starting value, otherwise the symmetric curve
   a <- if (!is.na(start[npi == 5][1])) linkfun(dd$lnk[5], start[npi == 5][1], inverse=TRUE) else 1
-  # additive b6: its starting value, otherwise 0; the curve b1 G(z) is linearised above it. The linear
-  # model does not use it.
-  b6 <- if (!is.na(start[npi == 6][1])) linkfun(dd$lnk[6], start[npi == 6][1], inverse=TRUE) else 0
+  # intercept b4 of chapmanrichards and wykoff, when it is given: the curve is fitted above it
+  icpt <- if (!is.na(start[npi == 4][1])) intercept(dd$mod, linkfun(dd$lnk[4], start[npi == 4][1], inverse=TRUE)) else 0
 
   # response on the mean scale, aggregated by time; geometric means for the medians of lognormal responses
   if (dd$family %in% c("binomial", "betabinomial") & any(dd$bn > 0)){
@@ -202,12 +201,7 @@ lmstart <- function(dd, start, fix){
     yd <- tapply(dd$w * dd$y, dd$x, sum) / tapply(dd$w, dd$x, sum)
   }
   td <- sort(unique(dd$x))
-  yd <- as.vector(yd)
-  # an estimated b6 with the log link, without a starting value: half the smallest mean response
-  if (dd$lnk[6] == linkindex("log") && is.na(start[npi == 6][1]) && !fix[npi == 6][1] && !islinear(dd$mod)){
-    b6 <- max(min(yd[is.finite(yd)]) / 2, 1e-3 * max(abs(yd[is.finite(yd)])))
-  }
-  yd <- yd - b6
+  yd <- as.vector(yd) - icpt
   ok <- is.finite(yd)
   td <- td[ok]
   yd <- yd[ok]
@@ -271,31 +265,38 @@ lmstart <- function(dd, start, fix){
     fits[[if (all(!is.finite(rss))) 1 else which.min(rss)]]$b
   }
 
-  # curves that start at b4 (chapmanrichards, beta): the start b4 is its starting value
-  # (0 by default), or, estimated without one, 0 or just before the first time; b1-b3 by least squares
-  # of the mean responses, from a curve that reaches half the largest response at the time closest to
-  # it, with c = 3 for chapmanrichards
+  # chapmanrichards, beta and wykoff: b4 is its starting value (0 by default); for beta, estimated
+  # without one, 0 or just before the first time. b1-b3 by least squares of the mean responses (above
+  # the intercept b4 of chapmanrichards and wykoff), from a curve with its inflection point at the time
+  # closest to the fraction of the largest response there (1/2, or exp(-2) for wykoff), with c = 3 for
+  # chapmanrichards. The curves grow from b0: the start b4 of beta, and t = 0 for the others.
   b4s <- NA
+  b0 <- 0
   if (isTRUE(m$start)){
     b4s <- if (!is.na(start[npi == 4][1])) linkfun(dd$lnk[4], start[npi == 4][1], inverse=TRUE) else
-      if (fix[npi == 4][1] || min(td) > 0) 0 else min(td) - trange / 10
+      if (hasintercept(dd$mod) || fix[npi == 4][1] || min(td) > 0) 0 else min(td) - trange / 10
+    if (!hasintercept(dd$mod)) b0 <- b4s
   }
   startfit <- function(b4){
     ymax <- yd[which.max(abs(yd))]
     if (ymax == 0) ymax <- 1
     after <- td > b4
-    th <- if (any(after)) td[after][which.min(abs(yd[after] - ymax / 2))] else b4 + trange / 2
+    fm <- if (dd$model == "wykoff") exp(-2) else 1/2
+    th <- if (any(after)) td[after][which.min(abs(yd[after] - fm * ymax))] else b4 + trange / 2
     b1 <- if (kn[1]) kv[1] else linkrange(1.1 * ymax, dd$family)
     b2 <- if (kn[2]) kv[2] else if (is.na(m$b2)) 0 else max(th, b4 + trange / 10)
     b3 <- if (kn[3]) kv[3] else switch(dd$model, chapmanrichards=max(b2 - b4, trange / 10) / log(3),
-                                     beta=max(max(td) - b2, trange / 10))
-    # free parameters: b1, b2 - b4 and b3 on the log scale
+                                     beta=, beta_capped=b2 + max(max(td) - b2, trange / 10))
+    # free parameters: b1, b2 - b4 and b3 on the log scale (b3 - b2, the time from the maximum growth
+    # rate to the end of growth, for beta)
+    isbeta <- dd$model %in% c("beta", "beta_capped")
     free <- c(!kn[1], !kn[2] && !is.na(m$b2), !kn[3])
-    p0 <- c(b1, log(max(b2 - b4, 1e-8 * trange)), log(b3))
+    p0 <- c(b1, log(max(b2 - b4, 1e-8 * trange)), if (isbeta) log(max(b3 - b2, 1e-8 * trange)) else log(b3))
     pars <- function(p){
       q <- p0
       q[free] <- p
-      c(q[1], if (is.na(m$b2)) 0 else if (kn[2]) b2 else b4 + exp(q[2]), exp(q[3]))
+      p2 <- if (is.na(m$b2)) 0 else if (kn[2]) b2 else b4 + exp(q[2])
+      c(q[1], p2, if (isbeta && !kn[3]) p2 + exp(q[3]) else if (kn[3]) b3 else exp(q[3]))
     }
     rss <- function(p){
       b <- pars(p)
@@ -311,13 +312,47 @@ lmstart <- function(dd, start, fix){
   }
 
   if (islinear(dd$mod)){
-    # the linear model: least squares of the slope b1 and the intercept b6, unless given (yd is
-    # already above a given b6)
+    # the linear model: least squares, unless given
     cf <- if (length(td) > 1) coefficients(lm(yd ~ td)) else c(yd[1], 0)
-    best <- c(if (kn[1]) kv[1] else cf[[2]], 0, 0)
-    if (is.na(start[npi == 6][1])) b6 <- cf[[1]]
+    best <- c(if (kn[1]) kv[1] else cf[[2]], if (kn[2]) kv[2] else cf[[1]], 0)
+  } else if (!is.null(m$mean)){
+    # preecebaines: least squares of the mean responses, from the adult height just above the largest
+    # mean response, the middle of puberty where the mean response reaches 90% of the way from the
+    # smallest to the largest one, and the rates 2 and 20 over the range of times; given starting
+    # values are kept. b4 and b5 are the rates.
+    kn45 <- vapply(4:5, function(i) fix[npi == i][1] | !is.na(start[npi == i][1]), logical(1))
+    kv45 <- vapply(4:5, function(i) if (kn45[i - 3]) linkfun(dd$lnk[i], start[npi == i][1], inverse=TRUE) else NA_real_, numeric(1))
+    lo <- min(yd)
+    hi <- max(yd)
+    p1 <- if (kn[1]) kv[1] else hi + 0.02 * (hi - lo)
+    i2 <- which.min(abs(yd - (lo + 0.9 * (hi - lo))))
+    p2 <- if (kn[2]) kv[2] else td[i2]
+    p3 <- if (kn[3]) kv[3] else yd[i2]
+    p4 <- if (kn45[1]) kv45[1] else 2 / trange
+    p5 <- if (kn45[2]) kv45[2] else 20 / trange
+    p0 <- c(p1, p2, p3, log(p4), log(max(p5 - p4, 1e-8)))
+    free <- c(!kn[1:3], !kn45)
+    pars <- function(p){
+      q <- p0
+      q[free] <- p
+      c(q[1:3], exp(q[4]), if (kn45[2]) p5 else exp(q[4]) + exp(q[5]))
+    }
+    rss <- function(p){
+      b <- pars(p)
+      r <- sum((yd - m$mean(td, b[1], b[2], b[3], b[4], b[5]))^2)
+      if (is.finite(r)) r else 1e300
+    }
+    if (any(free)){
+      o <- if (sum(free) == 1) optimize(rss, p0[free] + c(-5, 5)) else optim(p0[free], rss, control=list(maxit=5000))
+      p <- if (sum(free) == 1) o$minimum else o$par
+      if (rss(p) < rss(p0[free])) p0[free] <- p
+    }
+    bp <- pars(p0[free])
+    best <- bp[1:3]
+    b4s <- bp[4]
+    a <- bp[5]
   } else if (isTRUE(m$start)){
-    best <- startfit(b4s)
+    best <- startfit(b0)
   } else {
     # candidate asymptotes, from just above the response furthest from zero to four times it
     ymax <- yd[which.max(abs(yd))]
@@ -357,8 +392,7 @@ lmstart <- function(dd, start, fix){
   }
   orig <- c(best, b4)
   if (isTRUE(dd$b1rate) && !islinear(dd$mod)) orig[1] <- orig[1] * rate1(dd$mod, best[2], best[3], b4, a, isTRUE(dd$trunc))
-  pooled <- c(vapply(1:4, function(i) suppressWarnings(linkfun(dd$lnk[i], orig[i])), numeric(1)), linkfun(dd$lnk[5], a),
-              suppressWarnings(linkfun(dd$lnk[6], b6)))
+  pooled <- c(vapply(1:4, function(i) suppressWarnings(linkfun(dd$lnk[i], orig[i])), numeric(1)), linkfun(dd$lnk[5], a))
   # starting values outside the range of their links, e.g. a negative time with the log link
   bad <- setdiff(which(!is.finite(pooled[1:4])), unusedpars(dd$mod, isTRUE(dd$trunc)))
   bad <- bad[vapply(bad, function(i) any(is.na(start[npi == i]) & !fix[npi == i]), logical(1))]
@@ -368,18 +402,18 @@ lmstart <- function(dd, start, fix){
   projectstart(dd, start, fix, pooled)
 }
 
-# starting values from pooled values of b1-b6: projected onto each design matrix, for the NA
-# entries of start that are not fixed, and for the threshold b4, the asymmetry b5 and the additive b6
-# also when fixed (at 0, 1 and 0 by default)
+# starting values from pooled values of b1-b5: projected onto each design matrix, for the NA
+# entries of start that are not fixed, and for the threshold b4 and the asymmetry b5 also when fixed
+# (at 0 and 1 by default)
 projectstart <- function(dd, start, fix, pooled){
   npi <- dd$npi
-  for (i in 1:6){
+  for (i in 1:5){
     id <- which(npi == i)
     X <- dd$Xs[[i]]
     cf <- qr.coef(qr(X), rep(pooled[i], nrow(X)))
     cf[is.na(cf) | abs(cf) < 1e-8 * max(abs(pooled[i]), 1)] <- 0
     fill <- is.na(start[id]) & (!fix[id] | i >= 4)
-    # b4 = 0 and b6 = 0 fixed by default have no value on the log scale
+    # b4 = 0 fixed by default has no value on the log scale
     if (any(fill) && !is.finite(pooled[i])){
       stop("the default b", i, " = ", linkfun(dd$lnk[i], pooled[i], inverse=TRUE), " is outside the range of its ", linknames[dd$lnk[i]],
            " link; give its value in start, e.g. start=c(b", i, "=0), or estimate it with fix=c(b", i, "=FALSE).")
@@ -397,10 +431,6 @@ gridstart <- function(dd, start, fix, gsl, gsu, gsn){
   if (is.null(gsl)) gsl <- rep(NA, np)
   if (is.null(gsu)) gsu <- rep(NA, np)
   if (is.null(gsn)) gsn <- 10
-  # vectors without the coefficients of b6 (as before b6 was added): b6 is not in the grid
-  gsl <- padb6(gsl, dd$npi, NA)
-  gsu <- padb6(gsu, dd$npi, NA)
-  if (length(gsn) > 1) gsn <- padb6(gsn, dd$npi, 1)
   if (length(gsl) != np | length(gsu) != np) stop("gsl and gsu must have the same length as start, with NA for default ranges.")
   if (length(gsn) == 1) gsn <- rep(gsn, np)
   if (length(gsn) != np) stop("gsn must be a single number or have the same length as start.")
@@ -475,7 +505,7 @@ gridrange <- function(dd, start){
 # TMB objective function for given starting values
 gcTMBobj <- function(dd, start, fix, rform=NULL){
   npi <- dd$npi
-  sb <- lapply(1:6, function(i) start[npi == i])
+  sb <- lapply(1:5, function(i) start[npi == i])
   re <- if (is.null(rform)) reterms(NULL, length(dd$y)) else dd$re
   tnp <- vapply(re$terms, function(tm) length(tm$pars), integer(1))
   tnl <- vapply(re$terms, function(tm) length(tm$levels), integer(1))
@@ -490,7 +520,7 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
                 simre=1L, Z=re$Z)
   cor <- if (is.null(dd$cor)) corsetup(NULL, data.frame(seq_along(dd$y))) else dd$cor
   # no predictions: see predictse
-  Xp <- setNames(lapply(dd$Xs, function(X) X[0, , drop=FALSE]), paste("Xp", 1:6, sep=""))
+  Xp <- setNames(lapply(dd$Xs, function(X) X[0, , drop=FALSE]), paste("Xp", 1:5, sep=""))
   datalist <- c(dlist, dd$Xs, list(xp=numeric(0)), Xp, list(Zp=re$Z[0, , drop=FALSE]),
                 cor[c("cortype", "corprev", "cordt", "corlag", "corord")])
 
@@ -505,7 +535,7 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
   if (dd$family %in% c("poisson", "binomial")) slsigma <- 0
   # autocorrelation: its starting value (or fixed value), on the unconstrained scale
   scor <- if (cor$cortype > 0) as.numeric(dd$correlation) else 0
-  parameters <- list(b1=sb[[1]], b2=sb[[2]], b3=sb[[3]], b4=sb[[4]], b5=sb[[5]], b6=sb[[6]], u=up, theta=as.numeric(stheta), log_sigma=slsigma,
+  parameters <- list(b1=sb[[1]], b2=sb[[2]], b3=sb[[3]], b4=sb[[4]], b5=sb[[5]], u=up, theta=as.numeric(stheta), log_sigma=slsigma,
                      cor_par=scor)
 
   # fix parameters to starting values
@@ -513,7 +543,7 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
   if (any(fix)){
     idp <- 1:length(start)
     idp[fix] <- NA
-    for (i in 1:6){
+    for (i in 1:5){
       lmap[[paste("b", i, sep="")]] <- as.factor(idp[npi == i])
     }
   }
@@ -532,7 +562,7 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
 sigmastart <- function(datalist, parameters, lmap, rform){
   ls0 <- parameters$log_sigma
   map1 <- lmap
-  for (i in 1:6){
+  for (i in 1:5){
     b <- paste("b", i, sep="")
     map1[[b]] <- factor(rep(NA, length(parameters[[b]])))
   }
@@ -560,12 +590,11 @@ sigmastart <- function(datalist, parameters, lmap, rform){
 # thousands; the deviations include their estimation error, which errs on the safe side.
 varstart <- function(dd, start, re){
   npi <- dd$npi
-  eta <- sapply(1:6, function(k) as.vector(dd$Xs[[k]] %*% start[npi == k]))
+  eta <- sapply(1:5, function(k) as.vector(dd$Xs[[k]] %*% start[npi == k]))
   eta <- matrix(eta, nrow=length(dd$y))
   meanfun <- function(eta) gcmeanR(dd$mod, dd$x, linkfun(dd$lnk[1], eta[, 1], inverse=TRUE), linkfun(dd$lnk[2], eta[, 2], inverse=TRUE),
                                     linkfun(dd$lnk[3], eta[, 3], inverse=TRUE), linkfun(dd$lnk[4], eta[, 4], inverse=TRUE),
-                                    linkfun(dd$lnk[5], eta[, 5], inverse=TRUE), trunc=isTRUE(dd$trunc), b1rate=isTRUE(dd$b1rate),
-                                    f6=linkfun(dd$lnk[6], eta[, 6], inverse=TRUE))
+                                    linkfun(dd$lnk[5], eta[, 5], inverse=TRUE), trunc=isTRUE(dd$trunc), b1rate=isTRUE(dd$b1rate))
   mu <- meanfun(eta)
   # response on the scale of the mean (proportions for binomial counts), on the log scale for lognormal
   binom <- dd$family %in% c("binomial", "betabinomial")
@@ -573,9 +602,9 @@ varstart <- function(dd, start, re){
   y <- if (binom) dd$y/pmax(dd$bn, 1) else dd$y
   w <- dd$w * (if (binom) dd$bn else 1)
   r <- if (lognorm) log(y) - log(mu) else y - mu
-  # derivatives of the mean (log mean for lognormal) w.r.t. the linear predictors of b1-b6
+  # derivatives of the mean (log mean for lognormal) w.r.t. the linear predictors of b1-b5
   rpars <- sort(unique(unlist(lapply(re$terms, function(tm) tm$pars))))
-  D <- matrix(0, length(y), 6)
+  D <- matrix(0, length(y), 5)
   for (k in rpars){
     h <- 1e-5 * pmax(1, abs(eta[, k]))
     ep <- em <- eta
@@ -585,13 +614,12 @@ varstart <- function(dd, start, re){
   }
   ok <- is.finite(r) & is.finite(w) & w > 0 & apply(is.finite(D), 1, all)
   # fallback scale of the random coefficients of each parameter, on the scale of the link: 10% of the
-  # asymptote b1 (also for the additive b6), 10% of the scale b3 for the time b2, and 10% of the
-  # linear predictor for b3
-  b <- vapply(1:6, function(k) linkfun(dd$lnk[k], start[npi == k][1], inverse=TRUE), numeric(1))
-  fscale <- vapply(1:6, function(k){
+  # asymptote b1, 10% of the scale b3 for the time b2, and 10% of the linear predictor for b3
+  b <- vapply(1:5, function(k) linkfun(dd$lnk[k], start[npi == k][1], inverse=TRUE), numeric(1))
+  fscale <- vapply(1:5, function(k){
     # log and logit links: 10% on the scale of the link, a relative variation for log
     if (dd$lnk[k] %in% linkindex(c("log", "logit"))) return(0.1)
-    s <- switch(k, abs(b[1]), abs(b[3]), abs(linkfun(dd$lnk[3], b[3])), abs(b[4]), abs(b[5]), abs(b[1]))
+    s <- switch(k, abs(b[1]), abs(b[3]), abs(linkfun(dd$lnk[3], b[3])), abs(b[4]), abs(b[5]))
     if (!is.finite(s) || s == 0) 1 else 0.1*s
   }, numeric(1))
 
@@ -663,26 +691,26 @@ retryvariances <- function(obj, opt, terms, lower, upper, ctrl){
 }
 
 
-# right-hand side formulas X1-X6 for b1-b6 from fform: a formula b1 + b2 ~ Treatment, a list of
-# such formulas, or a list of six right-hand side formulas (or five, for b1-b5, with b6 ~ 1)
+# right-hand side formulas X1-X5 for b1-b5 from fform: a formula b1 + b2 ~ Treatment, a list of
+# such formulas, or a list of five right-hand side formulas
 fforms <- function(fform){
-  res <- rep(list(~ 1), 6)
-  names(res) <- paste("X", 1:6, sep="")
+  res <- rep(list(~ 1), 5)
+  names(res) <- paste("X", 1:5, sep="")
   if (is.null(fform)) return(res)
   if (inherits(fform, "formula")) fform <- list(fform)
   if (!is.list(fform) || !all(sapply(fform, inherits, "formula"))) stop("fform must be a formula or a list of formulas.")
   twosided <- sapply(fform, length) == 3
   if (!any(twosided)){
-    if (!(length(fform) %in% 5:6)) stop("A list of right-hand side formulas in fform needs one formula for each of b1 to b6.")
-    res[seq_along(fform)] <- fform
+    if (length(fform) != 5) stop("A list of right-hand side formulas in fform needs one formula for each of b1 to b5.")
+    res[] <- fform
     return(res)
   }
   if (!all(twosided)) stop("Each formula in fform needs parameters on the left-hand side, e.g. b1 + b2 ~ Treatment.")
   done <- integer(0)
   for (f in fform){
     pnames <- all.vars(f[[2]])
-    if (!all(pnames %in% paste("b", 1:6, sep=""))) stop("The left-hand side of a formula in fform can only contain b1 to b6.")
-    pars <- match(pnames, paste("b", 1:6, sep=""))
+    if (!all(pnames %in% paste("b", 1:5, sep=""))) stop("The left-hand side of a formula in fform can only contain b1 to b5.")
+    pars <- match(pnames, paste("b", 1:5, sep=""))
     if (any(pars %in% done)) stop("Each parameter can only appear once in fform.")
     done <- c(done, pars)
     rhs <- f
@@ -694,7 +722,7 @@ fforms <- function(fform){
 
 # coefficient names of the form b2:Stressdrought
 coefnames <- function(Xs){
-  unlist(lapply(1:6, function(i) paste("b", i, ":", colnames(Xs[[i]]), sep="")))
+  unlist(lapply(1:5, function(i) paste("b", i, ":", colnames(Xs[[i]]), sep="")))
 }
 
 # random effect terms from rform, a formula or a list of formulas of the form b1 + b2 ~ 1 | group
@@ -716,8 +744,8 @@ reterms <- function(rform, data){
   for (f in rform){
     if (length(f) != 3) stop("Each random effect formula needs parameters on the left-hand side, e.g. b1 + b2 ~ 1 | group.")
     pnames <- all.vars(f[[2]])
-    if (!all(pnames %in% paste("b", 1:6, sep=""))) stop("The left-hand side of a random effect formula can only contain b1 to b6.")
-    pars <- sort(match(pnames, paste("b", 1:6, sep="")))
+    if (!all(pnames %in% paste("b", 1:5, sep=""))) stop("The left-hand side of a random effect formula can only contain b1 to b5.")
+    pars <- sort(match(pnames, paste("b", 1:5, sep="")))
     frh <- f
     frh[2] <- NULL
     rt <- mkReTrms(findbars(frh), model.frame(subbars(frh), data=data))
@@ -765,7 +793,7 @@ splitdoublebars <- function(rform){
   for (f in rform){
     if (length(f) == 3 && hasdbar(f[[3]])){
       rhs <- expand(f[[3]])
-      pars <- intersect(paste("b", 1:6, sep=""), all.vars(f[[2]]))
+      pars <- intersect(paste("b", 1:5, sep=""), all.vars(f[[2]]))
       for (p in pars){
         g <- as.formula(call("~", as.name(p), rhs), env=environment(f))
         out[[length(out) + 1]] <- g
@@ -801,7 +829,7 @@ relabels <- function(tm){
   if (is.null(tm$labels)) paste("b", tm$pars, sep="") else tm$labels
 }
 
-# links of the parameters b1-b6 of model m (see gcmodels), named: the defaults of the model (see
+# links of the parameters b1-b5 of model m (see gcmodels), named: the defaults of the model (see
 # modellinks), replaced by link, a character vector of links named by parameter
 parlinks <- function(link, m, model){
   allowed <- modellinks(m)
@@ -809,7 +837,7 @@ parlinks <- function(link, m, model){
   if (!is.null(link)){
     if (!is.character(link)) stop("link must be a character vector.")
     if (is.null(names(link))) stop("link must be named by parameter, e.g. c(b3=\"inverse\").")
-    if (any(!(names(link) %in% names(out))) || any(duplicated(names(link)))) stop("the names of link must be distinct parameter names b1-b6.")
+    if (any(!(names(link) %in% names(out))) || any(duplicated(names(link)))) stop("the names of link must be distinct parameter names b1-b5.")
     for (p in names(link)){
       if (is.na(linkindex(link[[p]]))) stop("Unknown link: ", link[[p]], "; one of ", paste(linknames, collapse=", "), ".")
     }
@@ -823,37 +851,28 @@ parlinks <- function(link, m, model){
   out
 }
 
-# start or fix as a vector with one entry per coefficient: an unnamed vector is used as it is (an
-# unnamed vector without the coefficients of b6, which come last, gets b6 = pad6), a vector named by
-# parameter (e.g. c(b1=0, b5=0)) gives the value for all coefficients of that parameter
-parvector <- function(v, npi, default, arg, pad6=default){
+# start or fix as a vector with one entry per coefficient: an unnamed vector is used as it is,
+# a vector named by parameter (e.g. c(b1=0, b5=0)) gives the value for all coefficients of that parameter
+parvector <- function(v, npi, default, arg){
   out <- rep(default, length(npi))
   if (is.null(v)) return(out)
   if (is.null(names(v))){
-    v <- padb6(v, npi, pad6)
     if (length(v) != length(npi)) stop(arg, " must have one entry for each of the ", length(npi), " model coefficients, or be named by parameter, e.g. c(b5=0).")
     return(v)
   }
-  pn <- match(names(v), paste("b", 1:6, sep=""))
-  if (any(is.na(pn)) | any(duplicated(pn))) stop("the names of ", arg, " must be distinct parameter names b1-b6.")
+  pn <- match(names(v), paste("b", 1:5, sep=""))
+  if (any(is.na(pn)) | any(duplicated(pn))) stop("the names of ", arg, " must be distinct parameter names b1-b5.")
   for (i in seq_along(v)) out[npi == pn[i]] <- v[[i]]
   out
 }
 
-# a vector with one entry per coefficient of b1-b5 only, as before b6 was added: the coefficients of
-# b6, which come last, are added with the value pad
-padb6 <- function(v, npi, pad){
-  if (length(v) == sum(npi != 6) && sum(npi == 6) > 0) c(v, rep(pad, sum(npi == 6))) else v
-}
-
-# fix as a vector with one entry per coefficient (see parvector); the threshold b4, the asymmetry
-# b5 and the additive b6 are fixed unless fix is an unnamed vector or names them, e.g.
-# fix=c(b4=FALSE, b6=FALSE) to estimate them; an unnamed vector without b6 keeps it fixed. The
-# intercept b6 of the linear model mod is estimated by default.
+# fix as a vector with one entry per coefficient (see parvector); the threshold (or intercept) b4 and
+# the asymmetry b5 are fixed unless fix is an unnamed vector or names them, e.g. fix=c(b4=FALSE,
+# b5=FALSE) to estimate them; the parameters free of the model mod (the rates b4 and b5 of
+# preecebaines) are estimated by default
 defaultfix <- function(fix, npi, mod=NULL){
-  lin <- !is.null(mod) && islinear(mod)
-  out <- parvector(fix, npi, FALSE, "fix", pad6=!lin)
-  for (p in if (lin) 4:5 else 4:6){
+  out <- parvector(fix, npi, FALSE, "fix")
+  for (p in setdiff(4:5, if (!is.null(mod)) gcmodel(mod)$free)){
     if (is.null(fix) || (!is.null(names(fix)) && !(paste("b", p, sep="") %in% names(fix)))) out[npi == p] <- TRUE
   }
   out

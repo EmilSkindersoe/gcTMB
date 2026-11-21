@@ -9,7 +9,7 @@ maxrate(x, curves = NULL, newdata = NULL)
 \arguments{
 \item{x}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
-\item{curves}{Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 6 rows (b1-b6) and one column for each model coefficient, see \code{\link{timeto}}; default is the identity matrix, for models without covariates in fform.}
+\item{curves}{Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see \code{\link{timeto}}; default is the identity matrix, for models without covariates in fform.}
 
 \item{newdata}{Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves.}
 }
@@ -44,7 +44,7 @@ unbounded rate for the hill curve, and the results are NA. The linear model grow
 rate b1, without an inflection point: its \code{tmax} and \code{fraction} are NA.
 
 A truncated curve (the default of \code{\link{gcTMB}}, at b4 = 0) is the curve without truncation,
-scaled by 1/(1 - G(z(b4))) beyond its threshold b4. It has its maximum growth rate at the
+f(t), shifted down to zero at its threshold b4 and rescaled, b1 (f(t) - f(b4))/(b1 - f(b4)) beyond b4. It has its maximum growth rate at the
 inflection point of the curve without truncation if that is after the threshold, and otherwise
 just after the threshold, where the slope jumps from zero: then \code{tmax} is b4 and
 \code{fraction} zero.

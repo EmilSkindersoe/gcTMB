@@ -80,7 +80,9 @@ of the observed times: for models with random effects, the curve of each individ
 combination of the grouping variables of the random effects) with its predicted random effects,
 and the population curves, with the random effects at zero, as thick lines for each combination
 of the covariates of the fixed effects (\code{fform}). Points and curves are coloured by these
-covariates. The covariates of an individual are taken from its first observation.
+covariates. A single numeric covariate is shown on a continuous colour scale, with the population
+curves at its 10\\%, 50\\% and 90\\% quantiles. The covariates of an individual are taken from its
+first observation.
 }
 \examples{
 fit <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=FabaHeights25)

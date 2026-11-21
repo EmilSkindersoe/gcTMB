@@ -22,7 +22,7 @@ test_that("the data sets from other packages have the documented structure", {
 })
 
 test_that("the examples of the data sets converge", {
-  fhd <- gcTMB(height ~ dbh, rform=b1 ~ 1 | plot, data=PineHeightDiameter, model="chapmanrichards", start=c(b6=1.3))
+  fhd <- gcTMB(height ~ dbh, rform=b1 ~ 1 | plot, data=PineHeightDiameter, model="chapmanrichards", start=c(b4=1.3))
   expect_equal(fhd$opt$convergence, 0)
   # the curve starts at breast height
   expect_equal(unname(predict(fhd, newdata=data.frame(dbh=0), random=FALSE)), 1.3)
@@ -31,11 +31,14 @@ test_that("the examples of the data sets converge", {
   expect_equal(fsm$opt$convergence, 0)
   expect_equal(unname(predict(fsm, newdata=data.frame(DOY=141, Crop="Maize", Input="High"))), 0)
 
-  girls <- subset(BerkeleyGrowth, sex == "female" & age >= 8)
-  fb <- gcTMB(height ~ age, data=girls, truncated=FALSE, fix=c(b6=FALSE))
+  girls <- subset(BerkeleyGrowth, sex == "female" & age >= 2)
+  fb <- gcTMB(height ~ age, data=girls, model="preecebaines")
   expect_equal(fb$opt$convergence, 0)
-  # the growth spurt of the girls is around age 10-12, above a height of 100-140 cm
+  # the girls are about 160-170 cm as adults, with the middle of puberty around 11-13 years and the
+  # peak height velocity a little earlier
   b <- coef(fb)
-  expect_true(b[["b2:(Intercept)"]] > 9 && b[["b2:(Intercept)"]] < 13)
-  expect_true(b[["b6:(Intercept)"]] > 100 && b[["b6:(Intercept)"]] < 140)
+  expect_true(b[["b1:(Intercept)"]] > 160 && b[["b1:(Intercept)"]] < 170)
+  expect_true(b[["b2:(Intercept)"]] > 11 && b[["b2:(Intercept)"]] < 13)
+  mr <- coef(maxrate(fb))
+  expect_true(mr[["tmax"]] > 9 && mr[["tmax"]] < b[["b2:(Intercept)"]])
 })

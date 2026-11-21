@@ -17,13 +17,13 @@
 #'
 #' The cutoff of the deviance is the quantile of the chi-square distribution with one degree of
 #' freedom. For gaussian and lognormal models without random effects and small-sample inference (see
-#' \code{\link{gcTMB}}), the cutoff of the coefficients b1-b6 is F-based instead,
+#' \code{\link{gcTMB}}), the cutoff of the coefficients b1-b5 is F-based instead,
 #' sum(w) log(1 + F/(n - p)) with the quantile F of the F distribution with 1 and n - p degrees of
 #' freedom, which gives the intervals of a t-test of each coefficient, as profile intervals of nls.
 #'
 #' @param fitted A gcTMB object, the result of \code{\link{gcTMB}}.
 #' @param parm Character or integer vector, or NULL. Parameters to profile, names or positions in \code{coef(fitted)}. Default are the
-#'   estimated coefficients b1-b6, without the variance parameters.
+#'   estimated coefficients b1-b5, without the variance parameters.
 #' @param level Numeric between 0 and 1. The highest confidence level the profiles are computed for: each profile extends until
 #'   the deviance from the maximum exceeds the cutoff (see Details). For confint and plot, the confidence level of the intervals and of the cutoff line.
 #' @param trace Logical. Print the progress of \code{\link[TMB]{tmbprofile}}
@@ -198,7 +198,7 @@ profcutoffs <- function(object, level){
 #' Likelihood profiles of times to reach a level of the asymptote
 #'
 #' Profiles the (marginal) log-likelihood for the times estimated by \code{\link{timeto}}. At each
-#' value of a time, the model is reparameterised: the time, e.g. b2 + b3 Finv(q) for the logistic
+#' value of a time, the model is reparameterised: the time, e.g. b2 + b3 log(q/(1 - q)) for the logistic
 #' model, can be solved for b2, so one coefficient of b2 is computed from the time and the other
 #' coefficients, which are re-optimised. For truncated curves, the time also depends on b2 through the
 #' threshold b4, and b2 is found numerically.
@@ -261,7 +261,7 @@ profile.timetoTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress
   up <- if (is.null(fit$upper)) rep(Inf, length(par0)) else fit$upper
   # the parameter computed from the time: b2
   ps <- 2
-  oth <- setdiff(1:6, ps)
+  oth <- setdiff(1:5, ps)
 
   pb <- progressbar(length(parm), progress)
   prof <- lapply(parm, function(i){
@@ -273,7 +273,7 @@ profile.timetoTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress
     kp <- which.max(abs(w2))
     k <- free[kp]
     if (any(L[3:5, k] != 0)) stop("the coefficient ", fit$coefnames[k], " of b2 must not enter b3 in curves.")
-    if (absolute && any(L[c(1, 6), k] != 0)) stop("the coefficient ", fit$coefnames[k], " of b2 must not enter b1 or b6 in curves.")
+    if (absolute && any(L[c(1, if (hasintercept(mod)) 4), k] != 0)) stop("the coefficient ", fit$coefnames[k], " of b2 must not enter b1 or the intercept b4 in curves.")
 
     # full parameter vector from the reduced one (without coefficient k)
     pvfull <- function(par){
@@ -287,12 +287,16 @@ profile.timetoTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress
       qf <- timeq(fit, q, lpv, absolute)
       m <- gcmodel(mod)
       if (isTRUE(m$start)){
-        # curves that start at b4: b2 numerically, the time increases with b2 (for chapmanrichards,
-        # and for beta with the end of growth b2 + b3)
+        # chapmanrichards, beta and wykoff: b2 numerically, the time increases with b2 (for beta with
+        # the end of growth b2 + b3); b2 is after the start of beta, and after -1 for wykoff
         if (!is.finite(qf) || qf <= 0 || qf >= 1) return(NA)
-        tfuns <- function(b2) gctimeR(mod, qf, b2, b[3], b[4]) - tt
-        lo2 <- if (mod == modelindex("beta")) b[4] + 1e-8*abs(b[3]) else b[2] - abs(b[3])
-        r <- tryCatch(uniroot(tfuns, c(max(lo2, b[2] - abs(b[3])), b[2] + abs(b[3])), extendInt="upX", tol=1e-10)$root,
+        tfuns <- function(b2) gctimeR(mod, qf, b2, b[3], b[4], b[5], b1=b[1]) - tt
+        w <- if (is.finite(b[3]) && b[3] > 0) b[3] else max(1, abs(b[2]))
+        lo2 <- switch(m$b4 %in% "intercept" + 1, b[4], if (mod == modelindex("wykoff")) -1 else -Inf) + 1e-8 * w
+        # beta: b2 before the end of growth b3
+        up2 <- if (gcmodel(mod)$b3 %in% "end") b[3] - 1e-8 * w else Inf
+        r <- tryCatch(uniroot(tfuns, c(max(lo2, b[2] - w), min(up2, b[2] + w)), extendInt=if (is.finite(up2)) "no" else "upX",
+                              tol=1e-10)$root,
                       error=function(e) NA)
         return(suppressWarnings(linkfun(lnk[ps], r)))
       }
@@ -325,7 +329,7 @@ profile.timetoTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress
     jacobian <- function(e, tt){
       h <- 1e-6
       d <- sapply(oth, function(j){
-        hj <- replace(numeric(6), j, h)
+        hj <- replace(numeric(5), j, h)
         (b2fun(tt, e$lpv + hj) - b2fun(tt, e$lpv - hj)) / (2*h)
       })
       J <- diag(length(par0))[, -kp, drop=FALSE]
@@ -380,7 +384,7 @@ profile.timetoTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress
   prof
 }
 
-# time of entry i of the timetoTMB object for the curve parameters lpv (b1-b6 on the scale of the linear
+# time of entry i of the timetoTMB object for the curve parameters lpv (b1-b5 on the scale of the linear
 # predictors); NA if the curve does not reach the level
 timevalue <- function(object, i, lpv){
   fit <- object$fit
@@ -457,7 +461,7 @@ confint.gcTMB <- function(object, parm=NULL, level=0.95, method=c("profile", "wa
   }
   if (method == "boot") return(confint(getboot(object, boot, nsim, seed, ...), parm=parm, level=level))
   se <- sqrt(diag(vcov(object)))[parm]
-  # t quantiles for the coefficients b1-b6 with small-sample inference
+  # t quantiles for the coefficients b1-b5 with small-sample inference
   z <- ifelse(parm <= sum(!object$fix), zquant(object, level), qnorm((1 + level)/2))
   natscale(cbind(est[parm] - z*se, est[parm] + z*se), names(est)[parm], corr2names(object), level)
 }

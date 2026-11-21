@@ -23,7 +23,7 @@
 \item{fitted}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
 \item{parm}{Character or integer vector, or NULL. Parameters to profile, names or positions in \code{coef(fitted)}. Default are the
-estimated coefficients b1-b6, without the variance parameters.}
+estimated coefficients b1-b5, without the variance parameters.}
 
 \item{level}{Numeric between 0 and 1. The highest confidence level the profiles are computed for: each profile extends until
 the deviance from the maximum exceeds the cutoff (see Details). For confint and plot, the confidence level of the intervals and of the cutoff line.}
@@ -64,7 +64,7 @@ coefficient, but not when re-optimising the other coefficients.
 
 The cutoff of the deviance is the quantile of the chi-square distribution with one degree of
 freedom. For gaussian and lognormal models without random effects and small-sample inference (see
-\code{\link{gcTMB}}), the cutoff of the coefficients b1-b6 is F-based instead,
+\code{\link{gcTMB}}), the cutoff of the coefficients b1-b5 is F-based instead,
 sum(w) log(1 + F/(n - p)) with the quantile F of the F distribution with 1 and n - p degrees of
 freedom, which gives the intervals of a t-test of each coefficient, as profile intervals of nls.
 }

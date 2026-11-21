@@ -98,13 +98,13 @@ refitnll <- function(fit, y, ctrl){
   dat <- env$data
   pars <- env$parList(fit$opt$par)
   dd <- list(y=y, x=dat$x, w=dat$w, bn=dat$bn, mod=dat$mod, trunc=isTRUE(dat$trunc == 1), lnk=dat$lnk, Xs=fit$Xs,
-             npi=rep(1:6, vapply(fit$Xs, ncol, integer(1))), family=fit$family)
+             npi=rep(1:5, vapply(fit$Xs, ncol, integer(1))), family=fit$family)
   start <- fit$start
   start[!fit$fix] <- NA
   sv <- tryCatch(lmstart(dd, start, fit$fix), error=function(e) NULL)
   pars2 <- pars
   if (!is.null(sv)){
-    for (i in 1:6) pars2[[paste("b", i, sep="")]] <- sv[dd$npi == i]
+    for (i in 1:5) pars2[[paste("b", i, sep="")]] <- sv[dd$npi == i]
     pars2$u[] <- 0
   }
   nll <- vapply(list(pars, if (!is.null(sv)) pars2), function(p){
