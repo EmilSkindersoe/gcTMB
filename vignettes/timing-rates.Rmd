@@ -81,8 +81,23 @@ Covariates on all five parameters give a curve for each sex, and random effects 
 fitb <- gcTMB(height ~ age, data = subset(berkeley, sex == "male"), model = "preecebaines")
 cb <- coef(fitb)[1:5]
 cg <- coef(fitg)[1:5]
+```
+
+A starting vector has one entry for each coefficient, in the order of the coefficients of the model, which `gcTMBstart()` gives with their names: for each parameter the intercept, here the boys, and the contrast of the girls. The default starting values are those of the pooled data, with the contrasts zero; the custom ones are the coefficients of the boys and the differences of the girls from them:
+
+```{r}
+default <- gcTMBstart(height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, data = berkeley, model = "preecebaines")
+custom <- setNames(as.vector(rbind(cb, cg - cb)), names(default))
+round(cbind(default, custom), 3)
+```
+
+Here the default values do not even describe the pooled data: with the boys and the girls together, the least squares fit of the starting values runs off to a step at the oldest age, $b_2 = 20$, with a huge rate $b_5$.
+
+The custom vector is given to `start` without its names (an unnamed vector in the order of the coefficients; a vector named by parameter, e.g. `c(b4 = 0.1)`, gives the value to all the coefficients of that parameter):
+
+```{r}
 fitre <- gcTMB(height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, rform = b1 + b2 + b5 ~ 1 | id,
-               data = berkeley, model = "preecebaines", start = as.vector(rbind(cb, cg - cb)),
+               data = berkeley, model = "preecebaines", start = unname(custom),
                control = list(restart = TRUE))
 summary(fitre)
 converged(fitre)
