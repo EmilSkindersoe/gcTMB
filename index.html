@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9011</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9012</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -405,7 +405,7 @@
 <div class="section level2">
 <h2 id="data-sets">Data sets<a class="anchor" aria-label="anchor" href="#data-sets"></a>
 </h2>
-<p>The package has six growth data sets, from plant science, human growth, forestry and crop science. Each is documented in its help page, e.g. <code><a href="reference/FabaHeights26.html">?FabaHeights26</a></code>, and used in the vignettes:</p>
+<p>The package has eight data sets, from plant science, human growth, forestry and crop science. Each is documented in its help page, e.g. <code><a href="reference/FabaHeights26.html">?FabaHeights26</a></code>, and used in the vignettes:</p>
 <table class="table">
 <colgroup>
 <col width="25%">
@@ -425,6 +425,21 @@
 <td>Heights of 320 faba bean plants in a 2026 field trial: four genotypes on two soil types, irrigated or not, 14 days between 28 and 122 days after sowing</td>
 <td>Height (cm)</td>
 <td><code><a href="articles/gcTMB.html">vignette("gcTMB")</a></code></td>
+</tr>
+<tr>
+<td><code>FabaFlowers26</code></td>
+<td>Flowers and pods of 96 plants of the same field trial: two genotypes on two soil types, irrigated or not, eight days between 59 and 84 days after sowing; new and running totals per plant</td>
+<td>Counts</td>
+<td>the example in <code><a href="reference/FabaFlowers26.html">?FabaFlowers26</a></code>
+</td>
+</tr>
+<tr>
+<td><code>FabaNodes26</code></td>
+<td>The flowers and pods of <code>FabaFlowers26</code> per node: date and number of the flowers and of the pods of each of 879 nodes of the same field trial. Not a growth curve: for the pod set per node, to combine with <code>FabaHeights26</code> and <code>FabaFlowers26</code>
+</td>
+<td>Pods per flower</td>
+<td>the example in <code><a href="reference/FabaNodes26.html">?FabaNodes26</a></code>
+</td>
 </tr>
 <tr>
 <td><code>FabaHeights25</code></td>
@@ -463,7 +478,7 @@
 </tr>
 </tbody>
 </table>
-<p>The raw faba bean data and the scripts that prepare all six data sets are in the directory <code>data-raw</code> of the source package.</p>
+<p>The raw faba bean data and the scripts that prepare all eight data sets are in the directory <code>data-raw</code> of the source package.</p>
 </div>
 <div class="section level2">
 <h2 id="functions-and-methods">Functions and methods<a class="anchor" aria-label="anchor" href="#functions-and-methods"></a>
