@@ -45,6 +45,91 @@
 #' summary(fit)
 "FabaHeights26"
 
+#' Flower and pod counts of faba bean plants in a field trial
+#'
+#' Repeated counts of flowers and pods of 96 faba bean plants in a field trial (2026): three plants
+#' in each of 32 plots, with two genotypes on two soil types, irrigated or not, counted on eight
+#' days between 59 and 84 days after sowing. The plants are plants 1-3 of the five of each plot in
+#' \code{\link{FabaHeights26}}, with the same \code{Plant_ID}, so the two data sets can be merged.
+#' The counts were recorded per node, each node only once: on the first date it had flowers (or
+#' pods), as no more appear on a node afterwards. \code{Flowers} and \code{Pods} are therefore the
+#' new flowers and pods since the previous date, summed over the nodes of each plant, and
+#' \code{FlowersTotal} and \code{PodsTotal} the running totals, which follow a growth curve. A plant
+#' without new flowers or pods on a date, including a plant that was no longer recorded, has 0 new
+#' flowers or pods. Flowering had begun before the first count, so the flowers of the first date
+#' include those of earlier days, and \code{FlowersTotal} does not start at 0.
+#'
+#' @format A data frame with 768 rows and 10 variables:
+#' \describe{
+#'   \item{DAS}{days after sowing}
+#'   \item{Genotype}{genotype: Navarra or Stella}
+#'   \item{Plot_ID}{identifier of the plot}
+#'   \item{Plant_ID}{identifier of the plant, a factor unique to each plant: plot and plant number
+#'     within the plot, e.g. "31_3", as in \code{FabaHeights26}}
+#'   \item{Soil}{soil type: Loamy or Sandy}
+#'   \item{Treatment}{Irrigated or NotIrrigated}
+#'   \item{Flowers}{number of new flowers on the plant since the previous date}
+#'   \item{Pods}{number of new pods on the plant since the previous date}
+#'   \item{FlowersTotal}{number of flowers the plant has produced up to and including the date}
+#'   \item{PodsTotal}{number of pods the plant has set up to and including the date}
+#' }
+#' The raw data and the script that converts them, \code{DIGIFABA_field_26.R}, are in the directory
+#' data-raw of the source package.
+#'
+#' @examples
+#' fit <- gcTMB(PodsTotal ~ DAS, fform=b1 + b2 ~ Soil * Treatment, rform=b1 ~ 1 | Plant_ID,
+#'              data=FabaFlowers26)
+#' summary(fit)
+#' timeto(fit, level=50, newdata=expand.grid(Soil=c("Loamy", "Sandy"),
+#'                                           Treatment=c("Irrigated", "NotIrrigated")), random=FALSE)
+"FabaFlowers26"
+
+#' Flowers and pods per node of faba bean plants in a field trial
+#'
+#' This data set is not a growth curve and is not meant for the growth models of the package: it
+#' describes the pod set (pods per flower) of each node, e.g. for a binomial model as in the
+#' example. It belongs to the same field trial (2026) as \code{\link{FabaHeights26}} and
+#' \code{\link{FabaFlowers26}}, with the same plants and \code{Plant_ID}, so that it can be merged
+#' with them, e.g. to relate the pod set of a plant to its height or to the timing of its
+#' flowering.
+#'
+#' The flowers and pods of \code{\link{FabaFlowers26}} by node instead of by date: one row for each
+#' node of the 96 plants that had flowers or pods, with the date and number of its flowers and the
+#' date and number of its pods, for the pod set (pods per flower) of each node. Each node was
+#' counted once, on the first date it had flowers and the first date it had pods; nodes counted
+#' again on a later date are left out of that date. A node that flowered but has no pod record set
+#' no pods (\code{Pods} = 0). The number of flowers is missing (\code{NA}) where the flowers of the
+#' node were not counted: a blank count, or pods on a node without a flower record.
+#'
+#' @format A data frame with 879 rows and 11 variables:
+#' \describe{
+#'   \item{Genotype}{genotype: Navarra or Stella}
+#'   \item{Plot_ID}{identifier of the plot}
+#'   \item{Plant_ID}{identifier of the plant, as in \code{FabaFlowers26} and \code{FabaHeights26},
+#'     e.g. "31_3"}
+#'   \item{Soil}{soil type: Loamy or Sandy}
+#'   \item{Treatment}{Irrigated or NotIrrigated}
+#'   \item{Node}{node number on the stem}
+#'   \item{DAS_flowers}{days after sowing of the count of the flowers of the node, \code{NA} without
+#'     a flower record}
+#'   \item{Flowers}{number of flowers of the node, \code{NA} if not counted}
+#'   \item{DAS_pods}{days after sowing of the count of the pods of the node, \code{NA} without pods}
+#'   \item{Pods}{number of pods of the node}
+#'   \item{Warning}{1 if the record of the node cannot be right: more pods than flowers, or the pods
+#'     counted on the same date as the flowers; 0 otherwise}
+#' }
+#' Pods appear one to two weeks after flowering, so nodes that flowered in the last week of the
+#' counts may not have had the time to set pods. The raw data and the script that converts them,
+#' \code{DIGIFABA_field_26.R}, are in the directory data-raw of the source package.
+#'
+#' @examples
+#' # pod set per node by soil, irrigation and node position, from nodes with a reliable count
+#' ok <- subset(FabaNodes26, !is.na(Flowers) & Warning == 0 & DAS_flowers <= 73)
+#' fit <- glm(cbind(Pods, Flowers - Pods) ~ Soil * Treatment + Genotype + Node, family=binomial,
+#'            data=ok)
+#' summary(fit)
+"FabaNodes26"
+
 #' Flower and pod counts of faba bean plants
 #'
 #' Repeated counts of flowers and pods of 22 faba bean plants of six genotypes, all with the

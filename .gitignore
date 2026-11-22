@@ -66,3 +66,6 @@ docs/
 # hex sticker script (local only; the sticker itself, man/figures/logo.png, is committed)
 HexSticker.R
 Rplots.pdf
+
+# Excel lock files
+~$*
