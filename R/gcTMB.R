@@ -9,7 +9,7 @@
 #' @param rform Formula, list of formulas, or NULL. Random effects: a formula of the form b1 + b2 ~ 1 | individual for random intercepts, or b1 ~ x | individual for random intercepts and slopes in a covariate x, or a list of such formulas, e.g. list(b1 + b2 ~ 1 | plant, b1 ~ 1 | plot). The random effects within a formula are correlated across the listed parameters and their intercepts and slopes; different formulas and the levels of nested factors (1 | plot/plant) are independent terms. With a double bar, all the random coefficients of the formula are independent, across the parameters as well as their intercepts and slopes: b1 + b2 ~ 1 || individual is list(b1 ~ 1 | individual, b2 ~ 1 | individual), a diagonal covariance matrix as random=pdDiag(b1 + b2 ~ 1) in nlme. A list of formulas combines the two into a block-diagonal covariance matrix: list(b1 + b2 ~ 1 | individual, b3 ~ 1 | individual) gives correlated random effects of b1 and b2, and a random effect of b3 independent of both, as random=pdBlocked(list(pdSymm(b1 + b2 ~ 1), pdSymm(b3 ~ 1))) in nlme. The random slopes of a parameter usually go with a fixed effect of the covariate in fform.
 #' @param data Data frame. Observations with missing values in the variables of the model or in the weights are left out.
 #' @param start Numeric vector or NULL. Starting values for each model coefficient. NA entries are replaced by the starting values of \code{\link{gcTMBstart}}. Alternatively, a vector named by parameter, e.g. c(b1=10), gives the same starting value to all coefficients of each named parameter.
-#' @param fix Logical vector or NULL. One entry for each model coefficient. If TRUE, a model coefficient is fixed to its value in start. Alternatively, a vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of the named parameters; their values must then be given in start, e.g. start=c(b1=10). The threshold b4 and the asymmetry b5 are fixed by default, at b4 = 0 (the curve starts at zero at t = 0) and b5 = 1 (the symmetric curve) unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE), or an unnamed fix vector, estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.
+#' @param fix Logical vector or NULL. One entry for each model coefficient. If TRUE, a model coefficient is fixed to its value in start. Alternatively, a vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of the named parameters; their values must then be given in start, e.g. start=c(b1=10). The threshold (start of growth) b4 and the asymmetry b5 are fixed by default, at b4 = 0 (the curve starts at zero at t = 0) and b5 = 1 (the symmetric curve) unless given in start; so is the intercept b4 of the chapmanrichards and korf models, at the breast height of 1.3, while the rates b4 and b5 of the preecebaines model are estimated; fix=c(b4=FALSE) or fix=c(b5=FALSE), or an unnamed fix vector, estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.
 #' @param weights Numeric vector or NULL. Weights, one for each row of data. Unlike the
 #'   \code{weights} of nlme, which are variance functions (\code{varFunc}), these are numeric case
 #'   weights of the log-likelihood; with a correlation structure, they are precision weights, as
@@ -17,8 +17,8 @@
 #' @param lower Numeric, a single value or a vector. Lower bounds for the model coefficients b1-b5, a single value or a vector with the same length as start. Bounds of fixed coefficients are ignored; variance parameters are unbounded.
 #' @param upper Numeric, a single value or a vector. Upper bounds for the model coefficients b1-b5, a single value or a vector with the same length as start.
 #' @param family Character string. The distribution of the response, one of "gaussian", "lognormal", "binomial", "betabinomial", "beta", "poisson", "nbinom2", and "nbinom1". For the lognormal family, log(y) is normal with mean log f(t) and standard deviation sigma: the curve f is the median of a positive response, with a constant coefficient of variation; the mean is f(t) exp(sigma^2/2). The negative binomial families are for overdispersed counts, with variance mu (1 + mu/theta) for nbinom2 and mu (1 + phi) for nbinom1, and the beta-binomial family for overdispersed binomial counts, with variance n mu (1 - mu) (1 + (n - 1)/(phi + 1)) for n trials, as in glmmTMB.
-#' @param model Character string. The growth model: "logistic" (default), "gompertz", "hill", "weibull", "normal" or "gamma", each with an asymmetry parameter b5, "beta" or "beta_capped" for determinate growth, "chapmanrichards" or "wykoff" for height-diameter models in forestry, "preecebaines" for human growth in height, or "linear" for a straight line, see Details.
-#' @param truncated Logical. If TRUE (default), the curve is truncated at a threshold time b4, by default fixed at 0: the response is zero up to b4 and then grows, see Details. FALSE for the curves without truncation. The beta, beta_capped, chapmanrichards, wykoff and preecebaines curves are never truncated.
+#' @param model Character string. The growth model: "logistic" (default), "gompertz", "hill", "weibull", "normal" or "gamma", each with an asymmetry parameter b5, "beta" or "beta_capped" for determinate growth, "chapmanrichards" or "korf" for height-diameter models in forestry, "preecebaines" for human growth in height, or "linear" for a straight line, see Details.
+#' @param truncated Logical. If TRUE (default), the curve is truncated at a threshold time b4, by default fixed at 0: the response is zero up to b4 and then grows, see Details. FALSE for the curves without truncation. The beta, beta_capped, chapmanrichards, korf and preecebaines curves are never truncated.
 #' @param link Named character vector or NULL. Links of the parameters b1-b5: NULL for the defaults (the identity link for all parameters), or links named by parameter, e.g. \code{link=c(b1="log", b3="inverse")}. The asymptote b1 has the link "identity" (default), "log" or "logit"; the times b2 and b4 (the threshold of a truncated curve) "identity" (default) or "log"; the asymmetry b5 "identity" (default) or "log", to keep it positive; and the scale b3 "identity" (default), "inverse", with which its coefficients are the growth rate 1/b3, or "log". The coefficients, and start, fix, lower, upper and curves of \code{\link{timeto}}, are on the scale of the links, see Details.
 #' @param b1type Character string. The meaning of b1: "asymptote" (default), or "rate" for the maximum growth rate of the curve, see Details. With "rate", covariates and random effects on b1 are effects on the maximum growth rate, which \code{\link{anova.gcTMB}} and \code{\link{pairwise}} can test.
 #' @param correlation A correlation structure or NULL. The autocorrelation of the residuals within
@@ -54,13 +54,15 @@
 #'     (\code{type="absolute"}), and \code{\link{maxrate}} its constant rate b1.
 #' }
 #' Five more curves are never truncated: the beta curves of determinate growth, the height-diameter
-#' models chapmanrichards and wykoff, common in forestry, and the preecebaines model of human growth:
+#' models chapmanrichards and korf, common in forestry, and the preecebaines model of human growth:
 #' \itemize{
-#'   \item chapmanrichards: f(t) = b4 + b1 (1 - exp(-t/b3))^c with c = exp(b2/b3), the
-#'     Chapman-Richards curve, zero above the intercept b4 up to t = 0: b2 is the inflection point, b3
-#'     the scale and b4 the intercept, fixed at 0 by default, e.g. the breast height of 1.3 m in a
-#'     height-diameter model, \code{start=c(b4=1.3)}. Model M8 of Ciceu et al. (2020),
-#'     1.3 + a (1 - exp(-k t))^c, has b4 = 1.3, b1 = a, b3 = 1/k and b2 = log(c)/k;
+#'   \item chapmanrichards: f(t) = b4 + b1 (1 - exp(-b2 t))^b3, the Chapman-Richards curve of
+#'     Richards (1959) in its usual form for height-diameter models (model M8 of Ciceu et al. 2020),
+#'     zero above the intercept b4 up to t = 0: b1 is the asymptote, b2 the rate, b3 the shape and b4
+#'     the intercept, fixed by default at the breast height of 1.3 m (\code{start=c(b4=0)} for a curve
+#'     from zero, \code{fix=c(b4=FALSE)} to estimate it).
+#'     For b3 > 1 the inflection point is at log(b3)/b2, where the curve reaches (1 - 1/b3)^b3 of its
+#'     asymptote; for b3 <= 1 it grows fastest at t = 0;
 #'   \item beta: the beta growth function of Yin et al. (2003), eqn 8 (with b4 = 0 there),
 #'     f(t) = b1 (1 + (b3 - t)/(b3 - b2)) ((t - b4)/(b3 - b4))^((b3 - b4)/(b3 - b2)) for
 #'     b4 < t < 2 b3 - b2, and zero otherwise: b1 is the maximum w_max, b2 the time t_m of the maximum
@@ -69,10 +71,10 @@
 #'     decline after their maximum, e.g. biomass lost after maturity;
 #'   \item beta_capped: the same curve up to b3, and b1 from b3 on, the beta sigmoid growth function
 #'     of Yin et al. for determinate growth that stops at its maximum;
-#'   \item wykoff: f(t) = b4 + b1 exp(-s/(t + 1)) with s = 2 (b2 + 1), the curve of Wykoff et al. (1982),
-#'     exp(a + b/(t + 1)) with a = log(b1) and b = -s (model M9 of Ciceu et al. 2020): b2 is the
-#'     inflection point, where the curve reaches exp(-2) of its asymptote, and b4 the intercept as for
-#'     chapmanrichards; it does not use b3;
+#'   \item korf: f(t) = b4 + b1 exp(b2/((1 - b3) t^(b3 - 1))) for t > 0, and b4 up to t = 0, the Korf
+#'     curve: b1 is the asymptote above the intercept b4, b2 > 0 a coefficient, b3 > 1 the shape, and
+#'     b4 the intercept as for chapmanrichards. The inflection point is at t = (b2/b3)^(1/(b3 - 1)),
+#'     where the curve reaches exp(-b3/(b3 - 1)) of its asymptote;
 #'   \item preecebaines: model 1 of Preece and Baines (1978) for human growth in height,
 #'     f(t) = b1 - 2 (b1 - b3)/(exp(b4 (t - b2)) + exp(b5 (t - b2))): the adult height b1, the age b2 in
 #'     the middle of puberty, the height b3 at b2, and the rates b4 < b5 of growth before and during
@@ -135,8 +137,8 @@
 #'   Preece, M.A. and Baines, M.J. (1978). A new family of mathematical models describing the human
 #'   growth curve. Annals of Human Biology 5, 1-24.
 #'
-#'   Wykoff, W.R., Crookston, N.L. and Stage, A.R. (1982). User's guide to the stand prognosis model.
-#'   General Technical Report INT-133, USDA Forest Service, Ogden, Utah.
+#'   Richards, F.J. (1959). A flexible growth function for empirical use. Journal of Experimental
+#'   Botany 10, 290-300.
 #'
 #'   Yin, X., Goudriaan, J., Lantinga, E.A., Vos, J. and Spiertz, H.J. (2003). A flexible sigmoid
 #'   function of determinate growth. Annals of Botany 91, 361-371.
@@ -155,13 +157,14 @@
 #' fitn <- gcTMB(height ~ DAS, data=FabaHeights25, model="normal")
 #' fitgam <- gcTMB(height ~ DAS, data=FabaHeights25, model="gamma")
 #' fitlin <- gcTMB(height ~ DAS, data=FabaHeights25, model="linear")
-#' fitcr <- gcTMB(height ~ DAS, data=FabaHeights25, model="chapmanrichards")
+#' # the forestry models from zero instead of their default intercept, the breast height of 1.3 m
+#' fitcr <- gcTMB(height ~ DAS, data=FabaHeights25, model="chapmanrichards", start=c(b4=0))
 #' fitb <- gcTMB(height ~ DAS, data=FabaHeights25, model="beta_capped")
-#' fitwy <- gcTMB(height ~ DAS, data=FabaHeights25, model="wykoff")
-#' AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin, fitcr, fitb, fitwy)
+#' fitk <- gcTMB(height ~ DAS, data=FabaHeights25, model="korf", start=c(b4=0))
+#' AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin, fitcr, fitb, fitk)
 #'
-#' # a height-diameter model from the breast height of 1.3 m, the intercept b4
-#' gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards", start=c(b4=1.3))
+#' # a height-diameter model from the breast height of 1.3 m, the default intercept b4
+#' gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards")
 #'
 #' # the Richards curve: the logistic model with an estimated asymmetry b5
 #' fitr5 <- gcTMB(height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE))
@@ -207,7 +210,7 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weig
   dd <- gcTMBdata(form, fform=fform, rform=rform, data=data, weights=weights, family=family, model=model, truncated=truncated, link=link, b1type=b1type,
                   correlation=correlation)
   fixnamed <- !is.null(names(fix))
-  start <- parvector(start, dd$npi, NA, "start")
+  start <- defaultstart(parvector(start, dd$npi, NA, "start"), dd)
   fix <- defaultfix(fix, dd$npi, dd$mod)
   if (fixnamed && any(fix & is.na(start) & dd$npi < 4)){
     stop("give the values of the fixed parameters in start, e.g. start=c(b1=10), fix=c(b1=TRUE).")

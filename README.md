@@ -24,17 +24,17 @@ automatic differentiation.
 
 - **Growth models**: general growth curves (logistic or Richards,
   Gompertz, Hill, Weibull, normal and gamma), each with an asymmetry
-  parameter and optionally truncated at a threshold time before which
+  parameter and optionally truncated at the start of growth, before which
   the response is zero (e.g. emergence, or the first pods); the beta
   growth function of determinate growth, e.g. of crops; for forestry,
-  the Chapman-Richards and Wykoff curves with an intercept,
+  the Chapman-Richards and Korf curves with an intercept,
   e.g. height-diameter models of trees from breast height; for human
   growth, the Preece-Baines model of growth in height through childhood
   and puberty; and a straight line for comparison. The x-axis need not
   be time.
 - **Interpretable parameters**: the asymptote (or the maximum growth
   rate, `b1type = "rate"`), the time of the maximum growth rate or of
-  half the asymptote, a scale, slope or shape, the threshold and the
+  half the asymptote, a scale, slope or shape, the start of growth and the
   asymmetry; each with an identity, log, logit or inverse link, and any
   of them can be fixed.
 - **Distributions**: gaussian, lognormal, poisson, binomial,
@@ -109,23 +109,23 @@ The main function is `gcTMB()`. The response is a curve f(t) of the
 explanatory variable t, usually time. The first curves below (logistic,
 Gompertz, Hill, Weibull, beta, normal and gamma) are sigmoid growth
 curves, often used in agronomy and ecology, e.g. for the growth of
-plants, crops and animals over a season. The Chapman-Richards and Wykoff
+plants, crops and animals over a season. The Chapman-Richards and Korf
 curves are height-diameter models, common in forestry, with the diameter
 of the trees as t. The Preece-Baines curve is a model of human growth in
 height through childhood and puberty.
 
 | `model` | f(t) | b2 | b3 | b4 |
 |----|----|----|----|----|
-| `"logistic"` | b1 / (1 + exp(-(t - b2)/b3)) | inflection point | scale | threshold |
-| `"gompertz"` | b1 exp(-exp(-(t - b2)/b3)) | inflection point | scale | threshold |
-| `"hill"` | b1 / (1 + (b2/t)^b3) | time of half the asymptote | slope on the log time axis | threshold |
-| `"weibull"` | b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)) | inflection point | shape, \> 1 | threshold |
+| `"logistic"` | b1 / (1 + exp(-(t - b2)/b3)) | inflection point | scale | start of growth |
+| `"gompertz"` | b1 exp(-exp(-(t - b2)/b3)) | inflection point | scale | start of growth |
+| `"hill"` | b1 / (1 + (b2/t)^b3) | time of half the asymptote | slope on the log time axis | start of growth |
+| `"weibull"` | b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3)) | inflection point | shape, \> 1 | start of growth |
 | `"beta"` | b1 (1 + (b3 - t)/(b3 - b2)) ((t - b4)/(b3 - b4))^((b3 - b4)/(b3 - b2)), back to 0 at 2 b3 - b2 | inflection point | end of growth | start of growth |
 | `"beta_capped"` | the same, staying at b1 from b3 on | inflection point | end of growth | start of growth |
-| `"normal"` | b1 Phi((t - b2)/b3) | inflection point | scale | threshold |
-| `"gamma"` | b1 Fgamma(t; b3, b2/(b3 - 1)) | inflection point | shape, \> 1 | threshold |
-| `"chapmanrichards"` | b4 + b1 (1 - exp(-t/b3))^exp(b2/b3) | inflection point | scale | intercept |
-| `"wykoff"` | b4 + b1 exp(-2 (b2 + 1)/(t + 1)) | inflection point | not used | intercept |
+| `"normal"` | b1 Phi((t - b2)/b3) | inflection point | scale | start of growth |
+| `"gamma"` | b1 Fgamma(t; b3, b2/(b3 - 1)) | inflection point | shape, \> 1 | start of growth |
+| `"chapmanrichards"` | b4 + b1 (1 - exp(-b2 t))^b3 | rate | shape | intercept |
+| `"korf"` | b4 + b1 exp(b2/((1 - b3) t^(b3 - 1))) | coefficient, > 0 | shape, > 1 | intercept |
 | `"preecebaines"` | b1 - 2 (b1 - b3)/(exp(b4 (t - b2)) + exp(b5 (t - b2))) | middle of puberty | height at b2 | rate before puberty |
 | `"linear"` | b1 t + b2 | intercept | not used | not used |
 
@@ -141,7 +141,7 @@ e.g. `link = c(b1 = "log", b3 = "inverse")`, with the identity
 models, the rate 1/b3) links.
 
 By default, the logistic, Gompertz, Hill, Weibull, normal and gamma
-curves f(t) are truncated at a threshold time b4: shifted down to zero
+curves f(t) are truncated at the start of growth b4: shifted down to zero
 at b4 and rescaled to keep the asymptote b1, b1 (f(t) - f(b4))/(b1 -
 f(b4)) for t \> b4, so that the response is zero up to b4. b4 is fixed
 at 0, so that the curve starts at zero at t = 0, unless estimated with
@@ -165,13 +165,7 @@ have an asymmetry b5.
   2 b3 - b2, for responses that decline after their maximum;
   `"beta_capped"` stays at b1 from b3 on, the beta sigmoid growth
   function of Yin et al.
-- **Forestry**: the Chapman-Richards and Wykoff curves are
-  height-diameter models of trees (models M8 and M9 of Ciceu et
-  al. 2020), with the diameter as t. Their intercept b4 is fixed at 0
-  unless given in `start` or estimated with `fix = c(b4 = FALSE)`,
-  e.g. the breast height of 1.3 m, `start = c(b4 = 1.3)`. The
-  Chapman-Richards curve is the Richards curve with a negative
-  asymmetry.
+- **Forestry**: the Chapman-Richards curve of Richards (1959) and the Korf curve, as written by Kuželka and Marušák (2015), are height-diameter models of trees, with the diameter as t, in the parameters usual in forestry: the asymptote b1, the rate b2 and the shape b3 of Chapman-Richards (model M8 of Ciceu et al. 2020), and the asymptote b1, the coefficient b2 > 0 and the shape b3 > 1 of Korf. Their intercept b4 is fixed at the breast height of 1.3 m unless given in `start`, e.g. `start = c(b4 = 0)` for a curve from zero, or estimated with `fix = c(b4 = FALSE)`.
 - **Human growth**: model 1 of Preece and Baines (1978) describes the
   growth in height through childhood and puberty, with the adult height
   b1, the age b2 in the middle of puberty, the height b3 at b2, and the
@@ -334,7 +328,7 @@ timeto(fit1, level = 90, newdata = data.frame(trt = levels(FabaHeights25$trt)), 
 ### Counts
 
 The data set `FabaCounts23` has the numbers of pods of 22 plants of six
-genotypes. A Poisson model with an estimated threshold, the time of the
+genotypes. A Poisson model with an estimated start of growth, the time of the
 first pods, and the maximum growth rate as the parameter b1, so that the
 genotypes are compared by their maximum growth rates:
 

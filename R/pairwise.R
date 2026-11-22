@@ -118,6 +118,8 @@ maxabsdraws <- function(R, df=NULL, nsim=1e5){
 # meaning of parameter k of a fit, for printing
 parmmeaning <- function(x, k){
   if (k == 1) return(if (fitrate(x)) "maximum growth rate" else "asymptote")
+  # chapmanrichards and korf: the rate or coefficient b2, the shape b3 and the intercept b4
+  if (hasintercept(modelindex(x$model))) return(c(NA, gcmodel(modelindex(x$model))$b2, gcmodel(modelindex(x$model))$b3, "intercept", NA)[k])
   c(NA, "location in time", "scale", "threshold", "asymmetry")[k]
 }
 

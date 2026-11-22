@@ -23,9 +23,11 @@
 #' responses are impossible before the threshold. The asymmetry b5 starts at 1, the symmetric curve,
 #' with which b2 and b3 are linearised unless b5 is given in start; b4 without truncation starts at 0.
 #'
-#' The beta, beta_capped, chapmanrichards and wykoff curves are not linearised: b1-b3 are fitted by
-#' least squares to the mean responses (above the intercept log(b5) of chapmanrichards and wykoff,
-#' when b5 is given in start), with b4 at 0 or its value in start.
+#' The beta, beta_capped, chapmanrichards and korf curves are not linearised: b1-b3 are fitted by
+#' least squares to the mean responses (above the intercept b4 of chapmanrichards and korf), with
+#' b4 at its value in start, or by default 1.3 (chapmanrichards, korf) or 0 (beta). For chapmanrichards they start from the shape b3 = 3, for korf
+#' from the shape b3 = 2, with the rate or coefficient b2 that puts the inflection point where the
+#' mean response is closest to the fraction of the asymptote reached there.
 #'
 #' Method "grid" evaluates the negative log-likelihood (without random effects) at all
 #' combinations of a grid of parameter values and returns the best grid point; parameters
@@ -40,10 +42,10 @@
 #' @param fform Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1). A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.
 #' @param data Data frame. Observations with missing values in the variables of the model or in the weights are left out.
 #' @param start Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced.
-#' @param fix Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4 and the asymmetry (or intercept) b5 are fixed by default, at 0 and 1 unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.
+#' @param fix Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1 unless given in start (the intercept b4 of chapmanrichards and korf at 1.3; the rates b4 and b5 of preecebaines are estimated); fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.
 #' @param weights Numeric vector or NULL. Weights, one for each row of data.
 #' @param family Character string. The distribution of the response, see \code{\link{gcTMB}}.
-#' @param model Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "beta", "beta_capped", "normal", "gamma", "chapmanrichards", "wykoff", "preecebaines" or "linear", see \code{\link{gcTMB}}.
+#' @param model Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "beta", "beta_capped", "normal", "gamma", "chapmanrichards", "korf", "preecebaines" or "linear", see \code{\link{gcTMB}}.
 #' @param truncated Logical. If TRUE (default), the curve is truncated at a threshold b4, by default fixed at 0, see \code{\link{gcTMB}}.
 #' @param link Named character vector or NULL. Links of the parameters b1-b5, see \code{\link{gcTMB}}.
 #' @param b1type Character string. The meaning of b1, "asymptote" (default) or "rate" for the maximum growth rate, see \code{\link{gcTMB}}.
@@ -64,7 +66,7 @@
 gcTMBstart <- function(form, fform=NULL, data, start=NULL, fix=NULL, weights=NULL, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type=c("asymptote", "rate"), method="lm", gsl=NULL, gsu=NULL, gsn=NULL){
   b1type <- match.arg(b1type)
   dd <- gcTMBdata(form, fform=fform, data=data, weights=weights, family=family, model=model, truncated=truncated, link=link, b1type=b1type)
-  start <- parvector(start, dd$npi, NA, "start")
+  start <- defaultstart(parvector(start, dd$npi, NA, "start"), dd)
   fix <- defaultfix(fix, dd$npi, dd$mod)
   fix[dd$npi %in% unusedpars(dd$mod, dd$trunc)] <- TRUE
   checkb1rate(dd, start, fix)
@@ -128,7 +130,7 @@ gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="
   # random effects
   re <- reterms(rform, data)
   rpars <- unlist(lapply(re$terms, function(tm) tm$pars))
-  # the linear model and the models with the intercept b4 (chapmanrichards, wykoff) are not
+  # the linear model and the models with the intercept b4 (chapmanrichards, korf) are not
   # truncated; beta always is, as it is zero up to its start b4, which only gives b4 its role
   truncated <- if (islinear(mod) || hasintercept(mod) || isFALSE(m$trunc)) FALSE else if (isstart(mod)) TRUE else truncated
   unused <- intersect(unusedpars(mod, truncated), rpars)
@@ -189,7 +191,7 @@ lmstart <- function(dd, start, fix){
   if (isTRUE(dd$b1rate)) kn[1] <- FALSE
   # asymmetry b5: its starting value, otherwise the symmetric curve
   a <- if (!is.na(start[npi == 5][1])) linkfun(dd$lnk[5], start[npi == 5][1], inverse=TRUE) else 1
-  # intercept b4 of chapmanrichards and wykoff, when it is given: the curve is fitted above it
+  # intercept b4 of chapmanrichards and korf, when it is given: the curve is fitted above it
   icpt <- if (!is.na(start[npi == 4][1])) intercept(dd$mod, linkfun(dd$lnk[4], start[npi == 4][1], inverse=TRUE)) else 0
 
   # response on the mean scale, aggregated by time; geometric means for the medians of lognormal responses
@@ -265,11 +267,12 @@ lmstart <- function(dd, start, fix){
     fits[[if (all(!is.finite(rss))) 1 else which.min(rss)]]$b
   }
 
-  # chapmanrichards, beta and wykoff: b4 is its starting value (0 by default); for beta, estimated
+  # chapmanrichards, beta and korf: b4 is its starting value (0 by default); for beta, estimated
   # without one, 0 or just before the first time. b1-b3 by least squares of the mean responses (above
-  # the intercept b4 of chapmanrichards and wykoff), from a curve with its inflection point at the time
-  # closest to the fraction of the largest response there (1/2, or exp(-2) for wykoff), with c = 3 for
-  # chapmanrichards. The curves grow from b0: the start b4 of beta, and t = 0 for the others.
+  # the intercept b4 of chapmanrichards and korf), from a curve with its inflection point at the time
+  # closest to the fraction of the largest response there (1/2 for beta; see forestfit for
+  # chapmanrichards and korf). The curves grow from b0: the start b4 of beta, and t = 0 for the
+  # others.
   b4s <- NA
   b0 <- 0
   if (isTRUE(m$start)){
@@ -281,12 +284,10 @@ lmstart <- function(dd, start, fix){
     ymax <- yd[which.max(abs(yd))]
     if (ymax == 0) ymax <- 1
     after <- td > b4
-    fm <- if (dd$model == "wykoff") exp(-2) else 1/2
-    th <- if (any(after)) td[after][which.min(abs(yd[after] - fm * ymax))] else b4 + trange / 2
+    th <- if (any(after)) td[after][which.min(abs(yd[after] - ymax / 2))] else b4 + trange / 2
     b1 <- if (kn[1]) kv[1] else linkrange(1.1 * ymax, dd$family)
     b2 <- if (kn[2]) kv[2] else if (is.na(m$b2)) 0 else max(th, b4 + trange / 10)
-    b3 <- if (kn[3]) kv[3] else switch(dd$model, chapmanrichards=max(b2 - b4, trange / 10) / log(3),
-                                     beta=, beta_capped=b2 + max(max(td) - b2, trange / 10))
+    b3 <- if (kn[3]) kv[3] else b2 + max(max(td) - b2, trange / 10)
     # free parameters: b1, b2 - b4 and b3 on the log scale (b3 - b2, the time from the maximum growth
     # rate to the end of growth, for beta)
     isbeta <- dd$model %in% c("beta", "beta_capped")
@@ -301,6 +302,43 @@ lmstart <- function(dd, start, fix){
     rss <- function(p){
       b <- pars(p)
       r <- sum((yd - b[1] * m$G(td, b[2], b[3], b4))^2)
+      if (is.finite(r)) r else 1e300
+    }
+    if (any(free)){
+      o <- if (sum(free) == 1) optimize(rss, p0[free] + c(-5, 5)) else optim(p0[free], rss, control=list(maxit=2000))
+      p <- if (sum(free) == 1) o$minimum else o$par
+      if (rss(p) < rss(p0[free])) p0[free] <- p
+    }
+    pars(p0[free])
+  }
+
+  # chapmanrichards and korf: b1-b3 by least squares of the mean responses above the intercept b4,
+  # from the asymptote just above the largest mean response, the shape 3 (chapmanrichards) or 2
+  # (korf), and b2 that puts the inflection point at the diameter (time) where the mean response is
+  # closest to the fraction of the asymptote reached there; b2 on the log scale, and b3 on the log
+  # scale of b3 (chapmanrichards) or of b3 - 1 (korf, whose shape is larger than 1)
+  forestfit <- function(){
+    cr <- dd$model == "chapmanrichards"
+    ymax <- max(yd)
+    if (ymax <= 0) ymax <- 1
+    b1 <- if (kn[1]) kv[1] else linkrange(1.1 * ymax, dd$family)
+    b3 <- if (kn[3]) kv[3] else if (cr) 3 else 2
+    fm <- if (cr) (1 - 1 / max(b3, 1.5))^max(b3, 1.5) else exp(-b3 / (b3 - 1))
+    pos <- td > 0
+    th <- if (any(pos)) td[pos][which.min(abs(yd[pos] - fm * b1))] else trange / 2
+    th <- max(th, trange / 10)
+    b2 <- if (kn[2]) kv[2] else if (cr) log(max(b3, 1.5)) / th else m$b2fromtmax(th, b3)
+    b3off <- if (cr) 0 else 1
+    free <- !kn
+    p0 <- c(b1, log(b2), log(b3 - b3off))
+    pars <- function(p){
+      q <- p0
+      q[free] <- p
+      c(q[1], exp(q[2]), b3off + exp(q[3]))
+    }
+    rss <- function(p){
+      b <- pars(p)
+      r <- sum((yd - b[1] * m$G(td, b[2], b[3], 0))^2)
       if (is.finite(r)) r else 1e300
     }
     if (any(free)){
@@ -351,6 +389,8 @@ lmstart <- function(dd, start, fix){
     best <- bp[1:3]
     b4s <- bp[4]
     a <- bp[5]
+  } else if (hasintercept(dd$mod)){
+    best <- forestfit()
   } else if (isTRUE(m$start)){
     best <- startfit(b0)
   } else {
@@ -473,6 +513,14 @@ gridrange <- function(dd, start){
 
   # b2: time of the maximum growth rate within the time range, extended at both ends
   i2 <- single(2)
+  if (!is.null(i2) && hasintercept(dd$mod)){
+    # the rate of chapmanrichards and the coefficient of korf: between 1/4 and 4 times the "lm"
+    # starting value
+    b2 <- start[i2]
+    rng[[i2]] <- if (dd$lnk[2] == linkindex("log")) list(lower=b2 - log(4), upper=b2 + log(4), log=FALSE) else
+      list(lower=b2 / 4, upper=b2 * 4, log=TRUE)
+    i2 <- NULL
+  }
   if (!is.null(i2)){
     ext <- 0.25*diff(range(x))
     if (ext == 0) ext <- 1
@@ -493,8 +541,8 @@ gridrange <- function(dd, start){
     } else {
       if (!is.finite(b3) || b3 == 0) b3 <- 1
       lo <- b3/4
-      # the weibull shape is larger than 1
-      if (identical(gcmodel(dd$mod)$b3, "shape") && dd$lnk[3] == 1) lo <- max(lo, 1.01)
+      # the weibull, gamma and korf shapes are larger than 1
+      if (identical(gcmodel(dd$mod)$b3, "shape") && (gcmodel(dd$mod)$logtime || dd$model == "korf") && dd$lnk[3] == 1) lo <- max(lo, 1.01)
       rng[[i3]] <- list(lower=lo, upper=max(b3*4, lo*4), log=TRUE)
     }
   }
@@ -872,10 +920,26 @@ parvector <- function(v, npi, default, arg){
 # preecebaines) are estimated by default
 defaultfix <- function(fix, npi, mod=NULL){
   out <- parvector(fix, npi, FALSE, "fix")
-  for (p in setdiff(4:5, if (!is.null(mod)) gcmodel(mod)$free)){
+  # parameters fixed by default for the model, e.g. b4 = 1.3 of chapmanrichards and korf (see gcmodels)
+  pd <- if (!is.null(mod)) match(names(gcmodel(mod)$defaults), paste("b", 1:5, sep="")) else NULL
+  for (p in setdiff(c(4:5, pd), if (!is.null(mod)) gcmodel(mod)$free)){
     if (is.null(fix) || (!is.null(names(fix)) && !(paste("b", p, sep="") %in% names(fix)))) out[npi == p] <- TRUE
   }
   out
+}
+
+# starting values of the parameters with a default value for the model (see gcmodels), e.g. b4 = 1.3
+# of chapmanrichards and korf, on the scale of their links: for the NA entries of start, whether fixed or estimated
+defaultstart <- function(start, dd){
+  dv <- gcmodel(dd$mod)$defaults
+  for (p in names(dv)){
+    i <- match(p, paste("b", 1:5, sep=""))
+    id <- which(dd$npi == i)
+    # the default for the intercept of the parameter, zero for its other coefficients
+    v <- c(linkfun(dd$lnk[i], dv[[p]]), rep(0, length(id) - 1))
+    start[id] <- ifelse(is.na(start[id]), v, start[id])
+  }
+  start
 }
 
 # keep an asymptote inside the range of the mean of the family: inside (0, 1) for proportions, and

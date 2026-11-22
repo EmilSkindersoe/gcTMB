@@ -13,6 +13,18 @@ navbar:
   structure:
     left: [intro, reference, articles]
     right: [search, github]
+  components:
+    articles:
+      text: Examples
+      menu:
+      - text: Growth models and their parameters
+        href: articles/growth-models.html
+      - text: Fixed and random effects
+        href: articles/fixed-random-effects.html
+      - text: Timing and maximum growth rates
+        href: articles/timing-rates.html
+      - text: Autocorrelation and simulation
+        href: articles/autocorrelation-simulation.html
 
 reference:
 - title: Fitting growth curves
@@ -60,8 +72,8 @@ reference:
   - gcTMB-package
 
 articles:
-- title: Topics
-  navbar: Topics
+- title: Examples
+  navbar: Examples
   contents:
   - growth-models
   - fixed-random-effects

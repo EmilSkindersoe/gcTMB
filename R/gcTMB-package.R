@@ -1,9 +1,10 @@
 #' @section Growth models and fitting:
 #' \code{\link{gcTMB}} fits the growth curves: logistic (Richards), Gompertz, Hill, Weibull, normal and
-#' gamma, each with an asymmetry b5, the Chapman-Richards, beta and Wykoff curves, and a straight line. The parameters are the asymptote b1 (or the
+#' gamma, each with an asymmetry b5, the Chapman-Richards, beta and Korf curves, and a straight line. The parameters are the asymptote b1 (or the
 #' maximum growth rate, \code{b1type="rate"}), the time b2 of the maximum growth rate or of half the
 #' asymptote, the scale, slope or shape b3, the threshold b4 of a truncated curve and the asymmetry
-#' b5, each with a link and optionally fixed. \code{\link{gcTMBstart}} gives the starting values and
+#' b5, each with a link and optionally fixed; the Chapman-Richards and Korf height-diameter models
+#' keep the parameters usual in forestry (see \code{\link{gcTMB}}). \code{\link{gcTMBstart}} gives the starting values and
 #' \code{\link{gcTMBcontrol}} the settings of the optimisation and the inference.
 #'
 #' @section Effects, distributions and autocorrelation:

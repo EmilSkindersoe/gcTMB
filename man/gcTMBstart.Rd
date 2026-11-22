@@ -31,13 +31,13 @@ gcTMBstart(
 
 \item{start}{Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced.}
 
-\item{fix}{Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4 and the asymmetry (or intercept) b5 are fixed by default, at 0 and 1 unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.}
+\item{fix}{Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1 unless given in start (the intercept b4 of chapmanrichards and korf at 1.3; the rates b4 and b5 of preecebaines are estimated); fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.}
 
 \item{weights}{Numeric vector or NULL. Weights, one for each row of data.}
 
 \item{family}{Character string. The distribution of the response, see \code{\link{gcTMB}}.}
 
-\item{model}{Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "beta", "beta_capped", "normal", "gamma", "chapmanrichards", "wykoff", "preecebaines" or "linear", see \code{\link{gcTMB}}.}
+\item{model}{Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "beta", "beta_capped", "normal", "gamma", "chapmanrichards", "korf", "preecebaines" or "linear", see \code{\link{gcTMB}}.}
 
 \item{truncated}{Logical. If TRUE (default), the curve is truncated at a threshold b4, by default fixed at 0, see \code{\link{gcTMB}}.}
 
@@ -81,9 +81,11 @@ time with a positive count, and for the lognormal and beta families before all t
 responses are impossible before the threshold. The asymmetry b5 starts at 1, the symmetric curve,
 with which b2 and b3 are linearised unless b5 is given in start; b4 without truncation starts at 0.
 
-The beta, beta_capped, chapmanrichards and wykoff curves are not linearised: b1-b3 are fitted by
-least squares to the mean responses (above the intercept log(b5) of chapmanrichards and wykoff,
-when b5 is given in start), with b4 at 0 or its value in start.
+The beta, beta_capped, chapmanrichards and korf curves are not linearised: b1-b3 are fitted by
+least squares to the mean responses (above the intercept b4 of chapmanrichards and korf), with
+b4 at its value in start, or by default 1.3 (chapmanrichards, korf) or 0 (beta). For chapmanrichards they start from the shape b3 = 3, for korf
+from the shape b3 = 2, with the rate or coefficient b2 that puts the inflection point where the
+mean response is closest to the fraction of the asymptote reached there.
 
 Method "grid" evaluates the negative log-likelihood (without random effects) at all
 combinations of a grid of parameter values and returns the best grid point; parameters

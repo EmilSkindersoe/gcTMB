@@ -287,12 +287,14 @@ profile.timetoTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progress
       qf <- timeq(fit, q, lpv, absolute)
       m <- gcmodel(mod)
       if (isTRUE(m$start)){
-        # chapmanrichards, beta and wykoff: b2 numerically, the time increases with b2 (for beta with
-        # the end of growth b2 + b3); b2 is after the start of beta, and after -1 for wykoff
         if (!is.finite(qf) || qf <= 0 || qf >= 1) return(NA)
+        # chapmanrichards and korf: b2 in closed form, given b3
+        if (!is.null(m$b2fromt)) return(suppressWarnings(linkfun(lnk[ps], m$b2fromt(qf, tt, b[3]))))
+        # beta: b2 numerically, the time increases with b2 (with the end of growth b2 + b3), and b2 is
+        # after the start of beta
         tfuns <- function(b2) gctimeR(mod, qf, b2, b[3], b[4], b[5], b1=b[1]) - tt
         w <- if (is.finite(b[3]) && b[3] > 0) b[3] else max(1, abs(b[2]))
-        lo2 <- switch(m$b4 %in% "intercept" + 1, b[4], if (mod == modelindex("wykoff")) -1 else -Inf) + 1e-8 * w
+        lo2 <- switch(m$b4 %in% "intercept" + 1, b[4], -Inf) + 1e-8 * w
         # beta: b2 before the end of growth b3
         up2 <- if (gcmodel(mod)$b3 %in% "end") b[3] - 1e-8 * w else Inf
         r <- tryCatch(uniroot(tfuns, c(max(lo2, b[2] - w), min(up2, b[2] + w)), extendInt=if (is.finite(up2)) "no" else "upX",

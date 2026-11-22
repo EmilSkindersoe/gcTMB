@@ -1,6 +1,6 @@
 Package: gcTMB
 Title: Fitting Growth Curves Using the Template Model Builder
-Version: 0.1.0.9012
+Version: 0.1.0.9013
 Authors@R: 
     person("Emil", "Skindersoe", , "e.skindersoe@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0000-2172-1614"))
@@ -10,7 +10,7 @@ Description: Fits non-linear growth curves over time by maximum likelihood
     approximation, and autocorrelated residuals. The main function gcTMB()
     fits the logistic (Richards), Gompertz, Hill, Weibull, normal and gamma
     growth curves, each with an asymmetry parameter, the Chapman-Richards
-    and Wykoff curves with an intercept, e.g. for height-diameter models,
+    and Korf curves with an intercept, e.g. for height-diameter models,
     the beta growth function, capped at its maximum or not, the Preece-Baines
     model of human growth, and a
     straight line for comparison. The curves are parameterised by the asymptote (or, with

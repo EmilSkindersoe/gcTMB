@@ -1,16 +1,18 @@
-# The chapmanrichards, beta (Yin et al. 2003) and wykoff (Wykoff et al. 1982) curves, never truncated:
-#   chapmanrichards: b4 + b1 (1 - exp(-t/b3))^c, c = exp(b2/b3), with the intercept b4
+# The chapmanrichards, beta (Yin et al. 2003) and korf (Kuzelka and Marusak 2015) curves, never truncated:
+#   chapmanrichards: b4 + b1 (1 - exp(-b2 t))^b3 (Richards 1959), with the rate b2, the shape b3 and
+#                    the intercept b4
 #   beta_capped:     b1 (1 + (b3 - t)/(b3 - b2)) ((t - b4)/(b3 - b4))^((b3 - b4)/(b3 - b2)), with the time
 #                    b2 = tm of the maximum growth rate, the end of growth b3 = te and the start b4 = tb;
 #                    zero up to b4 and b1 from b3 on
-#   wykoff:          b4 + b1 exp(-s/(t + 1)), s = 2 (b2 + 1), with the intercept b4
+#   korf:            b4 + b1 exp(b2/((1 - b3) t^(b3 - 1))), as in Kuzelka and Marusak (2015), with the
+#                    asymptote b1, the coefficient b2 > 0, the shape b3 > 1 and the intercept b4
 
 mcr <- 8
 mbeta <- 9
-mwy <- 10
+mko <- 10
 
-crcurve <- function(t, b1, b2, b3, b4=0) b4 + ifelse(t > 0, b1 * (1 - exp(-t/b3))^exp(b2/b3), 0)
-wycurve <- function(t, b1, b2, b4=0) b4 + ifelse(t > -1, b1 * exp(-2*(b2 + 1)/(t + 1)), 0)
+crcurve <- function(t, b1, b2, b3, b4=0) b4 + ifelse(t > 0, b1 * (1 - exp(-b2*t))^b3, 0)
+kocurve <- function(t, b1, b2, b3, b4=0) b4 + ifelse(t > 0, b1 * exp(b2/((1 - b3)*pmax(t, 1e-300)^(b3 - 1))), 0)
 betacurve <- function(t, b1, b2, b3, b4){
   te <- b3
   tc <- pmin(pmax(t, b4), te)
@@ -21,24 +23,25 @@ test_that("the model indices match the names", {
   expect_equal(gcTMB:::modelindex("chapmanrichards"), mcr)
   expect_equal(gcTMB:::modelindex("beta_capped"), mbeta)
   expect_equal(gcTMB:::modelindex("beta"), 12)
-  expect_equal(gcTMB:::modelindex("wykoff"), mwy)
-  expect_true(all(vapply(c(mcr, mbeta, mwy), gcTMB:::isstart, logical(1))))
+  expect_equal(gcTMB:::modelindex("korf"), mko)
+  expect_true(all(vapply(c(mcr, mbeta, mko), gcTMB:::isstart, logical(1))))
   expect_equal(gcTMB:::unusedpars(mcr), 5)
-  expect_equal(gcTMB:::unusedpars(mwy), c(3, 5))
+  expect_equal(gcTMB:::unusedpars(mko), 5)
   expect_equal(gcTMB:::unusedpars(mbeta), 4:5)
 })
 
-test_that("the curves are the chapmanrichards, beta and wykoff curves", {
+test_that("the curves are the chapmanrichards, beta and korf curves", {
   t <- c(-5, -0.5, 0, 2, 5, 10, 20, 30, 45, 60, 100)
   for (b4 in c(0, 1.3)){
-    expect_equal(gcTMB:::gcmeanR(mcr, t, 50, 20, 8, b4), crcurve(t, 50, 20, 8, b4))
-    expect_equal(gcTMB:::gcmeanR(mwy, t, 50, 10, NA, b4), wycurve(t, 50, 10, b4))
+    expect_equal(gcTMB:::gcmeanR(mcr, t, 50, 0.06, 3, b4), crcurve(t, 50, 0.06, 3, b4))
+    expect_equal(gcTMB:::gcmeanR(mko, t, 50, 15, 2, b4), kocurve(t, 50, 15, 2, b4))
+    expect_equal(gcTMB:::gcmeanR(mko, t, 50, 3.6, 1.6, b4), kocurve(t, 50, 3.6, 1.6, b4))
   }
   for (b4 in c(0, 3, -4)){
     expect_equal(gcTMB:::gcmeanR(mbeta, t, 50, 25, 45, b4), betacurve(t, 50, 25, 45, b4))
   }
   # truncation changes nothing
-  expect_equal(gcTMB:::gcmeanR(mcr, t, 50, 20, 8, 1.3, trunc=TRUE), crcurve(t, 50, 20, 8, 1.3))
+  expect_equal(gcTMB:::gcmeanR(mcr, t, 50, 0.06, 3, 1.3, trunc=TRUE), crcurve(t, 50, 0.06, 3, 1.3))
   # the beta curve stays at its asymptote from the end of growth b3 on
   expect_equal(gcTMB:::gcmeanR(mbeta, c(45, 60, 100), 50, 25, 45, 0), rep(50, 3))
   # with b4 = 0, eqn (8) of Yin et al. (2003)
@@ -46,23 +49,20 @@ test_that("the curves are the chapmanrichards, beta and wykoff curves", {
   expect_equal(gcTMB:::gcmeanR(mbeta, tt, 50, 25, 45, 0), 50*(1 + (45 - tt)/(45 - 25))*(tt/45)^(45/(45 - 25)))
 })
 
-test_that("chapmanrichards and wykoff are models M8 and M9 of Ciceu et al. (2020)", {
+test_that("chapmanrichards is model M8 of Ciceu et al. (2020), and korf the Korf curve", {
   D <- seq(1, 80, by=0.5)
   # M8: 1.3 + a (1 - exp(-k D))^c
   a <- 30; k <- 0.05; cc <- 3
-  expect_equal(gcTMB:::gcmeanR(mcr, D, a, log(cc)/k, 1/k, 1.3), 1.3 + a*(1 - exp(-k*D))^cc)
-  # M9: 1.3 + exp(a + b/(D + 1)), with b1 = exp(a) and b = -2 (b2 + 1)
-  a <- 3.5; b <- -15
-  expect_equal(gcTMB:::gcmeanR(mwy, D, exp(a), -b/2 - 1, NA, 1.3), 1.3 + exp(a + b/(D + 1)))
-  # chapmanrichards is the Richards curve (1 + b5 exp(-z))^(-1/b5), z = (t - b2)/b3, with b5 = -1/c
-  b5 <- -1/exp(20/8)
-  expect_equal(gcTMB:::gcmeanR(mcr, D, 50, 20, 8, 0), 50 * (1 + b5 * exp(-(D - 20)/8))^(-1/b5))
+  expect_equal(gcTMB:::gcmeanR(mcr, D, a, k, cc, 1.3), 1.3 + a*(1 - exp(-k*D))^cc)
+  # Korf, as in Kuzelka and Marusak (2015): 1.3 + a exp(b/((1 - c) D^(c - 1)))
+  a <- 30; b <- 8; cc <- 1.7
+  expect_equal(gcTMB:::gcmeanR(mko, D, a, b, cc, 1.3), 1.3 + a*exp(b/((1 - cc)*D^(cc - 1))))
 })
 
 test_that("the times to reach a level are the inverse of the curves", {
   q <- c(0.01, 0.1, 0.35, 0.5, 0.9, 0.99)
   for (b4 in c(0, 1.3)){
-    for (p in list(list(mcr, c(20, 8)), list(mcr, c(2, 8)), list(mwy, c(10, NA)), list(mwy, c(0.5, NA)))){
+    for (p in list(list(mcr, c(0.06, 3)), list(mcr, c(0.2, 0.8)), list(mko, c(15, 2)), list(mko, c(0.5, 2)), list(mko, c(3.6, 1.6)))){
       tt <- gcTMB:::gctimeR(p[[1]], q, p[[2]][1], p[[2]][2], b4)
       expect_equal(gcTMB:::gcmeanR(p[[1]], tt, 1, p[[2]][1], p[[2]][2], b4) - b4, q, tolerance=1e-10)
     }
@@ -74,11 +74,19 @@ test_that("the times to reach a level are the inverse of the curves", {
       expect_true(all(tt > b4))
     }
   }
+  # b2 from a time and from the inflection point, for the profiles
+  for (p in list(list(mcr, c(0.06, 3)), list(mko, c(15, 2)), list(mko, c(3.6, 1.6)))){
+    m <- gcTMB:::gcmodel(p[[1]])
+    t50 <- gcTMB:::gctimeR(p[[1]], 0.5, p[[2]][1], p[[2]][2], 0)
+    expect_equal(m$b2fromt(0.5, t50, p[[2]][2]), p[[2]][1])
+    tm <- gcTMB:::maxrateR(p[[1]], c(1, p[[2]], 0, 1))[["tmax"]]
+    expect_equal(m$b2fromtmax(tm, p[[2]][2]), p[[2]][1])
+  }
 })
 
 test_that("maxrate gives the inflection point, its fraction and the maximum growth rate", {
-  for (p in list(list(mcr, c(50, 20, 8, 0)), list(mcr, c(50, 20, 8, 1.3)), list(mwy, c(50, 10, NA, 0)), list(mwy, c(50, 3, NA, 1.3)),
-                 list(mbeta, c(50, 25, 45, 0)), list(mbeta, c(50, 25, 35, 5)))){
+  for (p in list(list(mcr, c(50, 0.06, 3, 0)), list(mcr, c(50, 0.06, 3, 1.3)), list(mko, c(50, 22, 2, 0)), list(mko, c(50, 8, 2, 1.3)),
+                 list(mko, c(50, 3.6, 1.6, 0)), list(mbeta, c(50, 25, 45, 0)), list(mbeta, c(50, 25, 35, 5)))){
     b <- p[[2]]
     t <- seq(max(b[4], 0) + 1e-4, 100, by=0.001)
     f <- gcTMB:::gcmeanR(p[[1]], t, b[1], b[2], b[3], b[4]) - gcTMB:::intercept(p[[1]], b[4])
@@ -86,20 +94,20 @@ test_that("maxrate gives the inflection point, its fraction and the maximum grow
     i <- which.max(r)
     mr <- gcTMB:::maxrateR(p[[1]], c(b, 1))
     expect_equal(unname(mr), c(t[i] + 0.0005, r[i], mean(f[i + 0:1])/b[1]), tolerance=1e-4, label=paste(p[[1]], b[4]))
-    expect_equal(mr[["tmax"]], b[2])
   }
-  # closed forms: chapmanrichards (1 - 1/c)^c and b1/b3 (1 - 1/c)^(c - 1); wykoff exp(-2) and
-  # 4 b1 exp(-2)/s; beta with b4 = 0 the cm of Yin et al. (2003)
-  cc <- exp(20/8)
-  expect_equal(gcTMB:::maxrateR(mcr, c(50, 20, 8, 0, 1)), c(tmax=20, rate=50/8*(1 - 1/cc)^(cc - 1), fraction=(1 - 1/cc)^cc))
-  expect_equal(gcTMB:::maxrateR(mwy, c(50, 10, NA, 0, 1)), c(tmax=10, rate=4*50*exp(-2)/22, fraction=exp(-2)))
+  # closed forms: chapmanrichards at log(c)/k, (1 - 1/c)^c and b1 k (1 - 1/c)^(c - 1); korf with b3 = 2
+  # at b2/2, exp(-2) and 4 b1 exp(-2)/b2; beta with b4 = 0 the cm of Yin et al. (2003)
+  expect_equal(gcTMB:::maxrateR(mcr, c(50, 0.06, 3, 0, 1)), c(tmax=log(3)/0.06, rate=50*0.06*(2/3)^2, fraction=(2/3)^3))
+  expect_equal(gcTMB:::maxrateR(mko, c(50, 22, 2, 0, 1)), c(tmax=11, rate=4*50*exp(-2)/22, fraction=exp(-2)))
   te <- 45; tm <- 25
   expect_equal(gcTMB:::maxrateR(mbeta, c(50, 25, 45, 0, 1))[["rate"]], 50*(2*te - tm)/(te*(te - tm))*(tm/te)^(tm/(te - tm)))
   # the intercept changes neither
-  expect_equal(gcTMB:::maxrateR(mcr, c(50, 20, 8, 1.3, 1)), gcTMB:::maxrateR(mcr, c(50, 20, 8, 0, 1)))
+  expect_equal(gcTMB:::maxrateR(mcr, c(50, 0.06, 3, 1.3, 1)), gcTMB:::maxrateR(mcr, c(50, 0.06, 3, 0, 1)))
+  # chapmanrichards without an inflection point at a positive diameter (b3 <= 1)
+  expect_equal(gcTMB:::maxrateR(mcr, c(50, 0.06, 1, 0, 1)), c(tmax=0, rate=50*0.06, fraction=0))
 })
 
-# simulated data of a model with parameters b (b1-b4)
+# simulated data of a model with parameters b (b1-b4, b1 the asymptote)
 simstart <- function(mod, b, sd=1, seed=1){
   set.seed(seed)
   d <- data.frame(day=rep(seq(1, 60, by=3), 3))
@@ -107,23 +115,31 @@ simstart <- function(mod, b, sd=1, seed=1){
   d
 }
 
-test_that("chapmanrichards, beta and wykoff fits agree with nls", {
-  d <- simstart(mcr, c(50, 20, 8, 0))
-  f <- gcTMB(y ~ day, data=d, model="chapmanrichards")
+test_that("chapmanrichards, beta and korf fits agree with nls", {
+  d <- simstart(mcr, c(50, 0.06, 3, 0))
+  f <- gcTMB(y ~ day, data=d, model="chapmanrichards", start=c(b4=0))
   expect_equal(f$opt$convergence, 0)
   expect_false(f$truncated)
   expect_equal(f$fix, c(FALSE, FALSE, FALSE, TRUE, TRUE))
-  n <- nls(y ~ b1*(1 - exp(-day/b3))^exp(b2/b3), data=d, start=list(b1=50, b2=20, b3=8))
+  n <- nls(y ~ b1*(1 - exp(-b2*day))^b3, data=d, start=list(b1=50, b2=0.06, b3=3))
   expect_equal(unname(bcoef(f)), unname(coef(n)), tolerance=1e-5)
   expect_equal(sqrt(diag(vcov(f)))[1:3], sqrt(diag(vcov(n))), tolerance=2e-2, ignore_attr=TRUE)
 
-  d <- simstart(mwy, c(50, 10, NA, 0))
-  f <- gcTMB(y ~ day, data=d, model="wykoff")
+  # korf: the asymptote b1, the coefficient b2 and the shape b3 estimated
+  d <- simstart(mko, c(50, 3.6, 1.6, 0), sd=0.5)
+  f <- gcTMB(y ~ day, data=d, model="korf", start=c(b4=0))
   expect_equal(f$opt$convergence, 0)
   expect_false(f$truncated)
-  expect_equal(f$fix, c(FALSE, FALSE, TRUE, TRUE, TRUE))
-  n <- nls(y ~ b1*exp(-2*(b2 + 1)/(day + 1)), data=d, start=list(b1=50, b2=10))
-  expect_equal(unname(bcoef(f)), unname(coef(n)), tolerance=1e-5)
+  expect_equal(f$fix, c(FALSE, FALSE, FALSE, TRUE, TRUE))
+  expect_equal(f$link[["b1"]], "identity")
+  n <- nls(y ~ b1*exp(b2/((1 - b3)*day^(b3 - 1))), data=d, start=list(b1=50, b2=3.6, b3=1.6))
+  expect_equal(unname(bcoef(f)), unname(coef(n)), tolerance=1e-4)
+  # the shape fixed at 2
+  d1 <- simstart(mko, c(50, 22, 2, 0))
+  f1 <- gcTMB(y ~ day, data=d1, model="korf", start=c(b3=2, b4=0), fix=c(b3=TRUE))
+  expect_equal(f1$fix, c(FALSE, FALSE, TRUE, TRUE, TRUE))
+  n1 <- nls(y ~ b1*exp(-b2/day), data=d1, start=list(b1=50, b2=22))
+  expect_equal(unname(bcoef(f1)), unname(coef(n1)), tolerance=1e-5)
 
   d <- simstart(mbeta, c(50, 25, 45, 0))
   f <- gcTMB(y ~ day, data=d, model="beta_capped")
@@ -132,32 +148,59 @@ test_that("chapmanrichards, beta and wykoff fits agree with nls", {
   expect_equal(unname(bcoef(f)), unname(coef(n)), tolerance=1e-5)
 })
 
-test_that("the intercept b4 of chapmanrichards and wykoff, fixed and estimated", {
+test_that("the intercept b4 of chapmanrichards and korf, fixed and estimated", {
   set.seed(4)
   d <- data.frame(dbh=runif(150, 5, 60))
-  d$h <- gcTMB:::gcmeanR(mcr, d$dbh, 30, 8, 12, 1.3) + rnorm(150, 0, 1)
+  d$h <- gcTMB:::gcmeanR(mcr, d$dbh, 30, 0.06, 2, 1.3) + rnorm(150, 0, 1)
   # fixed at the breast height
   f <- gcTMB(h ~ dbh, data=d, model="chapmanrichards", start=c(b4=1.3))
-  n <- nls(h ~ 1.3 + b1*(1 - exp(-dbh/b3))^exp(b2/b3), data=d, start=list(b1=30, b2=8, b3=12))
+  n <- nls(h ~ 1.3 + b1*(1 - exp(-b2*dbh))^b3, data=d, start=list(b1=30, b2=0.06, b3=2))
   expect_equal(unname(bcoef(f)[1:3]), unname(coef(n)), tolerance=1e-5)
   expect_equal(unname(predict(f, newdata=data.frame(dbh=0))), 1.3)
   expect_false(any(grepl("truncated", capture.output(print(f)))))
   # estimated
   fe <- gcTMB(h ~ dbh, data=d, model="chapmanrichards", fix=c(b4=FALSE))
-  ne <- nls(h ~ b4 + b1*(1 - exp(-dbh/b3))^exp(b2/b3), data=d, start=list(b1=30, b2=8, b3=12, b4=1.3))
+  ne <- nls(h ~ b4 + b1*(1 - exp(-b2*dbh))^b3, data=d, start=list(b1=30, b2=0.06, b3=2, b4=1.3))
   expect_equal(unname(bcoef(fe)), unname(coef(ne)), tolerance=1e-4)
-  # wykoff from the breast height
-  d$h <- gcTMB:::gcmeanR(mwy, d$dbh, 30, 6, NA, 1.3) + rnorm(150, 0, 1)
-  fw <- gcTMB(h ~ dbh, data=d, model="wykoff", start=c(b4=1.3))
-  nw <- nls(h ~ 1.3 + exp(a + b/(dbh + 1)), data=d, start=list(a=log(30), b=-14))
-  expect_equal(log(coef(fw)[[1]]), coef(nw)[["a"]], tolerance=1e-5)
-  expect_equal(-2*(coef(fw)[[2]] + 1), coef(nw)[["b"]], tolerance=1e-5)
+  # korf from the breast height
+  d$h <- gcTMB:::gcmeanR(mko, d$dbh, 30, 14, 2, 1.3) + rnorm(150, 0, 1)
+  fw <- gcTMB(h ~ dbh, data=d, model="korf", start=c(b4=1.3))
+  nw <- nls(h ~ 1.3 + a*exp(b/((1 - c)*dbh^(c - 1))), data=d, start=list(a=30, b=14, c=2))
+  expect_equal(unname(bcoef(fw)), unname(coef(nw)), tolerance=1e-4)
   # timeto and maxrate do not depend on the intercept; absolute times include it
-  expect_equal(coef(timeto(fw, level=50)), unname(gcTMB:::gctimeR(mwy, 0.5, coef(fw)[[2]], NA, 1.3)), ignore_attr=TRUE)
+  cw <- coef(fw)
+  expect_equal(coef(timeto(fw, level=50)), unname(gcTMB:::gctimeR(mko, 0.5, cw[[2]], cw[[3]], 1.3)), ignore_attr=TRUE)
   ta <- timeto(fw, level=10, type="absolute")
-  expect_equal(gcTMB:::gcmeanR(mwy, coef(ta)[[1]], coef(fw)[[1]], coef(fw)[[2]], NA, 1.3), 10, tolerance=1e-8)
+  expect_equal(gcTMB:::gcmeanR(mko, coef(ta)[[1]], cw[[1]], cw[[2]], cw[[3]], 1.3), 10, tolerance=1e-8)
   p <- plot(fw, which=2, draw=FALSE)
   expect_equal(p$time$labels$title, "Residuals vs dbh")
+})
+
+test_that("b4 defaults to the breast height for chapmanrichards and korf, to 0 for the other curves, and is estimated for preecebaines", {
+  f <- gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards")
+  expect_equal(f$start[4], 1.3)
+  expect_true(f$fix[4])
+  expect_equal(unname(predict(f, newdata=data.frame(dbh=0))), 1.3)
+  expect_equal(logLik(f), logLik(gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards", start=c(b4=1.3))))
+  set.seed(5)
+  dk <- data.frame(dbh=runif(150, 2, 60))
+  dk$h <- gcTMB:::gcmeanR(mko, dk$dbh, 30, 14, 2, 1.3) + rnorm(150, 0, 1)
+  w <- gcTMB(h ~ dbh, data=dk, model="korf")
+  expect_equal(unname(predict(w, newdata=data.frame(dbh=0))), 1.3)
+  expect_equal(w$start[4], 1.3)
+  expect_equal(w$fix[3:4], c(FALSE, TRUE))
+  # given in start, or estimated from the breast height
+  expect_equal(unname(gcTMBstart(height ~ dbh, data=PineHeightDiameter, model="korf", start=c(b4=0))[4]), 0)
+  expect_false(gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards", fix=c(b4=FALSE))$fix[4])
+  # the threshold of the sigmoid curves and the start of beta
+  for (m in c("logistic", "gompertz", "beta_capped")){
+    fm <- gcTMB(height ~ DAS, data=FabaHeights25, model=m)
+    expect_equal(fm$start[4], 0, label=m)
+    expect_true(fm$fix[4], label=m)
+  }
+  # preecebaines estimates its rates b4 and b5
+  fp <- gcTMB(height ~ age, data=subset(BerkeleyGrowth, sex == "female" & age >= 2), model="preecebaines")
+  expect_false(any(fp$fix[4:5]))
 })
 
 test_that("the start b4 of beta is estimated, and the starting values are close to the estimates", {
@@ -165,20 +208,21 @@ test_that("the start b4 of beta is estimated, and the starting values are close 
   f <- gcTMB(y ~ day, data=d, model="beta_capped", fix=c(b4=FALSE))
   expect_equal(f$opt$convergence, 0)
   expect_equal(unname(coef(f)[1:4]), c(50, 28, 48, 3), tolerance=0.1)
-  for (m in c("chapmanrichards", "beta_capped", "wykoff")){
-    d <- simstart(gcTMB:::modelindex(m), switch(m, chapmanrichards=c(50, 20, 8, 0), beta_capped=c(50, 25, 45, 0), wykoff=c(50, 10, NA, 0)))
-    sv <- gcTMBstart(y ~ day, data=d, model=m)
-    f0 <- gcTMB(y ~ day, data=d, model=m)
-    used <- if (m == "wykoff") 1:2 else 1:3
+  for (m in c("chapmanrichards", "beta_capped", "korf")){
+    d <- simstart(gcTMB:::modelindex(m), switch(m, chapmanrichards=c(50, 0.06, 3, 0), beta_capped=c(50, 25, 45, 0), korf=c(50, 22, 2, 0)))
+    sv <- gcTMBstart(y ~ day, data=d, model=m, start=c(b4=0))
+    f0 <- gcTMB(y ~ day, data=d, model=m, start=c(b4=0))
+    used <- 1:3
     expect_equal(unname(sv[used]), unname(f0$estimates[used]), tolerance=0.3, label=m)
   }
 })
 
-test_that("timeto of chapmanrichards, beta and wykoff: the inverse of the curve, with delta method standard errors", {
-  for (p in list(list("chapmanrichards", c(50, 20, 8, 0)), list("beta_capped", c(50, 25, 45, 0)), list("wykoff", c(50, 10, NA, 0)))){
+test_that("timeto of chapmanrichards, beta and korf: the inverse of the curve, with delta method standard errors", {
+  for (p in list(list("chapmanrichards", c(50, 0.06, 3, 0), NULL), list("beta_capped", c(50, 25, 45, 0), NULL),
+                 list("korf", c(50, 22, 2, 0), NULL), list("korf", c(50, 3.6, 1.6, 0), NULL))){
     mod <- gcTMB:::modelindex(p[[1]])
     d <- simstart(mod, p[[2]])
-    f <- gcTMB(y ~ day, data=d, model=p[[1]])
+    f <- gcTMB(y ~ day, data=d, model=p[[1]], start=c(b4=0), fix=p[[3]])
     tt <- timeto(f, level=c(10, 50, 90))
     pv <- f$start
     pv[!f$fix] <- f$estimates[seq_len(sum(!f$fix))]
@@ -198,20 +242,28 @@ test_that("timeto of chapmanrichards, beta and wykoff: the inverse of the curve,
     expect_equal(unname(sqrt(diag(vcov(tt)))), sqrt(diag(G %*% V %*% t(G))), tolerance=1e-4, label=p[[1]])
     # absolute times
     ta <- timeto(f, level=20, type="absolute")
-    expect_equal(gcTMB:::gcmeanR(mod, coef(ta)[[1]], pv[1], pv[2], pv[3], pv[4]), 20, tolerance=1e-8)
+    b1 <- gcTMB:::linkfun(gcTMB:::linkindex(f$link[["b1"]]), pv[1], inverse=TRUE)
+    expect_equal(gcTMB:::gcmeanR(mod, coef(ta)[[1]], b1, pv[2], pv[3], pv[4]), 20, tolerance=1e-8)
     expect_true(all(is.finite(coef(maxrate(f))[1:2])))
   }
-  d <- simstart(mcr, c(50, 20, 8, 0))
-  f <- gcTMB(y ~ day, data=d, model="chapmanrichards")
-  ci <- confint(timeto(f, level=50))
-  expect_true(ci[1, 1] < coef(timeto(f, level=50)) && coef(timeto(f, level=50)) < ci[1, 2])
+  # profile intervals of a time and of the inflection point
+  for (m in c("chapmanrichards", "korf")){
+    d <- simstart(gcTMB:::modelindex(m), if (m == "korf") c(50, 22, 2, 0) else c(50, 0.06, 3, 0))
+    f <- gcTMB(y ~ day, data=d, model=m, start=c(b4=0))
+    t50 <- coef(timeto(f, level=50))
+    ci <- confint(timeto(f, level=50))
+    expect_true(ci[1, 1] < t50 && t50 < ci[1, 2], label=m)
+    mr <- maxrate(f)
+    cim <- confint(mr, parm="tmax")
+    expect_true(cim[1, 1] < coef(mr)[["tmax"]] && coef(mr)[["tmax"]] < cim[1, 2], label=m)
+  }
 })
 
-test_that("b1 as the maximum growth rate of the chapmanrichards, beta and wykoff curves", {
-  for (p in list(list("chapmanrichards", c(50, 20, 8, 0)), list("beta_capped", c(50, 25, 45, 0)), list("wykoff", c(50, 10, NA, 0)))){
+test_that("b1 as the maximum growth rate of the chapmanrichards, beta and korf curves", {
+  for (p in list(list("chapmanrichards", c(50, 0.06, 3, 0)), list("beta_capped", c(50, 25, 45, 0)), list("korf", c(50, 22, 2, 0)))){
     d <- simstart(gcTMB:::modelindex(p[[1]]), p[[2]])
-    fa <- gcTMB(y ~ day, data=d, model=p[[1]])
-    fr <- gcTMB(y ~ day, data=d, model=p[[1]], b1type="rate")
+    fa <- gcTMB(y ~ day, data=d, model=p[[1]], start=c(b4=0))
+    fr <- gcTMB(y ~ day, data=d, model=p[[1]], start=c(b4=0), b1type="rate", link=c(b1="identity"))
     expect_equal(logLik(fr), logLik(fa), tolerance=1e-6, label=p[[1]])
     expect_equal(coef(fr)[[1]], coef(maxrate(fa))[["rate"]], tolerance=1e-5, label=p[[1]])
   }

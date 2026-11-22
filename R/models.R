@@ -14,7 +14,7 @@
 #   gamma:    F gamma with shape b3,    z = t (b3 - 1) / b2: the gamma distribution function with shape
 #             b3 and scale b2 / (b3 - 1), whose density has its mode at b2
 #   linear:   f(t) = b1 t + b2, for comparison; b3-b5 are not used, and it is not truncated
-#   chapmanrichards, wykoff: b4 + b1 G(t), with the intercept b4 (startcurve, wykoff entry); never
+#   chapmanrichards, korf: b4 + b1 G(t), with the intercept b4 (startcurve, korfcurve); never
 #             truncated
 #   beta:     zero up to the start b4 (beta entry), so that a truncation at b4 changes nothing
 #   preecebaines: model 1 of Preece and Baines (1978), b1 - 2 (b1 - b3) / (exp(b4 (t - b2)) +
@@ -27,11 +27,18 @@
 # b1-b5: role of each parameter, NA if the model does not use it (it is then always fixed)
 #   b1: "asymptote", the response approached at late times; "slope" of the linear model
 #   b2: "inflection", the time of the maximum growth rate, or "halfway", the time of half the
-#       asymptote; "intercept" of the linear model
+#       asymptote; "intercept" of the linear model. The forestry models keep their usual parameters:
+#       the "rate" of chapmanrichards and the positive "coefficient" of korf
 #   b3: "scale" on the time axis, positive; "slope" of the hill curve on the
-#       log time axis; "shape" of the weibull and gamma curves, larger than 1; "end" of growth of beta
-#   b4: not used by the curves themselves, see truncpars; "intercept" of chapmanrichards and wykoff,
-#       b4 + b1 G(t), e.g. the breast height of height-diameter models, fixed at 0 by default
+#       log time axis; "shape" of the weibull and gamma curves, larger than 1, and of chapmanrichards;
+#       "end" of growth of beta; "shape" of korf, larger than 1
+#   defaults: values of parameters fixed by default other than 0 (b4) and 1 (b5):
+#       b4 = 1.3, the breast height, of chapmanrichards and korf; they are estimated with fix,
+#       e.g. fix=c(b4=FALSE)
+#   b4: not used by the curves themselves, see truncpars; "intercept" of chapmanrichards and korf,
+#       b4 + b1 G(t), fixed by default at the breast height of 1.3 m of height-diameter models; the
+#       threshold (start of growth) of the other curves is fixed at 0 by default, and preecebaines
+#       estimates its rate b4 (free)
 #   b5: "asymmetry", positive, with b5 = 1 the symmetric curves above; fixed at 1 by default. The
 #       curve is b1 G(z) with (powS, pow, shift):
 #       logistic (Richards): G = (1 + b5 exp(-z))^(-1/b5) = F(z - log b5)^(1/b5)
@@ -98,24 +105,46 @@ lstime <- list(logtime=FALSE,
 # asymmetry by a power of F (see gcmodels)
 powF <- list(powS=FALSE, pow=function(a) a, shift=function(a) 0)
 
-# the chapmanrichards curve G(t) = (1 - exp(-t/b3))^c, c = exp(b2/b3), zero up to t = 0 (see
-# gcmodels): the fraction G of the asymptote at t, the time tq at which it reaches the fraction q, and
-# the time t, fraction G and rate r (asymptote 1) of the maximum growth rate, at the inflection point
-# (at t = 0 for curves without an inflection point at a positive time)
+# the chapmanrichards curve of Richards (1959), G(t) = (1 - exp(-b2 t))^b3 with the rate b2 and the
+# shape b3, zero up to t = 0 (see gcmodels): the fraction G of the asymptote at t, the time tq at
+# which it reaches the fraction q, and the time t, fraction G and rate r (asymptote 1) of the maximum
+# growth rate, at the inflection point log(b3) / b2 (at t = 0 for curves without an inflection point
+# at a positive time, b3 <= 1). b2fromt and b2fromtmax: the rate b2 for which the curve reaches the
+# fraction q at time t, and has its inflection point at tmax, given b3 (for the profiles)
 startcurve <- function(){
-  cfun <- function(b2, b3) exp(b2 / b3)
-  list(start=TRUE, logtime=FALSE, cfun=cfun,
+  list(start=TRUE, logtime=FALSE,
        G=function(t, b2, b3, b4){
-         z <- pmax(t / b3, 0)
-         ifelse(t > 0, (-expm1(-z))^cfun(b2, b3), 0)
+         z <- pmax(b2 * t, 0)
+         ifelse(t > 0, (-expm1(-z))^b3, 0)
        },
-       tq=function(q, b2, b3, b4, ...) -b3 * log1p(-q^(1 / cfun(b2, b3))),
+       tq=function(q, b2, b3, b4, ...) -log1p(-q^(1 / b3)) / b2,
        mr=function(b2, b3, b4, b5, b1=1){
-         cc <- cfun(b2, b3)
-         if (!all(is.finite(c(cc, b3))) || b3 <= 0) return(c(t=NA, G=NA, r=NA))
-         if (cc > 1) return(c(t=b3 * log(cc), G=(1 - 1 / cc)^cc, r=b1 * (1 - 1 / cc)^(cc - 1) / b3))
-         c(t=0, G=0, r=if (cc == 1) b1 / b3 else Inf)
-       })
+         if (!all(is.finite(c(b2, b3))) || b2 <= 0 || b3 <= 0) return(c(t=NA, G=NA, r=NA))
+         if (b3 > 1) return(c(t=log(b3) / b2, G=(1 - 1 / b3)^b3, r=b1 * b2 * (1 - 1 / b3)^(b3 - 1)))
+         c(t=0, G=0, r=if (b3 == 1) b1 * b2 else Inf)
+       },
+       b2fromt=function(q, t, b3) -log1p(-q^(1 / b3)) / t,
+       b2fromtmax=function(tmax, b3) log(b3) / tmax)
+}
+
+# the Korf curve as in Kuzelka and Marusak (2015), G(t) = exp(b2 / ((1 - b3) t^(b3 - 1))) with the
+# coefficient b2 > 0 and the shape b3 > 1, zero up to t = 0; as startcurve. The inflection point is
+# at t = (b2 / b3)^(1 / (b3 - 1)), where G = exp(-b3 / (b3 - 1)) and the rate b3 G / t.
+korfcurve <- function(){
+  list(start=TRUE, logtime=FALSE,
+       G=function(t, b2, b3, b4){
+         u <- pmax(t, 1e-300)
+         ifelse(t > 0, exp(b2 / ((1 - b3) * u^(b3 - 1))), 0)
+       },
+       tq=function(q, b2, b3, b4, ...) (b2 / ((b3 - 1) * (-log(q))))^(1 / (b3 - 1)),
+       mr=function(b2, b3, b4, b5, b1=1){
+         if (!all(is.finite(c(b2, b3))) || b2 <= 0 || b3 <= 1) return(c(t=NA, G=NA, r=NA))
+         u <- (b2 / b3)^(1 / (b3 - 1))
+         G <- exp(-b3 / (b3 - 1))
+         c(t=u, G=G, r=b1 * b3 * G / u)
+       },
+       b2fromt=function(q, t, b3) (b3 - 1) * (-log(q)) * t^(b3 - 1),
+       b2fromtmax=function(tmax, b3) b3 * tmax^(b3 - 1))
 }
 
 # the beta growth function of Yin et al. (2003), eqn (8): the maximum b1 reached at the end of growth
@@ -177,22 +206,13 @@ gcmodels <- list(
                h=function(t) t),
           powF, basedists$gamma),
   linear=list(b1="slope", b2="intercept", b3=NA, b4=NA, b5=NA, linear=TRUE, logtime=FALSE),
-  chapmanrichards=c(list(b1="asymptote", b2="inflection", b3="scale", b4="intercept", b5=NA), startcurve()),
+  chapmanrichards=c(list(b1="asymptote", b2="rate", b3="shape", b4="intercept", b5=NA, defaults=c(b4=1.3)), startcurve()),
   # Yin et al. (2003), capped at the maximum b1 from the end of growth b3 on, see betamodel
   beta_capped=betamodel(capped=TRUE),
-  # Wykoff et al. (1982), exp(a + b / (t + 1)): b1 exp(-s / (t + 1)) with s = 2 (b2 + 1), which puts
-  # the inflection point at b2, so that b1 = exp(a) and s = -b; positive from t = -1 on
-  wykoff=list(b1="asymptote", b2="inflection", b3=NA, b4="intercept", b5=NA, start=TRUE, logtime=FALSE,
-              G=function(t, b2, b3, b4){
-                u <- t + 1
-                ifelse(u > 0, exp(-2 * (b2 + 1) / pmax(u, 1e-300)), 0)
-              },
-              tq=function(q, b2, b3, b4, ...) -1 - 2 * (b2 + 1) / log(q),
-              mr=function(b2, b3, b4, b5, b1=1){
-                s <- 2 * (b2 + 1)
-                if (!is.finite(s) || s <= 0) return(c(t=NA, G=NA, r=NA))
-                c(t=b2, G=exp(-2), r=b1 * 4 * exp(-2) / s)
-              }),
+  # Korf as in Kuzelka and Marusak (2015), b4 + b1 exp(b2 / ((1 - b3) t^(b3 - 1))), see korfcurve:
+  # the asymptote b1, the coefficient b2 > 0 and the shape b3 > 1
+  korf=c(list(b1="asymptote", b2="coefficient", b3="shape", b4="intercept", b5=NA, defaults=c(b4=1.3)),
+         korfcurve()),
   # Preece and Baines (1978), model 1: the adult height b1, the age b2 of the middle of puberty, the
   # height b3 at b2, and the rates b4 < b5 before and during puberty; estimated by default (free)
   preecebaines=list(b1="asymptote", b2="inflection", b3="level", b4="rate", b5="rate", start=TRUE, logtime=FALSE,
@@ -230,7 +250,7 @@ gcmodels <- list(
 
 # the models in the order in which they are listed to the user
 modelnames <- c("logistic", "gompertz", "hill", "weibull", "beta", "beta_capped", "normal", "gamma", "chapmanrichards",
-                "wykoff", "preecebaines", "linear")
+                "korf", "preecebaines", "linear")
 
 # log(exp(x) + exp(y)), for the Preece-Baines curve
 pblse <- function(x, y){
@@ -241,11 +261,11 @@ pblse <- function(x, y){
 # links of the parameters b1-b5 of a model m (see gcmodels): the possible links of each parameter, the
 # first one is the default. The scale b3 may have the inverse link, so that its linear predictor is
 # the rate 1/b3. The log link keeps a parameter positive: the asymptote b1, the times b2 and b4 (the
-# threshold of a truncated curve), and b3; the logit link keeps the asymptote b1 in (0, 1), for
-# proportions.
+# threshold of a truncated curve), b3, and the rate b2 of chapmanrichards; the logit link keeps the
+# asymptote b1 in (0, 1), for proportions.
 modellinks <- function(m){
   list(b1=if (m$b1 %in% "asymptote") c("identity", "log", "logit") else if (m$b1 %in% "slope") c("identity", "log") else "identity",
-       b2=if (m$b2 %in% c("inflection", "halfway")) c("identity", "log") else "identity",
+       b2=if (m$b2 %in% c("inflection", "halfway", "rate", "coefficient")) c("identity", "log") else "identity",
        b3=if (m$b3 %in% "scale") c("identity", "inverse", "log") else if (m$b3 %in% c("slope", "shape", "end", "level")) c("identity", "log") else "identity",
        b4=c("identity", "log"),
        b5=c("identity", "log"))
@@ -286,7 +306,7 @@ modelindex <- function(model){
   which(model == names(gcmodels))
 }
 
-# TRUE for chapmanrichards, beta and wykoff, with their own curves G (see gcmodels), which are never
+# TRUE for chapmanrichards, beta and korf, with their own curves G (see gcmodels), which are never
 # truncated: beta is zero up to its start b4, and b4 is the intercept of the other two
 isstart <- function(mod){
   isTRUE(gcmodel(mod)$start)
@@ -361,12 +381,12 @@ logS4 <- function(m, f2, f3, f4, f5=1){
   ifelse(f4 > 0, logSG(m, m$z(ifelse(f4 > 0, f4, 1), f2, f3), f5, f3), 0)
 }
 
-# intercept of the curves of model mod: b4 for chapmanrichards and wykoff, zero otherwise
+# intercept of the curves of model mod: b4 for chapmanrichards and korf, zero otherwise
 intercept <- function(mod, b4){
   if (identical(gcmodel(mod)$b4, "intercept")) b4 else 0
 }
 
-# TRUE for the models with the intercept b4 (chapmanrichards, wykoff), which are never truncated
+# TRUE for the models with the intercept b4 (chapmanrichards, korf), which are never truncated
 hasintercept <- function(mod){
   identical(gcmodel(mod)$b4, "intercept")
 }
@@ -374,13 +394,13 @@ hasintercept <- function(mod){
 # growth curve, same as gcmean in the TMB template: f1 G(z(t)) with the asymmetry f5, and truncated
 # at the threshold f4 (trunc=TRUE), f1 (G(z) - G(z4)) / (1 - G(z4)) for t > f4 and zero otherwise,
 # z4 = z(f4). The models on positive times are zero up to t = 0. The linear model is f1 t + f2.
-# chapmanrichards and wykoff are f4 + f1 G(t), with the intercept f4; beta is zero up to its start f4.
+# chapmanrichards and korf are f4 + f1 G(t), with the intercept f4; beta is zero up to its start f4.
 gcmeanR <- function(mod, t, f1, f2, f3, f4, f5=1, trunc=FALSE, b1rate=FALSE){
   m <- gcmodel(mod)
   if (isTRUE(m$linear)) return(f1 * t + f2)
   # b1 as the maximum growth rate: the asymptote
   if (b1rate) f1 <- f1 / rate1(mod, f2, f3, f4, f5, trunc)
-  # chapmanrichards, beta and wykoff: never truncated (beta is zero up to b4 anyway)
+  # chapmanrichards, beta and korf: never truncated (beta is zero up to b4 anyway)
   if (!is.null(m$mean)) return(m$mean(t, f1, f2, f3, f4, f5))
   if (isTRUE(m$start)) return(intercept(mod, f4) + f1 * m$G(t, f2, f3, f4))
   pos <- if (m$logtime) t > 0 else rep(TRUE, length(t))

@@ -136,13 +136,13 @@ ggplot(curves, aes(x = age, y = value, colour = sex)) +
 
 ### Effects on the maximum growth rate
 
-With `b1type = "rate"`, $b_1$ is the maximum growth rate of the curve instead of its asymptote (see *The maximum growth rate as a parameter* in the vignette *Growth models and their parameters*), so that covariates on $b_1$ are effects on the maximum growth rate. This needs a curve whose maximum growth rate is proportional to $b_1$, which is not the case for the Preece-Baines curve. The growth spurt alone, from 8 years on, is a sigmoid curve above the height reached before it, as the Chapman-Richards curve with the intercept $b_4$ estimated; with `b1type = "rate"` and the log link, $b_1$ is the peak height velocity, and the effect of the sex a ratio of the rates. Each child has random effects on the peak height velocity, its timing and the height before the spurt:
+With `b1type = "rate"`, $b_1$ is the maximum growth rate of the curve instead of its asymptote (see *The maximum growth rate as a parameter* in the vignette *Growth models and their parameters*), so that covariates on $b_1$ are effects on the maximum growth rate. This needs a curve whose maximum growth rate is proportional to $b_1$, which is not the case for the Preece-Baines curve. The growth spurt alone, from 8 years on, is a sigmoid curve above the height reached before it, as the Chapman-Richards curve with the intercept $b_4$ estimated; with `b1type = "rate"` and the log link, $b_1$ is the peak height velocity, and the effect of the sex a ratio of the rates. Each child has random effects on the peak height velocity, on the rate $b_2$, which together with the shape $b_3$ sets the timing of the spurt, $\log(b_3)/b_2$, and on the height before the spurt. The spurt is close to a Gompertz curve, the limit of a large shape $b_3$, here about 90; the log link of $b_3$ and a restart of the optimiser from the estimates (`control = list(restart = TRUE)`) let the optimiser converge there:
 
 ```{r}
 spurt <- subset(BerkeleyGrowth, age >= 8 & !is.na(height))
 fitrr <- gcTMB(height ~ age, fform = b1 + b2 + b4 ~ sex, rform = b1 + b2 + b4 ~ 1 | id, data = spurt,
                model = "chapmanrichards", start = c(b4 = 120), fix = c(b4 = FALSE), b1type = "rate",
-               link = c(b1 = "log"))
+               link = c(b1 = "log", b3 = "log"), control = list(restart = TRUE))
 summary(fitrr)
 maxrate(fitrr, newdata = sexes)
 ```
@@ -152,7 +152,7 @@ Whether boys and girls have the same peak height velocity is a likelihood ratio 
 ```{r}
 fitrr0 <- gcTMB(height ~ age, fform = b2 + b4 ~ sex, rform = b1 + b2 + b4 ~ 1 | id, data = spurt,
                 model = "chapmanrichards", start = c(b4 = 120), fix = c(b4 = FALSE), b1type = "rate",
-                link = c(b1 = "log"))
+                link = c(b1 = "log", b3 = "log"), control = list(restart = TRUE))
 anova(fitrr0, fitrr)
 ```
 

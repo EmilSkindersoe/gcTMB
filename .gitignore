@@ -69,3 +69,6 @@ Rplots.pdf
 
 # Excel lock files
 ~$*
+
+# local analysis of the 2026 field trial data (not published)
+AnalysisField26.R

@@ -211,7 +211,7 @@ maxrateR <- function(mod, b, trunc=FALSE){
   b <- as.numeric(b)
   # the linear model grows at the constant rate b1, without an inflection point
   if (islinear(mod)) return(c(tmax=NA, rate=b[1], fraction=NA))
-  # chapmanrichards, beta and wykoff: their own closed forms, never truncated
+  # chapmanrichards, beta and korf: their own closed forms, never truncated
   if (isstart(mod)){
     m0 <- gcmodel(mod)$mr(b[2], b[3], b[4], b[5], b1=b[1])
     return(c(tmax=m0[["t"]], rate=m0[["r"]], fraction=m0[["G"]]))
@@ -388,8 +388,10 @@ profile.maxrateTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progres
         # tmax is b2 plus a shift for the curves on the time axis, and b2 times a factor on the log
         # time axis, given b3 and b5; beyond the threshold of a truncated curve
         if (trunc && v <= b[4]) return(NA)
-        # chapmanrichards, beta and wykoff have their inflection point at b2, and the peak of
-        # preecebaines is at b2 plus a shift that depends on b4 and b5 only
+        # chapmanrichards and korf: b2 from the inflection point and b3 in closed form; beta has
+        # its inflection point at b2, and the peak of preecebaines is at b2 plus a shift that depends
+        # on b4 and b5 only
+        if (!is.null(m$b2fromtmax)) return(suppressWarnings(linkfun(lnk[ps], m$b2fromtmax(v, b[3]))))
         if (isstart(mod)) return(suppressWarnings(linkfun(lnk[ps], v - (m$mr(b[2], b[3], b[4], b[5], b1=b[1])[["t"]] - b[2]))))
         u <- maxrate0(mod, if (m$logtime) 1 else 0, b[3], b[5])[["t"]]
         p <- if (m$logtime) v/u else v - u
