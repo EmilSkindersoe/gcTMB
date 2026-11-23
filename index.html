@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9012</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,11 +36,9 @@
 <li class="nav-item"><a class="nav-link" href="articles/gcTMB.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Topics</h6></li>
-    <li><a class="dropdown-item" href="articles/growth-models.html">Growth models and their parameters</a></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-examples" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Examples</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-examples">
+<li><a class="dropdown-item" href="articles/growth-models.html">Growth models and their parameters</a></li>
     <li><a class="dropdown-item" href="articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="articles/timing-rates.html">Timing and maximum growth rates</a></li>
     <li><a class="dropdown-item" href="articles/autocorrelation-simulation.html">Autocorrelation and simulation</a></li>
@@ -72,9 +70,9 @@
 </h2>
 <ul>
 <li>
-<strong>Growth models</strong>: general growth curves (logistic or Richards, Gompertz, Hill, Weibull, normal and gamma), each with an asymmetry parameter and optionally truncated at a threshold time before which the response is zero (e.g. emergence, or the first pods); the beta growth function of determinate growth, e.g. of crops; for forestry, the Chapman-Richards and Wykoff curves with an intercept, e.g. height-diameter models of trees from breast height; for human growth, the Preece-Baines model of growth in height through childhood and puberty; and a straight line for comparison. The x-axis need not be time.</li>
+<strong>Growth models</strong>: general growth curves (logistic or Richards, Gompertz, Hill, Weibull, normal and gamma), each with an asymmetry parameter and optionally truncated at the start of growth, before which the response is zero (e.g. emergence, or the first pods); the beta growth function of determinate growth, e.g. of crops; for forestry, the Chapman-Richards and Korf curves with an intercept, e.g. height-diameter models of trees from breast height; for human growth, the Preece-Baines model of growth in height through childhood and puberty; and a straight line for comparison. The x-axis need not be time.</li>
 <li>
-<strong>Interpretable parameters</strong>: the asymptote (or the maximum growth rate, <code>b1type = "rate"</code>), the time of the maximum growth rate or of half the asymptote, a scale, slope or shape, the threshold and the asymmetry; each with an identity, log, logit or inverse link, and any of them can be fixed.</li>
+<strong>Interpretable parameters</strong>: the asymptote (or the maximum growth rate, <code>b1type = "rate"</code>), the time of the maximum growth rate or of half the asymptote, a scale, slope or shape, the start of growth and the asymmetry; each with an identity, log, logit, inverse or log(b3 - 1) link, and any of them can be fixed.</li>
 <li>
 <strong>Distributions</strong>: gaussian, lognormal, poisson, binomial, beta-binomial, beta, and negative binomial (<code>nbinom1</code>, <code>nbinom2</code>).</li>
 <li>
@@ -116,7 +114,7 @@
 <div class="section level2">
 <h2 id="growth-models">Growth models<a class="anchor" aria-label="anchor" href="#growth-models"></a>
 </h2>
-<p>The main function is <code><a href="reference/gcTMB.html">gcTMB()</a></code>. The response is a curve f(t) of the explanatory variable t, usually time. The first curves below (logistic, Gompertz, Hill, Weibull, beta, normal and gamma) are sigmoid growth curves, often used in agronomy and ecology, e.g. for the growth of plants, crops and animals over a season. The Chapman-Richards and Wykoff curves are height-diameter models, common in forestry, with the diameter of the trees as t. The Preece-Baines curve is a model of human growth in height through childhood and puberty.</p>
+<p>The main function is <code><a href="reference/gcTMB.html">gcTMB()</a></code>. The response is a curve f(t) of the explanatory variable t, usually time. The first curves below (logistic, Gompertz, Hill, Weibull, beta, normal and gamma) are sigmoid growth curves, often used in agronomy and ecology, e.g. for the growth of plants, crops and animals over a season. The Chapman-Richards and Korf curves are height-diameter models, common in forestry, with the diameter of the trees as t. The Preece-Baines curve is a model of human growth in height through childhood and puberty.</p>
 <table class="table">
 <colgroup>
 <col width="20%">
@@ -138,28 +136,28 @@
 <td>b1 / (1 + exp(-(t - b2)/b3))</td>
 <td>inflection point</td>
 <td>scale</td>
-<td>threshold</td>
+<td>start of growth</td>
 </tr>
 <tr>
 <td><code>"gompertz"</code></td>
 <td>b1 exp(-exp(-(t - b2)/b3))</td>
 <td>inflection point</td>
 <td>scale</td>
-<td>threshold</td>
+<td>start of growth</td>
 </tr>
 <tr>
 <td><code>"hill"</code></td>
 <td>b1 / (1 + (b2/t)^b3)</td>
 <td>time of half the asymptote</td>
 <td>slope on the log time axis</td>
-<td>threshold</td>
+<td>start of growth</td>
 </tr>
 <tr>
 <td><code>"weibull"</code></td>
 <td>b1 (1 - exp(-(b3 - 1)/b3 (t/b2)^b3))</td>
 <td>inflection point</td>
 <td>shape, &gt; 1</td>
-<td>threshold</td>
+<td>start of growth</td>
 </tr>
 <tr>
 <td><code>"beta"</code></td>
@@ -180,27 +178,27 @@
 <td>b1 Phi((t - b2)/b3)</td>
 <td>inflection point</td>
 <td>scale</td>
-<td>threshold</td>
+<td>start of growth</td>
 </tr>
 <tr>
 <td><code>"gamma"</code></td>
 <td>b1 Fgamma(t; b3, b2/(b3 - 1))</td>
 <td>inflection point</td>
 <td>shape, &gt; 1</td>
-<td>threshold</td>
+<td>start of growth</td>
 </tr>
 <tr>
 <td><code>"chapmanrichards"</code></td>
-<td>b4 + b1 (1 - exp(-t/b3))^exp(b2/b3)</td>
-<td>inflection point</td>
-<td>scale</td>
+<td>b4 + b1 (1 - exp(-b2 t))^b3</td>
+<td>rate</td>
+<td>shape</td>
 <td>intercept</td>
 </tr>
 <tr>
-<td><code>"wykoff"</code></td>
-<td>b4 + b1 exp(-2 (b2 + 1)/(t + 1))</td>
-<td>inflection point</td>
-<td>not used</td>
+<td><code>"korf"</code></td>
+<td>b4 + b1 exp(b2/((1 - b3) t^(b3 - 1)))</td>
+<td>coefficient, &gt; 0</td>
+<td>shape, &gt; 1</td>
 <td>intercept</td>
 </tr>
 <tr>
@@ -219,15 +217,15 @@
 </tr>
 </tbody>
 </table>
-<p>b1 is the asymptote approached at late times (the maximum, reached at the end of growth b3, for the beta curves; the adult height for Preece-Baines), and the slope of the linear model, which has no asymptote. Phi is the standard normal distribution function, and Fgamma(t; k, theta) the distribution function of the gamma distribution with shape k and scale theta. The Hill, Weibull and gamma curves are for positive times. The links of the parameters can be chosen, e.g. <code>link = c(b1 = "log", b3 = "inverse")</code>, with the identity (default), log, logit (b1) or inverse (b3 of the logistic and Gompertz models, the rate 1/b3) links.</p>
-<p>By default, the logistic, Gompertz, Hill, Weibull, normal and gamma curves f(t) are truncated at a threshold time b4: shifted down to zero at b4 and rescaled to keep the asymptote b1, b1 (f(t) - f(b4))/(b1 - f(b4)) for t &gt; b4, so that the response is zero up to b4. b4 is fixed at 0, so that the curve starts at zero at t = 0, unless estimated with <code>fix = c(b4 = FALSE)</code>; <code>truncated = FALSE</code> gives the curves without truncation.</p>
+<p>b1 is the asymptote approached at late times (the maximum, reached at the end of growth b3, for the beta curves; the adult height for Preece-Baines), and the slope of the linear model, which has no asymptote. Phi is the standard normal distribution function, and Fgamma(t; k, theta) the distribution function of the gamma distribution with shape k and scale theta. The Hill, Weibull and gamma curves are for positive times. The links of the parameters can be chosen, e.g. <code>link = c(b1 = "log", b3 = "inverse")</code>, with the identity (default), log, logit (b1) or inverse (the scale b3 of the logistic, Gompertz and normal models, the rate 1/b3) links. The shape b3 of the Weibull, gamma and Korf models, which must be larger than 1, has the link log(b3 - 1) (<code>"logm1"</code>) by default; <code>link = c(b3 = "identity")</code> gives the shape itself.</p>
+<p>By default, the logistic, Gompertz, Hill, Weibull, normal and gamma curves f(t) are truncated at the start of growth b4: shifted down to zero at b4 and rescaled to keep the asymptote b1, b1 (f(t) - f(b4))/(b1 - f(b4)) for t &gt; b4, so that the response is zero up to b4. b4 is fixed at 0, so that the curve starts at zero at t = 0, unless estimated with <code>fix = c(b4 = FALSE)</code>; <code>truncated = FALSE</code> gives the curves without truncation.</p>
 <p>Each of these six models has an asymmetry parameter b5 &gt; 0, fixed at 1 (the curves above) unless estimated with <code>fix = c(b5 = FALSE)</code>: the logistic model becomes the Richards curve b1 / (1 + b5 exp(-(t - b2)/b3))^(1/b5), the Hill model b1 / (1 + (b2/t)<sup>b3)</sup>b5, the Weibull, normal and gamma models b1 (f(t)/b1)^b5, a power of the curve relative to its asymptote, and the Gompertz model b1 (1 - (1 - exp(-exp(-(t - b2)/b3)))^b5), a power of its survival function.</p>
 <p>The other curves are never truncated, and only the general growth curves have an asymmetry b5.</p>
 <ul>
 <li>
 <strong>Determinate growth</strong>: the beta growth function (Yin et al. 2003) grows from its start b4 to its maximum b1 at the end of growth b3. <code>"beta"</code> continues the curve of Yin et al. beyond b3, back to zero at 2 b3 - b2, for responses that decline after their maximum; <code>"beta_capped"</code> stays at b1 from b3 on, the beta sigmoid growth function of Yin et al.</li>
 <li>
-<strong>Forestry</strong>: the Chapman-Richards and Wykoff curves are height-diameter models of trees (models M8 and M9 of Ciceu et al. 2020), with the diameter as t. Their intercept b4 is fixed at 0 unless given in <code>start</code> or estimated with <code>fix = c(b4 = FALSE)</code>, e.g. the breast height of 1.3 m, <code>start = c(b4 = 1.3)</code>. The Chapman-Richards curve is the Richards curve with a negative asymmetry.</li>
+<strong>Forestry</strong>: the Chapman-Richards curve of Richards (1959) and the Korf curve, as written by Kuželka and Marušák (2015), are height-diameter models of trees, with the diameter as t, in the parameters usual in forestry: the asymptote b1, the rate b2 and the shape b3 of Chapman-Richards (model M8 of Ciceu et al. 2020), and the asymptote b1, the coefficient b2 &gt; 0 and the shape b3 &gt; 1 of Korf. Their intercept b4 is fixed at the breast height of 1.3 m unless given in <code>start</code>, e.g. <code>start = c(b4 = 0)</code> for a curve from zero, or estimated with <code>fix = c(b4 = FALSE)</code>.</li>
 <li>
 <strong>Human growth</strong>: model 1 of Preece and Baines (1978) describes the growth in height through childhood and puberty, with the adult height b1, the age b2 in the middle of puberty, the height b3 at b2, and the rates b4 and b5 of growth before and during puberty, estimated by default. <code><a href="reference/maxrate.html">maxrate()</a></code> gives the peak height velocity of the pubertal growth spurt.</li>
 </ul>
@@ -358,7 +356,7 @@
 <div class="section level3">
 <h3 id="counts">Counts<a class="anchor" aria-label="anchor" href="#counts"></a>
 </h3>
-<p>The data set <code>FabaCounts23</code> has the numbers of pods of 22 plants of six genotypes. A Poisson model with an estimated threshold, the time of the first pods, and the maximum growth rate as the parameter b1, so that the genotypes are compared by their maximum growth rates:</p>
+<p>The data set <code>FabaCounts23</code> has the numbers of pods of 22 plants of six genotypes. A Poisson model with an estimated start of growth, the time of the first pods, and the maximum growth rate as the parameter b1, so that the genotypes are compared by their maximum growth rates:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">genotypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Genotype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">FabaCounts23</span><span class="op">$</span><span class="va">Genotype</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fitp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Genotype</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Tube_ID</span>, data <span class="op">=</span> <span class="va">FabaCounts23</span>,</span>

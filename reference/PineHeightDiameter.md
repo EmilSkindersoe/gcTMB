@@ -76,9 +76,9 @@ summary(fit)
 #> 
 #> Coefficients:
 #>                Estimate Std. Error
-#> b1:(Intercept)   19.371      0.791
-#> b2:(Intercept)   -1.454      0.634
-#> b3:(Intercept)   17.180      1.074
+#> b1:(Intercept) 19.37099      0.791
+#> b2:(Intercept)  0.05821      0.004
+#> b3:(Intercept)  0.91887      0.029
 #> Fixed: b4:(Intercept) = 1.3
 #> 
 #> Random effects:
@@ -87,5 +87,5 @@ summary(fit)
 #> 
 #> Residual standard deviation: 1.141
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 1e-04
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.0019
 ```

@@ -325,57 +325,62 @@ years on, is a sigmoid curve above the height reached before it, as the
 Chapman-Richards curve with the intercept $`b_4`$ estimated; with
 `b1type = "rate"` and the log link, $`b_1`$ is the peak height velocity,
 and the effect of the sex a ratio of the rates. Each child has random
-effects on the peak height velocity, its timing and the height before
-the spurt:
+effects on the peak height velocity, on the rate $`b_2`$, which together
+with the shape $`b_3`$ sets the timing of the spurt, $`\log(b_3)/b_2`$,
+and on the height before the spurt. The spurt is close to a Gompertz
+curve, the limit of a large shape $`b_3`$, here about 90; the log link
+of $`b_3`$ and a restart of the optimiser from the estimates
+(`control = list(restart = TRUE)`) let the optimiser converge there:
 
 ``` r
 
 spurt <- subset(BerkeleyGrowth, age >= 8 & !is.na(height))
 fitrr <- gcTMB(height ~ age, fform = b1 + b2 + b4 ~ sex, rform = b1 + b2 + b4 ~ 1 | id, data = spurt,
                model = "chapmanrichards", start = c(b4 = 120), fix = c(b4 = FALSE), b1type = "rate",
-               link = c(b1 = "log"))
+               link = c(b1 = "log", b3 = "log"), control = list(restart = TRUE))
 summary(fitrr)
 #> Call:
 #> gcTMB(form = height ~ age, fform = b1 + b2 + b4 ~ sex, rform = b1 + 
 #>     b2 + b4 ~ 1 | id, data = spurt, start = c(b4 = 120), fix = c(b4 = FALSE), 
-#>     model = "chapmanrichards", link = c(b1 = "log"), b1type = "rate")
+#>     model = "chapmanrichards", link = c(b1 = "log", b3 = "log"), 
+#>     b1type = "rate", control = list(restart = TRUE))
 #> 
 #> Model:  chapmanrichards; b1 is the maximum growth rate
-#> Family: gaussian, log link for b1, identity link for the other parameters
+#> Family: gaussian, log link for b1, log link for b3, identity link for the other parameters
 #> 
 #> Number of observations: 2985, groups: id 136
-#> Log-likelihood: -6568 (df = 14), AIC: 13165, BIC: 13249
+#> Log-likelihood: -6298 (df = 14), AIC: 12625, BIC: 12709
 #> 
 #> Coefficients:
-#>                 Estimate Std. Error
-#> b1:(Intercept)   2.03604      0.012
-#> b1:sexfemale    -0.05426      0.018
-#> b2:(Intercept)  11.77429      0.111
-#> b2:sexfemale    -2.14747      0.160
-#> b3:(Intercept)   2.48214      0.029
-#> b4:(Intercept) 132.08293      0.658
-#> b4:sexfemale   -10.97591      1.008
-#> The coefficients of b1 are on the log scale.
+#>                  Estimate Std. Error
+#> b1:(Intercept)   2.007188      0.014
+#> b1:sexfemale    -0.002929      0.020
+#> b2:(Intercept)   0.381010      0.006
+#> b2:sexfemale     0.072460      0.005
+#> b3:(Intercept)   4.477682      0.053
+#> b4:(Intercept) 131.815382      0.598
+#> b4:sexfemale    -7.368548      0.836
+#> The coefficients of b1, b3 are on the log scale.
 #> 
 #> Random effects:
-#>  Groups Name Std.Dev. Corr       
-#>  id     b1   0.08792             
-#>         b2   0.87517  -0.68      
-#>         b4   5.00748  -0.11  0.43
+#>  Groups Name Std.Dev. Corr         
+#>  id     b1   0.1071                
+#>         b2   0.0309   0.78         
+#>         b4   4.5736    0.034 -0.170
 #> 
-#> Residual standard deviation: 1.748
+#> Residual standard deviation: 1.57
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.0021
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.0087
 maxrate(fitrr, newdata = sexes)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
 #>                     Estimate Std.Error
-#> tmax:sex=male         11.774  0.110728
-#> rate:sex=male          7.660  0.095471
-#> fraction:sex=male      0.366  0.000120
-#> tmax:sex=female        9.627  0.118476
-#> rate:sex=female        7.256  0.097516
-#> fraction:sex=female    0.364  0.000293
+#> tmax:sex=male         11.752  0.119576
+#> rate:sex=male          7.442  0.106394
+#> fraction:sex=male      0.366  0.000111
+#> tmax:sex=female        9.874  0.088034
+#> rate:sex=female        7.421  0.107249
+#> fraction:sex=female    0.366  0.000111
 ```
 
 Whether boys and girls have the same peak height velocity is a
@@ -386,15 +391,13 @@ $`b_1`$, keeping those on $`b_2`$ and $`b_4`$:
 
 fitrr0 <- gcTMB(height ~ age, fform = b2 + b4 ~ sex, rform = b1 + b2 + b4 ~ 1 | id, data = spurt,
                 model = "chapmanrichards", start = c(b4 = 120), fix = c(b4 = FALSE), b1type = "rate",
-                link = c(b1 = "log"))
+                link = c(b1 = "log", b3 = "log"), control = list(restart = TRUE))
 anova(fitrr0, fitrr)
 #> Likelihood ratio tests of gcTMB models
 #> 
-#>        npar   AIC   BIC  logLik deviance     LR Df  Pr(>LR)   
-#> fitrr0   13 13171 13249 -6572.5    13145                      
-#> fitrr    14 13165 13249 -6568.4    13137 8.1957  1 0.004199 **
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#>        npar   AIC   BIC  logLik deviance       LR Df Pr(>LR)
+#> fitrr0   13 12623 12701 -6298.3    12597                    
+#> fitrr    14 12625 12709 -6298.3    12597 0.021342  1  0.8839
 ```
 
 [`pairwise()`](https://emilskindersoe.github.io/gcTMB/reference/pairwise.md)
@@ -415,10 +418,10 @@ e.g. `parm = "b2"` as above.
 pairwise(fitrr, newdata = sexes)
 #> Pairwise differences of b1 (maximum growth rate) on the scale of its log link:
 #> 
-#>                       Estimate Std.Error z value p.value  lower upper ratio
-#> sex=male - sex=female   0.0543    0.0181       3 0.00278 0.0186  0.09  1.06
+#>                       Estimate Std.Error z value p.value   lower  upper ratio
+#> sex=male - sex=female  0.00293      0.02   0.146   0.884 -0.0366 0.0424     1
 #>                       ratio.lower ratio.upper
-#> sex=male - sex=female        1.02        1.09
+#> sex=male - sex=female       0.964        1.04
 #> 
 #> Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits, and ratios.
 ```
@@ -436,8 +439,8 @@ pars <- predict(fitrr, newdata = sexes, type = "parameters", random = FALSE)
 data.frame(sex = sexes$sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
            growth_in_spurt = pars[, "asymptote"], adult_height = pars[, "b4"] + pars[, "asymptote"])
 #>      sex peak_rate height_before_spurt growth_in_spurt adult_height
-#> 1   male  7.660229            132.0829        51.45961     183.5425
-#> 2 female  7.255630            121.1070        48.44774     169.5548
+#> 1   male  7.442358            131.8154        52.79491     184.6103
+#> 2 female  7.420593            124.4468        44.22908     168.6759
 ```
 
 The adult heights agree with the asymptotes $`b_1`$ of the Preece-Baines

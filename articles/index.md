@@ -1,6 +1,6 @@
 # Articles
 
-### Topics
+### Examples
 
 - [Growth models and their
   parameters](https://emilskindersoe.github.io/gcTMB/articles/growth-models.md):

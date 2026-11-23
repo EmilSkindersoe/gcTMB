@@ -19,11 +19,11 @@ diameter is measured. The Chapman-Richards curve with the intercept
 $`b_4 = 1.3`$ fixed describes this (model M8 of Ciceu et al., 2020):
 
 ``` math
- h = 1.3 + b_1 \left(1 - \exp\left(-\frac{d}{b_3}\right)\right)^{\exp(b_2/b_3)}, 
+ h = 1.3 + b_1 \left(1 - \mathrm{e}^{-b_2 d}\right)^{b_3}, 
 ```
 
-with the asymptote $`b_1`$ above breast height, the diameter $`b_2`$ at
-which the height grows fastest, and the scale $`b_3`$.
+with the asymptote $`b_1`$ above breast height, the rate $`b_2`$ and the
+shape $`b_3`$ (Richards, 1959).
 
 ``` r
 
@@ -43,14 +43,14 @@ summary(fit)
 #> 
 #> Coefficients:
 #>                Estimate Std. Error
-#> b1:(Intercept)   45.719      5.905
-#> b2:(Intercept)    2.954      1.511
-#> b3:(Intercept)   50.883     10.472
+#> b1:(Intercept) 45.71868      5.905
+#> b2:(Intercept)  0.01965      0.004
+#> b3:(Intercept)  1.05978      0.043
 #> Fixed: b4:(Intercept) = 1.3
 #> 
 #> Residual standard deviation: 2.434 on 1675 degrees of freedom
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 1.1e-07
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.00028
 ggplot(PineHeightDiameter, aes(x = dbh, y = height, colour = dmean)) +
   geom_point(size = 0.8) +
   scale_colour_viridis_c(end = 0.9) +
@@ -68,8 +68,8 @@ an asymptote that depends on the mean diameter of the plot: trees of the
 same diameter are taller in plots of larger trees, a generalised
 height-diameter model. Random effects are given by `rform`,
 e.g. `b1 + b2 ~ 1 | plot` for correlated random effects of each plot on
-the asymptote and on the diameter of the fastest growth in height, which
-account for the trees of a plot sharing their site and stand.
+the asymptote and on the rate, which account for the trees of a plot
+sharing their site and stand.
 
 ``` r
 
@@ -87,24 +87,24 @@ summary(fitre)
 #> Family: gaussian, identity link for all parameters
 #> 
 #> Number of observations: 1678, groups: plot 56
-#> Log-likelihood: -2540 (df = 8), AIC: 5096, BIC: 5139
+#> Log-likelihood: -2541 (df = 8), AIC: 5098, BIC: 5142
 #> 
 #> Coefficients:
 #>                Estimate Std. Error
-#> b1:(Intercept)   7.7440      1.071
-#> b1:dmean         0.5858      0.068
-#> b2:(Intercept)   1.4950      0.530
-#> b3:(Intercept)   9.8346      0.458
+#> b1:(Intercept)   8.6471      1.117
+#> b1:dmean         0.4950      0.065
+#> b2:(Intercept)   0.1384      0.010
+#> b3:(Intercept)   1.3993      0.060
 #> Fixed: b4:(Intercept) = 1.3
 #> 
 #> Random effects:
-#>  Groups Name Std.Dev. Corr
-#>  plot   b1   3.289        
-#>         b2   3.112    0.70
+#>  Groups Name Std.Dev. Corr 
+#>  plot   b1   4.30895       
+#>         b2   0.04967  -0.90
 #> 
-#> Residual standard deviation: 0.9885
+#> Residual standard deviation: 0.9868
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.0012
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.00046
 ```
 
 ### Testing the fixed effects
@@ -117,12 +117,14 @@ here with and without the effect of the mean diameter.
 
 fitre0 <- gcTMB(height ~ dbh, rform = b1 + b2 ~ 1 | plot, data = PineHeightDiameter, model = "chapmanrichards",
                 start = c(b4 = 1.3))
+#> Warning in nlminb(start = obj$par, objective = obj$fn, gradient = obj$gr, :
+#> NA/NaN function evaluation
 anova(fitre0, fitre)
 #> Likelihood ratio tests of gcTMB models
 #> 
 #>        npar    AIC    BIC  logLik deviance     LR Df   Pr(>LR)    
-#> fitre0    7 5139.8 5177.8 -2562.9   5125.8                        
-#> fitre     8 5095.6 5139.0 -2539.8   5079.6 46.219  1 1.057e-11 ***
+#> fitre0    7 5140.9 5178.9 -2563.5   5126.9                        
+#> fitre     8 5098.3 5141.7 -2541.2   5082.3 44.594  1 2.424e-11 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -155,20 +157,24 @@ the test with the random effects is the one to use.
 
 The random effects are tested in the same way, by likelihood ratio tests
 of the models with and without them: here without random effects, with a
-random asymptote, and with random asymptotes and diameters of the
-fastest growth.
+random asymptote, and with random asymptotes and rates. The rate $`b_2`$
+is small, about 0.02 per cm, and some of these fits stop with a gradient
+just above the tolerance of
+[`converged()`](https://emilskindersoe.github.io/gcTMB/reference/converged.md);
+`control = list(restart = TRUE)` optimises once more from the estimates
+(see the vignette *Autocorrelation and simulation*).
 
 ``` r
 
 fitre1 <- gcTMB(height ~ dbh, fform = b1 ~ dmean, rform = b1 ~ 1 | plot, data = PineHeightDiameter,
-                model = "chapmanrichards", start = c(b4 = 1.3))
+                model = "chapmanrichards", start = c(b4 = 1.3), control = list(restart = TRUE))
 anova(fitdm, fitre1, fitre)
 #> Likelihood ratio tests of gcTMB models
 #> 
 #>        npar    AIC    BIC  logLik deviance      LR Df   Pr(>LR)    
 #> fitdm     5 7052.0 7079.1 -3521.0   7042.0                         
 #> fitre1    6 5435.6 5468.2 -2711.8   5423.6 1618.38  1 < 2.2e-16 ***
-#> fitre     8 5095.6 5139.0 -2539.8   5079.6  344.06  2 < 2.2e-16 ***
+#> fitre     8 5098.3 5141.7 -2541.2   5082.3  341.31  2 < 2.2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -200,44 +206,51 @@ random effects tests their correlation:
 ``` r
 
 fitred <- gcTMB(height ~ dbh, fform = b1 ~ dmean, rform = b1 + b2 ~ 1 || plot, data = PineHeightDiameter,
-                model = "chapmanrichards", start = c(b4 = 1.3))
+                model = "chapmanrichards", start = c(b4 = 1.3), control = list(restart = TRUE))
+#> Warning in nlminb(start = obj$par, objective = obj$fn, gradient = obj$gr, :
+#> NA/NaN function evaluation
 anova(fitred, fitre)
 #> Likelihood ratio tests of gcTMB models
 #> 
 #>        npar    AIC    BIC  logLik deviance     LR Df   Pr(>LR)    
-#> fitred    7 5116.8 5154.8 -2551.4   5102.8                        
-#> fitre     8 5095.6 5139.0 -2539.8   5079.6 23.243  1 1.428e-06 ***
+#> fitred    7 5145.5 5183.4 -2565.7   5131.5                        
+#> fitre     8 5098.3 5141.7 -2541.2   5082.3 49.134  1 2.391e-12 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 VarCorr(fitre)
 #> $plot
-#>          b1      b2
-#> b1 10.81841 7.15534
-#> b2  7.15534 9.68237
+#>            b1           b2
+#> b1 18.5670869 -0.192100461
+#> b2 -0.1921005  0.002467342
 #> attr(,"stddev")
-#>       b1       b2 
-#> 3.289135 3.111651 
+#>         b1         b2 
+#> 4.30895427 0.04967235 
 #> attr(,"correlation")
-#>           b1        b2
-#> b1 1.0000000 0.6991298
-#> b2 0.6991298 1.0000000
+#>            b1         b2
+#> b1  1.0000000 -0.8975152
+#> b2 -0.8975152  1.0000000
 #> 
 #> attr(,"sc")
-#> [1] 0.9885097
+#> [1] 0.9867602
 ```
 
-The Wykoff curve, model M9 of Ciceu et al. (2020), with the same fixed
-and random effects, is an alternative height-diameter model; the models
-are not nested, and are compared by their AIC:
+The Korf curve, $`h = 1.3 + b_1 \exp(b_2/((1 - b_3) d^{b_3 - 1}))`$
+(Kuželka and Marušák, 2015), with the same fixed and random effects, is
+an alternative height-diameter model, as flexible as Chapman-Richards
+through its shape $`b_3`$. The shape must be larger than 1, and its
+default link log$`(b_3 - 1)`$ keeps it there; on these data it is pulled
+towards 1, where the curve becomes a power curve without an asymptote.
+The Chapman-Richards and Korf models are not nested, and are compared by
+their AIC:
 
 ``` r
 
-fitwy <- gcTMB(height ~ dbh, fform = b1 ~ dmean, rform = b1 + b2 ~ 1 | plot, data = PineHeightDiameter,
-               model = "wykoff", start = c(b4 = 1.3))
-AIC(fitre, fitwy)
+fitk <- gcTMB(height ~ dbh, fform = b1 ~ dmean, rform = b1 + b2 ~ 1 | plot, data = PineHeightDiameter,
+              model = "korf", start = c(b4 = 1.3), control = list(restart = TRUE))
+AIC(fitre, fitk)
 #>       df      AIC
-#> fitre  8 5095.578
-#> fitwy  7 5133.322
+#> fitre  8 5098.322
+#> fitk   8 5142.804
 ```
 
 ### Plotting the curves
@@ -442,9 +455,16 @@ Hartig, F. (2026). *DHARMa: Residual Diagnostics for Hierarchical
 (Multi-Level / Mixed) Regression Models*. R package version 0.5.1,
 <doi:10.32614/CRAN.package.DHARMa>.
 
+Kuželka, K. and Marušák, R. (2015). KORFit: An efficient growth function
+fitting tool. *Computers and Electronics in Agriculture* 116, 187–190.
+<doi:10.1016/j.compag.2015.07.001>.
+
 Mehtätalo, L. and Lappi, J. (2020). *Biometry for Forestry and
 Environmental Data: with Examples in R*. Chapman and Hall/CRC, New York.
 
 Pukkala, T. (1989). Prediction of tree diameter and height in a Scots
 pine stand as a function of the spatial pattern of trees. *Silva
 Fennica* 23, 83–99. <doi:10.14214/sf.a15532>.
+
+Richards, F.J. (1959). A flexible growth function for empirical use.
+*Journal of Experimental Botany* 10, 290–300.

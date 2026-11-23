@@ -37,7 +37,7 @@ timeto(
   [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)),
   the levels are of the truncated curve, the time at which the curve f
   without truncation reaches f(b4) + p/100 (b1 - f(b4)). For the
-  chapmanrichards and wykoff curves, the levels are of the growth above
+  chapmanrichards and korf curves, the levels are of the growth above
   the intercept b4, and for preecebaines of the adult height b1. For
   `type="absolute"`, values of the response; the linear model, which has
   no asymptote, has only these.

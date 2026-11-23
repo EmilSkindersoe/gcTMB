@@ -32,15 +32,14 @@ each topic in depth:
 ## Growth models
 
 The growth models are curves $`f(t)`$ that increase from 0, or from the
-intercept $`b_4`$ for the Chapman-Richards and Wykoff curves, towards
-the asymptote $`b_1`$. The logistic, Gompertz, Hill, Weibull, beta,
-normal and gamma curves are sigmoid growth curves, often used in
-agronomy and ecology; the Chapman-Richards and Wykoff curves are
-height-diameter models, common in forestry; and the Preece-Baines curve
-is a model of human growth in height. The explanatory variable $`t`$ is
-usually time, but can be any variable along which the response grows
-towards an asymptote, e.g. the diameter of trees in a height-diameter
-model:
+intercept $`b_4`$ for the Chapman-Richards and Korf curves, towards the
+asymptote $`b_1`$. The logistic, Gompertz, Hill, Weibull, beta, normal
+and gamma curves are sigmoid growth curves, often used in agronomy and
+ecology; the Chapman-Richards and Korf curves are height-diameter
+models, common in forestry; and the Preece-Baines curve is a model of
+human growth in height. The explanatory variable $`t`$ is usually time,
+but can be any variable along which the response grows towards an
+asymptote, e.g. the diameter of trees in a height-diameter model:
 
 | Model | $`f(t)`$ | $`b_2`$ | $`b_3`$ |
 |:---|:---|:---|:---|
@@ -52,8 +51,8 @@ model:
 | beta_capped | the same up to $`b_3`$, and $`b_1`$ from $`b_3`$ on | inflection point | end of growth |
 | normal | $`b_1 \Phi((t - b_2)/b_3)`$ | inflection point, half the asymptote | scale |
 | gamma | $`b_1 F_\Gamma(t;\ b_3, b_2/(b_3 - 1))`$ | inflection point | shape |
-| chapmanrichards | $`b_4 + b_1 (1 - \exp(-t/b_3))^{\exp(b_2/b_3)}`$ | inflection point | scale |
-| wykoff | $`b_4 + b_1 \exp(-2 (b_2 + 1)/(t + 1))`$ | inflection point | not used |
+| chapmanrichards | $`b_4 + b_1 (1 - \exp(-b_2 t))^{b_3}`$ | rate | shape |
+| korf | $`b_4 + b_1 \exp(b_2/((1 - b_3) t^{b_3 - 1}))`$ | coefficient, $`> 0`$ | shape, $`> 1`$ |
 | preecebaines | $`b_1 - \frac{2 (b_1 - b_3)}{\exp(b_4 (t - b_2)) + \exp(b_5 (t - b_2))}`$ | middle of puberty | height at $`b_2`$ |
 | linear | $`b_1 t + b_2`$ | intercept | not used |
 
@@ -62,21 +61,21 @@ before which a truncated curve is zero (by default fixed at 0, the time
 of sowing; `fix = c(b4 = FALSE)` estimates it), and the asymmetry
 $`b_5`$ (by default fixed at 1, the curves above; `fix = c(b5 = FALSE)`
 estimates it, e.g. the Richards curve for the logistic model). The beta,
-Chapman-Richards and Wykoff curves are never truncated and have no
+Chapman-Richards and Korf curves are never truncated and have no
 asymmetry; the beta curve falls back to zero after its maximum at the
 end of growth $`b_3`$, while `"beta_capped"` stays at it: $`b_4`$ is the
 start of growth of the beta curve, and the intercept of the other two
-(by default 0, e.g. `start = c(b4 = 1.3)` for the breast height in a
-height-diameter model); the Chapman-Richards curve is the Richards curve
-with a negative asymmetry. The Preece-Baines curve of human growth in
-height has the rates $`b_4`$ and $`b_5`$ of growth before and during
-puberty, estimated by default. With `b1type = "rate"`, $`b_1`$ is the
-maximum growth rate instead of the asymptote. Each parameter can have a
-link, e.g. `link = c(b3 = "inverse")` for the rate $`1/b_3`$ or
-`link = c(b1 = "log")` for effects as ratios. The vignette *Growth
-models and their parameters* gives all the formulas, the inflection
-points and maximum growth rates of each model, and the asymmetric
-curves.
+(by default the breast height of 1.3 m of a height-diameter model;
+`start = c(b4 = 0)` for a curve from zero); the Chapman-Richards curve
+is the Richards curve with a negative asymmetry. The Preece-Baines curve
+of human growth in height has the rates $`b_4`$ and $`b_5`$ of growth
+before and during puberty, estimated by default. With `b1type = "rate"`,
+$`b_1`$ is the maximum growth rate instead of the asymptote. Each
+parameter can have a link, e.g. `link = c(b3 = "inverse")` for the rate
+$`1/b_3`$ or `link = c(b1 = "log")` for effects as ratios. The vignette
+*Growth models and their parameters* gives all the formulas, the
+inflection points and maximum growth rates of each model, and the
+asymmetric curves.
 
 ## Fitting a growth curve
 
@@ -123,9 +122,12 @@ criteria of
 
 fits <- lapply(c(logistic = "logistic", gompertz = "gompertz", hill = "hill", weibull = "weibull",
                  beta = "beta", beta_capped = "beta_capped", normal = "normal", gamma = "gamma",
-                 chapmanrichards = "chapmanrichards", wykoff = "wykoff", preecebaines = "preecebaines",
+                 chapmanrichards = "chapmanrichards", korf = "korf", preecebaines = "preecebaines",
                  linear = "linear"),
-               function(m) gcTMB(Height ~ DAS, data = FabaHeights26, model = m))
+               # the forestry curves from zero at sowing, instead of their default breast height of 1.3
+               function(m) gcTMB(Height ~ DAS, data = FabaHeights26, model = m,
+                                 start = if (m %in% c("chapmanrichards", "korf")) c(b4 = 0)))
+#> Warning: the optimiser did not converge: singular convergence (7)
 criteria(fits, which = c("AIC", "BIC"))
 #>                      AIC      BIC
 #> logistic        33492.78 33518.26
@@ -137,7 +139,7 @@ criteria(fits, which = c("AIC", "BIC"))
 #> normal          33493.81 33519.29
 #> gamma           33535.44 33560.92
 #> chapmanrichards 33606.41 33631.89
-#> wykoff          35078.23 35097.34
+#> korf            33708.72 33734.20
 #> preecebaines    33491.05 33529.27
 #> linear          35753.14 35772.25
 ```

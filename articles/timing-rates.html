@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9012</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,11 +31,9 @@
 <li class="nav-item"><a class="nav-link" href="../articles/gcTMB.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Topics</h6></li>
-    <li><a class="dropdown-item" href="../articles/growth-models.html">Growth models and their parameters</a></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-examples" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Examples</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-examples">
+<li><a class="dropdown-item" href="../articles/growth-models.html">Growth models and their parameters</a></li>
     <li><a class="dropdown-item" href="../articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="../articles/timing-rates.html">Timing and maximum growth rates</a></li>
     <li><a class="dropdown-item" href="../articles/autocorrelation-simulation.html">Autocorrelation and simulation</a></li>
@@ -61,7 +59,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Timing and maximum growth rates</h1>
             
-            <h4 data-toc-skip class="date">2026-11-22</h4>
+            <h4 data-toc-skip class="date">2026-11-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/timing-rates.Rmd" class="external-link"><code>vignettes/timing-rates.Rmd</code></a></small>
       <div class="d-none name"><code>timing-rates.Rmd</code></div>
@@ -367,55 +365,69 @@ before it, as the Chapman-Richards curve with the intercept
 estimated; with <code>b1type = "rate"</code> and the log link,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
 is the peak height velocity, and the effect of the sex a ratio of the
-rates. Each child has random effects on the peak height velocity, its
-timing and the height before the spurt:</p>
+rates. Each child has random effects on the peak height velocity, on the
+rate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>,
+which together with the shape
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
+sets the timing of the spurt,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>b</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\log(b_3)/b_2</annotation></semantics></math>,
+and on the height before the spurt. The spurt is close to a Gompertz
+curve, the limit of a large shape
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
+here about 90; the log link of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
+and a restart of the optimiser from the estimates
+(<code>control = list(restart = TRUE)</code>) let the optimiser converge
+there:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spurt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">BerkeleyGrowth</span>, <span class="va">age</span> <span class="op">&gt;=</span> <span class="fl">8</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">height</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fitrr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">~</span> <span class="va">sex</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">id</span>, data <span class="op">=</span> <span class="va">spurt</span>,</span>
 <span>               model <span class="op">=</span> <span class="st">"chapmanrichards"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">120</span><span class="op">)</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, b1type <span class="op">=</span> <span class="st">"rate"</span>,</span>
-<span>               link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">)</span></span>
+<span>               link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span>, b3 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fitrr</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; gcTMB(form = height ~ age, fform = b1 + b2 + b4 ~ sex, rform = b1 + </span></span>
 <span><span class="co">#&gt;     b2 + b4 ~ 1 | id, data = spurt, start = c(b4 = 120), fix = c(b4 = FALSE), </span></span>
-<span><span class="co">#&gt;     model = "chapmanrichards", link = c(b1 = "log"), b1type = "rate")</span></span>
+<span><span class="co">#&gt;     model = "chapmanrichards", link = c(b1 = "log", b3 = "log"), </span></span>
+<span><span class="co">#&gt;     b1type = "rate", control = list(restart = TRUE))</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model:  chapmanrichards; b1 is the maximum growth rate</span></span>
-<span><span class="co">#&gt; Family: gaussian, log link for b1, identity link for the other parameters</span></span>
+<span><span class="co">#&gt; Family: gaussian, log link for b1, log link for b3, identity link for the other parameters</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Number of observations: 2985, groups: id 136</span></span>
-<span><span class="co">#&gt; Log-likelihood: -6568 (df = 14), AIC: 13165, BIC: 13249</span></span>
+<span><span class="co">#&gt; Log-likelihood: -6298 (df = 14), AIC: 12625, BIC: 12709</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
-<span><span class="co">#&gt;                 Estimate Std. Error</span></span>
-<span><span class="co">#&gt; b1:(Intercept)   2.03604      0.012</span></span>
-<span><span class="co">#&gt; b1:sexfemale    -0.05426      0.018</span></span>
-<span><span class="co">#&gt; b2:(Intercept)  11.77429      0.111</span></span>
-<span><span class="co">#&gt; b2:sexfemale    -2.14747      0.160</span></span>
-<span><span class="co">#&gt; b3:(Intercept)   2.48214      0.029</span></span>
-<span><span class="co">#&gt; b4:(Intercept) 132.08293      0.658</span></span>
-<span><span class="co">#&gt; b4:sexfemale   -10.97591      1.008</span></span>
-<span><span class="co">#&gt; The coefficients of b1 are on the log scale.</span></span>
+<span><span class="co">#&gt;                  Estimate Std. Error</span></span>
+<span><span class="co">#&gt; b1:(Intercept)   2.007188      0.014</span></span>
+<span><span class="co">#&gt; b1:sexfemale    -0.002929      0.020</span></span>
+<span><span class="co">#&gt; b2:(Intercept)   0.381010      0.006</span></span>
+<span><span class="co">#&gt; b2:sexfemale     0.072460      0.005</span></span>
+<span><span class="co">#&gt; b3:(Intercept)   4.477682      0.053</span></span>
+<span><span class="co">#&gt; b4:(Intercept) 131.815382      0.598</span></span>
+<span><span class="co">#&gt; b4:sexfemale    -7.368548      0.836</span></span>
+<span><span class="co">#&gt; The coefficients of b1, b3 are on the log scale.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
-<span><span class="co">#&gt;  Groups Name Std.Dev. Corr       </span></span>
-<span><span class="co">#&gt;  id     b1   0.08792             </span></span>
-<span><span class="co">#&gt;         b2   0.87517  -0.68      </span></span>
-<span><span class="co">#&gt;         b4   5.00748  -0.11  0.43</span></span>
+<span><span class="co">#&gt;  Groups Name Std.Dev. Corr         </span></span>
+<span><span class="co">#&gt;  id     b1   0.1071                </span></span>
+<span><span class="co">#&gt;         b2   0.0309   0.78         </span></span>
+<span><span class="co">#&gt;         b4   4.5736    0.034 -0.170</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residual standard deviation: 1.748</span></span>
+<span><span class="co">#&gt; Residual standard deviation: 1.57</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.0021</span></span>
+<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.0087</span></span>
 <span><span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;                     Estimate Std.Error</span></span>
-<span><span class="co">#&gt; tmax:sex=male         11.774  0.110728</span></span>
-<span><span class="co">#&gt; rate:sex=male          7.660  0.095471</span></span>
-<span><span class="co">#&gt; fraction:sex=male      0.366  0.000120</span></span>
-<span><span class="co">#&gt; tmax:sex=female        9.627  0.118476</span></span>
-<span><span class="co">#&gt; rate:sex=female        7.256  0.097516</span></span>
-<span><span class="co">#&gt; fraction:sex=female    0.364  0.000293</span></span></code></pre></div>
+<span><span class="co">#&gt; tmax:sex=male         11.752  0.119576</span></span>
+<span><span class="co">#&gt; rate:sex=male          7.442  0.106394</span></span>
+<span><span class="co">#&gt; fraction:sex=male      0.366  0.000111</span></span>
+<span><span class="co">#&gt; tmax:sex=female        9.874  0.088034</span></span>
+<span><span class="co">#&gt; rate:sex=female        7.421  0.107249</span></span>
+<span><span class="co">#&gt; fraction:sex=female    0.366  0.000111</span></span></code></pre></div>
 <p>Whether boys and girls have the same peak height velocity is a
 likelihood ratio test of the models with and without the sex effect on
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>,
@@ -426,15 +438,13 @@ and
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitrr0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, fform <span class="op">=</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">~</span> <span class="va">sex</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">id</span>, data <span class="op">=</span> <span class="va">spurt</span>,</span>
 <span>                model <span class="op">=</span> <span class="st">"chapmanrichards"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">120</span><span class="op">)</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, b1type <span class="op">=</span> <span class="st">"rate"</span>,</span>
-<span>                link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">)</span></span>
+<span>                link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span>, b3 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">fitrr0</span>, <span class="va">fitrr</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Likelihood ratio tests of gcTMB models</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;        npar   AIC   BIC  logLik deviance     LR Df  Pr(&gt;LR)   </span></span>
-<span><span class="co">#&gt; fitrr0   13 13171 13249 -6572.5    13145                      </span></span>
-<span><span class="co">#&gt; fitrr    14 13165 13249 -6568.4    13137 8.1957  1 0.004199 **</span></span>
-<span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
+<span><span class="co">#&gt;        npar   AIC   BIC  logLik deviance       LR Df Pr(&gt;LR)</span></span>
+<span><span class="co">#&gt; fitrr0   13 12623 12701 -6298.3    12597                    </span></span>
+<span><span class="co">#&gt; fitrr    14 12625 12709 -6298.3    12597 0.021342  1  0.8839</span></span></code></pre></div>
 <p><code><a href="../reference/pairwise.html">pairwise()</a></code> compares the maximum growth rates of all
 pairs of rows of <code>newdata</code> by Wald tests. By default, the
 p-values and the confidence intervals are adjusted for the number of
@@ -451,10 +461,10 @@ above.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/pairwise.html">pairwise</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Pairwise differences of b1 (maximum growth rate) on the scale of its log link:</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;                       Estimate Std.Error z value p.value  lower upper ratio</span></span>
-<span><span class="co">#&gt; sex=male - sex=female   0.0543    0.0181       3 0.00278 0.0186  0.09  1.06</span></span>
+<span><span class="co">#&gt;                       Estimate Std.Error z value p.value   lower  upper ratio</span></span>
+<span><span class="co">#&gt; sex=male - sex=female  0.00293      0.02   0.146   0.884 -0.0366 0.0424     1</span></span>
 <span><span class="co">#&gt;                       ratio.lower ratio.upper</span></span>
-<span><span class="co">#&gt; sex=male - sex=female        1.02        1.09</span></span>
+<span><span class="co">#&gt; sex=male - sex=female       0.964        1.04</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits, and ratios.</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> with <code>type = "parameters"</code> gives
@@ -470,8 +480,8 @@ plus the asymptote:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sex <span class="op">=</span> <span class="va">sexes</span><span class="op">$</span><span class="va">sex</span>, peak_rate <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b1"</span><span class="op">]</span>, height_before_spurt <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b4"</span><span class="op">]</span>,</span>
 <span>           growth_in_spurt <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"asymptote"</span><span class="op">]</span>, adult_height <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b4"</span><span class="op">]</span> <span class="op">+</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"asymptote"</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      sex peak_rate height_before_spurt growth_in_spurt adult_height</span></span>
-<span><span class="co">#&gt; 1   male  7.660229            132.0829        51.45961     183.5425</span></span>
-<span><span class="co">#&gt; 2 female  7.255630            121.1070        48.44774     169.5548</span></span></code></pre></div>
+<span><span class="co">#&gt; 1   male  7.442358            131.8154        52.79491     184.6103</span></span>
+<span><span class="co">#&gt; 2 female  7.420593            124.4468        44.22908     168.6759</span></span></code></pre></div>
 <p>The adult heights agree with the asymptotes
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
 of the Preece-Baines curves of the sexes above.</p>

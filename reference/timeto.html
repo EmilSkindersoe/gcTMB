@@ -9,7 +9,7 @@ response, with standard errors by the delta method and automatic differentiation
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9012</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,10 +20,8 @@ response, with standard errors by the delta method and automatic differentiation
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/gcTMB.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Topics</h6></li>
-    <li><a class="dropdown-item" href="../articles/growth-models.html">Growth models and their parameters</a></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-examples" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Examples</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-examples"><li><a class="dropdown-item" href="../articles/growth-models.html">Growth models and their parameters</a></li>
     <li><a class="dropdown-item" href="../articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="../articles/timing-rates.html">Timing and maximum growth rates</a></li>
     <li><a class="dropdown-item" href="../articles/autocorrelation-simulation.html">Autocorrelation and simulation</a></li>
@@ -70,7 +68,7 @@ response, with standard errors by the delta method and automatic differentiation
 
 
 <dt id="arg-level">level<a class="anchor" aria-label="anchor" href="#arg-level"></a></dt>
-<dd><p>Numeric vector. Levels in percent of the asymptote b1, between 0 and 100 (default 50): the time at which the curve reaches p percent of b1, e.g. b2 + b3 log(p/(100 - p)) for the logistic curve, b2 - b3 log(-log(p/100)) for gompertz, and b2 (p/(100 - p))^(1/b3) for hill. For the logistic, normal and hill curves without truncation, the time of 50 percent is b2. For a curve truncated at the threshold b4 (the default of <code><a href="gcTMB.html">gcTMB</a></code>), the levels are of the truncated curve, the time at which the curve f without truncation reaches f(b4) + p/100 (b1 - f(b4)). For the chapmanrichards and wykoff curves, the levels are of the growth above the intercept b4, and for preecebaines of the adult height b1. For <code>type="absolute"</code>, values of the response; the linear model, which has no asymptote, has only these.</p></dd>
+<dd><p>Numeric vector. Levels in percent of the asymptote b1, between 0 and 100 (default 50): the time at which the curve reaches p percent of b1, e.g. b2 + b3 log(p/(100 - p)) for the logistic curve, b2 - b3 log(-log(p/100)) for gompertz, and b2 (p/(100 - p))^(1/b3) for hill. For the logistic, normal and hill curves without truncation, the time of 50 percent is b2. For a curve truncated at the threshold b4 (the default of <code><a href="gcTMB.html">gcTMB</a></code>), the levels are of the truncated curve, the time at which the curve f without truncation reaches f(b4) + p/100 (b1 - f(b4)). For the chapmanrichards and korf curves, the levels are of the growth above the intercept b4, and for preecebaines of the adult height b1. For <code>type="absolute"</code>, values of the response; the linear model, which has no asymptote, has only these.</p></dd>
 
 
 <dt id="arg-curves">curves<a class="anchor" aria-label="anchor" href="#arg-curves"></a></dt>

@@ -9,7 +9,7 @@ which can be inspected, modified, and passed to the start argument of gcTMB."><m
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9012</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,10 +20,8 @@ which can be inspected, modified, and passed to the start argument of gcTMB."><m
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/gcTMB.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Topics</h6></li>
-    <li><a class="dropdown-item" href="../articles/growth-models.html">Growth models and their parameters</a></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-examples" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Examples</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-examples"><li><a class="dropdown-item" href="../articles/growth-models.html">Growth models and their parameters</a></li>
     <li><a class="dropdown-item" href="../articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="../articles/timing-rates.html">Timing and maximum growth rates</a></li>
     <li><a class="dropdown-item" href="../articles/autocorrelation-simulation.html">Autocorrelation and simulation</a></li>
@@ -90,7 +88,7 @@ which can be inspected, modified, and passed to the <code>start</code> argument 
 
 
 <dt id="arg-fix">fix<a class="anchor" aria-label="anchor" href="#arg-fix"></a></dt>
-<dd><p>Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4 and the asymmetry (or intercept) b5 are fixed by default, at 0 and 1 unless given in start; fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.</p></dd>
+<dd><p>Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1 unless given in start (the intercept b4 of chapmanrichards and korf at 1.3; the rates b4 and b5 of preecebaines are estimated); fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.</p></dd>
 
 
 <dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
@@ -102,7 +100,7 @@ which can be inspected, modified, and passed to the <code>start</code> argument 
 
 
 <dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
-<dd><p>Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "beta", "beta_capped", "normal", "gamma", "chapmanrichards", "wykoff", "preecebaines" or "linear", see <code><a href="gcTMB.html">gcTMB</a></code>.</p></dd>
+<dd><p>Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "beta", "beta_capped", "normal", "gamma", "chapmanrichards", "korf", "preecebaines" or "linear", see <code><a href="gcTMB.html">gcTMB</a></code>.</p></dd>
 
 
 <dt id="arg-truncated">truncated<a class="anchor" aria-label="anchor" href="#arg-truncated"></a></dt>
@@ -158,9 +156,11 @@ without truncation reaches 1\<!-- % of its asymptote; for the count families als
 time with a positive count, and for the lognormal and beta families before all times, as positive
 responses are impossible before the threshold. The asymmetry b5 starts at 1, the symmetric curve,
 with which b2 and b3 are linearised unless b5 is given in start; b4 without truncation starts at 0.</p>
-<p>The beta, beta_capped, chapmanrichards and wykoff curves are not linearised: b1-b3 are fitted by
-least squares to the mean responses (above the intercept log(b5) of chapmanrichards and wykoff,
-when b5 is given in start), with b4 at 0 or its value in start.</p>
+<p>The beta, beta_capped, chapmanrichards and korf curves are not linearised: b1-b3 are fitted by
+least squares to the mean responses (above the intercept b4 of chapmanrichards and korf), with
+b4 at its value in start, or by default 1.3 (chapmanrichards, korf) or 0 (beta). For chapmanrichards they start from the shape b3 = 3, for korf
+from the shape b3 = 2, with the rate or coefficient b2 that puts the inflection point where the
+mean response is closest to the fraction of the asymptote reached there.</p>
 <p>Method "grid" evaluates the negative log-likelihood (without random effects) at all
 combinations of a grid of parameter values and returns the best grid point; parameters
 not included in the grid start at the values of method "lm".

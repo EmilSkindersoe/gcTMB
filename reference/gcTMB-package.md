@@ -5,12 +5,12 @@ Template Model Builder ('TMB'), with covariates on the parameters and
 random effects, which are integrated out by the Laplace approximation,
 and autocorrelated residuals. The main function gcTMB() fits the
 logistic (Richards), Gompertz, Hill, Weibull, normal and gamma growth
-curves, each with an asymmetry parameter, the Chapman-Richards and
-Wykoff curves with an intercept, e.g. for height-diameter models, the
-beta growth function, capped at its maximum or not, the Preece-Baines
-model of human growth, and a straight line for comparison. The curves
-are parameterised by the asymptote (or, with b1type = "rate", the
-maximum growth rate), a time (of the maximum growth rate or of half the
+curves, each with an asymmetry parameter, the Chapman-Richards and Korf
+curves with an intercept, e.g. for height-diameter models, the beta
+growth function, capped at its maximum or not, the Preece-Baines model
+of human growth, and a straight line for comparison. The curves are
+parameterised by the asymptote (or, with b1type = "rate", the maximum
+growth rate), a time (of the maximum growth rate or of half the
 asymptote), a scale, slope or shape parameter, a threshold time before
 which a truncated curve is zero, and the asymmetry, each with an
 identity, log, logit or inverse link, and any of them can be fixed. The
@@ -58,11 +58,13 @@ an overview shows most of the features in one document.
 [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)
 fits the growth curves: logistic (Richards), Gompertz, Hill, Weibull,
 normal and gamma, each with an asymmetry b5, the Chapman-Richards, beta
-and Wykoff curves, and a straight line. The parameters are the asymptote
+and Korf curves, and a straight line. The parameters are the asymptote
 b1 (or the maximum growth rate, `b1type="rate"`), the time b2 of the
 maximum growth rate or of half the asymptote, the scale, slope or shape
 b3, the threshold b4 of a truncated curve and the asymmetry b5, each
-with a link and optionally fixed.
+with a link and optionally fixed; the Chapman-Richards and Korf
+height-diameter models keep the parameters usual in forestry (see
+[`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)).
 [`gcTMBstart`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md)
 gives the starting values and
 [`gcTMBcontrol`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBcontrol.md)

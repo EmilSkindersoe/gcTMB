@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9012</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,11 +31,9 @@
 <li class="active nav-item"><a class="nav-link" href="../articles/gcTMB.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Topics</h6></li>
-    <li><a class="dropdown-item" href="../articles/growth-models.html">Growth models and their parameters</a></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-examples" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Examples</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-examples">
+<li><a class="dropdown-item" href="../articles/growth-models.html">Growth models and their parameters</a></li>
     <li><a class="dropdown-item" href="../articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="../articles/timing-rates.html">Timing and maximum growth rates</a></li>
     <li><a class="dropdown-item" href="../articles/autocorrelation-simulation.html">Autocorrelation and simulation</a></li>
@@ -61,7 +59,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>gcTMB: an overview</h1>
             
-            <h4 data-toc-skip class="date">2026-11-22</h4>
+            <h4 data-toc-skip class="date">2026-11-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/gcTMB.rmd" class="external-link"><code>vignettes/gcTMB.rmd</code></a></small>
       <div class="d-none name"><code>gcTMB.rmd</code></div>
@@ -106,11 +104,11 @@ recovery of the autocorrelation parameter.</li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(t)</annotation></semantics></math>
 that increase from 0, or from the intercept
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
-for the Chapman-Richards and Wykoff curves, towards the asymptote
+for the Chapman-Richards and Korf curves, towards the asymptote
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>.
 The logistic, Gompertz, Hill, Weibull, beta, normal and gamma curves are
 sigmoid growth curves, often used in agronomy and ecology; the
-Chapman-Richards and Wykoff curves are height-diameter models, common in
+Chapman-Richards and Korf curves are height-diameter models, common in
 forestry; and the Preece-Baines curve is a model of human growth in
 height. The explanatory variable
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
@@ -191,15 +189,19 @@ on</td>
 </tr>
 <tr class="odd">
 <td align="left">chapmanrichards</td>
-<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>+</mo><msub><mi>b</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mi>t</mi><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">)</mo><mrow><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>2</mn></msub><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">b_4 + b_1 (1 - \exp(-t/b_3))^{\exp(b_2/b_3)}</annotation></semantics></math></td>
-<td align="left">inflection point</td>
-<td align="left">scale</td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>+</mo><msub><mi>b</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><msub><mi>b</mi><mn>2</mn></msub><mi>t</mi><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">)</mo><msub><mi>b</mi><mn>3</mn></msub></msup></mrow><annotation encoding="application/x-tex">b_4 + b_1 (1 - \exp(-b_2 t))^{b_3}</annotation></semantics></math></td>
+<td align="left">rate</td>
+<td align="left">shape</td>
 </tr>
 <tr class="even">
-<td align="left">wykoff</td>
-<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>+</mo><msub><mi>b</mi><mn>1</mn></msub><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mn>2</mn><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>2</mn></msub><mo>+</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>+</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b_4 + b_1 \exp(-2 (b_2 + 1)/(t + 1))</annotation></semantics></math></td>
-<td align="left">inflection point</td>
-<td align="left">not used</td>
+<td align="left">korf</td>
+<td align="left"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>+</mo><msub><mi>b</mi><mn>1</mn></msub><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>2</mn></msub><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo><msup><mi>t</mi><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><mn>1</mn></mrow></msup><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b_4 + b_1 \exp(b_2/((1 - b_3) t^{b_3 - 1}))</annotation></semantics></math></td>
+<td align="left">coefficient,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">&gt; 0</annotation></semantics></math>
+</td>
+<td align="left">shape,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">&gt; 1</annotation></semantics></math>
+</td>
 </tr>
 <tr class="odd">
 <td align="left">preecebaines</td>
@@ -225,17 +227,17 @@ asymmetry
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>
 (by default fixed at 1, the curves above;
 <code>fix = c(b5 = FALSE)</code> estimates it, e.g. the Richards curve
-for the logistic model). The beta, Chapman-Richards and Wykoff curves
-are never truncated and have no asymmetry; the beta curve falls back to
-zero after its maximum at the end of growth
+for the logistic model). The beta, Chapman-Richards and Korf curves are
+never truncated and have no asymmetry; the beta curve falls back to zero
+after its maximum at the end of growth
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
 while <code>"beta_capped"</code> stays at it:
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
 is the start of growth of the beta curve, and the intercept of the other
-two (by default 0, e.g. <code>start = c(b4 = 1.3)</code> for the breast
-height in a height-diameter model); the Chapman-Richards curve is the
-Richards curve with a negative asymmetry. The Preece-Baines curve of
-human growth in height has the rates
+two (by default the breast height of 1.3 m of a height-diameter model;
+<code>start = c(b4 = 0)</code> for a curve from zero); the
+Chapman-Richards curve is the Richards curve with a negative asymmetry.
+The Preece-Baines curve of human growth in height has the rates
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>
@@ -288,9 +290,12 @@ the criteria of <code><a href="../reference/criteria.html">criteria()</a></code>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>logistic <span class="op">=</span> <span class="st">"logistic"</span>, gompertz <span class="op">=</span> <span class="st">"gompertz"</span>, hill <span class="op">=</span> <span class="st">"hill"</span>, weibull <span class="op">=</span> <span class="st">"weibull"</span>,</span>
 <span>                 beta <span class="op">=</span> <span class="st">"beta"</span>, beta_capped <span class="op">=</span> <span class="st">"beta_capped"</span>, normal <span class="op">=</span> <span class="st">"normal"</span>, gamma <span class="op">=</span> <span class="st">"gamma"</span>,</span>
-<span>                 chapmanrichards <span class="op">=</span> <span class="st">"chapmanrichards"</span>, wykoff <span class="op">=</span> <span class="st">"wykoff"</span>, preecebaines <span class="op">=</span> <span class="st">"preecebaines"</span>,</span>
+<span>                 chapmanrichards <span class="op">=</span> <span class="st">"chapmanrichards"</span>, korf <span class="op">=</span> <span class="st">"korf"</span>, preecebaines <span class="op">=</span> <span class="st">"preecebaines"</span>,</span>
 <span>                 linear <span class="op">=</span> <span class="st">"linear"</span><span class="op">)</span>,</span>
-<span>               <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, data <span class="op">=</span> <span class="va">FabaHeights26</span>, model <span class="op">=</span> <span class="va">m</span><span class="op">)</span><span class="op">)</span></span>
+<span>               <span class="co"># the forestry curves from zero at sowing, instead of their default breast height of 1.3</span></span>
+<span>               <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, data <span class="op">=</span> <span class="va">FabaHeights26</span>, model <span class="op">=</span> <span class="va">m</span>,</span>
+<span>                                 start <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="va">m</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chapmanrichards"</span>, <span class="st">"korf"</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: the optimiser did not converge: singular convergence (7)</span></span>
 <span><span class="fu"><a href="../reference/criteria.html">criteria</a></span><span class="op">(</span><span class="va">fits</span>, which <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AIC"</span>, <span class="st">"BIC"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                      AIC      BIC</span></span>
 <span><span class="co">#&gt; logistic        33492.78 33518.26</span></span>
@@ -302,7 +307,7 @@ the criteria of <code><a href="../reference/criteria.html">criteria()</a></code>
 <span><span class="co">#&gt; normal          33493.81 33519.29</span></span>
 <span><span class="co">#&gt; gamma           33535.44 33560.92</span></span>
 <span><span class="co">#&gt; chapmanrichards 33606.41 33631.89</span></span>
-<span><span class="co">#&gt; wykoff          35078.23 35097.34</span></span>
+<span><span class="co">#&gt; korf            33708.72 33734.20</span></span>
 <span><span class="co">#&gt; preecebaines    33491.05 33529.27</span></span>
 <span><span class="co">#&gt; linear          35753.14 35772.25</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> gives confidence intervals of the mean by the

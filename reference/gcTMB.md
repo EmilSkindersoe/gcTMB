@@ -89,12 +89,14 @@ gcTMB(
   a model coefficient is fixed to its value in start. Alternatively, a
   vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of
   the named parameters; their values must then be given in start, e.g.
-  start=c(b1=10). The threshold b4 and the asymmetry b5 are fixed by
-  default, at b4 = 0 (the curve starts at zero at t = 0) and b5 = 1 (the
-  symmetric curve) unless given in start; fix=c(b4=FALSE) or
-  fix=c(b5=FALSE), or an unnamed fix vector, estimates them. Without
-  truncation, b4 is not used and always fixed, at 0 unless given in
-  start.
+  start=c(b1=10). The threshold (start of growth) b4 and the asymmetry
+  b5 are fixed by default, at b4 = 0 (the curve starts at zero at t = 0)
+  and b5 = 1 (the symmetric curve) unless given in start; so is the
+  intercept b4 of the chapmanrichards and korf models, at the breast
+  height of 1.3, while the rates b4 and b5 of the preecebaines model are
+  estimated; fix=c(b4=FALSE) or fix=c(b5=FALSE), or an unnamed fix
+  vector, estimates them. Without truncation, b4 is not used and always
+  fixed, at 0 unless given in start.
 
 - weights:
 
@@ -135,7 +137,7 @@ gcTMB(
   Character string. The growth model: "logistic" (default), "gompertz",
   "hill", "weibull", "normal" or "gamma", each with an asymmetry
   parameter b5, "beta" or "beta_capped" for determinate growth,
-  "chapmanrichards" or "wykoff" for height-diameter models in forestry,
+  "chapmanrichards" or "korf" for height-diameter models in forestry,
   "preecebaines" for human growth in height, or "linear" for a straight
   line, see Details.
 
@@ -144,20 +146,39 @@ gcTMB(
   Logical. If TRUE (default), the curve is truncated at a threshold time
   b4, by default fixed at 0: the response is zero up to b4 and then
   grows, see Details. FALSE for the curves without truncation. The beta,
-  beta_capped, chapmanrichards, wykoff and preecebaines curves are never
+  beta_capped, chapmanrichards, korf and preecebaines curves are never
   truncated.
 
 - link:
 
   Named character vector or NULL. Links of the parameters b1-b5: NULL
-  for the defaults (the identity link for all parameters), or links
-  named by parameter, e.g. `link=c(b1="log", b3="inverse")`. The
-  asymptote b1 has the link "identity" (default), "log" or "logit"; the
-  times b2 and b4 (the threshold of a truncated curve) "identity"
-  (default) or "log"; the asymmetry b5 "identity" (default) or "log", to
-  keep it positive; and the scale b3 "identity" (default), "inverse",
-  with which its coefficients are the growth rate 1/b3, or "log". The
-  coefficients, and start, fix, lower, upper and curves of
+  for the defaults, or links named by parameter, e.g.
+  `link=c(b1="log", b3="inverse")`. The default is the identity link for
+  all parameters, except the shape b3 of the weibull, gamma and korf
+  models, which must be larger than 1 and has the link "logm1", log(b3 -
+  1), by default (`link=c(b3="identity")` gives the shape itself). The
+  links available for each parameter depend on its role in the model:
+
+  - the asymptote b1: "identity", "log" or "logit" (for proportions);
+    the slope b1 of the linear model: "identity" or "log";
+
+  - the time b2 (inflection point, half the asymptote, middle of
+    puberty), the rate b2 of chapmanrichards and the coefficient b2 of
+    korf: "identity" or "log"; the intercept b2 of the linear model:
+    "identity";
+
+  - a scale b3 (logistic, gompertz, normal): "identity", "inverse", with
+    which its coefficients are the growth rate 1/b3, or "log"; the shape
+    b3 of weibull, gamma and korf: "logm1", "identity" or "log"; any
+    other b3 (the slope of hill, the shape of chapmanrichards, the end
+    of growth of beta, the height of preecebaines): "identity" or "log";
+
+  - b4 (the threshold or start of growth, the intercept of
+    chapmanrichards and korf, the rate of preecebaines) and the
+    asymmetry b5: "identity" or "log".
+
+  A link that a model does not allow gives an error naming the allowed
+  ones. The coefficients, and start, fix, lower, upper and curves of
   [`timeto`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md),
   are on the scale of the links, see Details.
 
@@ -258,16 +279,18 @@ from 0 towards the asymptote b1:
   its constant rate b1.
 
 Five more curves are never truncated: the beta curves of determinate
-growth, the height-diameter models chapmanrichards and wykoff, common in
+growth, the height-diameter models chapmanrichards and korf, common in
 forestry, and the preecebaines model of human growth:
 
-- chapmanrichards: f(t) = b4 + b1 (1 - exp(-t/b3))^c with c =
-  exp(b2/b3), the Chapman-Richards curve, zero above the intercept b4 up
-  to t = 0: b2 is the inflection point, b3 the scale and b4 the
-  intercept, fixed at 0 by default, e.g. the breast height of 1.3 m in a
-  height-diameter model, `start=c(b4=1.3)`. Model M8 of Ciceu et al.
-  (2020), 1.3 + a (1 - exp(-k t))^c, has b4 = 1.3, b1 = a, b3 = 1/k and
-  b2 = log(c)/k;
+- chapmanrichards: f(t) = b4 + b1 (1 - exp(-b2 t))^b3, the
+  Chapman-Richards curve of Richards (1959) in its usual form for
+  height-diameter models (model M8 of Ciceu et al. 2020), zero above the
+  intercept b4 up to t = 0: b1 is the asymptote, b2 the rate, b3 the
+  shape and b4 the intercept, fixed by default at the breast height of
+  1.3 m (`start=c(b4=0)` for a curve from zero, `fix=c(b4=FALSE)` to
+  estimate it). For b3 \> 1 the inflection point is at log(b3)/b2, where
+  the curve reaches (1 - 1/b3)^b3 of its asymptote; for b3 \<= 1 it
+  grows fastest at t = 0;
 
 - beta: the beta growth function of Yin et al. (2003), eqn 8 (with b4 =
   0 there), f(t) = b1 (1 + (b3 - t)/(b3 - b2)) ((t - b4)/(b3 -
@@ -282,11 +305,11 @@ forestry, and the preecebaines model of human growth:
   sigmoid growth function of Yin et al. for determinate growth that
   stops at its maximum;
 
-- wykoff: f(t) = b4 + b1 exp(-s/(t + 1)) with s = 2 (b2 + 1), the curve
-  of Wykoff et al. (1982), exp(a + b/(t + 1)) with a = log(b1) and b =
-  -s (model M9 of Ciceu et al. 2020): b2 is the inflection point, where
-  the curve reaches exp(-2) of its asymptote, and b4 the intercept as
-  for chapmanrichards; it does not use b3;
+- korf: f(t) = b4 + b1 exp(b2/((1 - b3) t^(b3 - 1))) for t \> 0, and b4
+  up to t = 0, the Korf curve: b1 is the asymptote above the intercept
+  b4, b2 \> 0 a coefficient, b3 \> 1 the shape, and b4 the intercept as
+  for chapmanrichards. The inflection point is at t = (b2/b3)^(1/(b3 -
+  1)), where the curve reaches exp(-b3/(b3 - 1)) of its asymptote;
 
 - preecebaines: model 1 of Preece and Baines (1978) for human growth in
   height, f(t) = b1 - 2 (b1 - b3)/(exp(b4 (t - b2)) + exp(b5 (t - b2))):
@@ -384,9 +407,8 @@ Preece, M.A. and Baines, M.J. (1978). A new family of mathematical
 models describing the human growth curve. Annals of Human Biology 5,
 1-24.
 
-Wykoff, W.R., Crookston, N.L. and Stage, A.R. (1982). User's guide to
-the stand prognosis model. General Technical Report INT-133, USDA Forest
-Service, Ogden, Utah.
+Richards, F.J. (1959). A flexible growth function for empirical use.
+Journal of Experimental Botany 10, 290-300.
 
 Yin, X., Goudriaan, J., Lantinga, E.A., Vos, J. and Spiertz, H.J.
 (2003). A flexible sigmoid function of determinate growth. Annals of
@@ -433,10 +455,11 @@ fitw <- gcTMB(height ~ DAS, data=FabaHeights25, model="weibull")
 fitn <- gcTMB(height ~ DAS, data=FabaHeights25, model="normal")
 fitgam <- gcTMB(height ~ DAS, data=FabaHeights25, model="gamma")
 fitlin <- gcTMB(height ~ DAS, data=FabaHeights25, model="linear")
-fitcr <- gcTMB(height ~ DAS, data=FabaHeights25, model="chapmanrichards")
+# the forestry models from zero instead of their default intercept, the breast height of 1.3 m
+fitcr <- gcTMB(height ~ DAS, data=FabaHeights25, model="chapmanrichards", start=c(b4=0))
 fitb <- gcTMB(height ~ DAS, data=FabaHeights25, model="beta_capped")
-fitwy <- gcTMB(height ~ DAS, data=FabaHeights25, model="wykoff")
-AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin, fitcr, fitb, fitwy)
+fitk <- gcTMB(height ~ DAS, data=FabaHeights25, model="korf", start=c(b4=0))
+AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin, fitcr, fitb, fitk)
 #>        df      AIC
 #> fit     4 1406.470
 #> fitg    4 1407.658
@@ -447,20 +470,19 @@ AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin, fitcr, fitb, fitwy)
 #> fitlin  3 1443.592
 #> fitcr   4 1410.100
 #> fitb    4 1406.751
-#> fitwy   3 1416.150
+#> fitk    4 1415.341
 
-# a height-diameter model from the breast height of 1.3 m, the intercept b4
-gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards", start=c(b4=1.3))
+# a height-diameter model from the breast height of 1.3 m, the default intercept b4
+gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards")
 #> Call:
-#> gcTMB(form = height ~ dbh, data = PineHeightDiameter, start = c(b4 = 1.3), 
-#>     model = "chapmanrichards")
+#> gcTMB(form = height ~ dbh, data = PineHeightDiameter, model = "chapmanrichards")
 #> 
 #> Model:  chapmanrichards
 #> Family: gaussian, identity link for all parameters
 #> 
 #> Coefficients:
 #> b1:(Intercept)  b2:(Intercept)  b3:(Intercept)  
-#>         45.719           2.954          50.883  
+#>       45.71868         0.01965         1.05978  
 #> Fixed: b4:(Intercept) = 1.3
 #> 
 #> Residual standard deviation: 2.434
