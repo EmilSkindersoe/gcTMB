@@ -27,38 +27,41 @@ test_that("the curves are the hill and weibull functions, zero up to t = 0", {
   expect_equal(gcTMB:::gctimeR(3, 0.5, 10, 3), 10)
 })
 
+# the weibull shape b3 on its own scale, instead of its default link log(b3 - 1)
+lkid <- function(m) if (m == "weibull") c(b3="identity")
+
 test_that("hill and weibull fits agree with nls", {
   for (m in lt){
     d <- simgauss(m, b=ltpars[[m]])
-    f <- gcTMB(y ~ day, truncated=FALSE, data=d, model=m)
+    f <- gcTMB(y ~ day, truncated=FALSE, data=d, model=m, link=lkid(m))
     expect_equal(f$opt$convergence, 0, label=m)
     n <- nlsfit(m, d, start=ltpars[[m]])
     expect_equal(unname(bcoef(f)), unname(coef(n)), tolerance=1e-5, label=m)
     # observed Hessian (gcTMB) and its Gauss-Newton approximation (nls)
     expect_equal(unname(sqrt(diag(vcov(f)))[1:3]), unname(sqrt(diag(vcov(n)))), tolerance=0.05, label=m)
     expect_equal(as.vector(predict(f)), as.vector(fitted(n)), tolerance=1e-6, label=m)
-    expect_match(capture.output(print(f))[4], m)
+    expect_match(grep("^Model:", capture.output(print(f)), value=TRUE), m)
   }
 })
 
 test_that("starting values of the hill and weibull models", {
   for (m in lt){
     d <- simgauss(m, b=ltpars[[m]])
-    sv <- gcTMBstart(y ~ day, truncated=FALSE, data=d, model=m)
+    sv <- gcTMBstart(y ~ day, truncated=FALSE, data=d, model=m, link=lkid(m))
     expect_true(all(is.finite(sv[1:3])))
     expect_equal(unname(sv[1:3]), ltpars[[m]], tolerance=0.3, label=m)
     # with b2 given, b3 from the linearised curve
-    sv2 <- gcTMBstart(y ~ day, truncated=FALSE, data=d, model=m, start=c(b2=10))
+    sv2 <- gcTMBstart(y ~ day, truncated=FALSE, data=d, model=m, start=c(b2=10), link=lkid(m))
     expect_equal(unname(sv2[3]), ltpars[[m]][3], tolerance=0.3, label=m)
   }
   # the weibull shape starts above 1
-  expect_gt(gcTMBstart(height ~ DAS, truncated=FALSE, data=FabaHeights25, model="weibull")[[3]], 1)
+  expect_gt(gcTMBstart(height ~ DAS, truncated=FALSE, data=FabaHeights25, model="weibull", link=c(b3="identity"))[[3]], 1)
 })
 
 test_that("times of the hill and weibull curves, with standard errors and profiles", {
   for (m in lt){
     d <- simgauss(m, b=ltpars[[m]])
-    f <- gcTMB(y ~ day, truncated=FALSE, data=d, model=m)
+    f <- gcTMB(y ~ day, truncated=FALSE, data=d, model=m, link=lkid(m))
     b <- bcoef(f)
     p <- c(10, 50, 90)
     tt <- timeto(f, level=p)

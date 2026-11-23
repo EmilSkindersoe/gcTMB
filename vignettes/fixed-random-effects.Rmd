@@ -99,7 +99,7 @@ anova(fitred, fitre)
 VarCorr(fitre)
 ```
 
-The Korf curve, $h = 1.3 + b_1 \exp(b_2/((1 - b_3) d^{b_3 - 1}))$ (Kuželka and Marušák, 2015), with the same fixed and random effects, is an alternative height-diameter model, as flexible as Chapman-Richards through its shape $b_3$. The Chapman-Richards and Korf models are not nested, and are compared by their AIC:
+The Korf curve, $h = 1.3 + b_1 \exp(b_2/((1 - b_3) d^{b_3 - 1}))$ (Kuželka and Marušák, 2015), with the same fixed and random effects, is an alternative height-diameter model, as flexible as Chapman-Richards through its shape $b_3$. The shape must be larger than 1, and its default link log$(b_3 - 1)$ keeps it there; on these data it is pulled towards 1, where the curve becomes a power curve without an asymptote. The Chapman-Richards and Korf models are not nested, and are compared by their AIC:
 
 ```{r}
 fitk <- gcTMB(height ~ dbh, fform = b1 ~ dmean, rform = b1 + b2 ~ 1 | plot, data = PineHeightDiameter,

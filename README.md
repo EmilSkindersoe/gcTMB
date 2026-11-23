@@ -35,8 +35,8 @@ automatic differentiation.
 - **Interpretable parameters**: the asymptote (or the maximum growth
   rate, `b1type = "rate"`), the time of the maximum growth rate or of
   half the asymptote, a scale, slope or shape, the start of growth and the
-  asymmetry; each with an identity, log, logit or inverse link, and any
-  of them can be fixed.
+  asymmetry; each with an identity, log, logit, inverse or log(b3 - 1)
+  link, and any of them can be fixed.
 - **Distributions**: gaussian, lognormal, poisson, binomial,
   beta-binomial, beta, and negative binomial (`nbinom1`, `nbinom2`).
 - **Fixed and random effects**: formulas for each parameter,
@@ -137,8 +137,11 @@ Fgamma(t; k, theta) the distribution function of the gamma distribution
 with shape k and scale theta. The Hill, Weibull and gamma curves are for
 positive times. The links of the parameters can be chosen,
 e.g. `link = c(b1 = "log", b3 = "inverse")`, with the identity
-(default), log, logit (b1) or inverse (b3 of the logistic and Gompertz
-models, the rate 1/b3) links.
+(default), log, logit (b1) or inverse (the scale b3 of the logistic,
+Gompertz and normal models, the rate 1/b3) links. The shape b3 of the
+Weibull, gamma and Korf models, which must be larger than 1, has the
+link log(b3 - 1) (`"logm1"`) by default; `link = c(b3 = "identity")`
+gives the shape itself.
 
 By default, the logistic, Gompertz, Hill, Weibull, normal and gamma
 curves f(t) are truncated at the start of growth b4: shifted down to zero

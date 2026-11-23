@@ -190,7 +190,7 @@ gcmodels <- list(
               cslope=function(b3) b3,
               fromline=function(a, c) c(exp(-a / c), c)),
          powF, basedists$logistic),
-  weibull=c(list(b1="asymptote", b2="inflection", b3="shape", b4=NA, b5="asymmetry", logtime=TRUE,
+  weibull=c(list(b1="asymptote", b2="inflection", b3="shape", b4=NA, b5="asymmetry", logtime=TRUE, shape1=TRUE,
                  z=function(t, b2, b3) b3 * (log(t) - log(b2)) + log((b3 - 1) / b3),
                  zinv=function(z, b2, b3) b2 * exp((z - log((b3 - 1) / b3)) / b3),
                  b2fromz=function(t, z, b3) t * exp(-(z - log((b3 - 1) / b3)) / b3),
@@ -199,7 +199,7 @@ gcmodels <- list(
                  fromline=function(a, c) c(exp((log((c - 1) / c) - a) / c), c)),
             powF, basedists$cloglog),
   normal=c(list(b1="asymptote", b2="inflection", b3="scale", b4=NA, b5="asymmetry"), powF, lstime, basedists$normal),
-  gamma=c(list(b1="asymptote", b2="inflection", b3="shape", b4=NA, b5="asymmetry", logtime=TRUE, shapeF=TRUE,
+  gamma=c(list(b1="asymptote", b2="inflection", b3="shape", b4=NA, b5="asymmetry", logtime=TRUE, shapeF=TRUE, shape1=TRUE,
                z=function(t, b2, b3) t * (b3 - 1) / b2,
                zinv=function(z, b2, b3) z * b2 / (b3 - 1),
                b2fromz=function(t, z, b3) t * (b3 - 1) / z,
@@ -211,7 +211,7 @@ gcmodels <- list(
   beta_capped=betamodel(capped=TRUE),
   # Korf as in Kuzelka and Marusak (2015), b4 + b1 exp(b2 / ((1 - b3) t^(b3 - 1))), see korfcurve:
   # the asymptote b1, the coefficient b2 > 0 and the shape b3 > 1
-  korf=c(list(b1="asymptote", b2="coefficient", b3="shape", b4="intercept", b5=NA, defaults=c(b4=1.3)),
+  korf=c(list(b1="asymptote", b2="coefficient", b3="shape", b4="intercept", b5=NA, shape1=TRUE, defaults=c(b4=1.3)),
          korfcurve()),
   # Preece and Baines (1978), model 1: the adult height b1, the age b2 of the middle of puberty, the
   # height b3 at b2, and the rates b4 < b5 before and during puberty; estimated by default (free)
@@ -266,15 +266,16 @@ pblse <- function(x, y){
 modellinks <- function(m){
   list(b1=if (m$b1 %in% "asymptote") c("identity", "log", "logit") else if (m$b1 %in% "slope") c("identity", "log") else "identity",
        b2=if (m$b2 %in% c("inflection", "halfway", "rate", "coefficient")) c("identity", "log") else "identity",
-       b3=if (m$b3 %in% "scale") c("identity", "inverse", "log") else if (m$b3 %in% c("slope", "shape", "end", "level")) c("identity", "log") else "identity",
+       b3=if (isTRUE(m$shape1)) c("logm1", "identity", "log") else if (m$b3 %in% "scale") c("identity", "inverse", "log") else if (m$b3 %in% c("slope", "shape", "end", "level")) c("identity", "log") else "identity",
        b4=c("identity", "log"),
        b5=c("identity", "log"))
 }
 
 # names of the links, in the order of their index in the TMB templates
-linknames <- c("identity", "inverse", "log", "logit")
+linknames <- c("identity", "inverse", "log", "logit", "logm1")
 
-# index of each link, as in the TMB templates: 1 = identity, 2 = inverse, 3 = log, 4 = logit
+# index of each link, as in the TMB templates: 1 = identity, 2 = inverse, 3 = log, 4 = logit,
+# 5 = logm1, log(p - 1), which keeps a shape p larger than 1
 linkindex <- function(link){
   match(link, linknames)
 }
@@ -288,12 +289,12 @@ linkpars <- function(lnk, eta){
 
 # link function (inverse=FALSE) or inverse link of a parameter, by its index (see linkindex)
 linkfun <- function(lnk, x, inverse=FALSE){
-  if (inverse) switch(lnk, x, 1/x, exp(x), plogis(x)) else switch(lnk, x, 1/x, log(x), qlogis(x))
+  if (inverse) switch(lnk, x, 1/x, exp(x), plogis(x), 1 + exp(x)) else switch(lnk, x, 1/x, log(x), qlogis(x), log(x - 1))
 }
 
 # derivative of the inverse link lnk at the linear predictor eta
 dlinkinv <- function(lnk, eta){
-  switch(lnk, rep(1, length(eta)), -1/eta^2, exp(eta), dlogis(eta))
+  switch(lnk, rep(1, length(eta)), -1/eta^2, exp(eta), dlogis(eta), exp(eta))
 }
 
 # properties of a model, by name or index

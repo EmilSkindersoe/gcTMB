@@ -6,7 +6,7 @@
 
 // inverse link of a parameter from its linear predictor eta
 // lnk: 1 = identity, 2 = inverse (the linear predictor of the scale b3 is then the rate 1/b3),
-//      3 = log, 4 = logit
+//      3 = log, 4 = logit, 5 = logm1 (eta = log(p - 1), for shapes larger than 1)
 template<class Type>
 Type linkinv(int lnk, Type eta){
   switch (lnk){
@@ -16,6 +16,8 @@ Type linkinv(int lnk, Type eta){
     return exp(eta);
   case 4:
     return invlogit(eta);
+  case 5:
+    return 1 + exp(eta);
   default:
     return eta;
   }

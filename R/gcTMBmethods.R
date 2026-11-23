@@ -197,6 +197,7 @@ print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...
     pl <- names(x$link)[x$link == lk]
     if (length(pl) > 0) cat("The coefficients of ", paste(pl, collapse=", "), " are on the ", lk, " scale.\n", sep="")
   }
+  for (p in names(x$link)[x$link == "logm1"]) cat("The coefficients of ", p, " are on the scale log(", p, " - 1).\n", sep="")
   printfixed(x$fixed, digits)
   printre(x$varcor, digits)
   if (length(x$singular) > 0){

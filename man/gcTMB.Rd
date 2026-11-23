@@ -54,7 +54,14 @@ weights of the log-likelihood; with a correlation structure, they are precision 
 
 \item{truncated}{Logical. If TRUE (default), the curve is truncated at a threshold time b4, by default fixed at 0: the response is zero up to b4 and then grows, see Details. FALSE for the curves without truncation. The beta, beta_capped, chapmanrichards, korf and preecebaines curves are never truncated.}
 
-\item{link}{Named character vector or NULL. Links of the parameters b1-b5: NULL for the defaults (the identity link for all parameters), or links named by parameter, e.g. \code{link=c(b1="log", b3="inverse")}. The asymptote b1 has the link "identity" (default), "log" or "logit"; the times b2 and b4 (the threshold of a truncated curve) "identity" (default) or "log"; the asymmetry b5 "identity" (default) or "log", to keep it positive; and the scale b3 "identity" (default), "inverse", with which its coefficients are the growth rate 1/b3, or "log". The coefficients, and start, fix, lower, upper and curves of \code{\link{timeto}}, are on the scale of the links, see Details.}
+\item{link}{Named character vector or NULL. Links of the parameters b1-b5: NULL for the defaults, or links named by parameter, e.g. \code{link=c(b1="log", b3="inverse")}. The default is the identity link for all parameters, except the shape b3 of the weibull, gamma and korf models, which must be larger than 1 and has the link "logm1", log(b3 - 1), by default (\code{link=c(b3="identity")} gives the shape itself). The links available for each parameter depend on its role in the model:
+\itemize{
+\item the asymptote b1: "identity", "log" or "logit" (for proportions); the slope b1 of the linear model: "identity" or "log";
+\item the time b2 (inflection point, half the asymptote, middle of puberty), the rate b2 of chapmanrichards and the coefficient b2 of korf: "identity" or "log"; the intercept b2 of the linear model: "identity";
+\item a scale b3 (logistic, gompertz, normal): "identity", "inverse", with which its coefficients are the growth rate 1/b3, or "log"; the shape b3 of weibull, gamma and korf: "logm1", "identity" or "log"; any other b3 (the slope of hill, the shape of chapmanrichards, the end of growth of beta, the height of preecebaines): "identity" or "log";
+\item b4 (the threshold or start of growth, the intercept of chapmanrichards and korf, the rate of preecebaines) and the asymmetry b5: "identity" or "log".
+}
+A link that a model does not allow gives an error naming the allowed ones. The coefficients, and start, fix, lower, upper and curves of \code{\link{timeto}}, are on the scale of the links, see Details.}
 
 \item{b1type}{Character string. The meaning of b1: "asymptote" (default), or "rate" for the maximum growth rate of the curve, see Details. With "rate", covariates and random effects on b1 are effects on the maximum growth rate, which \code{\link{anova.gcTMB}} and \code{\link{pairwise}} can test.}
 

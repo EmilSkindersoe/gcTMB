@@ -52,7 +52,7 @@ test_that("normal and gamma fits agree with nls", {
   n <- nls(y ~ b1*pnorm((day - b2)/b3), data=d, start=list(b1=50, b2=25, b3=8))
   expect_equal(unname(bcoef(f)), unname(coef(n)), tolerance=1e-5)
   d$y <- 50*pgamma(d$day, 5, scale=25/4) + rnorm(nrow(d), 0, 1)
-  f <- gcTMB(y ~ day, data=d, model="gamma")
+  f <- gcTMB(y ~ day, data=d, model="gamma", link=c(b3="identity"))
   n <- nls(y ~ b1*pgamma(day*(b3 - 1)/b2, b3), data=d, start=list(b1=50, b2=25, b3=5))
   expect_equal(unname(bcoef(f)), unname(coef(n)), tolerance=1e-5)
   # timeto of the gamma curve, with a profile interval

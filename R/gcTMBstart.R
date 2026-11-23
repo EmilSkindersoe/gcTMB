@@ -534,8 +534,8 @@ gridrange <- function(dd, start){
   i3 <- single(3)
   if (!is.null(i3)){
     b3 <- start[i3]
-    if (dd$lnk[3] == linkindex("log")){
-      # log link: the log of 1/4 to 4 times the scale
+    if (dd$lnk[3] %in% linkindex(c("log", "logm1"))){
+      # log and logm1 links: 1/4 to 4 times the scale (the shape minus 1), on the log scale
       if (!is.finite(b3)) b3 <- 0
       rng[[i3]] <- list(lower=b3 - log(4), upper=b3 + log(4), log=FALSE)
     } else {
@@ -666,7 +666,7 @@ varstart <- function(dd, start, re){
   b <- vapply(1:5, function(k) linkfun(dd$lnk[k], start[npi == k][1], inverse=TRUE), numeric(1))
   fscale <- vapply(1:5, function(k){
     # log and logit links: 10% on the scale of the link, a relative variation for log
-    if (dd$lnk[k] %in% linkindex(c("log", "logit"))) return(0.1)
+    if (dd$lnk[k] %in% linkindex(c("log", "logit", "logm1"))) return(0.1)
     s <- switch(k, abs(b[1]), abs(b[3]), abs(linkfun(dd$lnk[3], b[3])), abs(b[4]), abs(b[5]))
     if (!is.finite(s) || s == 0) 1 else 0.1*s
   }, numeric(1))

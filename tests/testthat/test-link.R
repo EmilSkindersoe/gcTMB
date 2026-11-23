@@ -5,6 +5,11 @@ test_that("the links are the identity by default", {
   f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
   expect_equal(f$link, c(b1="identity", b2="identity", b3="identity", b4="identity", b5="identity"))
   expect_true(any(grepl("identity link for all parameters", capture.output(print(f)))))
+  # the shapes larger than 1 of the weibull, gamma and korf curves: log(b3 - 1)
+  for (m in c("weibull", "gamma", "korf")) expect_equal(gcTMB:::parlinks(NULL, gcTMB:::gcmodel(m), m)[["b3"]], "logm1", label=m)
+  expect_equal(gcTMB:::parlinks(NULL, gcTMB:::gcmodel("chapmanrichards"), "chapmanrichards")[["b3"]], "identity")
+  # logm1 is only for those shapes
+  expect_error(gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"), link=c(b3="logm1")), "not available for b3")
 })
 
 test_that("the inverse link of b3 estimates the rate, with the same fit", {
