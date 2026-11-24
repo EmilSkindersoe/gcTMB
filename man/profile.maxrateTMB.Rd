@@ -16,7 +16,7 @@
 \arguments{
 \item{fitted}{A maxrateTMB object, the result of \code{\link{maxrate}}.}
 
-\item{parm}{Character or integer vector, or NULL. Estimates to profile, names or positions in \code{coef(fitted)}; tmax and rate only. Default all of these.}
+\item{parm}{Character or integer vector, or NULL. Estimates to profile, names or positions in \code{coef(fitted)}; tmax and rate only. NULL (default) for all of these.}
 
 \item{level}{Numeric between 0 and 1. The highest confidence level the profiles are computed for.}
 

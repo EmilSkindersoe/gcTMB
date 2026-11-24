@@ -113,10 +113,10 @@ timeto(fitre, level = c(90, 99), newdata = sexes, random = FALSE)
 maxrate(fitre, newdata = sexes)
 ```
 
-The girls reach the middle of puberty, the peak of their growth spurt and their adult height about two years earlier than the boys. `pairwise()` compares a parameter between the rows of `newdata` by Wald tests, here the middle of puberty $b_2$ (see below for the details of `pairwise()`):
+The girls reach the middle of puberty, the peak of their growth spurt and their adult height about two years earlier than the boys. `partest()` compares a parameter between the rows of `newdata` by Wald tests, here the middle of puberty $b_2$ (see below for the details of `partest()`):
 
 ```{r}
-pairwise(fitre, newdata = sexes, parm = "b2")
+partest(fitre, newdata = sexes, parm = "b2")
 ```
 
 The height and the growth rate of the population curves of the sexes, the growth rate by the differences of the predicted heights:
@@ -156,10 +156,10 @@ fitrr0 <- gcTMB(height ~ age, fform = b2 + b4 ~ sex, rform = b1 + b2 + b4 ~ 1 | 
 anova(fitrr0, fitrr)
 ```
 
-`pairwise()` compares the maximum growth rates of all pairs of rows of `newdata` by Wald tests. By default, the p-values and the confidence intervals are adjusted for the number of pairs by the single-step method, the generalisation of Tukey's honestly significant differences to the correlated estimates of a model, so that the intervals cover all the differences simultaneously; `adjust = "holm"` and the other methods of `p.adjust()` adjust the p-values only. With two sexes there is a single pair, and no adjustment. With the log link, the differences are log ratios of the rates, and the ratios are given as well. The same works for the other parameters, e.g. `parm = "b2"` as above.
+`partest()` compares the maximum growth rates of all pairs of rows of `newdata` by Wald tests. By default, the p-values and the confidence intervals are adjusted for the number of pairs by the single-step method, the generalisation of Tukey's honestly significant differences to the correlated estimates of a model, so that the intervals cover all the differences simultaneously; `adjust = "holm"` and the other methods of `p.adjust()` adjust the p-values only. With two sexes there is a single pair, and no adjustment. With the log link, the differences are log ratios of the rates, and the ratios are given as well. The same works for the other parameters, e.g. `parm = "b2"` as above.
 
 ```{r}
-pairwise(fitrr, newdata = sexes)
+partest(fitrr, newdata = sexes)
 ```
 
 `predict()` with `type = "parameters"` gives the asymptote of the population curves as well. For the Chapman-Richards curve with an intercept, the asymptote is the growth above the intercept $b_4$, here the growth during the spurt above the height before it, about 50 cm, so that the adult height is $b_4$ plus the asymptote:

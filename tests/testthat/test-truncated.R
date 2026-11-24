@@ -72,7 +72,7 @@ test_that("zero counts at a mean of zero before the threshold", {
   r <- residuals(fit, type="pearson")
   expect_true(all(is.finite(r)))
   expect_true(all(r[FabaCounts23$DAS <= b4] == 0))
-  expect_true(is.finite(summary(fit)$dispersion[["ratio"]]))
+  expect_true(all(is.finite(residuals(fit, type="quantile"))))
   s <- simulate(fit, nsim=2, seed=1)
   expect_true(all(unlist(s)[rep(FabaCounts23$DAS <= b4, 2)] == 0))
 })

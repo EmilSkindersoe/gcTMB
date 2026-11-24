@@ -18,7 +18,7 @@
 \arguments{
 \item{object}{A maxrateTMB object, the result of \code{\link{maxrate}}.}
 
-\item{parm}{Character or integer vector, or NULL. Estimates, names or positions in \code{coef(object)}; default all}
+\item{parm}{Character or integer vector, or NULL. Estimates, names or positions in \code{coef(object)}; NULL (default) for all of them}
 
 \item{level}{Numeric between 0 and 1. The confidence level}
 
@@ -26,9 +26,9 @@
 
 \item{nsim}{Integer. Number of bootstrap simulations}
 
-\item{seed}{Integer or NULL. An optional seed for the random number generator of the bootstrap}
+\item{seed}{Integer or NULL. Seed for the random number generator of the bootstrap; NULL (default) sets no seed: the draws continue from the current state of the random number generator}
 
-\item{boot}{A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from \code{\link{bootstrap}}, used instead of new simulations}
+\item{boot}{A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from \code{\link{bootstrap}}, used instead of new simulations; implies \code{method="boot"}. With NULL (default), method="boot" simulates nsim new bootstrap samples}
 
 \item{...}{Further arguments passed to \code{\link{profile.maxrateTMB}} or \code{\link{bootstrap}}.}
 }

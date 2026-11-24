@@ -12,8 +12,8 @@
 #' @param type Character string. For residuals, the type of residuals: "pearson" (default), the response residuals divided by the standard deviation of the fitted distribution and multiplied by the square root of the weights; "response", the observed minus the fitted values, as proportions for a binomial response; or "quantile", randomised quantile residuals (Dunn and Smyth, 1996), which are standard normal under the model. The types "response", "pearson" and "normalized" are those of \code{residuals} of nlme. "normalized" (gaussian and lognormal) are the standardised residuals decorrelated by the autocorrelation of the fit (see \code{\link{corStruct}}): each standardised residual minus rho^dt times the previous one of its group, divided by sqrt(1 - rho^(2 dt)), independent standard normal under the model, as in nlme; without autocorrelation they are the pearson residuals; for the other families they are the pearson residuals, with a warning. For the gaussian family, the quantile residuals are multiplied by the square root of the weights, as precision weights with standard deviation sigma/sqrt(w); for the other families they do not use the weights, as a weighted log-likelihood is not the density of a distribution of the observation. The quantile residuals are random for the count families; use set.seed for reproducible values. For the lognormal family, the pearson and quantile residuals are the standardised residuals of log(y), (log(y) - log(f))/sigma, multiplied by the square root of the weights.
 #'   For predict, the type of prediction: "response" (default), the mean response at the times of newdata, or "parameters", the parameters b1-b3 of the curve of each row of newdata (with its covariates in fform and, with random=TRUE, the random effects of its groups); newdata then needs no time. The standard errors of the parameters are those of the estimates, by the delta method, and their confidence intervals are computed on the scale of the link and back-transformed; with random=TRUE, they include the uncertainty of the predicted random effects of the fitted groups. Prediction intervals of the parameters add the variance of the random effects of the terms without a fitted level, the parameters of a new group, and are not available with boot.
 #' @param nsim Integer. Number of response vectors to simulate; for predict, the number of parameter draws for simulated prediction intervals
-#' @param seed Integer or NULL. An optional seed for the random number generator
-#' @param boot A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from \code{\link{bootstrap}}. predict then gives the standard deviation of the bootstrap predictions as se.fit, percentile confidence intervals, and prediction intervals simulated at the bootstrap fits, including their variance parameters. The bootstrap responses have new random effects, so for random=TRUE the random effects of the fitted groups are drawn, for each bootstrap fit, from the Laplace approximation of their conditional distribution given the original data at the parameters of that fit.
+#' @param seed Integer or NULL. Seed for the random number generator; NULL (default) sets no seed: the draws continue from the current state of the random number generator
+#' @param boot A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from \code{\link{bootstrap}}. With NULL (default), the standard errors and confidence intervals use the delta method. With a bootstrap sample, predict gives the standard deviation of the bootstrap predictions as se.fit, percentile confidence intervals, and prediction intervals simulated at the bootstrap fits, including their variance parameters. The bootstrap responses have new random effects, so for random=TRUE the random effects of the fitted groups are drawn, for each bootstrap fit, from the Laplace approximation of their conditional distribution given the original data at the parameters of that fit.
 #' @param scale Character string. For type="parameters", the scale of the parameters: "original" (default) or "link", the scale of the coefficients, see the argument link of \code{\link{gcTMB}}.
 #' @param ... Not used.
 #'
@@ -31,8 +31,13 @@
 #' for an estimated autocorrelation the parameter cor_par:AR1 or cor_par:CAR1 on the unconstrained scale of
 #' nlme (\code{coef} of an nlme corStruct), see \code{\link{corStruct}}.
 #' summary returns a summary.gcTMB object with the coefficient table (Estimate, Std. Error), the
-#' variance components, log-likelihood, AIC and BIC, sample sizes, a Pearson dispersion statistic for
-#' poisson and binomial models, and convergence information. logLik returns the log-likelihood at the
+#' variance components, log-likelihood, AIC and BIC, sample sizes and convergence information. Whether
+#' the family suits the data, e.g. overdispersion of counts, is assessed with the quantile residuals
+#' (\code{residuals(fit, type="quantile")} and \code{\link{plot.gcTMB}}), which are standard normal
+#' under the model for every family. The coefficient table has no tests: the
+#' tests of the differences between curves, e.g. between treatments, are done by \code{\link{partest}}
+#' (by default each level against a reference, by Dunnett's method), and the test that a parameter is
+#' the same for all curves by \code{\link{anova.gcTMB}}. logLik returns the log-likelihood at the
 #' estimates, with the number of free coefficients and variance parameters as degrees of freedom; it is the
 #' maximum likelihood, comparable with nlme fits with \code{method="ML"}, not with the REML fits of \code{nlme::lme} and \code{nlme::gls}.
 #' df.residual returns the residual degrees of freedom n - p of gaussian and lognormal models without random
@@ -124,23 +129,6 @@ summary.gcTMB <- function(object, ...){
     nm[!is.finite(se) | se > 100 | vc$sd < 1e-8]
   }))
 
-  # Pearson dispersion for the families without a dispersion parameter, conditional on the
-  # random effects; residual degrees of freedom from the number of estimated parameters
-  dispersion <- NULL
-  if (object$family %in% c("poisson", "binomial")){
-    mu <- predict(object)
-    if (object$family == "poisson"){
-      r2 <- (dat$y - mu)^2 / mu
-    } else {
-      r2 <- (dat$y - dat$bn*mu)^2 / (dat$bn*mu*(1 - mu))
-    }
-    # zero counts at a mean of zero (a truncated curve before its threshold)
-    r2[mu == 0 & dat$y == 0] <- 0
-    rdf <- nobs(object) - attr(ll, "df")
-    chisq <- sum(dat$w * r2)
-    dispersion <- c(chisq=chisq, df=rdf, ratio=chisq/rdf)
-  }
-
   # number of levels of each grouping factor, once per factor
   ngroups <- sapply(object$reterms, function(tm) length(tm$levels))
   names(ngroups) <- sapply(object$reterms, function(tm) tm$group)
@@ -160,7 +148,7 @@ summary.gcTMB <- function(object, ...){
               nobs=nobs(object), ntrials=if (object$family %in% c("binomial", "betabinomial")) sum(dat$bn), ngroups=ngroups,
               logLik=ll, AIC=AIC(object), BIC=BIC(object),
               coefficients=coefs, fixed=userfixed(object), varcor=vcs, residpar=residpar(object), rdf=object$rdf,
-              singular=singular, dispersion=dispersion, atbound=atbound(object),
+              singular=singular, atbound=atbound(object),
               convergence=object$opt$convergence, message=object$opt$message,
               maxgrad=max(abs(gr)), pdHess=object$sdrl$pdHess, modified=isTRUE(object$modified),
               nosdreport=isFALSE(object$control$sdreport), correlation=object$correlation, corgroup=object$corgroup,
@@ -190,6 +178,9 @@ print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...
 
   cat("\nCoefficients:\n")
   printCoefmat(x$coefficients, digits=digits)
+  # covariates in fform: the tests of the differences between the curves are in partest
+  if (!all(grepl(":\\(Intercept\\)$", rownames(x$coefficients))))
+    cat("Tests of the differences between curves, with p-values and confidence intervals: partest().\n")
   if (length(x$atbound) > 0) cat("At a bound: ", paste(names(x$atbound), "=", format(x$atbound, digits=digits), collapse=", "),
                                   "; the standard errors and Wald intervals do not account for the bound.\n", sep="")
   if (isTRUE(x$b3inverse)) cat("The coefficients of b3 are on the inverse scale: the rate 1/b3.\n")
@@ -205,10 +196,6 @@ print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...
   }
   printresid(x$family, x$residpar, digits, x$rdf)
   printcor(x, digits)
-  if (!is.null(x$dispersion)){
-    cat("\nPearson dispersion: ", format(x$dispersion["ratio"], digits=digits),
-        " (chi-square ", format(x$dispersion["chisq"], digits=digits), " on ", x$dispersion["df"], " df)\n", sep="")
-  }
 
   if (isTRUE(x$modified)){
     cat("\nParameters set by update(): not estimates, without standard errors.\n")

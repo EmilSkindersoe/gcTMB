@@ -30,6 +30,8 @@ test_that("summary contains the coefficient table, sample sizes and variance com
   s <- summary(f)
   expect_s3_class(s, "summary.gcTMB")
   expect_equal(colnames(coef(s)), c("Estimate", "Std. Error"))
+  # no covariates in fform: no pointer to partest
+  expect_false(any(grepl("partest", capture.output(print(s)))))
   expect_equal(coef(s)[, 1], bcoef(f))
   expect_equal(unname(coef(s)[, 2]), unname(sqrt(diag(vcov(f)))[1:3]))
   expect_equal(s$nobs, nrow(d))

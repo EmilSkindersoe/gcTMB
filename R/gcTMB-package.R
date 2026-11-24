@@ -20,7 +20,7 @@
 #'     \code{\link{profile.gcTMB}}, \code{\link{bootstrap}};
 #'   \item tests and model choice: \code{\link{anova.gcTMB}} (likelihood ratio, F and parametric
 #'     bootstrap tests), \code{\link{criteria}} (information and goodness-of-fit criteria),
-#'     \code{\link{pairwise}} (pairwise comparisons with single-step adjustment).
+#'     \code{\link{partest}} (tests of the differences between curves: each curve against a reference, Dunnett, or all pairs, Tukey, with single-step adjustment).
 #' }
 #'
 #' @section Timing and growth rates:

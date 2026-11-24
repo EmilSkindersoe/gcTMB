@@ -9,9 +9,9 @@ maxrate(x, curves = NULL, newdata = NULL)
 \arguments{
 \item{x}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
-\item{curves}{Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see \code{\link{timeto}}; default is the identity matrix, for models without covariates in fform.}
+\item{curves}{Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see \code{\link{timeto}}. If curves and newdata are both NULL (default), the identity matrix, for models without covariates in fform.}
 
-\item{newdata}{Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves.}
+\item{newdata}{Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves; NULL (default) to use curves.}
 }
 \value{
 A maxrateTMB object: a list with the estimates (\code{coef}), their covariance matrix

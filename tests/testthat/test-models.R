@@ -167,8 +167,9 @@ test_that("poisson models with covariates and random effects (faba bean pods)", 
   expect_true(f2$sdrl$pdHess)
   s <- summary(f2)
   expect_equal(s$ngroups, c(Tube_ID=22))
-  # Pearson dispersion close to 1 conditional on the random effects
-  expect_lt(abs(s$dispersion[["ratio"]] - 1), 0.3)
+  # no overdispersion conditional on the random effects: quantile residuals of variance about 1
+  set.seed(1)
+  expect_lt(abs(sd(residuals(f2, type="quantile")) - 1), 0.3)
   # the asymptote of each genotype from predict
   nd <- data.frame(Genotype=sort(unique(d$Genotype)))
   pp <- predict(f1, newdata=nd, type="parameters")

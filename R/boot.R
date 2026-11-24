@@ -7,11 +7,11 @@
 #'
 #' @param object A gcTMB object, the result of \code{\link{gcTMB}}.
 #' @param nsim Integer. Number of simulations
-#' @param seed Integer or NULL. An optional seed for the random number generator
+#' @param seed Integer or NULL. Seed for the random number generator; NULL (default) sets no seed: the draws continue from the current state of the random number generator
 #' @param progress Logical. Show a progress bar
 #' @param x A bootstrap.gcTMB object, the result of \code{bootstrap}.
 #' @param digits Integer. Number of significant digits in the printed output
-#' @param parm Character or integer vector. Parameters, names or positions in \code{coef}; default all
+#' @param parm Character or integer vector, or NULL. Parameters, names or positions in \code{coef}; NULL (default) for all of them
 #' @param level Numeric between 0 and 1. The confidence level
 #' @param ... Not used.
 #'

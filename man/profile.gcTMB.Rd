@@ -22,7 +22,7 @@
 \arguments{
 \item{fitted}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
-\item{parm}{Character or integer vector, or NULL. Parameters to profile, names or positions in \code{coef(fitted)}. Default are the
+\item{parm}{Character or integer vector, or NULL. Parameters to profile, names or positions in \code{coef(fitted)}. NULL (default) for the
 estimated coefficients b1-b5, without the variance parameters.}
 
 \item{level}{Numeric between 0 and 1. The highest confidence level the profiles are computed for: each profile extends until

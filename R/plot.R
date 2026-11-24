@@ -43,11 +43,11 @@
 #' @param random Logical. If TRUE, residuals and fitted values of the validation plots include the
 #'   predicted random effects
 #' @param times Numeric vector or NULL. The times at which the curves are drawn, e.g.
-#'   \code{seq(0, 61, by=0.1)} to draw them from time 0; default 200 times over the range of the
+#'   \code{seq(0, 61, by=0.1)} to draw them from time 0; NULL (default) for 200 times over the range of the
 #'   observed times
-#' @param ncol Integer or NULL. Number of columns of the page
+#' @param ncol Integer or NULL. Number of columns of the page; NULL (default) for about as many columns as rows, the square root of the number of graphs rounded up
 #' @param seed Integer or NULL. Seed for the randomised quantile residuals, which for the discrete
-#'   families are random; it has no effect for the continuous families
+#'   families are random; it has no effect for the continuous families. NULL (default) sets no seed: the draws continue from the current state of the random number generator
 #' @param draw Logical. If FALSE, the graphs are returned without drawing them
 #' @param ... Not used.
 #'

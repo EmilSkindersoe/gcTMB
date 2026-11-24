@@ -39,20 +39,20 @@
 #' user-specified bounds.
 #'
 #' @param form Formula, with the names of the response and the explanatory variable x (usually time), e.g. \code{weight ~ day}, see \code{\link{gcTMB}}.
-#' @param fform Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1). A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.
+#' @param fform Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1); NULL (default) gives every parameter a single intercept. A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.
 #' @param data Data frame. Observations with missing values in the variables of the model or in the weights are left out.
-#' @param start Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced.
-#' @param fix Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1 unless given in start (the intercept b4 of chapmanrichards and korf at 1.3; the rates b4 and b5 of preecebaines are estimated); fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.
-#' @param weights Numeric vector or NULL. Weights, one for each row of data.
+#' @param start Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced; NULL (default) computes all of them.
+#' @param fix Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. NULL (default) fixes only the parameters that are fixed by default. The threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1 unless given in start (the intercept b4 of chapmanrichards and korf at 1.3; the rates b4 and b5 of preecebaines are estimated); fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.
+#' @param weights Numeric vector or NULL. Weights, one for each row of data; NULL (default) for a weight of 1 for every row.
 #' @param family Character string. The distribution of the response, see \code{\link{gcTMB}}.
 #' @param model Character string. The growth model: "logistic", "gompertz", "hill", "weibull", "beta", "beta_capped", "normal", "gamma", "chapmanrichards", "korf", "preecebaines" or "linear", see \code{\link{gcTMB}}.
 #' @param truncated Logical. If TRUE (default), the curve is truncated at a threshold b4, by default fixed at 0, see \code{\link{gcTMB}}.
-#' @param link Named character vector or NULL. Links of the parameters b1-b5, see \code{\link{gcTMB}}.
+#' @param link Named character vector or NULL. Links of the parameters b1-b5; NULL (default) for the default links, see \code{\link{gcTMB}}.
 #' @param b1type Character string. The meaning of b1, "asymptote" (default) or "rate" for the maximum growth rate, see \code{\link{gcTMB}}.
 #' @param method Character string. One of "lm" or "grid".
-#' @param gsl Numeric vector or NULL. Lower bounds for the grid search, same length as start, on the scale of the coefficients (the rate 1/b3 for b3 with the inverse link); NA (or NULL) for the default range.
-#' @param gsu Numeric vector or NULL. Upper bounds for the grid search, same length as start; NA (or NULL) for the default range.
-#' @param gsn Integer, a single number or a vector, or NULL. Number of grid points for each parameter, a single number or a vector with the same length as start (default 10). A parameter with gsn = 1 stays at its "lm" starting value.
+#' @param gsl Numeric vector or NULL. Lower bounds for the grid search, same length as start, on the scale of the coefficients (the rate 1/b3 for b3 with the inverse link); NA, or NULL (default) for all parameters, for the default range.
+#' @param gsu Numeric vector or NULL. Upper bounds for the grid search, same length as start; NA, or NULL (default) for all parameters, for the default range.
+#' @param gsn Integer, a single number or a vector, or NULL. Number of grid points for each parameter, a single number or a vector with the same length as start; NULL (default) for 10 points for each parameter. A parameter with gsn = 1 stays at its "lm" starting value.
 #'
 #' @return A named numeric vector of starting values, one for each model coefficient.
 #' @examples

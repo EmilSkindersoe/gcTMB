@@ -6,8 +6,8 @@
 #' bootstrap intervals.
 #'
 #' @param x A gcTMB object, the result of \code{\link{gcTMB}}.
-#' @param curves Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see \code{\link{timeto}}; default is the identity matrix, for models without covariates in fform.
-#' @param newdata Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves.
+#' @param curves Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see \code{\link{timeto}}. If curves and newdata are both NULL (default), the identity matrix, for models without covariates in fform.
+#' @param newdata Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves; NULL (default) to use curves.
 #'
 #' @details The curves are the population curves, with all random effects at zero; the standard
 #' errors include the uncertainty of the fixed effects. For each curve, \code{maxrate} gives
@@ -267,12 +267,12 @@ vcov.maxrateTMB <- function(object, ...) object$variance
 #' \code{\link{maxrate}}.
 #'
 #' @param object A maxrateTMB object, the result of \code{\link{maxrate}}.
-#' @param parm Character or integer vector, or NULL. Estimates, names or positions in \code{coef(object)}; default all
+#' @param parm Character or integer vector, or NULL. Estimates, names or positions in \code{coef(object)}; NULL (default) for all of them
 #' @param level Numeric between 0 and 1. The confidence level
 #' @param method Character string. "profile" for profile likelihood intervals (default), "wald" for Wald intervals, or "boot" for parametric bootstrap percentile intervals
 #' @param nsim Integer. Number of bootstrap simulations
-#' @param seed Integer or NULL. An optional seed for the random number generator of the bootstrap
-#' @param boot A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from \code{\link{bootstrap}}, used instead of new simulations
+#' @param seed Integer or NULL. Seed for the random number generator of the bootstrap; NULL (default) sets no seed: the draws continue from the current state of the random number generator
+#' @param boot A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from \code{\link{bootstrap}}, used instead of new simulations; implies \code{method="boot"}. With NULL (default), method="boot" simulates nsim new bootstrap samples
 #' @param ... Further arguments passed to \code{\link{profile.maxrateTMB}} or \code{\link{bootstrap}}.
 #'
 #' @details Profile intervals are available for \code{tmax} and \code{rate}, see \code{\link{maxrate}};
@@ -351,7 +351,7 @@ profileable <- function(object, parm){
 #' maximum growth rate (by b1) of a curve, re-optimising the other coefficients.
 #'
 #' @param fitted A maxrateTMB object, the result of \code{\link{maxrate}}.
-#' @param parm Character or integer vector, or NULL. Estimates to profile, names or positions in \code{coef(fitted)}; tmax and rate only. Default all of these.
+#' @param parm Character or integer vector, or NULL. Estimates to profile, names or positions in \code{coef(fitted)}; tmax and rate only. NULL (default) for all of these.
 #' @param level Numeric between 0 and 1. The highest confidence level the profiles are computed for.
 #' @param maxit Integer. Maximum number of steps in each direction
 #' @param progress Logical. Show a progress bar over the profiled estimates

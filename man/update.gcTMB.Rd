@@ -15,19 +15,19 @@
 \item{fixef}{Named numeric vector or NULL. New values of coefficients of b1-b5, named as in
 \code{\link{fixef}} (e.g. "b1:(Intercept)"), or by the parameter (e.g. "b1") for a parameter with
 a single coefficient. Coefficients fixed in the fit, such as the asymmetry b5 (1 by default), can
-be set too, e.g. \code{fixef=c(b5=4)}; they stay fixed.}
+be set too, e.g. \code{fixef=c(b5=4)}; they stay fixed. NULL (default) keeps all the coefficients.}
 
 \item{VarCorr}{List or NULL. New covariance matrices of the random effects, named by the terms as
 in \code{\link{VarCorr}}, with the rows and columns in the same order; a single matrix for a model
-with one random effect term. The terms that are not given keep their covariance matrices.}
+with one random effect term. The terms that are not given keep their covariance matrices, and NULL (default) keeps all of them.}
 
 \item{sigma}{Numeric or NULL. The new residual standard deviation (gaussian, of log(y) for
 lognormal), or the dispersion parameter of the other families, as returned by
-\code{\link{sigma.gcTMB}}.}
+\code{\link{sigma.gcTMB}}. NULL (default) keeps it.}
 
 \item{rho}{Numeric or NULL. The new autocorrelation rho of the residuals, as returned by
 \code{\link{corpars}}, for a model fitted with a \code{correlation} structure: between 0 and 1 for
-\code{\link{corCAR1}}, between -1 and 1 for \code{\link{corAR1}}.}
+\code{\link{corCAR1}}, between -1 and 1 for \code{\link{corAR1}}. NULL (default) keeps it.}
 }
 \value{
 A gcTMB object.

@@ -24,19 +24,19 @@ automatic differentiation.
 
 - **Growth models**: general growth curves (logistic or Richards,
   Gompertz, Hill, Weibull, normal and gamma), each with an asymmetry
-  parameter and optionally truncated at the start of growth, before which
-  the response is zero (e.g. emergence, or the first pods); the beta
-  growth function of determinate growth, e.g. of crops; for forestry,
-  the Chapman-Richards and Korf curves with an intercept,
+  parameter and optionally truncated at the start of growth, before
+  which the response is zero (e.g. emergence, or the first pods); the
+  beta growth function of determinate growth, e.g. of crops; for
+  forestry, the Chapman-Richards and Korf curves with an intercept,
   e.g. height-diameter models of trees from breast height; for human
   growth, the Preece-Baines model of growth in height through childhood
   and puberty; and a straight line for comparison. The x-axis need not
   be time.
 - **Interpretable parameters**: the asymptote (or the maximum growth
   rate, `b1type = "rate"`), the time of the maximum growth rate or of
-  half the asymptote, a scale, slope or shape, the start of growth and the
-  asymmetry; each with an identity, log, logit, inverse or log(b3 - 1)
-  link, and any of them can be fixed.
+  half the asymptote, a scale, slope or shape, the start of growth and
+  the asymmetry; each with an identity, log, logit, inverse or
+  log(b3 - 1) link, and any of them can be fixed.
 - **Distributions**: gaussian, lognormal, poisson, binomial,
   beta-binomial, beta, and negative binomial (`nbinom1`, `nbinom2`).
 - **Fixed and random effects**: formulas for each parameter,
@@ -49,8 +49,9 @@ automatic differentiation.
   correlation structures of nlme.
 - **Inference**: profile likelihood, Wald and parametric bootstrap
   confidence intervals; likelihood ratio tests with chi-square, F or
-  parametric bootstrap p-values; information criteria; pairwise
-  comparisons between curves with simultaneous confidence intervals;
+  parametric bootstrap p-values; information criteria; tests of the
+  differences between curves (`partest()`), against a reference or
+  between all pairs, with simultaneous confidence intervals;
   small-sample t and F inference for gaussian models without random
   effects.
 - **Derived quantities**: times to reach a percentage of the asymptote
@@ -125,7 +126,7 @@ height through childhood and puberty.
 | `"normal"` | b1 Phi((t - b2)/b3) | inflection point | scale | start of growth |
 | `"gamma"` | b1 Fgamma(t; b3, b2/(b3 - 1)) | inflection point | shape, \> 1 | start of growth |
 | `"chapmanrichards"` | b4 + b1 (1 - exp(-b2 t))^b3 | rate | shape | intercept |
-| `"korf"` | b4 + b1 exp(b2/((1 - b3) t^(b3 - 1))) | coefficient, > 0 | shape, > 1 | intercept |
+| `"korf"` | b4 + b1 exp(b2/((1 - b3) t^(b3 - 1))) | coefficient, \> 0 | shape, \> 1 | intercept |
 | `"preecebaines"` | b1 - 2 (b1 - b3)/(exp(b4 (t - b2)) + exp(b5 (t - b2))) | middle of puberty | height at b2 | rate before puberty |
 | `"linear"` | b1 t + b2 | intercept | not used | not used |
 
@@ -144,12 +145,12 @@ link log(b3 - 1) (`"logm1"`) by default; `link = c(b3 = "identity")`
 gives the shape itself.
 
 By default, the logistic, Gompertz, Hill, Weibull, normal and gamma
-curves f(t) are truncated at the start of growth b4: shifted down to zero
-at b4 and rescaled to keep the asymptote b1, b1 (f(t) - f(b4))/(b1 -
-f(b4)) for t \> b4, so that the response is zero up to b4. b4 is fixed
-at 0, so that the curve starts at zero at t = 0, unless estimated with
-`fix = c(b4 = FALSE)`; `truncated = FALSE` gives the curves without
-truncation.
+curves f(t) are truncated at the start of growth b4: shifted down to
+zero at b4 and rescaled to keep the asymptote b1, b1 (f(t) -
+f(b4))/(b1 - f(b4)) for t \> b4, so that the response is zero up to b4.
+b4 is fixed at 0, so that the curve starts at zero at t = 0, unless
+estimated with `fix = c(b4 = FALSE)`; `truncated = FALSE` gives the
+curves without truncation.
 
 Each of these six models has an asymmetry parameter b5 \> 0, fixed at 1
 (the curves above) unless estimated with `fix = c(b5 = FALSE)`: the
@@ -168,7 +169,15 @@ have an asymmetry b5.
   2 b3 - b2, for responses that decline after their maximum;
   `"beta_capped"` stays at b1 from b3 on, the beta sigmoid growth
   function of Yin et al.
-- **Forestry**: the Chapman-Richards curve of Richards (1959) and the Korf curve, as written by Kuželka and Marušák (2015), are height-diameter models of trees, with the diameter as t, in the parameters usual in forestry: the asymptote b1, the rate b2 and the shape b3 of Chapman-Richards (model M8 of Ciceu et al. 2020), and the asymptote b1, the coefficient b2 > 0 and the shape b3 > 1 of Korf. Their intercept b4 is fixed at the breast height of 1.3 m unless given in `start`, e.g. `start = c(b4 = 0)` for a curve from zero, or estimated with `fix = c(b4 = FALSE)`.
+- **Forestry**: the Chapman-Richards curve of Richards (1959) and the
+  Korf curve, as written by Kuželka and Marušák (2015), are
+  height-diameter models of trees, with the diameter as t, in the
+  parameters usual in forestry: the asymptote b1, the rate b2 and the
+  shape b3 of Chapman-Richards (model M8 of Ciceu et al. 2020), and the
+  asymptote b1, the coefficient b2 \> 0 and the shape b3 \> 1 of Korf.
+  Their intercept b4 is fixed at the breast height of 1.3 m unless given
+  in `start`, e.g. `start = c(b4 = 0)` for a curve from zero, or
+  estimated with `fix = c(b4 = FALSE)`.
 - **Human growth**: model 1 of Preece and Baines (1978) describes the
   growth in height through childhood and puberty, with the adult height
   b1, the age b2 in the middle of puberty, the height b3 at b2, and the
@@ -268,6 +277,7 @@ summary(fit1)
 #> b2:trt0.6         1.884      1.616
 #> b2:trt0.8         2.224      1.627
 #> b3:(Intercept)   12.948      0.363
+#> Tests of the differences between curves, with p-values and confidence intervals: partest().
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr 
@@ -331,51 +341,31 @@ timeto(fit1, level = 90, newdata = data.frame(trt = levels(FabaHeights25$trt)), 
 ### Counts
 
 The data set `FabaCounts23` has the numbers of pods of 22 plants of six
-genotypes. A Poisson model with an estimated start of growth, the time of the
-first pods, and the maximum growth rate as the parameter b1, so that the
-genotypes are compared by their maximum growth rates:
+genotypes. A Poisson model with an estimated start of growth, the time
+of the first pods, and the maximum growth rate as the parameter b1, so
+that the genotypes are compared by their maximum growth rates:
 
 ``` r
 genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
 fitp <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
               family = "poisson", fix = c(b4 = FALSE), b1type = "rate", link = c(b1 = "log"))
-pairwise(fitp, newdata = genotypes)
-#> Pairwise differences of b1 (maximum growth rate) on the scale of its log link:
+partest(fitp, newdata = genotypes)
+#> Differences to the reference of b1 (maximum growth rate) on the scale of its log link:
 #> 
-#>                                    Estimate Std.Error z value p.value  lower
-#> Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78767 -0.360
-#> Genotype=Aurora - Genotype=ILB938    0.4572     0.231   1.976 0.35585 -0.202
-#> Genotype=Aurora - Genotype=Lynx     -0.2753     0.231  -1.192 0.84195 -0.933
-#> Genotype=Aurora - Genotype=Melodie  -0.5368     0.245  -2.191 0.24139 -1.235
-#> Genotype=Aurora - Genotype=Navara   -0.1767     0.232  -0.762 0.97484 -0.838
-#> Genotype=Capri - Genotype=ILB938     0.1570     0.218   0.722 0.98021 -0.463
-#> Genotype=Capri - Genotype=Lynx      -0.5755     0.217  -2.650 0.08513 -1.194
-#> Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00444 -1.498
-#> Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24384 -1.099
-#> Genotype=ILB938 - Genotype=Lynx     -0.7324     0.217  -3.376 0.00970 -1.351
-#> Genotype=ILB938 - Genotype=Melodie  -0.9940     0.232  -4.288 0.00032 -1.655
-#> Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04185 -1.255
-#> Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87005 -0.921
-#> Genotype=Lynx - Genotype=Navara      0.0985     0.218   0.453 0.99757 -0.521
-#> Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63191 -0.302
-#>                                      upper ratio ratio.lower ratio.upper
-#> Genotype=Aurora - Genotype=Capri    0.9600 1.350       0.698       2.612
-#> Genotype=Aurora - Genotype=ILB938   1.1164 1.580       0.817       3.054
-#> Genotype=Aurora - Genotype=Lynx     0.3828 0.759       0.393       1.466
-#> Genotype=Aurora - Genotype=Melodie  0.1613 0.585       0.291       1.175
-#> Genotype=Aurora - Genotype=Navara   0.4841 0.838       0.433       1.623
-#> Genotype=Capri - Genotype=ILB938    0.7769 1.170       0.629       2.175
-#> Genotype=Capri - Genotype=Lynx      0.0434 0.562       0.303       1.044
-#> Genotype=Capri - Genotype=Melodie  -0.1763 0.433       0.224       0.838
-#> Genotype=Capri - Genotype=Navara    0.1448 0.621       0.333       1.156
-#> Genotype=ILB938 - Genotype=Lynx    -0.1142 0.481       0.259       0.892
-#> Genotype=ILB938 - Genotype=Melodie -0.3335 0.370       0.191       0.716
-#> Genotype=ILB938 - Genotype=Navara  -0.0127 0.531       0.285       0.987
-#> Genotype=Lynx - Genotype=Melodie    0.3978 0.770       0.398       1.489
-#> Genotype=Lynx - Genotype=Navara     0.7185 1.104       0.594       2.051
-#> Genotype=Melodie - Genotype=Navara  1.0223 1.433       0.739       2.780
+#>                                    Estimate Std.Error z value p.value   lower
+#> Genotype=Capri - Genotype=Aurora     -0.300     0.232  -1.296   0.542 -0.8801
+#> Genotype=ILB938 - Genotype=Aurora    -0.457     0.231  -1.976   0.171 -1.0366
+#> Genotype=Lynx - Genotype=Aurora       0.275     0.231   1.192   0.620 -0.3031
+#> Genotype=Melodie - Genotype=Aurora    0.537     0.245   2.191   0.108 -0.0767
+#> Genotype=Navara - Genotype=Aurora     0.177     0.232   0.762   0.900 -0.4041
+#>                                    upper ratio ratio.lower ratio.upper
+#> Genotype=Capri - Genotype=Aurora   0.280 0.741       0.415        1.32
+#> Genotype=ILB938 - Genotype=Aurora  0.122 0.633       0.355        1.13
+#> Genotype=Lynx - Genotype=Aurora    0.854 1.317       0.739        2.35
+#> Genotype=Melodie - Genotype=Aurora 1.150 1.711       0.926        3.16
+#> Genotype=Navara - Genotype=Aurora  0.758 1.193       0.668        2.13
 #> 
-#> Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits, and ratios.
+#> Wald z tests; p-values and confidence limits adjusted by the single-step (Dunnett) method, 95% confidence limits, and ratios.
 ```
 
 ## Data sets
@@ -405,7 +395,7 @@ are in the directory `data-raw` of the source package.
 | Fitting | `gcTMB()`, `gcTMBstart()`, `gcTMBcontrol()`, `corAR1()`, `corCAR1()`, `update()` |
 | Results | `summary()`, `coef()`, `vcov()`, `logLik()`, `converged()`, `fixef()`, `ranef()`, `VarCorr()`, `sigma()`, `corpars()` |
 | Confidence intervals | `confint()`, `profile()`, `bootstrap()` |
-| Tests and model choice | `anova()`, `criteria()`, `pairwise()` |
+| Tests and model choice | `anova()`, `criteria()`, `partest()` |
 | Derived quantities | `timeto()`, `maxrate()` |
 | Prediction and diagnostics | `predict()`, `fitted()`, `residuals()`, `plot()` |
 | Simulation | `simulate()`, `update()` |

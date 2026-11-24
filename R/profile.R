@@ -22,7 +22,7 @@
 #' freedom, which gives the intervals of a t-test of each coefficient, as profile intervals of nls.
 #'
 #' @param fitted A gcTMB object, the result of \code{\link{gcTMB}}.
-#' @param parm Character or integer vector, or NULL. Parameters to profile, names or positions in \code{coef(fitted)}. Default are the
+#' @param parm Character or integer vector, or NULL. Parameters to profile, names or positions in \code{coef(fitted)}. NULL (default) for the
 #'   estimated coefficients b1-b5, without the variance parameters.
 #' @param level Numeric between 0 and 1. The highest confidence level the profiles are computed for: each profile extends until
 #'   the deviance from the maximum exceeds the cutoff (see Details). For confint and plot, the confidence level of the intervals and of the cutoff line.
@@ -209,7 +209,7 @@ profcutoffs <- function(object, level){
 #' \code{\link{profile.gcTMB}} by default.
 #'
 #' @param fitted A timetoTMB object, the result of \code{\link{timeto}}.
-#' @param parm Character or integer vector, or NULL. Times to profile, names or positions in \code{coef(fitted)}; default all
+#' @param parm Character or integer vector, or NULL. Times to profile, names or positions in \code{coef(fitted)}; NULL (default) for all of them
 #' @param level Numeric between 0 and 1. The highest confidence level the profiles are computed for.
 #' @param maxit Integer. Maximum number of steps in each direction
 #' @param progress Logical. Show a progress bar over the profiled times
@@ -423,16 +423,16 @@ timevalue <- function(object, i, lpv){
 #' and \code{\link{profile.timetoTMB}}, whose results can be reused with \code{confint}.
 #'
 #' @param object A gcTMB object (\code{\link{gcTMB}}) or a timetoTMB object (\code{\link{timeto}}).
-#' @param parm Character or integer vector, or NULL. Parameters or times, names or positions in \code{coef(object)}; default all
+#' @param parm Character or integer vector, or NULL. Parameters or times, names or positions in \code{coef(object)}; NULL (default) for all of them
 #' @param level Numeric between 0 and 1. The confidence level
 #' @param method Character string. "profile" for profile likelihood intervals, "wald" for Wald intervals, or "boot" for
 #'   percentile intervals of a parametric bootstrap: responses are simulated from the fitted model
 #'   (with new random effects, see \code{\link{simulate.gcTMB}}) and the model is fitted again to each,
 #'   starting at the estimates. Fits that do not converge are left out, with a message.
 #' @param nsim Integer. Number of bootstrap simulations
-#' @param seed Integer or NULL. An optional seed for the random number generator of the bootstrap
+#' @param seed Integer or NULL. Seed for the random number generator of the bootstrap; NULL (default) sets no seed: the draws continue from the current state of the random number generator
 #' @param boot A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from \code{\link{bootstrap}}, used instead of new
-#'   simulations; implies \code{method="boot"}
+#'   simulations; implies \code{method="boot"}. With NULL (default), method="boot" simulates nsim new bootstrap samples
 #' @param ... Further arguments passed to \code{\link{profile.gcTMB}}, \code{\link{profile.timetoTMB}} or
 #'   \code{\link{bootstrap}}, e.g. \code{progress=FALSE}
 #'

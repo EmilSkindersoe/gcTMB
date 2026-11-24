@@ -16,7 +16,7 @@
 \arguments{
 \item{fitted}{A timetoTMB object, the result of \code{\link{timeto}}.}
 
-\item{parm}{Character or integer vector, or NULL. Times to profile, names or positions in \code{coef(fitted)}; default all}
+\item{parm}{Character or integer vector, or NULL. Times to profile, names or positions in \code{coef(fitted)}; NULL (default) for all of them}
 
 \item{level}{Numeric between 0 and 1. The highest confidence level the profiles are computed for.}
 

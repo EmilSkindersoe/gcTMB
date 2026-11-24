@@ -17,7 +17,7 @@ bootstrap(object, nsim = 500, seed = NULL, progress = interactive())
 
 \item{nsim}{Integer. Number of simulations}
 
-\item{seed}{Integer or NULL. An optional seed for the random number generator}
+\item{seed}{Integer or NULL. Seed for the random number generator; NULL (default) sets no seed: the draws continue from the current state of the random number generator}
 
 \item{progress}{Logical. Show a progress bar}
 
@@ -27,7 +27,7 @@ bootstrap(object, nsim = 500, seed = NULL, progress = interactive())
 
 \item{...}{Not used.}
 
-\item{parm}{Character or integer vector. Parameters, names or positions in \code{coef}; default all}
+\item{parm}{Character or integer vector, or NULL. Parameters, names or positions in \code{coef}; NULL (default) for all of them}
 
 \item{level}{Numeric between 0 and 1. The confidence level}
 }

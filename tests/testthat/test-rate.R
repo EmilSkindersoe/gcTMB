@@ -52,13 +52,13 @@ test_that("b1 as the rate needs b5 = 1 for the gompertz, weibull, normal and gam
   expect_silent(gcTMB(height ~ DAS, data=FabaHeights25, model="gompertz", b1type="rate", start=c(b5=1)))
 })
 
-test_that("pairwise compares a parameter between curves", {
+test_that("partest compares a parameter between curves", {
   d <- FabaHeights25
   d$trt <- factor(d$Treatment)
   fr <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=d, b1type="rate", link=c(b1="log"))
   nd <- data.frame(trt=levels(d$trt))
-  pw <- pairwise(fr, nd, adjust="none")
-  expect_s3_class(pw, "pairwise.gcTMB")
+  pw <- partest(fr, nd, contrasts="tukey", adjust="none")
+  expect_s3_class(pw, "partest.gcTMB")
   expect_equal(nrow(pw), choose(5, 2))
   expect_equal(rownames(pw)[1], "trt=0.1 - trt=0.3")
   # against the reference level: the coefficients of the treatments, with their standard errors
@@ -69,11 +69,11 @@ test_that("pairwise compares a parameter between curves", {
   expect_equal(pw$p.value[1], 2*pt(-abs(pw$Estimate[1]/pw$Std.Error[1]), fr$rdf))
   expect_equal(pw$ratio, exp(pw$Estimate))
   # adjusted p-values
-  expect_equal(pairwise(fr, nd, adjust="holm")$p.value, p.adjust(pw$p.value, "holm"))
+  expect_equal(partest(fr, nd, contrasts="tukey", adjust="holm")$p.value, p.adjust(pw$p.value, "holm"))
   expect_output(print(pw), "maximum growth rate")
   expect_output(print(pw), "trt=0.1 - trt=0.3")
-  expect_error(pairwise(fr, nd[1, , drop=FALSE]), "at least two rows")
-  expect_error(pairwise(fr, nd, parm="b3"), "the same for all rows")
+  expect_error(partest(fr, nd[1, , drop=FALSE]), "at least two rows")
+  expect_error(partest(fr, nd, parm="b3"), "the same for all rows")
 })
 
 test_that("the single-step (Tukey) adjustment", {
@@ -97,15 +97,65 @@ test_that("the single-step (Tukey) adjustment", {
   set.seed(5)
   r1 <- runif(1)
   set.seed(5)
-  pt <- pairwise(fr, nd)
+  pt <- partest(fr, nd, contrasts="tukey")
   expect_equal(runif(1), r1)
-  expect_equal(pairwise(fr, nd)$p.value, pt$p.value)
-  p0 <- pairwise(fr, nd, adjust="none")
-  pb <- pairwise(fr, nd, adjust="bonferroni")
+  expect_equal(partest(fr, nd, contrasts="tukey")$p.value, pt$p.value)
+  p0 <- partest(fr, nd, contrasts="tukey", adjust="none")
+  pb <- partest(fr, nd, contrasts="tukey", adjust="bonferroni")
   expect_true(all(pt$p.value >= p0$p.value - 0.002 & pt$p.value <= pb$p.value + 0.002))
   # simultaneous intervals: wider than the unadjusted ones, narrower than Bonferroni
   crit <- attr(pt, "critical")
   expect_true(crit > qt(0.975, fr$rdf) && crit < qt(1 - 0.025/nrow(pt), fr$rdf))
   expect_equal(pt$upper, pt$Estimate + crit*pt$Std.Error)
-  expect_output(print(pt), "single-step")
+  expect_output(print(pt), "single-step \\(Tukey\\)")
+  # the former name of the single-step adjustment
+  expect_equal(partest(fr, nd, contrasts="tukey", adjust="tukey"), pt)
+})
+
+test_that("Dunnett contrasts, the default of partest", {
+  # two-sided Dunnett for k treatments against a control, balanced: the statistics have correlation
+  # 1/2, and the 95% quantile of the largest absolute value is 2.44 for k = 4 and infinite degrees of
+  # freedom (the table of Dunnett, 1955)
+  R <- matrix(0.5, 4, 4)
+  diag(R) <- 1
+  expect_equal(unname(quantile(gcTMB:::maxabsdraws(R, NULL, nsim=2e5), 0.95)), 2.44, tolerance=0.005)
+
+  d <- FabaHeights25
+  d$trt <- factor(d$Treatment)
+  fr <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=d, b1type="rate", link=c(b1="log"))
+  nd <- data.frame(trt=levels(d$trt))
+  b1trt <- paste("b1:trt", levels(d$trt)[-1], sep="")
+
+  # each level against the first: the coefficients of the treatment contrasts, as in summary
+  p0 <- partest(fr, nd, adjust="none")
+  expect_equal(attr(p0, "contrasts"), "dunnett")
+  expect_equal(nrow(p0), 4)
+  expect_equal(rownames(p0), paste("trt=", levels(d$trt)[-1], " - trt=0.1", sep=""))
+  s0 <- summary(fr)$coefficients
+  expect_equal(p0$Estimate, unname(s0[b1trt, "Estimate"]), tolerance=1e-8)
+  expect_equal(p0$Std.Error, unname(s0[b1trt, "Std. Error"]), tolerance=1e-6)
+  expect_equal(p0$p.value, 2*pt(-abs(p0$Estimate/p0$Std.Error), fr$rdf))
+
+  # Dunnett's single-step adjustment: between the unadjusted tests and Bonferroni, and with a smaller
+  # critical value than Tukey's for all the pairs
+  pdn <- partest(fr, nd)
+  expect_equal(partest(fr, nd, contrasts="dunnett"), pdn)
+  pb <- partest(fr, nd, adjust="bonferroni")
+  expect_true(all(pdn$p.value >= p0$p.value - 0.002 & pdn$p.value <= pb$p.value + 0.002))
+  crit <- attr(pdn, "critical")
+  expect_true(crit > qt(0.975, fr$rdf) && crit < qt(1 - 0.025/4, fr$rdf))
+  expect_true(crit < attr(partest(fr, nd, contrasts="tukey"), "critical"))
+  expect_output(print(pdn), "Differences to the reference")
+  expect_output(print(pdn), "single-step \\(Dunnett\\)")
+
+  # the reference by position or by name
+  p3 <- partest(fr, nd, contrasts="dunnett", ref=3, adjust="none")
+  expect_equal(rownames(p3)[1], "trt=0.1 - trt=0.5")
+  expect_equal(partest(fr, nd, contrasts="dunnett", ref="trt=0.5", adjust="none"), p3)
+  expect_error(partest(fr, nd, contrasts="dunnett", ref=6), "ref must be")
+  expect_error(partest(fr, nd, contrasts="dunnett", ref="trt=1"), "ref must be")
+
+  # summary has no tests, and points to partest
+  expect_equal(colnames(s0), c("Estimate", "Std. Error"))
+  expect_output(print(summary(fr)), "partest\\(\\)")
 })

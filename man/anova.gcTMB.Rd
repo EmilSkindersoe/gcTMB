@@ -24,7 +24,7 @@ earlier versions and in \code{stats::anova}, is accepted for "LR".}
 
 \item{nsim}{Integer. Number of simulations for \code{test="boot"}}
 
-\item{seed}{Integer or NULL. An optional seed for the random number generator, for \code{test="boot"}}
+\item{seed}{Integer or NULL. Seed for the random number generator, for \code{test="boot"}; NULL (default) sets no seed: the draws continue from the current state of the random number generator}
 
 \item{progress}{Logical. Show a progress bar for \code{test="boot"}}
 }

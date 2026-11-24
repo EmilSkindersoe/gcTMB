@@ -80,11 +80,11 @@ For simulate, the times, covariates and grouping variables of the observations t
 
 \item{level}{Numeric between 0 and 1. Confidence level of the intervals of predict}
 
-\item{boot}{A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from \code{\link{bootstrap}}. predict then gives the standard deviation of the bootstrap predictions as se.fit, percentile confidence intervals, and prediction intervals simulated at the bootstrap fits, including their variance parameters. The bootstrap responses have new random effects, so for random=TRUE the random effects of the fitted groups are drawn, for each bootstrap fit, from the Laplace approximation of their conditional distribution given the original data at the parameters of that fit.}
+\item{boot}{A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from \code{\link{bootstrap}}. With NULL (default), the standard errors and confidence intervals use the delta method. With a bootstrap sample, predict gives the standard deviation of the bootstrap predictions as se.fit, percentile confidence intervals, and prediction intervals simulated at the bootstrap fits, including their variance parameters. The bootstrap responses have new random effects, so for random=TRUE the random effects of the fitted groups are drawn, for each bootstrap fit, from the Laplace approximation of their conditional distribution given the original data at the parameters of that fit.}
 
 \item{nsim}{Integer. Number of response vectors to simulate; for predict, the number of parameter draws for simulated prediction intervals}
 
-\item{seed}{Integer or NULL. An optional seed for the random number generator}
+\item{seed}{Integer or NULL. Seed for the random number generator; NULL (default) sets no seed: the draws continue from the current state of the random number generator}
 
 \item{scale}{Character string. For type="parameters", the scale of the parameters: "original" (default) or "link", the scale of the coefficients, see the argument link of \code{\link{gcTMB}}.}
 }
@@ -103,8 +103,13 @@ and the log residual standard deviation (log_sigma, gaussian; of log(y) for logn
 for an estimated autocorrelation the parameter cor_par:AR1 or cor_par:CAR1 on the unconstrained scale of
 nlme (\code{coef} of an nlme corStruct), see \code{\link{corStruct}}.
 summary returns a summary.gcTMB object with the coefficient table (Estimate, Std. Error), the
-variance components, log-likelihood, AIC and BIC, sample sizes, a Pearson dispersion statistic for
-poisson and binomial models, and convergence information. logLik returns the log-likelihood at the
+variance components, log-likelihood, AIC and BIC, sample sizes and convergence information. Whether
+the family suits the data, e.g. overdispersion of counts, is assessed with the quantile residuals
+(\code{residuals(fit, type="quantile")} and \code{\link{plot.gcTMB}}), which are standard normal
+under the model for every family. The coefficient table has no tests: the
+tests of the differences between curves, e.g. between treatments, are done by \code{\link{partest}}
+(by default each level against a reference, by Dunnett's method), and the test that a parameter is
+the same for all curves by \code{\link{anova.gcTMB}}. logLik returns the log-likelihood at the
 estimates, with the number of free coefficients and variance parameters as degrees of freedom; it is the
 maximum likelihood, comparable with nlme fits with \code{method="ML"}, not with the REML fits of \code{nlme::lme} and \code{nlme::gls}.
 df.residual returns the residual degrees of freedom n - p of gaussian and lognormal models without random

@@ -1,6 +1,6 @@
 Package: gcTMB
 Title: Fitting Growth Curves Using the Template Model Builder
-Version: 0.1.0.9014
+Version: 0.1.0.9015
 Authors@R: 
     person("Emil", "Skindersoe", , "e.skindersoe@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0000-2172-1614"))
@@ -35,8 +35,9 @@ Description: Fits non-linear growth curves over time by maximum likelihood
     Gaussian and lognormal models without random effects, likelihood ratio
     tests with chi-square, F or parametric bootstrap p-values (anova()),
     information criteria such as AIC, AICc, BIC and HQIC and goodness-of-fit
-    criteria (criteria()), and pairwise comparisons of a parameter between
-    curves with single-step multiplicity adjustment (pairwise()). The times
+    criteria (criteria()), and tests of the differences of a parameter between
+    curves, against a reference or between all pairs, with multiplicity
+    adjustment (partest()). The times
     at which the curves reach a percentage of their asymptote or a given
     response (timeto()), and the maximum growth rates, their timing and the
     fraction of the asymptote reached then (maxrate()), are derived with

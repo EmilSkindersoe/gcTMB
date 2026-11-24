@@ -47,7 +47,7 @@ reference:
   - confint.gcTMB
   - profile.gcTMB
   - bootstrap
-  - pairwise
+  - partest
 - title: Timing and maximum growth rates
   contents:
   - timeto
