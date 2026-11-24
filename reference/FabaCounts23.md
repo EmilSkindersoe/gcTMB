@@ -78,8 +78,7 @@ summary(fit)
 #> b1:GenotypeNavara    -2.486      1.604
 #> b2:(Intercept)       71.946      0.229
 #> b3:(Intercept)        1.568      0.097
-#> 
-#> Pearson dispersion: 1.514 (chi-square 386 on 255 df)
+#> Tests of the differences between curves, with p-values and confidence intervals: partest().
 #> 
 #> Optimiser: both X-convergence and relative convergence (5), maximum absolute gradient 1.1e-06
 ```

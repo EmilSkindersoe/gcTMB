@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9015</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,7 +59,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Growth models and their parameters</h1>
             
-            <h4 data-toc-skip class="date">2026-11-23</h4>
+            <h4 data-toc-skip class="date">2026-11-24</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/growth-models.Rmd" class="external-link"><code>vignettes/growth-models.Rmd</code></a></small>
       <div class="d-none name"><code>growth-models.Rmd</code></div>
@@ -688,7 +688,7 @@ same as with the asymptote, but covariates and random effects on
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
 are now effects on the maximum growth rate, so that <code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova()</a></code>
 tests whether the treatments have the same maximum growth rate, and
-<code><a href="../reference/pairwise.html">pairwise()</a></code> compares it between pairs of treatments. The
+<code><a href="../reference/partest.html">partest()</a></code> compares it between pairs of treatments. The
 maximum growth rate has a closed form for all curves with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>5</mn></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">b_5 = 1</annotation></semantics></math>,
 and for the logistic (Richards) and Hill curves also with an estimated

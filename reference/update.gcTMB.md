@@ -36,7 +36,8 @@ update(object, ..., fixef = NULL, VarCorr = NULL, sigma = NULL, rho = NULL)
   (e.g. "b1:(Intercept)"), or by the parameter (e.g. "b1") for a
   parameter with a single coefficient. Coefficients fixed in the fit,
   such as the asymmetry b5 (1 by default), can be set too, e.g.
-  `fixef=c(b5=4)`; they stay fixed.
+  `fixef=c(b5=4)`; they stay fixed. NULL (default) keeps all the
+  coefficients.
 
 - VarCorr:
 
@@ -45,7 +46,7 @@ update(object, ..., fixef = NULL, VarCorr = NULL, sigma = NULL, rho = NULL)
   [`VarCorr`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md),
   with the rows and columns in the same order; a single matrix for a
   model with one random effect term. The terms that are not given keep
-  their covariance matrices.
+  their covariance matrices, and NULL (default) keeps all of them.
 
 - sigma:
 
@@ -53,6 +54,7 @@ update(object, ..., fixef = NULL, VarCorr = NULL, sigma = NULL, rho = NULL)
   log(y) for lognormal), or the dispersion parameter of the other
   families, as returned by
   [`sigma.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md).
+  NULL (default) keeps it.
 
 - rho:
 
@@ -63,6 +65,7 @@ update(object, ..., fixef = NULL, VarCorr = NULL, sigma = NULL, rho = NULL)
   [`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md),
   between -1 and 1 for
   [`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md).
+  NULL (default) keeps it.
 
 ## Value
 

@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9015</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,7 +59,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Autocorrelation and simulation</h1>
             
-            <h4 data-toc-skip class="date">2026-11-23</h4>
+            <h4 data-toc-skip class="date">2026-11-24</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/autocorrelation-simulation.Rmd" class="external-link"><code>vignettes/autocorrelation-simulation.Rmd</code></a></small>
       <div class="d-none name"><code>autocorrelation-simulation.Rmd</code></div>
@@ -239,6 +239,7 @@ the relative deviations from the curve:</p>
 <span><span class="co">#&gt; b2:CropMaize:InputHigh           0.5966      3.205</span></span>
 <span><span class="co">#&gt; b2:CropSweet sorghum:InputHigh   0.5322      2.444</span></span>
 <span><span class="co">#&gt; b3:(Intercept)                 278.3070      1.079</span></span>
+<span><span class="co">#&gt; Tests of the differences between curves, with p-values and confidence intervals: partest().</span></span>
 <span><span class="co">#&gt; Fixed: b4:(Intercept) = 141</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
@@ -260,7 +261,7 @@ the relative deviations from the curve:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;        npar    AIC    BIC  logLik deviance         LR Df Pr(&gt;LR)</span></span>
 <span><span class="co">#&gt; fitre    15 962.53 1012.9 -466.27   932.53                      </span></span>
-<span><span class="co">#&gt; fitrec   16 964.53 1018.2 -466.27   932.53 2.8821e-08  1  0.9999</span></span></code></pre></div>
+<span><span class="co">#&gt; fitrec   16 964.53 1018.2 -466.27   932.53 2.8823e-08  1  0.9999</span></span></code></pre></div>
 <p>The estimate of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 moves far down from its starting value, to a correlation of practically

@@ -332,7 +332,7 @@ same as with the asymptote, but covariates and random effects on $`b_1`$
 are now effects on the maximum growth rate, so that
 [`anova()`](https://rdrr.io/r/stats/anova.html) tests whether the
 treatments have the same maximum growth rate, and
-[`pairwise()`](https://emilskindersoe.github.io/gcTMB/reference/pairwise.md)
+[`partest()`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
 compares it between pairs of treatments. The maximum growth rate has a
 closed form for all curves with $`b_5 = 1`$, and for the logistic
 (Richards) and Hill curves also with an estimated asymmetry; the

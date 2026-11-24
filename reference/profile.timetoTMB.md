@@ -33,7 +33,7 @@ profile(
 - parm:
 
   Character or integer vector, or NULL. Times to profile, names or
-  positions in `coef(fitted)`; default all
+  positions in `coef(fitted)`; NULL (default) for all of them
 
 - level:
 

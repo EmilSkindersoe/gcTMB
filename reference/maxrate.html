@@ -13,7 +13,7 @@ bootstrap intervals."><meta property="og:image" content="https://emilskindersoe.
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9015</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,11 +66,11 @@ bootstrap intervals.</p>
 
 
 <dt id="arg-curves">curves<a class="anchor" aria-label="anchor" href="#arg-curves"></a></dt>
-<dd><p>Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see <code><a href="timeto.html">timeto</a></code>; default is the identity matrix, for models without covariates in fform.</p></dd>
+<dd><p>Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see <code><a href="timeto.html">timeto</a></code>. If curves and newdata are both NULL (default), the identity matrix, for models without covariates in fform.</p></dd>
 
 
 <dt id="arg-newdata">newdata<a class="anchor" aria-label="anchor" href="#arg-newdata"></a></dt>
-<dd><p>Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves.</p></dd>
+<dd><p>Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves; NULL (default) to use curves.</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -174,13 +174,15 @@ simulate(object, nsim = 1, seed = NULL, random = TRUE, newdata = NULL, ...)
 
   A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from
   [`bootstrap`](https://emilskindersoe.github.io/gcTMB/reference/bootstrap.md).
-  predict then gives the standard deviation of the bootstrap predictions
-  as se.fit, percentile confidence intervals, and prediction intervals
-  simulated at the bootstrap fits, including their variance parameters.
-  The bootstrap responses have new random effects, so for random=TRUE
-  the random effects of the fitted groups are drawn, for each bootstrap
-  fit, from the Laplace approximation of their conditional distribution
-  given the original data at the parameters of that fit.
+  With NULL (default), the standard errors and confidence intervals use
+  the delta method. With a bootstrap sample, predict gives the standard
+  deviation of the bootstrap predictions as se.fit, percentile
+  confidence intervals, and prediction intervals simulated at the
+  bootstrap fits, including their variance parameters. The bootstrap
+  responses have new random effects, so for random=TRUE the random
+  effects of the fitted groups are drawn, for each bootstrap fit, from
+  the Laplace approximation of their conditional distribution given the
+  original data at the parameters of that fit.
 
 - nsim:
 
@@ -189,7 +191,9 @@ simulate(object, nsim = 1, seed = NULL, random = TRUE, newdata = NULL, ...)
 
 - seed:
 
-  Integer or NULL. An optional seed for the random number generator
+  Integer or NULL. Seed for the random number generator; NULL (default)
+  sets no seed: the draws continue from the current state of the random
+  number generator
 
 - scale:
 
@@ -223,12 +227,22 @@ unconstrained scale of nlme (`coef` of an nlme corStruct), see
 [`corStruct`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md).
 summary returns a summary.gcTMB object with the coefficient table
 (Estimate, Std. Error), the variance components, log-likelihood, AIC and
-BIC, sample sizes, a Pearson dispersion statistic for poisson and
-binomial models, and convergence information. logLik returns the
-log-likelihood at the estimates, with the number of free coefficients
-and variance parameters as degrees of freedom; it is the maximum
-likelihood, comparable with nlme fits with `method="ML"`, not with the
-REML fits of [`nlme::lme`](https://rdrr.io/pkg/nlme/man/lme.html) and
+BIC, sample sizes and convergence information. Whether the family suits
+the data, e.g. overdispersion of counts, is assessed with the quantile
+residuals (`residuals(fit, type="quantile")` and
+[`plot.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/plot.gcTMB.md)),
+which are standard normal under the model for every family. The
+coefficient table has no tests: the tests of the differences between
+curves, e.g. between treatments, are done by
+[`partest`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
+(by default each level against a reference, by Dunnett's method), and
+the test that a parameter is the same for all curves by
+[`anova.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/anova.gcTMB.md).
+logLik returns the log-likelihood at the estimates, with the number of
+free coefficients and variance parameters as degrees of freedom; it is
+the maximum likelihood, comparable with nlme fits with `method="ML"`,
+not with the REML fits of
+[`nlme::lme`](https://rdrr.io/pkg/nlme/man/lme.html) and
 [`nlme::gls`](https://rdrr.io/pkg/nlme/man/gls.html). df.residual
 returns the residual degrees of freedom n - p of gaussian and lognormal
 models without random effects (small-sample inference, see

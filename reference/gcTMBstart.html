@@ -9,7 +9,7 @@ which can be inspected, modified, and passed to the start argument of gcTMB."><m
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9015</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -76,7 +76,7 @@ which can be inspected, modified, and passed to the <code>start</code> argument 
 
 
 <dt id="arg-fform">fform<a class="anchor" aria-label="anchor" href="#arg-fform"></a></dt>
-<dd><p>Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1). A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.</p></dd>
+<dd><p>Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1); NULL (default) gives every parameter a single intercept. A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.</p></dd>
 
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
@@ -84,15 +84,15 @@ which can be inspected, modified, and passed to the <code>start</code> argument 
 
 
 <dt id="arg-start">start<a class="anchor" aria-label="anchor" href="#arg-start"></a></dt>
-<dd><p>Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced.</p></dd>
+<dd><p>Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced; NULL (default) computes all of them.</p></dd>
 
 
 <dt id="arg-fix">fix<a class="anchor" aria-label="anchor" href="#arg-fix"></a></dt>
-<dd><p>Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. The threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1 unless given in start (the intercept b4 of chapmanrichards and korf at 1.3; the rates b4 and b5 of preecebaines are estimated); fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.</p></dd>
+<dd><p>Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. NULL (default) fixes only the parameters that are fixed by default. The threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1 unless given in start (the intercept b4 of chapmanrichards and korf at 1.3; the rates b4 and b5 of preecebaines are estimated); fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.</p></dd>
 
 
 <dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
-<dd><p>Numeric vector or NULL. Weights, one for each row of data.</p></dd>
+<dd><p>Numeric vector or NULL. Weights, one for each row of data; NULL (default) for a weight of 1 for every row.</p></dd>
 
 
 <dt id="arg-family">family<a class="anchor" aria-label="anchor" href="#arg-family"></a></dt>
@@ -108,7 +108,7 @@ which can be inspected, modified, and passed to the <code>start</code> argument 
 
 
 <dt id="arg-link">link<a class="anchor" aria-label="anchor" href="#arg-link"></a></dt>
-<dd><p>Named character vector or NULL. Links of the parameters b1-b5, see <code><a href="gcTMB.html">gcTMB</a></code>.</p></dd>
+<dd><p>Named character vector or NULL. Links of the parameters b1-b5; NULL (default) for the default links, see <code><a href="gcTMB.html">gcTMB</a></code>.</p></dd>
 
 
 <dt id="arg-b-type">b1type<a class="anchor" aria-label="anchor" href="#arg-b-type"></a></dt>
@@ -120,15 +120,15 @@ which can be inspected, modified, and passed to the <code>start</code> argument 
 
 
 <dt id="arg-gsl">gsl<a class="anchor" aria-label="anchor" href="#arg-gsl"></a></dt>
-<dd><p>Numeric vector or NULL. Lower bounds for the grid search, same length as start, on the scale of the coefficients (the rate 1/b3 for b3 with the inverse link); NA (or NULL) for the default range.</p></dd>
+<dd><p>Numeric vector or NULL. Lower bounds for the grid search, same length as start, on the scale of the coefficients (the rate 1/b3 for b3 with the inverse link); NA, or NULL (default) for all parameters, for the default range.</p></dd>
 
 
 <dt id="arg-gsu">gsu<a class="anchor" aria-label="anchor" href="#arg-gsu"></a></dt>
-<dd><p>Numeric vector or NULL. Upper bounds for the grid search, same length as start; NA (or NULL) for the default range.</p></dd>
+<dd><p>Numeric vector or NULL. Upper bounds for the grid search, same length as start; NA, or NULL (default) for all parameters, for the default range.</p></dd>
 
 
 <dt id="arg-gsn">gsn<a class="anchor" aria-label="anchor" href="#arg-gsn"></a></dt>
-<dd><p>Integer, a single number or a vector, or NULL. Number of grid points for each parameter, a single number or a vector with the same length as start (default 10). A parameter with gsn = 1 stays at its "lm" starting value.</p></dd>
+<dd><p>Integer, a single number or a vector, or NULL. Number of grid points for each parameter, a single number or a vector with the same length as start; NULL (default) for 10 points for each parameter. A parameter with gsn = 1 stays at its "lm" starting value.</p></dd>
 
 </dl></div>
     <div class="section level2">

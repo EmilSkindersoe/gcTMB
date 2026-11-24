@@ -71,6 +71,7 @@ summary(fit)
 #> b1:SoilSandy:TreatmentNotIrrigated  -12.455      0.683
 #> b2:(Intercept)                       58.746      0.139
 #> b3:(Intercept)                        8.119      0.123
+#> Tests of the differences between curves, with p-values and confidence intervals: partest().
 #> 
 #> Residual standard deviation: 8.33 on 4309 degrees of freedom
 #> 

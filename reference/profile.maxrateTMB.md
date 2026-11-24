@@ -28,7 +28,8 @@ profile(
 - parm:
 
   Character or integer vector, or NULL. Estimates to profile, names or
-  positions in `coef(fitted)`; tmax and rate only. Default all of these.
+  positions in `coef(fitted)`; tmax and rate only. NULL (default) for
+  all of these.
 
 - level:
 

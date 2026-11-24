@@ -11,7 +11,7 @@ timeto."><meta property="og:image" content="https://emilskindersoe.github.io/gcT
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9015</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,7 +85,7 @@ coefficients and variance parameters of a gcTMB model, or for the times estimate
 
 
 <dt id="arg-parm">parm<a class="anchor" aria-label="anchor" href="#arg-parm"></a></dt>
-<dd><p>Character or integer vector, or NULL. Parameters or times, names or positions in <code>coef(object)</code>; default all</p></dd>
+<dd><p>Character or integer vector, or NULL. Parameters or times, names or positions in <code>coef(object)</code>; NULL (default) for all of them</p></dd>
 
 
 <dt id="arg-level">level<a class="anchor" aria-label="anchor" href="#arg-level"></a></dt>
@@ -104,12 +104,12 @@ starting at the estimates. Fits that do not converge are left out, with a messag
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
-<dd><p>Integer or NULL. An optional seed for the random number generator of the bootstrap</p></dd>
+<dd><p>Integer or NULL. Seed for the random number generator of the bootstrap; NULL (default) sets no seed: the draws continue from the current state of the random number generator</p></dd>
 
 
 <dt id="arg-boot">boot<a class="anchor" aria-label="anchor" href="#arg-boot"></a></dt>
 <dd><p>A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from <code><a href="bootstrap.html">bootstrap</a></code>, used instead of new
-simulations; implies <code>method="boot"</code></p></dd>
+simulations; implies <code>method="boot"</code>. With NULL (default), method="boot" simulates nsim new bootstrap samples</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

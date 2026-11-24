@@ -13,7 +13,7 @@ the arguments in ... changed, as update."><meta property="og:image" content="htt
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9015</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,25 +75,25 @@ the arguments in <code>...</code> changed, as <code><a href="https://rdrr.io/r/s
 <dd><p>Named numeric vector or NULL. New values of coefficients of b1-b5, named as in
 <code><a href="gcTMB-extract.html">fixef</a></code> (e.g. "b1:(Intercept)"), or by the parameter (e.g. "b1") for a parameter with
 a single coefficient. Coefficients fixed in the fit, such as the asymmetry b5 (1 by default), can
-be set too, e.g. <code>fixef=c(b5=4)</code>; they stay fixed.</p></dd>
+be set too, e.g. <code>fixef=c(b5=4)</code>; they stay fixed. NULL (default) keeps all the coefficients.</p></dd>
 
 
 <dt id="arg-varcorr">VarCorr<a class="anchor" aria-label="anchor" href="#arg-varcorr"></a></dt>
 <dd><p>List or NULL. New covariance matrices of the random effects, named by the terms as
 in <code><a href="gcTMB-extract.html">VarCorr</a></code>, with the rows and columns in the same order; a single matrix for a model
-with one random effect term. The terms that are not given keep their covariance matrices.</p></dd>
+with one random effect term. The terms that are not given keep their covariance matrices, and NULL (default) keeps all of them.</p></dd>
 
 
 <dt id="arg-sigma">sigma<a class="anchor" aria-label="anchor" href="#arg-sigma"></a></dt>
 <dd><p>Numeric or NULL. The new residual standard deviation (gaussian, of log(y) for
 lognormal), or the dispersion parameter of the other families, as returned by
-<code><a href="gcTMB-extract.html">sigma.gcTMB</a></code>.</p></dd>
+<code><a href="gcTMB-extract.html">sigma.gcTMB</a></code>. NULL (default) keeps it.</p></dd>
 
 
 <dt id="arg-rho">rho<a class="anchor" aria-label="anchor" href="#arg-rho"></a></dt>
 <dd><p>Numeric or NULL. The new autocorrelation rho of the residuals, as returned by
 <code><a href="gcTMB-extract.html">corpars</a></code>, for a model fitted with a <code>correlation</code> structure: between 0 and 1 for
-<code><a href="corStruct.html">corCAR1</a></code>, between -1 and 1 for <code><a href="corStruct.html">corAR1</a></code>.</p></dd>
+<code><a href="corStruct.html">corCAR1</a></code>, between -1 and 1 for <code><a href="corStruct.html">corAR1</a></code>. NULL (default) keeps it.</p></dd>
 
 </dl></div>
     <div class="section level2">

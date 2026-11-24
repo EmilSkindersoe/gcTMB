@@ -37,8 +37,8 @@ plot(x, level = 0.95, ...)
 - parm:
 
   Character or integer vector, or NULL. Parameters to profile, names or
-  positions in `coef(fitted)`. Default are the estimated coefficients
-  b1-b5, without the variance parameters.
+  positions in `coef(fitted)`. NULL (default) for the estimated
+  coefficients b1-b5, without the variance parameters.
 
 - level:
 

@@ -201,7 +201,6 @@ parameter):
 fitre <- gcTMB(height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, rform = b1 + b2 + b5 ~ 1 | id,
                data = berkeley, model = "preecebaines", start = unname(custom),
                control = list(restart = TRUE))
-#> Warning: the optimiser did not converge: false convergence (8)
 summary(fitre)
 #> Call:
 #> gcTMB(form = height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, 
@@ -226,6 +225,7 @@ summary(fitre)
 #> b4:sexfemale     0.01575      0.002
 #> b5:(Intercept)   0.60790      0.020
 #> b5:sexfemale     0.01405      0.028
+#> Tests of the differences between curves, with p-values and confidence intervals: partest().
 #> 
 #> Random effects:
 #>  Groups Name Std.Dev. Corr       
@@ -235,7 +235,7 @@ summary(fitre)
 #> 
 #> Residual standard deviation: 2.087
 #> 
-#> Optimiser: false convergence (8), maximum absolute gradient 0.0065
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.02
 converged(fitre)
 #> [1] TRUE
 ```
@@ -278,20 +278,20 @@ maxrate(fitre, newdata = sexes)
 
 The girls reach the middle of puberty, the peak of their growth spurt
 and their adult height about two years earlier than the boys.
-[`pairwise()`](https://emilskindersoe.github.io/gcTMB/reference/pairwise.md)
+[`partest()`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
 compares a parameter between the rows of `newdata` by Wald tests, here
 the middle of puberty $`b_2`$ (see below for the details of
-[`pairwise()`](https://emilskindersoe.github.io/gcTMB/reference/pairwise.md)):
+[`partest()`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)):
 
 ``` r
 
-pairwise(fitre, newdata = sexes, parm = "b2")
-#> Pairwise differences of b2 (location in time):
+partest(fitre, newdata = sexes, parm = "b2")
+#> Differences to the reference of b2 (location in time):
 #> 
 #>                       Estimate Std.Error z value p.value lower upper
-#> sex=male - sex=female     2.27     0.296    7.67  <2e-16  1.68  2.85
+#> sex=female - sex=male    -2.27     0.296   -7.67  <2e-16 -2.85 -1.68
 #> 
-#> Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits.
+#> Wald z tests; p-values and confidence limits adjusted by the single-step (Dunnett) method, 95% confidence limits.
 ```
 
 The height and the growth rate of the population curves of the sexes,
@@ -353,13 +353,14 @@ summary(fitrr)
 #> 
 #> Coefficients:
 #>                  Estimate Std. Error
-#> b1:(Intercept)   2.007188      0.014
-#> b1:sexfemale    -0.002929      0.020
+#> b1:(Intercept)   2.007187      0.014
+#> b1:sexfemale    -0.002928      0.020
 #> b2:(Intercept)   0.381010      0.006
 #> b2:sexfemale     0.072460      0.005
-#> b3:(Intercept)   4.477682      0.053
-#> b4:(Intercept) 131.815382      0.598
-#> b4:sexfemale    -7.368548      0.836
+#> b3:(Intercept)   4.477683      0.053
+#> b4:(Intercept) 131.815373      0.598
+#> b4:sexfemale    -7.368561      0.836
+#> Tests of the differences between curves, with p-values and confidence intervals: partest().
 #> The coefficients of b1, b3 are on the log scale.
 #> 
 #> Random effects:
@@ -370,7 +371,7 @@ summary(fitrr)
 #> 
 #> Residual standard deviation: 1.57
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.0087
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.0024
 maxrate(fitrr, newdata = sexes)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
@@ -400,7 +401,7 @@ anova(fitrr0, fitrr)
 #> fitrr    14 12625 12709 -6298.3    12597 0.021342  1  0.8839
 ```
 
-[`pairwise()`](https://emilskindersoe.github.io/gcTMB/reference/pairwise.md)
+[`partest()`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
 compares the maximum growth rates of all pairs of rows of `newdata` by
 Wald tests. By default, the p-values and the confidence intervals are
 adjusted for the number of pairs by the single-step method, the
@@ -415,15 +416,15 @@ e.g. `parm = "b2"` as above.
 
 ``` r
 
-pairwise(fitrr, newdata = sexes)
-#> Pairwise differences of b1 (maximum growth rate) on the scale of its log link:
+partest(fitrr, newdata = sexes)
+#> Differences to the reference of b1 (maximum growth rate) on the scale of its log link:
 #> 
 #>                       Estimate Std.Error z value p.value   lower  upper ratio
-#> sex=male - sex=female  0.00293      0.02   0.146   0.884 -0.0366 0.0424     1
+#> sex=female - sex=male -0.00293      0.02  -0.146   0.884 -0.0424 0.0366 0.997
 #>                       ratio.lower ratio.upper
-#> sex=male - sex=female       0.964        1.04
+#> sex=female - sex=male       0.958        1.04
 #> 
-#> Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits, and ratios.
+#> Wald z tests; p-values and confidence limits adjusted by the single-step (Dunnett) method, 95% confidence limits, and ratios.
 ```
 
 [`predict()`](https://rdrr.io/r/stats/predict.html) with
@@ -439,8 +440,8 @@ pars <- predict(fitrr, newdata = sexes, type = "parameters", random = FALSE)
 data.frame(sex = sexes$sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
            growth_in_spurt = pars[, "asymptote"], adult_height = pars[, "b4"] + pars[, "asymptote"])
 #>      sex peak_rate height_before_spurt growth_in_spurt adult_height
-#> 1   male  7.442358            131.8154        52.79491     184.6103
-#> 2 female  7.420593            124.4468        44.22908     168.6759
+#> 1   male  7.442353            131.8154        52.79488     184.6102
+#> 2 female  7.420597            124.4468        44.22909     168.6759
 ```
 
 The adult heights agree with the asymptotes $`b_1`$ of the Preece-Baines

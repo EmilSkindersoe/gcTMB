@@ -78,6 +78,7 @@ summary(fit)
 #> b1:CropSweet sorghum:InputHigh   0.9234      2.046
 #> b2:(Intercept)                 228.0015      1.740
 #> b3:(Intercept)                 278.5168      1.167
+#> Tests of the differences between curves, with p-values and confidence intervals: partest().
 #> Fixed: b4:(Intercept) = 141
 #> 
 #> Residual standard deviation: 3.878 on 228 degrees of freedom

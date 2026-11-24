@@ -98,6 +98,7 @@ summary(fit)
 #> b2:TreatmentNotIrrigated            -1.2939      0.290
 #> b2:SoilSandy:TreatmentNotIrrigated  -0.4712      0.605
 #> b3:(Intercept)                       2.1007      0.085
+#> Tests of the differences between curves, with p-values and confidence intervals: partest().
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev.

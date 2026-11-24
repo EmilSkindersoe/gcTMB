@@ -40,9 +40,10 @@ gcTMBstart(
   Formula, list of formulas, or NULL. Fixed effects for the model
   parameters: a formula of the form b1 + b2 ~ Treatment, or a list of
   such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site).
-  Parameters not listed have a single intercept (~ 1). A list of five
-  right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~
-  1), is also accepted.
+  Parameters not listed have a single intercept (~ 1); NULL (default)
+  gives every parameter a single intercept. A list of five right-hand
+  side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is
+  also accepted.
 
 - data:
 
@@ -52,12 +53,13 @@ gcTMBstart(
 - start:
 
   Numeric vector or NULL. Starting values for each model parameter. Only
-  NA entries are replaced.
+  NA entries are replaced; NULL (default) computes all of them.
 
 - fix:
 
   Logical vector or NULL. A vector with the same length as start. If
-  TRUE, a model coefficient is fixed to the starting value. The
+  TRUE, a model coefficient is fixed to the starting value. NULL
+  (default) fixes only the parameters that are fixed by default. The
   threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1
   unless given in start (the intercept b4 of chapmanrichards and korf at
   1.3; the rates b4 and b5 of preecebaines are estimated);
@@ -66,7 +68,8 @@ gcTMBstart(
 
 - weights:
 
-  Numeric vector or NULL. Weights, one for each row of data.
+  Numeric vector or NULL. Weights, one for each row of data; NULL
+  (default) for a weight of 1 for every row.
 
 - family:
 
@@ -88,7 +91,8 @@ gcTMBstart(
 
 - link:
 
-  Named character vector or NULL. Links of the parameters b1-b5, see
+  Named character vector or NULL. Links of the parameters b1-b5; NULL
+  (default) for the default links, see
   [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md).
 
 - b1type:
@@ -105,19 +109,21 @@ gcTMBstart(
 
   Numeric vector or NULL. Lower bounds for the grid search, same length
   as start, on the scale of the coefficients (the rate 1/b3 for b3 with
-  the inverse link); NA (or NULL) for the default range.
+  the inverse link); NA, or NULL (default) for all parameters, for the
+  default range.
 
 - gsu:
 
   Numeric vector or NULL. Upper bounds for the grid search, same length
-  as start; NA (or NULL) for the default range.
+  as start; NA, or NULL (default) for all parameters, for the default
+  range.
 
 - gsn:
 
   Integer, a single number or a vector, or NULL. Number of grid points
   for each parameter, a single number or a vector with the same length
-  as start (default 10). A parameter with gsn = 1 stays at its "lm"
-  starting value.
+  as start; NULL (default) for 10 points for each parameter. A parameter
+  with gsn = 1 stays at its "lm" starting value.
 
 ## Value
 

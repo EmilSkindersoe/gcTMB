@@ -37,7 +37,9 @@ confint(object, parm = NULL, level = 0.95, ...)
 
 - seed:
 
-  Integer or NULL. An optional seed for the random number generator
+  Integer or NULL. Seed for the random number generator; NULL (default)
+  sets no seed: the draws continue from the current state of the random
+  number generator
 
 - progress:
 
@@ -57,8 +59,8 @@ confint(object, parm = NULL, level = 0.95, ...)
 
 - parm:
 
-  Character or integer vector. Parameters, names or positions in `coef`;
-  default all
+  Character or integer vector, or NULL. Parameters, names or positions
+  in `coef`; NULL (default) for all of them
 
 - level:
 
@@ -88,7 +90,7 @@ bt
 #> log_sigma         2.077   2.081 0.003391     0.0522
 confint(bt)
 #>                     2.5 %     97.5 %
-#> b1:(Intercept) 115.486761 126.788665
+#> b1:(Intercept) 115.486761 126.788667
 #> b2:(Intercept)  29.413291  32.173617
 #> b3:(Intercept)  11.447898  14.613563
 #> sigma            7.353607   8.738824

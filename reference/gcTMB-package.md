@@ -31,27 +31,28 @@ profile likelihood and parametric bootstrap confidence intervals
 Gaussian and lognormal models without random effects, likelihood ratio
 tests with chi-square, F or parametric bootstrap p-values (anova()),
 information criteria such as AIC, AICc, BIC and HQIC and goodness-of-fit
-criteria (criteria()), and pairwise comparisons of a parameter between
-curves with single-step multiplicity adjustment (pairwise()). The times
-at which the curves reach a percentage of their asymptote or a given
-response (timeto()), and the maximum growth rates, their timing and the
-fraction of the asymptote reached then (maxrate()), are derived with
-standard errors by automatic differentiation and the delta method, and
-with profile likelihood and bootstrap intervals, for the population
-curves, and for timeto() also for fitted individuals. Methods for gcTMB
-fits include summary(), predict() with confidence and prediction
-intervals of the curves or their parameters, fitted() and residuals()
-(Pearson, randomised quantile and normalized), plot() of validation
-plots and fitted curves, simulate() at the observed or new times and
-individuals, update() to refit the model or set its parameters as the
-true model of a simulation study, logLik(), coef(), vcov(), converged(),
-and the extractors fixef(), ranef(), VarCorr(), sigma() and corpars(),
-compatible with 'nlme' and 'lme4'. The data sets FabaHeights25 (heights
-of faba bean plants under five treatments) and FabaCounts23 (pod counts
-of six faba bean genotypes) illustrate the methods. Four vignettes cover
-the growth models and their parameters, fixed and random effects, the
-timing and maximum growth rates, and autocorrelation and simulation, and
-an overview shows most of the features in one document.
+criteria (criteria()), and tests of the differences of a parameter
+between curves, against a reference or between all pairs, with
+multiplicity adjustment (partest()). The times at which the curves reach
+a percentage of their asymptote or a given response (timeto()), and the
+maximum growth rates, their timing and the fraction of the asymptote
+reached then (maxrate()), are derived with standard errors by automatic
+differentiation and the delta method, and with profile likelihood and
+bootstrap intervals, for the population curves, and for timeto() also
+for fitted individuals. Methods for gcTMB fits include summary(),
+predict() with confidence and prediction intervals of the curves or
+their parameters, fitted() and residuals() (Pearson, randomised quantile
+and normalized), plot() of validation plots and fitted curves,
+simulate() at the observed or new times and individuals, update() to
+refit the model or set its parameters as the true model of a simulation
+study, logLik(), coef(), vcov(), converged(), and the extractors
+fixef(), ranef(), VarCorr(), sigma() and corpars(), compatible with
+'nlme' and 'lme4'. The data sets FabaHeights25 (heights of faba bean
+plants under five treatments) and FabaCounts23 (pod counts of six faba
+bean genotypes) illustrate the methods. Four vignettes cover the growth
+models and their parameters, fixed and random effects, the timing and
+maximum growth rates, and autocorrelation and simulation, and an
+overview shows most of the features in one document.
 
 ## Growth models and fitting
 
@@ -98,8 +99,9 @@ and
   (likelihood ratio, F and parametric bootstrap tests),
   [`criteria`](https://emilskindersoe.github.io/gcTMB/reference/criteria.md)
   (information and goodness-of-fit criteria),
-  [`pairwise`](https://emilskindersoe.github.io/gcTMB/reference/pairwise.md)
-  (pairwise comparisons with single-step adjustment).
+  [`partest`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
+  (tests of the differences between curves: each curve against a
+  reference, Dunnett, or all pairs, Tukey, with single-step adjustment).
 
 ## Timing and growth rates
 

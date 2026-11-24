@@ -46,8 +46,9 @@ anova(
 
 - seed:
 
-  Integer or NULL. An optional seed for the random number generator, for
-  `test="boot"`
+  Integer or NULL. Seed for the random number generator, for
+  `test="boot"`; NULL (default) sets no seed: the draws continue from
+  the current state of the random number generator
 
 - progress:
 

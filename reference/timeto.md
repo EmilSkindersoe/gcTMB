@@ -46,18 +46,19 @@ timeto(
 
   Numeric matrix, list of matrices, or NULL. Linear functions to
   identify the parameters of the growth curve, with 5 rows (b1-b5) and
-  one column for each model coefficient, or a list of such matrices;
-  default is the identity matrix, for models without covariates in
-  fform. Each matrix is paired with an entry of level.
+  one column for each model coefficient, or a list of such matrices. If
+  curves and newdata are both NULL (default), the identity matrix, for
+  models without covariates in fform. Each matrix is paired with an
+  entry of level.
 
 - newdata:
 
   Data frame or NULL. The values of the covariates in fform, one row for
   each growth curve, as an alternative to curves; the time is not
-  needed. With grouping variables of the random effects, the curves of
-  fitted groups, see Details. The times are computed at each entry of
-  level for each row, named by the covariate and group values (or by the
-  row names of newdata, if set).
+  needed. NULL (default) to use curves. With grouping variables of the
+  random effects, the curves of fitted groups, see Details. The times
+  are computed at each entry of level for each row, named by the
+  covariate and group values (or by the row names of newdata, if set).
 
 - random:
 

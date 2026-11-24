@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9015</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -80,7 +80,7 @@
 <li>
 <strong>Autocorrelation</strong>: AR(1) and continuous-time AR(1) residuals within individuals, <code>correlation = corCAR1(form = ~ day | plant)</code>, with the correlation structures of nlme.</li>
 <li>
-<strong>Inference</strong>: profile likelihood, Wald and parametric bootstrap confidence intervals; likelihood ratio tests with chi-square, F or parametric bootstrap p-values; information criteria; pairwise comparisons between curves with simultaneous confidence intervals; small-sample t and F inference for gaussian models without random effects.</li>
+<strong>Inference</strong>: profile likelihood, Wald and parametric bootstrap confidence intervals; likelihood ratio tests with chi-square, F or parametric bootstrap p-values; information criteria; tests of the differences between curves (<code><a href="reference/partest.html">partest()</a></code>), against a reference or between all pairs, with simultaneous confidence intervals; small-sample t and F inference for gaussian models without random effects.</li>
 <li>
 <strong>Derived quantities</strong>: times to reach a percentage of the asymptote or a given response (<code><a href="reference/timeto.html">timeto()</a></code>), and the maximum growth rate, its timing and the fraction of the asymptote reached then (<code><a href="reference/maxrate.html">maxrate()</a></code>), with standard errors and confidence intervals.</li>
 <li>
@@ -305,6 +305,7 @@
 <span><span class="co">#&gt; b2:trt0.6         1.884      1.616</span></span>
 <span><span class="co">#&gt; b2:trt0.8         2.224      1.627</span></span>
 <span><span class="co">#&gt; b3:(Intercept)   12.948      0.363</span></span>
+<span><span class="co">#&gt; Tests of the differences between curves, with p-values and confidence intervals: partest().</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;  Groups   Name Std.Dev. Corr </span></span>
@@ -361,43 +362,23 @@
 <code class="sourceCode R"><span><span class="va">genotypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Genotype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">FabaCounts23</span><span class="op">$</span><span class="va">Genotype</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fitp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Genotype</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Tube_ID</span>, data <span class="op">=</span> <span class="va">FabaCounts23</span>,</span>
 <span>              family <span class="op">=</span> <span class="st">"poisson"</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, b1type <span class="op">=</span> <span class="st">"rate"</span>, link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/pairwise.html">pairwise</a></span><span class="op">(</span><span class="va">fitp</span>, newdata <span class="op">=</span> <span class="va">genotypes</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Pairwise differences of b1 (maximum growth rate) on the scale of its log link:</span></span>
+<span><span class="fu"><a href="reference/partest.html">partest</a></span><span class="op">(</span><span class="va">fitp</span>, newdata <span class="op">=</span> <span class="va">genotypes</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Differences to the reference of b1 (maximum growth rate) on the scale of its log link:</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;                                    Estimate Std.Error z value p.value  lower</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78767 -0.360</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=ILB938    0.4572     0.231   1.976 0.35585 -0.202</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Lynx     -0.2753     0.231  -1.192 0.84195 -0.933</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Melodie  -0.5368     0.245  -2.191 0.24139 -1.235</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Navara   -0.1767     0.232  -0.762 0.97484 -0.838</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=ILB938     0.1570     0.218   0.722 0.98021 -0.463</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Lynx      -0.5755     0.217  -2.650 0.08513 -1.194</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00444 -1.498</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24384 -1.099</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Lynx     -0.7324     0.217  -3.376 0.00970 -1.351</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Melodie  -0.9940     0.232  -4.288 0.00032 -1.655</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04185 -1.255</span></span>
-<span><span class="co">#&gt; Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87005 -0.921</span></span>
-<span><span class="co">#&gt; Genotype=Lynx - Genotype=Navara      0.0985     0.218   0.453 0.99757 -0.521</span></span>
-<span><span class="co">#&gt; Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63191 -0.302</span></span>
-<span><span class="co">#&gt;                                      upper ratio ratio.lower ratio.upper</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Capri    0.9600 1.350       0.698       2.612</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=ILB938   1.1164 1.580       0.817       3.054</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Lynx     0.3828 0.759       0.393       1.466</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Melodie  0.1613 0.585       0.291       1.175</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Navara   0.4841 0.838       0.433       1.623</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=ILB938    0.7769 1.170       0.629       2.175</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Lynx      0.0434 0.562       0.303       1.044</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Melodie  -0.1763 0.433       0.224       0.838</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Navara    0.1448 0.621       0.333       1.156</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Lynx    -0.1142 0.481       0.259       0.892</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Melodie -0.3335 0.370       0.191       0.716</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Navara  -0.0127 0.531       0.285       0.987</span></span>
-<span><span class="co">#&gt; Genotype=Lynx - Genotype=Melodie    0.3978 0.770       0.398       1.489</span></span>
-<span><span class="co">#&gt; Genotype=Lynx - Genotype=Navara     0.7185 1.104       0.594       2.051</span></span>
-<span><span class="co">#&gt; Genotype=Melodie - Genotype=Navara  1.0223 1.433       0.739       2.780</span></span>
+<span><span class="co">#&gt;                                    Estimate Std.Error z value p.value   lower</span></span>
+<span><span class="co">#&gt; Genotype=Capri - Genotype=Aurora     -0.300     0.232  -1.296   0.542 -0.8801</span></span>
+<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Aurora    -0.457     0.231  -1.976   0.171 -1.0366</span></span>
+<span><span class="co">#&gt; Genotype=Lynx - Genotype=Aurora       0.275     0.231   1.192   0.620 -0.3031</span></span>
+<span><span class="co">#&gt; Genotype=Melodie - Genotype=Aurora    0.537     0.245   2.191   0.108 -0.0767</span></span>
+<span><span class="co">#&gt; Genotype=Navara - Genotype=Aurora     0.177     0.232   0.762   0.900 -0.4041</span></span>
+<span><span class="co">#&gt;                                    upper ratio ratio.lower ratio.upper</span></span>
+<span><span class="co">#&gt; Genotype=Capri - Genotype=Aurora   0.280 0.741       0.415        1.32</span></span>
+<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Aurora  0.122 0.633       0.355        1.13</span></span>
+<span><span class="co">#&gt; Genotype=Lynx - Genotype=Aurora    0.854 1.317       0.739        2.35</span></span>
+<span><span class="co">#&gt; Genotype=Melodie - Genotype=Aurora 1.150 1.711       0.926        3.16</span></span>
+<span><span class="co">#&gt; Genotype=Navara - Genotype=Aurora  0.758 1.193       0.668        2.13</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits, and ratios.</span></span></code></pre></div>
+<span><span class="co">#&gt; Wald z tests; p-values and confidence limits adjusted by the single-step (Dunnett) method, 95% confidence limits, and ratios.</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -512,7 +493,7 @@
 <tr>
 <td>Tests and model choice</td>
 <td>
-<code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova()</a></code>, <code><a href="reference/criteria.html">criteria()</a></code>, <code><a href="reference/pairwise.html">pairwise()</a></code>
+<code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova()</a></code>, <code><a href="reference/criteria.html">criteria()</a></code>, <code><a href="reference/partest.html">partest()</a></code>
 </td>
 </tr>
 <tr>

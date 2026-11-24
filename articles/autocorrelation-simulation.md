@@ -141,6 +141,7 @@ summary(fitrec)
 #> b2:CropMaize:InputHigh           0.5966      3.205
 #> b2:CropSweet sorghum:InputHigh   0.5322      2.444
 #> b3:(Intercept)                 278.3070      1.079
+#> Tests of the differences between curves, with p-values and confidence intervals: partest().
 #> Fixed: b4:(Intercept) = 141
 #> 
 #> Random effects:
@@ -162,7 +163,7 @@ anova(fitre, fitrec)
 #> 
 #>        npar    AIC    BIC  logLik deviance         LR Df Pr(>LR)
 #> fitre    15 962.53 1012.9 -466.27   932.53                      
-#> fitrec   16 964.53 1018.2 -466.27   932.53 2.8821e-08  1  0.9999
+#> fitrec   16 964.53 1018.2 -466.27   932.53 2.8823e-08  1  0.9999
 ```
 
 The estimate of $`\rho`$ moves far down from its starting value, to a

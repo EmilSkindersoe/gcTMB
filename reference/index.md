@@ -59,9 +59,9 @@
   [`print(`*`<bootstrap.gcTMB>`*`)`](https://emilskindersoe.github.io/gcTMB/reference/bootstrap.md)
   [`confint(`*`<bootstrap.gcTMB>`*`)`](https://emilskindersoe.github.io/gcTMB/reference/bootstrap.md)
   : Parametric bootstrap of a gcTMB model
-- [`pairwise()`](https://emilskindersoe.github.io/gcTMB/reference/pairwise.md)
-  [`print(`*`<pairwise.gcTMB>`*`)`](https://emilskindersoe.github.io/gcTMB/reference/pairwise.md)
-  : Pairwise comparisons of a parameter between growth curves
+- [`partest()`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
+  [`print(`*`<partest.gcTMB>`*`)`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
+  : Tests of the differences of a parameter between growth curves
 
 ## Timing and maximum growth rates
 

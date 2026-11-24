@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9015</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,7 +59,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Timing and maximum growth rates</h1>
             
-            <h4 data-toc-skip class="date">2026-11-23</h4>
+            <h4 data-toc-skip class="date">2026-11-24</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/timing-rates.Rmd" class="external-link"><code>vignettes/timing-rates.Rmd</code></a></small>
       <div class="d-none name"><code>timing-rates.Rmd</code></div>
@@ -250,7 +250,6 @@ coefficients of that parameter):</p>
 <code class="sourceCode R"><span><span class="va">fitre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b3</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">+</span> <span class="va">b5</span> <span class="op">~</span> <span class="va">sex</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b5</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">id</span>,</span>
 <span>               data <span class="op">=</span> <span class="va">berkeley</span>, model <span class="op">=</span> <span class="st">"preecebaines"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">custom</span><span class="op">)</span>,</span>
 <span>               control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: the optimiser did not converge: false convergence (8)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fitre</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; gcTMB(form = height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, </span></span>
@@ -275,6 +274,7 @@ coefficients of that parameter):</p>
 <span><span class="co">#&gt; b4:sexfemale     0.01575      0.002</span></span>
 <span><span class="co">#&gt; b5:(Intercept)   0.60790      0.020</span></span>
 <span><span class="co">#&gt; b5:sexfemale     0.01405      0.028</span></span>
+<span><span class="co">#&gt; Tests of the differences between curves, with p-values and confidence intervals: partest().</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;  Groups Name Std.Dev. Corr       </span></span>
@@ -284,7 +284,7 @@ coefficients of that parameter):</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation: 2.087</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: false convergence (8), maximum absolute gradient 0.0065</span></span>
+<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.02</span></span>
 <span><span class="fu"><a href="../reference/converged.html">converged</a></span><span class="op">(</span><span class="va">fitre</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>With 17 parameters and strongly correlated random effects, the
@@ -320,18 +320,18 @@ here the population curves of the sexes
 <span><span class="co">#&gt; fraction:sex=female    0.828    0.0107</span></span></code></pre></div>
 <p>The girls reach the middle of puberty, the peak of their growth spurt
 and their adult height about two years earlier than the boys.
-<code><a href="../reference/pairwise.html">pairwise()</a></code> compares a parameter between the rows of
+<code><a href="../reference/partest.html">partest()</a></code> compares a parameter between the rows of
 <code>newdata</code> by Wald tests, here the middle of puberty
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
-(see below for the details of <code><a href="../reference/pairwise.html">pairwise()</a></code>):</p>
+(see below for the details of <code><a href="../reference/partest.html">partest()</a></code>):</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/pairwise.html">pairwise</a></span><span class="op">(</span><span class="va">fitre</span>, newdata <span class="op">=</span> <span class="va">sexes</span>, parm <span class="op">=</span> <span class="st">"b2"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Pairwise differences of b2 (location in time):</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/partest.html">partest</a></span><span class="op">(</span><span class="va">fitre</span>, newdata <span class="op">=</span> <span class="va">sexes</span>, parm <span class="op">=</span> <span class="st">"b2"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Differences to the reference of b2 (location in time):</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;                       Estimate Std.Error z value p.value lower upper</span></span>
-<span><span class="co">#&gt; sex=male - sex=female     2.27     0.296    7.67  &lt;2e-16  1.68  2.85</span></span>
+<span><span class="co">#&gt; sex=female - sex=male    -2.27     0.296   -7.67  &lt;2e-16 -2.85 -1.68</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits.</span></span></code></pre></div>
+<span><span class="co">#&gt; Wald z tests; p-values and confidence limits adjusted by the single-step (Dunnett) method, 95% confidence limits.</span></span></code></pre></div>
 <p>The height and the growth rate of the population curves of the sexes,
 the growth rate by the differences of the predicted heights:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
@@ -400,13 +400,14 @@ there:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;                  Estimate Std. Error</span></span>
-<span><span class="co">#&gt; b1:(Intercept)   2.007188      0.014</span></span>
-<span><span class="co">#&gt; b1:sexfemale    -0.002929      0.020</span></span>
+<span><span class="co">#&gt; b1:(Intercept)   2.007187      0.014</span></span>
+<span><span class="co">#&gt; b1:sexfemale    -0.002928      0.020</span></span>
 <span><span class="co">#&gt; b2:(Intercept)   0.381010      0.006</span></span>
 <span><span class="co">#&gt; b2:sexfemale     0.072460      0.005</span></span>
-<span><span class="co">#&gt; b3:(Intercept)   4.477682      0.053</span></span>
-<span><span class="co">#&gt; b4:(Intercept) 131.815382      0.598</span></span>
-<span><span class="co">#&gt; b4:sexfemale    -7.368548      0.836</span></span>
+<span><span class="co">#&gt; b3:(Intercept)   4.477683      0.053</span></span>
+<span><span class="co">#&gt; b4:(Intercept) 131.815373      0.598</span></span>
+<span><span class="co">#&gt; b4:sexfemale    -7.368561      0.836</span></span>
+<span><span class="co">#&gt; Tests of the differences between curves, with p-values and confidence intervals: partest().</span></span>
 <span><span class="co">#&gt; The coefficients of b1, b3 are on the log scale.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
@@ -417,7 +418,7 @@ there:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation: 1.57</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.0087</span></span>
+<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.0024</span></span>
 <span><span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -445,12 +446,12 @@ and
 <span><span class="co">#&gt;        npar   AIC   BIC  logLik deviance       LR Df Pr(&gt;LR)</span></span>
 <span><span class="co">#&gt; fitrr0   13 12623 12701 -6298.3    12597                    </span></span>
 <span><span class="co">#&gt; fitrr    14 12625 12709 -6298.3    12597 0.021342  1  0.8839</span></span></code></pre></div>
-<p><code><a href="../reference/pairwise.html">pairwise()</a></code> compares the maximum growth rates of all
-pairs of rows of <code>newdata</code> by Wald tests. By default, the
-p-values and the confidence intervals are adjusted for the number of
-pairs by the single-step method, the generalisation of Tukey’s honestly
-significant differences to the correlated estimates of a model, so that
-the intervals cover all the differences simultaneously;
+<p><code><a href="../reference/partest.html">partest()</a></code> compares the maximum growth rates of all pairs
+of rows of <code>newdata</code> by Wald tests. By default, the p-values
+and the confidence intervals are adjusted for the number of pairs by the
+single-step method, the generalisation of Tukey’s honestly significant
+differences to the correlated estimates of a model, so that the
+intervals cover all the differences simultaneously;
 <code>adjust = "holm"</code> and the other methods of
 <code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">p.adjust()</a></code> adjust the p-values only. With two sexes there
 is a single pair, and no adjustment. With the log link, the differences
@@ -458,15 +459,15 @@ are log ratios of the rates, and the ratios are given as well. The same
 works for the other parameters, e.g. <code>parm = "b2"</code> as
 above.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/pairwise.html">pairwise</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Pairwise differences of b1 (maximum growth rate) on the scale of its log link:</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/partest.html">partest</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Differences to the reference of b1 (maximum growth rate) on the scale of its log link:</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;                       Estimate Std.Error z value p.value   lower  upper ratio</span></span>
-<span><span class="co">#&gt; sex=male - sex=female  0.00293      0.02   0.146   0.884 -0.0366 0.0424     1</span></span>
+<span><span class="co">#&gt; sex=female - sex=male -0.00293      0.02  -0.146   0.884 -0.0424 0.0366 0.997</span></span>
 <span><span class="co">#&gt;                       ratio.lower ratio.upper</span></span>
-<span><span class="co">#&gt; sex=male - sex=female       0.964        1.04</span></span>
+<span><span class="co">#&gt; sex=female - sex=male       0.958        1.04</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits, and ratios.</span></span></code></pre></div>
+<span><span class="co">#&gt; Wald z tests; p-values and confidence limits adjusted by the single-step (Dunnett) method, 95% confidence limits, and ratios.</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> with <code>type = "parameters"</code> gives
 the asymptote of the population curves as well. For the Chapman-Richards
 curve with an intercept, the asymptote is the growth above the intercept
@@ -480,8 +481,8 @@ plus the asymptote:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sex <span class="op">=</span> <span class="va">sexes</span><span class="op">$</span><span class="va">sex</span>, peak_rate <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b1"</span><span class="op">]</span>, height_before_spurt <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b4"</span><span class="op">]</span>,</span>
 <span>           growth_in_spurt <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"asymptote"</span><span class="op">]</span>, adult_height <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b4"</span><span class="op">]</span> <span class="op">+</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"asymptote"</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      sex peak_rate height_before_spurt growth_in_spurt adult_height</span></span>
-<span><span class="co">#&gt; 1   male  7.442358            131.8154        52.79491     184.6103</span></span>
-<span><span class="co">#&gt; 2 female  7.420593            124.4468        44.22908     168.6759</span></span></code></pre></div>
+<span><span class="co">#&gt; 1   male  7.442353            131.8154        52.79488     184.6102</span></span>
+<span><span class="co">#&gt; 2 female  7.420597            124.4468        44.22909     168.6759</span></span></code></pre></div>
 <p>The adult heights agree with the asymptotes
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
 of the Preece-Baines curves of the sexes above.</p>

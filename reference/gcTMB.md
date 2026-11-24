@@ -45,9 +45,10 @@ gcTMB(
   Formula, list of formulas, or NULL. Fixed effects for the model
   parameters: a formula of the form b1 + b2 ~ Treatment, or a list of
   such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site).
-  Parameters not listed have a single intercept (~ 1). A list of five
-  right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~
-  1), is also accepted.
+  Parameters not listed have a single intercept (~ 1); NULL (default)
+  gives every parameter a single intercept, one curve for all the data.
+  A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~
+  1, ..., X5 = ~ 1), is also accepted.
 
 - rform:
 
@@ -68,7 +69,7 @@ gcTMB(
   random effect of b3 independent of both, as
   random=pdBlocked(list(pdSymm(b1 + b2 ~ 1), pdSymm(b3 ~ 1))) in nlme.
   The random slopes of a parameter usually go with a fixed effect of the
-  covariate in fform.
+  covariate in fform. NULL (default) for no random effects.
 
 - data:
 
@@ -79,9 +80,10 @@ gcTMB(
 
   Numeric vector or NULL. Starting values for each model coefficient. NA
   entries are replaced by the starting values of
-  [`gcTMBstart`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md).
-  Alternatively, a vector named by parameter, e.g. c(b1=10), gives the
-  same starting value to all coefficients of each named parameter.
+  [`gcTMBstart`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md),
+  and NULL (default) uses them for all coefficients. Alternatively, a
+  vector named by parameter, e.g. c(b1=10), gives the same starting
+  value to all coefficients of each named parameter.
 
 - fix:
 
@@ -89,7 +91,8 @@ gcTMB(
   a model coefficient is fixed to its value in start. Alternatively, a
   vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of
   the named parameters; their values must then be given in start, e.g.
-  start=c(b1=10). The threshold (start of growth) b4 and the asymmetry
+  start=c(b1=10). NULL (default) fixes only the parameters that are
+  fixed by default. The threshold (start of growth) b4 and the asymmetry
   b5 are fixed by default, at b4 = 0 (the curve starts at zero at t = 0)
   and b5 = 1 (the symmetric curve) unless given in start; so is the
   intercept b4 of the chapmanrichards and korf models, at the breast
@@ -100,11 +103,11 @@ gcTMB(
 
 - weights:
 
-  Numeric vector or NULL. Weights, one for each row of data. Unlike the
-  `weights` of nlme, which are variance functions (`varFunc`), these are
-  numeric case weights of the log-likelihood; with a correlation
-  structure, they are precision weights, as `weights=varFixed(~ 1/w)` in
-  nlme.
+  Numeric vector or NULL. Weights, one for each row of data; NULL
+  (default) for a weight of 1 for every row. Unlike the `weights` of
+  nlme, which are variance functions (`varFunc`), these are numeric case
+  weights of the log-likelihood; with a correlation structure, they are
+  precision weights, as `weights=varFixed(~ 1/w)` in nlme.
 
 - lower:
 
@@ -190,7 +193,7 @@ gcTMB(
   rate, which
   [`anova.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/anova.gcTMB.md)
   and
-  [`pairwise`](https://emilskindersoe.github.io/gcTMB/reference/pairwise.md)
+  [`partest`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
   can test.
 
 - correlation:
@@ -210,20 +213,24 @@ gcTMB(
 - gsl:
 
   Numeric vector or NULL. Lower bounds for a grid search, same length as
-  start; NA for the default range. If gsl, gsu and gsn are all NULL, no
-  grid search is performed. See
+  start; NA for the default range. If gsl, gsu and gsn are all NULL
+  (default), no grid search is performed and the starting values come
+  from linear models (method "lm" of gcTMBstart); if any of them is
+  given, NULL for the others means the default ranges and 10 grid
+  points. See
   [`gcTMBstart`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md).
 
 - gsu:
 
   Numeric vector or NULL. Upper bounds for a grid search, same length as
-  start; NA for the default range.
+  start; NA for the default range, see gsl for NULL.
 
 - gsn:
 
   Integer, a single number or a vector, or NULL. Number of grid points
   for each parameter, a single number or a vector with the same length
-  as start. `gsn=10` alone runs a grid search over the default ranges.
+  as start. `gsn=10` alone runs a grid search over the default ranges;
+  see gsl for NULL.
 
 - control:
 
@@ -537,6 +544,7 @@ summary(fitre)
 #> b1:trt0.8         8.983      5.635
 #> b2:(Intercept)   30.874      0.540
 #> b3:(Intercept)   12.844      0.250
+#> Tests of the differences between curves, with p-values and confidence intervals: partest().
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr 
@@ -548,7 +556,7 @@ summary(fitre)
 #> Optimiser: relative convergence (4), maximum absolute gradient 5.2e-05
 
 # treatment effects on the maximum growth rate, b1 with b1type = "rate", tested by a likelihood
-# ratio test and compared in pairs
+# ratio test and compared with the first treatment
 fitr <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25, b1type="rate")
 fitr0 <- gcTMB(height ~ DAS, fform=b2 ~ trt, data=FabaHeights25, b1type="rate")
 anova(fitr0, fitr)
@@ -559,22 +567,16 @@ anova(fitr0, fitr)
 #> fitr    12 1401.8 1441.4 -688.90   1377.8 15.619  4 0.003576 **
 #> ---
 #> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-pairwise(fitr, newdata=data.frame(trt=levels(FabaHeights25$trt)))
-#> Pairwise differences of b1 (maximum growth rate):
+partest(fitr, newdata=data.frame(trt=levels(FabaHeights25$trt)))
+#> Differences to the reference of b1 (maximum growth rate):
 #> 
-#>                   Estimate Std.Error t value p.value  lower    upper
-#> trt=0.1 - trt=0.3   0.0149    0.0776   0.193  0.9997 -0.199  0.22877
-#> trt=0.1 - trt=0.5  -0.2053    0.0822  -2.498  0.0944 -0.432  0.02129
-#> trt=0.1 - trt=0.6  -0.2180    0.0835  -2.611  0.0717 -0.448  0.01216
-#> trt=0.1 - trt=0.8  -0.1624    0.0839  -1.937  0.3009 -0.394  0.06881
-#> trt=0.3 - trt=0.5  -0.2203    0.0794  -2.774  0.0478 -0.439 -0.00137
-#> trt=0.3 - trt=0.6  -0.2330    0.0807  -2.885  0.0350 -0.456 -0.01036
-#> trt=0.3 - trt=0.8  -0.1774    0.0811  -2.186  0.1898 -0.401  0.04634
-#> trt=0.5 - trt=0.6  -0.0127    0.0849  -0.150  0.9999 -0.247  0.22135
-#> trt=0.5 - trt=0.8   0.0429    0.0854   0.502  0.9873 -0.193  0.27832
-#> trt=0.6 - trt=0.8   0.0556    0.0867   0.642  0.9686 -0.183  0.29456
+#>                   Estimate Std.Error t value p.value    lower upper
+#> trt=0.3 - trt=0.1  -0.0149    0.0776  -0.193  0.9991 -0.20635 0.176
+#> trt=0.5 - trt=0.1   0.2053    0.0822   2.498  0.0462  0.00247 0.408
+#> trt=0.6 - trt=0.1   0.2180    0.0835   2.611  0.0344  0.01197 0.424
+#> trt=0.8 - trt=0.1   0.1624    0.0839   1.937  0.1705 -0.04457 0.369
 #> 
-#> Wald t tests on 189 degrees of freedom; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits.
+#> Wald t tests on 189 degrees of freedom; p-values and confidence limits adjusted by the single-step (Dunnett) method, 95% confidence limits.
 
 # residuals of each plant correlated over time, continuous-time AR(1)
 fitc <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25,

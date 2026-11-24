@@ -15,7 +15,7 @@ validation plots. The graphs are ggplot2 graphs."><meta property="og:image" cont
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9015</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -103,17 +103,17 @@ predicted random effects</p></dd>
 
 <dt id="arg-times">times<a class="anchor" aria-label="anchor" href="#arg-times"></a></dt>
 <dd><p>Numeric vector or NULL. The times at which the curves are drawn, e.g.
-<code>seq(0, 61, by=0.1)</code> to draw them from time 0; default 200 times over the range of the
+<code>seq(0, 61, by=0.1)</code> to draw them from time 0; NULL (default) for 200 times over the range of the
 observed times</p></dd>
 
 
 <dt id="arg-ncol">ncol<a class="anchor" aria-label="anchor" href="#arg-ncol"></a></dt>
-<dd><p>Integer or NULL. Number of columns of the page</p></dd>
+<dd><p>Integer or NULL. Number of columns of the page; NULL (default) for about as many columns as rows, the square root of the number of graphs rounded up</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>Integer or NULL. Seed for the randomised quantile residuals, which for the discrete
-families are random; it has no effect for the continuous families</p></dd>
+families are random; it has no effect for the continuous families. NULL (default) sets no seed: the draws continue from the current state of the random number generator</p></dd>
 
 
 <dt id="arg-draw">draw<a class="anchor" aria-label="anchor" href="#arg-draw"></a></dt>

@@ -30,7 +30,7 @@ confint(
 - parm:
 
   Character or integer vector, or NULL. Estimates, names or positions in
-  `coef(object)`; default all
+  `coef(object)`; NULL (default) for all of them
 
 - level:
 
@@ -48,14 +48,16 @@ confint(
 
 - seed:
 
-  Integer or NULL. An optional seed for the random number generator of
-  the bootstrap
+  Integer or NULL. Seed for the random number generator of the
+  bootstrap; NULL (default) sets no seed: the draws continue from the
+  current state of the random number generator
 
 - boot:
 
   A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from
   [`bootstrap`](https://emilskindersoe.github.io/gcTMB/reference/bootstrap.md),
-  used instead of new simulations
+  used instead of new simulations; implies `method="boot"`. With NULL
+  (default), method="boot" simulates nsim new bootstrap samples
 
 - ...:
 
