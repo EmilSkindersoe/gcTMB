@@ -84,7 +84,7 @@ test_that("fixed effects and variance components are recovered", {
 test_that("plot gives diagnostic ggplots", {
   f <- gcTMB(y ~ day, truncated=FALSE, rform=b1 ~ 1 | id, data=simre())
   p <- plot(f, which=1:4, draw=FALSE, seed=1)
-  expect_equal(names(p), c("fitted", "time", "qq", "ranef"))
+  expect_equal(names(p), c("fitted", "time", "qq", "ranef", "curves"))
   expect_true(all(vapply(p, inherits, logical(1), "ggplot")))
   expect_equal(p$time$labels$x, "day")
   expect_equal(p$time$labels$title, "Residuals vs day")
@@ -152,4 +152,18 @@ test_that("plot with type='curves' draws the curves of the individuals and the p
   expect_equal(names(pb), c("fitted", "time", "qq", "ranef", "curves"))
   expect_silent(plot(f, type=c("curves", "validation")))
   expect_equal(names(plot(f, type=c("curves", "validation"), draw=FALSE)), c("fitted", "time", "qq", "curves"))
+  # validation: the curves are added last, as a single graph without a legend
+  pv <- plot(fg, draw=FALSE)
+  expect_equal(names(pv), c("fitted", "time", "qq", "curves"))
+  expect_equal(pv$curves$theme$legend.position, "none")
+  expect_s3_class(pv$curves$facet, "FacetNull")
+  # curves alone: the individuals with the data and the population curves in two panels, one legend
+  expect_s3_class(pgp$facet, "FacetWrap")
+  bg <- ggplot2::ggplot_build(pgp)
+  expect_equal(unique(bg$data[[1]]$PANEL), factor(1, levels=1:2))
+  expect_equal(unique(bg$data[[2]]$PANEL), factor(1, levels=1:2))
+  expect_equal(unique(bg$data[[3]]$PANEL), factor(2, levels=1:2))
+  expect_false(identical(pgp$theme$legend.position, "none"))
+  # without random effects: a single graph
+  expect_s3_class(p0$facet, "FacetNull")
 })

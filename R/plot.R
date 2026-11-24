@@ -2,9 +2,12 @@
 #'
 #' Validation plots (\code{type="validation"}, the default): residuals against the fitted values,
 #' residuals against x (e.g. time), a normal QQ plot of the residuals, and normal QQ plots of the predicted
-#' random effects. Fitted curves (\code{type="curves"}): the data with the fitted curves. With
-#' \code{type=c("validation", "curves")}, the curves plot is drawn last on the same page as the
-#' validation plots. The graphs are ggplot2 graphs.
+#' random effects, with the data and the fitted curves drawn last on the same page, without a legend.
+#' Fitted curves (\code{type="curves"}): for models with random effects, two panels with one legend,
+#' the data with the curves of the individuals, and the population curves of the fixed effects alone;
+#' for models without random effects, a single graph of the data with the fitted curves.
+#' \code{type=c("validation", "curves")} is the same as \code{type="validation"}. The graphs are
+#' ggplot2 graphs.
 #'
 #' The default randomised quantile residuals are standard normal under the model for all families,
 #' so the QQ plot is compared with the identity line; for the discrete families they are drawn
@@ -27,14 +30,18 @@
 #' of the observed times: for models with random effects, the curve of each individual (each
 #' combination of the grouping variables of the random effects) with its predicted random effects,
 #' and the population curves, with the random effects at zero, as thick lines for each combination
-#' of the covariates of the fixed effects (\code{fform}). Points and curves are coloured by these
+#' of the covariates of the fixed effects (\code{fform}). With \code{type="curves"}, the population
+#' curves are in a panel of their own, next to the data and the curves of the individuals, and both
+#' panels share the colours and the legend. Points and curves are coloured by these
 #' covariates. A single numeric covariate is shown on a continuous colour scale, with the population
 #' curves at its 10\%, 50\% and 90\% quantiles. The covariates of an individual are taken from its
 #' first observation.
 #'
 #' @param x A gcTMB object, the result of \code{\link{gcTMB}}.
-#' @param type Character vector. "validation" (default) for the validation plots, "curves" for the
-#'   data with the fitted curves, or both, \code{c("validation", "curves")}, with the curves last
+#' @param type Character vector. "validation" (default) for the validation plots with the data and
+#'   the fitted curves last, without a legend; "curves" for the data with the curves of the
+#'   individuals and the population curves in two panels with one legend.
+#'   \code{c("validation", "curves")} is the same as "validation"
 #' @param which Integer vector, a subset of 1:4. The validation plots to draw: 1 residuals against
 #'   fitted values, 2 residuals against x, 3 normal QQ plot of the residuals, 4 normal QQ plots of
 #'   the predicted random effects (models with random effects only)
@@ -53,11 +60,10 @@
 #'
 #' @examples
 #' fit <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25)
-#' plot(fit, which=1:4)
-#' # the data with the curves of the plants and the population curve, from sowing
-#' plot(fit, type="curves", times=seq(0, 61, by=0.1))
 #' # validation plots with the curves last
-#' plot(fit, type=c("validation", "curves"))
+#' plot(fit, which=1:4)
+#' # the data with the curves of the plants, and the population curve, from sowing
+#' plot(fit, type="curves", times=seq(0, 61, by=0.1))
 #' # by treatment
 #' FabaHeights25$trt <- factor(FabaHeights25$Treatment)
 #' fitt <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
@@ -70,7 +76,8 @@
 #' plot(fitp, seed=1)
 #'
 #' @return a list of ggplot objects, invisibly, for changing or drawing single graphs: fitted, time,
-#'   qq and ranef for the validation plots, and curves for the curves plot
+#'   qq and ranef for the validation plots, and curves for the curves plot (with
+#'   \code{type="curves"} and random effects, one graph with the two panels as facets)
 #' @export
 plot.gcTMB <- function(x, type=c("validation", "curves"), which=1:3, residuals=c("quantile", "pearson", "response", "normalized"), random=TRUE,
                        times=NULL, ncol=NULL, seed=NULL, draw=TRUE, ...){
@@ -112,8 +119,11 @@ plot.gcTMB <- function(x, type=c("validation", "curves"), which=1:3, residuals=c
         ggplot2::labs(x="Theoretical quantiles", y="Predicted random effects", title="Random effects")
     }
   }
-  # the curves last
-  if ("curves" %in% type) plots$curves <- curveplot(x, times)
+  # the curves last: with the validation plots a single graph without a legend; alone, the individuals
+  # with the data and the population curves side by side, with one legend
+  if ("validation" %in% type){
+    plots$curves <- curveplot(x, times) + ggplot2::theme(legend.position="none")
+  } else plots$curves <- curveplot(x, times, split=TRUE)
   if (draw){
     if (length(plots) == 1) print(plots[[1]]) else drawplots(plots, ncol)
   }
@@ -124,7 +134,9 @@ plot.gcTMB <- function(x, type=c("validation", "curves"), which=1:3, residuals=c
 # combination of the grouping variables) with its predicted random effects, and the population curves
 # (random effects zero) of each combination of the covariates of the fixed effects, at the times, by
 # default over the range of the observed times. Points and curves are coloured by the covariates of the fixed effects.
-curveplot <- function(x, times=NULL, ngrid=200){
+# split=TRUE (models with random effects): two panels with one legend and colour scale, the data with the
+# curves of the individuals, and the population curves alone.
+curveplot <- function(x, times=NULL, ngrid=200, split=FALSE){
   tvar <- all.vars(x$formula[[3]])
   if (length(tvar) != 1) stop("the time of the model must be a single variable for fit=TRUE.")
   mf <- model.frame(x$formula, data=x$data, na.action=na.omit)
@@ -186,19 +198,27 @@ curveplot <- function(x, times=NULL, ngrid=200){
   }
 
   yname <- deparse(x$formula[[2]])
+  split <- split && !is.null(ig)
+  if (split){
+    panels <- c("Individuals and data", "Population")
+    d$panel <- factor(panels[1], levels=panels)
+    ig$panel <- factor(panels[1], levels=panels)
+    pg$panel <- factor(panels[2], levels=panels)
+  }
   if (length(covvars) > 0){
     p <- ggplot2::ggplot(d, ggplot2::aes(x=time, y=y, colour=cov)) +
       ggplot2::geom_point(alpha=0.6)
-    if (!is.null(ig)) p <- p + ggplot2::geom_line(data=ig, ggplot2::aes(group=curve), alpha=0.5)
+    if (!is.null(ig)) p <- p + ggplot2::geom_line(data=ig, ggplot2::aes(group=curve), alpha=0.35)
     p <- p + ggplot2::geom_line(data=pg, ggplot2::aes(group=curve), linewidth=1.2) +
       ggplot2::labs(colour=paste(covvars, collapse=", "))
     if (numcov) p <- p + ggplot2::scale_colour_viridis_c(end=0.9)
   } else {
     p <- ggplot2::ggplot(d, ggplot2::aes(x=time, y=y)) +
       ggplot2::geom_point(alpha=0.6, colour="grey40")
-    if (!is.null(ig)) p <- p + ggplot2::geom_line(data=ig, ggplot2::aes(group=curve), colour="grey50", alpha=0.7)
+    if (!is.null(ig)) p <- p + ggplot2::geom_line(data=ig, ggplot2::aes(group=curve), colour="grey50", alpha=0.49)
     p <- p + ggplot2::geom_line(data=pg, ggplot2::aes(group=curve), colour="blue", linewidth=1.2)
   }
+  if (split) p <- p + ggplot2::facet_wrap(~ panel)
   p + ggplot2::labs(x=tvar, y=yname,
                     title=if (!is.null(ig)) "Fitted curves: individuals and population" else if (nrow(pc) == 1) "Fitted curve" else "Fitted curves") +
     ggplot2::theme_bw()
@@ -268,4 +288,4 @@ drawplots <- function(plots, ncol=NULL){
 }
 
 # columns of the plot data used in the aesthetics
-utils::globalVariables(c("xv", "res", "x", "y", "theo", "intercept", "slope", "time", "cov", "curve"))
+utils::globalVariables(c("xv", "res", "x", "y", "theo", "intercept", "slope", "time", "cov", "curve", "panel"))

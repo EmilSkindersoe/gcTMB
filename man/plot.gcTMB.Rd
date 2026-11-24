@@ -20,8 +20,10 @@
 \arguments{
 \item{x}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
-\item{type}{Character vector. "validation" (default) for the validation plots, "curves" for the
-data with the fitted curves, or both, \code{c("validation", "curves")}, with the curves last}
+\item{type}{Character vector. "validation" (default) for the validation plots with the data and
+the fitted curves last, without a legend; "curves" for the data with the curves of the
+individuals and the population curves in two panels with one legend.
+\code{c("validation", "curves")} is the same as "validation"}
 
 \item{which}{Integer vector, a subset of 1:4. The validation plots to draw: 1 residuals against
 fitted values, 2 residuals against x, 3 normal QQ plot of the residuals, 4 normal QQ plots of
@@ -48,14 +50,18 @@ families are random; it has no effect for the continuous families. NULL (default
 }
 \value{
 a list of ggplot objects, invisibly, for changing or drawing single graphs: fitted, time,
-qq and ranef for the validation plots, and curves for the curves plot
+qq and ranef for the validation plots, and curves for the curves plot (with
+\code{type="curves"} and random effects, one graph with the two panels as facets)
 }
 \description{
 Validation plots (\code{type="validation"}, the default): residuals against the fitted values,
 residuals against x (e.g. time), a normal QQ plot of the residuals, and normal QQ plots of the predicted
-random effects. Fitted curves (\code{type="curves"}): the data with the fitted curves. With
-\code{type=c("validation", "curves")}, the curves plot is drawn last on the same page as the
-validation plots. The graphs are ggplot2 graphs.
+random effects, with the data and the fitted curves drawn last on the same page, without a legend.
+Fitted curves (\code{type="curves"}): for models with random effects, two panels with one legend,
+the data with the curves of the individuals, and the population curves of the fixed effects alone;
+for models without random effects, a single graph of the data with the fitted curves.
+\code{type=c("validation", "curves")} is the same as \code{type="validation"}. The graphs are
+ggplot2 graphs.
 }
 \details{
 The default randomised quantile residuals are standard normal under the model for all families,
@@ -79,18 +85,19 @@ The curves plot shows the data with the fitted curves at \code{times}, by defaul
 of the observed times: for models with random effects, the curve of each individual (each
 combination of the grouping variables of the random effects) with its predicted random effects,
 and the population curves, with the random effects at zero, as thick lines for each combination
-of the covariates of the fixed effects (\code{fform}). Points and curves are coloured by these
+of the covariates of the fixed effects (\code{fform}). With \code{type="curves"}, the population
+curves are in a panel of their own, next to the data and the curves of the individuals, and both
+panels share the colours and the legend. Points and curves are coloured by these
 covariates. A single numeric covariate is shown on a continuous colour scale, with the population
 curves at its 10\\%, 50\\% and 90\\% quantiles. The covariates of an individual are taken from its
 first observation.
 }
 \examples{
 fit <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25)
-plot(fit, which=1:4)
-# the data with the curves of the plants and the population curve, from sowing
-plot(fit, type="curves", times=seq(0, 61, by=0.1))
 # validation plots with the curves last
-plot(fit, type=c("validation", "curves"))
+plot(fit, which=1:4)
+# the data with the curves of the plants, and the population curve, from sowing
+plot(fit, type="curves", times=seq(0, 61, by=0.1))
 # by treatment
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
 fitt <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
