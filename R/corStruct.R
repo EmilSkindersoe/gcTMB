@@ -13,8 +13,8 @@
 #' \itemize{
 #'   \item \code{corAR1}: the autoregressive process of order 1 at integer times (positions), with
 #'     -1 < rho < 1; gaps in the times are allowed, e.g. measurements every second day with
-#'     \code{form = ~ day | plant} and a day without measurement, with the correlation rho^2 across a
-#'     gap of two days. Without a time covariate (\code{form = ~ 1 | plant}), the time is the position
+#'     \code{form = ~ day | ID} and a day without measurement, with the correlation rho^2 across a
+#'     gap of two days. Without a time covariate (\code{form = ~ 1 | ID}), the time is the position
 #'     of the observation within its group, in the order of the data;
 #'   \item \code{corCAR1}: the continuous-time autoregressive process of order 1, for times that need
 #'     not be integers and unequally spaced observations, with 0 < rho < 1.

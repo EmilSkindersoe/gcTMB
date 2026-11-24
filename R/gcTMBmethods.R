@@ -96,6 +96,7 @@ print.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...){
   printresid(x$family, residpar(x), digits)
   printcor(x, digits)
   if (isTRUE(x$modified)) cat("\nParameters set by update(): not estimates, without standard errors.\n")
+  if (!is.null(x$fiterror)) cat("\nThe fit failed: ", paste(x$fiterror, collapse="; "), "\n", sep="")
   invisible(x)
 }
 
@@ -136,7 +137,7 @@ summary.gcTMB <- function(object, ...){
 
   # gradient projected on the bounds: zero for coefficients at a bound that the likelihood pushes
   # against
-  gr <- as.vector(object$obj$gr(object$opt$par))
+  gr <- tryCatch(as.vector(object$obj$gr(object$opt$par)), error=function(e) rep(NaN, length(object$opt$par)))
   nb <- sum(!object$fix)
   if (!is.null(object$lower)){
     lo <- object$lower
@@ -150,7 +151,7 @@ summary.gcTMB <- function(object, ...){
               coefficients=coefs, fixed=userfixed(object), varcor=vcs, residpar=residpar(object), rdf=object$rdf,
               singular=singular, atbound=atbound(object),
               convergence=object$opt$convergence, message=object$opt$message,
-              maxgrad=max(abs(gr)), pdHess=object$sdrl$pdHess, modified=isTRUE(object$modified),
+              maxgrad=max(abs(gr)), fiterror=object$fiterror, pdHess=object$sdrl$pdHess, modified=isTRUE(object$modified),
               nosdreport=isFALSE(object$control$sdreport), correlation=object$correlation, corgroup=object$corgroup,
               reterms=object$reterms, corrho=corpars(object))
   class(res) <- "summary.gcTMB"
@@ -202,6 +203,13 @@ print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...
     return(invisible(x))
   }
   cat("\nOptimiser: ", x$message, ", maximum absolute gradient ", format(x$maxgrad, digits=2), "\n", sep="")
+  # the warnings of the fit, repeated
+  if (!is.null(x$fiterror)){
+    cat("The fit failed: ", paste(x$fiterror, collapse="; "), "\n", sep="")
+    return(invisible(x))
+  }
+  if (!is.finite(as.numeric(x$logLik))) cat("Warning: the negative log-likelihood is not finite at the estimates.\n")
+  else if (!identical(as.integer(x$convergence), 0L)) cat("Warning: the optimiser did not converge: ", x$message, "\n", sep="")
   if (isTRUE(x$nosdreport)) cat("Standard errors not computed (control sdreport=FALSE).\n")
   else if (!isTRUE(x$pdHess)) cat("Warning: the Hessian is not positive definite; the standard errors are not reliable.\n")
   invisible(x)

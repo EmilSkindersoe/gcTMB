@@ -11,7 +11,7 @@ gcTMB(
   data,
   start = NULL,
   fix = NULL,
-  weights = NULL,
+  correlation = NULL,
   lower = -Inf,
   upper = Inf,
   family = "gaussian",
@@ -19,7 +19,7 @@ gcTMB(
   truncated = TRUE,
   link = NULL,
   b1type = c("asymptote", "rate"),
-  correlation = NULL,
+  weights = NULL,
   gsl = NULL,
   gsu = NULL,
   gsn = NULL,
@@ -31,7 +31,7 @@ gcTMB(
 
 \item{fform}{Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1); NULL (default) gives every parameter a single intercept, one curve for all the data. A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.}
 
-\item{rform}{Formula, list of formulas, or NULL. Random effects: a formula of the form b1 + b2 ~ 1 | individual for random intercepts, or b1 ~ x | individual for random intercepts and slopes in a covariate x, or a list of such formulas, e.g. list(b1 + b2 ~ 1 | plant, b1 ~ 1 | plot). The random effects within a formula are correlated across the listed parameters and their intercepts and slopes; different formulas and the levels of nested factors (1 | plot/plant) are independent terms. With a double bar, all the random coefficients of the formula are independent, across the parameters as well as their intercepts and slopes: b1 + b2 ~ 1 || individual is list(b1 ~ 1 | individual, b2 ~ 1 | individual), a diagonal covariance matrix as random=pdDiag(b1 + b2 ~ 1) in nlme. A list of formulas combines the two into a block-diagonal covariance matrix: list(b1 + b2 ~ 1 | individual, b3 ~ 1 | individual) gives correlated random effects of b1 and b2, and a random effect of b3 independent of both, as random=pdBlocked(list(pdSymm(b1 + b2 ~ 1), pdSymm(b3 ~ 1))) in nlme. The random slopes of a parameter usually go with a fixed effect of the covariate in fform. NULL (default) for no random effects.}
+\item{rform}{Formula, list of formulas, or NULL. Random effects: a formula of the form b1 + b2 ~ 1 | ID for random intercepts, or b1 ~ x | ID for random intercepts and slopes in a covariate x, or a list of such formulas, e.g. list(b1 + b2 ~ 1 | ID, b1 ~ 1 | site). The random effects within a formula are correlated across the listed parameters and their intercepts and slopes; different formulas and the levels of nested factors (1 | site/ID) are independent terms. With a double bar, all the random coefficients of the formula are independent, across the parameters as well as their intercepts and slopes: b1 + b2 ~ 1 || ID is list(b1 ~ 1 | ID, b2 ~ 1 | ID), a diagonal covariance matrix as random=pdDiag(b1 + b2 ~ 1) in nlme. A list of formulas combines the two into a block-diagonal covariance matrix: list(b1 + b2 ~ 1 | ID, b3 ~ 1 | ID) gives correlated random effects of b1 and b2, and a random effect of b3 independent of both, as random=pdBlocked(list(pdSymm(b1 + b2 ~ 1), pdSymm(b3 ~ 1))) in nlme. The random slopes of a parameter usually go with a fixed effect of the covariate in fform. NULL (default) for no random effects.}
 
 \item{data}{Data frame. Observations with missing values in the variables of the model or in the weights are left out.}
 
@@ -39,10 +39,11 @@ gcTMB(
 
 \item{fix}{Logical vector or NULL. One entry for each model coefficient. If TRUE, a model coefficient is fixed to its value in start. Alternatively, a vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of the named parameters; their values must then be given in start, e.g. start=c(b1=10). NULL (default) fixes only the parameters that are fixed by default. The threshold (start of growth) b4 and the asymmetry b5 are fixed by default, at b4 = 0 (the curve starts at zero at t = 0) and b5 = 1 (the symmetric curve) unless given in start; so is the intercept b4 of the chapmanrichards and korf models, at the breast height of 1.3, while the rates b4 and b5 of the preecebaines model are estimated; fix=c(b4=FALSE) or fix=c(b5=FALSE), or an unnamed fix vector, estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.}
 
-\item{weights}{Numeric vector or NULL. Weights, one for each row of data; NULL (default) for a weight of 1 for every row. Unlike the
-\code{weights} of nlme, which are variance functions (\code{varFunc}), these are numeric case
-weights of the log-likelihood; with a correlation structure, they are precision weights, as
-\code{weights=varFixed(~ 1/w)} in nlme.}
+\item{correlation}{A correlation structure or NULL. The autocorrelation of the residuals within
+groups over time, \code{\link{corAR1}} or \code{\link{corCAR1}} (or the same structures of
+the package nlme), e.g. \code{corCAR1(form=~ time | ID)}, for the gaussian and lognormal (on the
+log scale) families. NULL (default) for independent residuals. See \code{\link{corStruct}}; with
+a correlation structure, the weights are precision weights, with residual variance sigma^2/w.}
 
 \item{lower}{Numeric, a single value or a vector. Lower bounds for the model coefficients b1-b5, a single value or a vector with the same length as start. Bounds of fixed coefficients are ignored; variance parameters are unbounded.}
 
@@ -65,11 +66,10 @@ A link that a model does not allow gives an error naming the allowed ones. The c
 
 \item{b1type}{Character string. The meaning of b1: "asymptote" (default), or "rate" for the maximum growth rate of the curve, see Details. With "rate", covariates and random effects on b1 are effects on the maximum growth rate, which \code{\link{anova.gcTMB}} and \code{\link{partest}} can test.}
 
-\item{correlation}{A correlation structure or NULL. The autocorrelation of the residuals within
-groups over time, \code{\link{corAR1}} or \code{\link{corCAR1}} (or the same structures of
-the package nlme), e.g. \code{corCAR1(form=~ day | plant)}, for the gaussian and lognormal (on the
-log scale) families. NULL (default) for independent residuals. See \code{\link{corStruct}}; with
-a correlation structure, the weights are precision weights, with residual variance sigma^2/w.}
+\item{weights}{Numeric vector or NULL. Weights, one for each row of data; NULL (default) for a weight of 1 for every row. Unlike the
+\code{weights} of nlme, which are variance functions (\code{varFunc}), these are numeric case
+weights of the log-likelihood; with a correlation structure, they are precision weights, as
+\code{weights=varFixed(~ 1/w)} in nlme.}
 
 \item{gsl}{Numeric vector or NULL. Lower bounds for a grid search, same length as start; NA for the default range. If gsl, gsu and gsn are all NULL (default), no grid search is performed and the starting values come from linear models (method "lm" of gcTMBstart); if any of them is given, NULL for the others means the default ranges and 10 grid points. See \code{\link{gcTMBstart}}.}
 
@@ -144,10 +144,10 @@ growth spurt (the peak height velocity); \code{b1type="rate"} is not available.
 \itemize{
 \item the fixed and random effects are formulas for the parameters, as the arguments \code{fixed}
 and \code{random} of \code{nlme::nlme}: \code{fform=b1 + b2 ~ trt} or
-\code{fform=list(b1 ~ trt, b2 ~ 1)}, and \code{rform=b1 + b2 ~ 1 | plant}. The random effects of a
+\code{fform=list(b1 ~ trt, b2 ~ 1)}, and \code{rform=b1 + b2 ~ 1 | ID}. The random effects of a
 formula have an unstructured covariance matrix, as \code{pdSymm}; uncorrelated random effects,
-as \code{pdDiag}, are separate terms, e.g. \code{rform=list(b1 ~ 1 | plant, b2 ~ 1 | plant)} or
-\code{b1 ~ x || plant}. Nested factors (\code{1 | plot/plant}) and the double bar use the syntax
+as \code{pdDiag}, are separate terms, e.g. \code{rform=list(b1 ~ 1 | ID, b2 ~ 1 | ID)} or
+\code{b1 ~ x || ID}. Nested factors (\code{1 | site/ID}) and the double bar use the syntax
 of lme4;
 \item the correlation structures \code{\link{corAR1}} and \code{\link{corCAR1}} have the
 arguments and the parameterisation of nlme, whose objects are accepted as well, and

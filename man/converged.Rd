@@ -33,7 +33,9 @@ TRUE or FALSE, with the attribute \code{reasons}, a character vector of the fail
 (empty for a converged fit). NA for a model with parameters set by \code{\link{update.gcTMB}}.
 }
 \description{
-Whether the fit converged to a maximum of the likelihood: the negative log-likelihood is finite,
+Whether the fit converged to a maximum of the likelihood. A fit that failed with an error and was
+returned by \code{control=list(onerror="warning")} (see \code{\link{gcTMBcontrol}}) has not
+converged, with its error as the reason. Otherwise: the negative log-likelihood is finite,
 the optimiser reports convergence, the Hessian of the parameters is positive definite (not checked
 for fits with \code{control=list(sdreport=FALSE)}, see \code{\link{gcTMBcontrol}}), and the
 largest absolute gradient is below \code{gradtol}. By default, fits with standard deviations of

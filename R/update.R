@@ -13,7 +13,7 @@
 #' matrix of \code{vcov} and the confidence intervals are NA, and \code{\link{converged}} returns NA.
 #' The log-likelihood is that of the data at the new parameters. To fit the data as well as possible
 #' with a chosen value of a parameter, refit the model with that parameter fixed instead, e.g.
-#' \code{correlation=corCAR1(0.8, form=~ day | plant, fixed=TRUE)} for the autocorrelation, or
+#' \code{correlation=corCAR1(0.8, form=~ time | ID, fixed=TRUE)} for the autocorrelation, or
 #' \code{start=c(b5=2)} for the asymmetry, which is fixed by default; the other parameters are then estimated given it, whereas
 #' \code{update} keeps their values. For gaussian models without random
 #' effects, the residual standard deviation is the value given, without the small-sample correction
@@ -163,7 +163,9 @@ covtheta <- function(S, np, name){
 
 #' Convergence of a gcTMB fit
 #'
-#' Whether the fit converged to a maximum of the likelihood: the negative log-likelihood is finite,
+#' Whether the fit converged to a maximum of the likelihood. A fit that failed with an error and was
+#' returned by \code{control=list(onerror="warning")} (see \code{\link{gcTMBcontrol}}) has not
+#' converged, with its error as the reason. Otherwise: the negative log-likelihood is finite,
 #' the optimiser reports convergence, the Hessian of the parameters is positive definite (not checked
 #' for fits with \code{control=list(sdreport=FALSE)}, see \code{\link{gcTMBcontrol}}), and the
 #' largest absolute gradient is below \code{gradtol}. By default, fits with standard deviations of
@@ -205,6 +207,8 @@ converged <- function(object, gradtol=1e-3, singular=FALSE, sdtol=1e-8, lltol=1e
   small <- names(sds)[sds < sdtol]
   # a restart (control restart=TRUE) that hardly changed the log-likelihood: the fit is at the maximum
   stable <- !is.null(object$restart) && is.finite(object$restart$improvement) && object$restart$improvement < lltol
+  # a fit that failed with an error (control onerror="warning"): its error is the reason
+  if (!is.null(object$fiterror)) return(structure(FALSE, reasons=paste("the fit failed:", object$fiterror)))
   reasons <- c(
     if (!is.finite(as.numeric(s$logLik))) "the log-likelihood is not finite",
     if (!stable && s$convergence != 0) paste("the optimiser did not converge:", s$message),

@@ -6,14 +6,15 @@
 #'
 #' @param form Formula, with the names of the response and the explanatory variable x, e.g. \code{weight ~ day}. x is usually time, but can be any variable along which the response grows towards an asymptote, e.g. the diameter of trees in a height-diameter model \code{height ~ dbh}.
 #' @param fform Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1); NULL (default) gives every parameter a single intercept, one curve for all the data. A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.
-#' @param rform Formula, list of formulas, or NULL. Random effects: a formula of the form b1 + b2 ~ 1 | individual for random intercepts, or b1 ~ x | individual for random intercepts and slopes in a covariate x, or a list of such formulas, e.g. list(b1 + b2 ~ 1 | plant, b1 ~ 1 | plot). The random effects within a formula are correlated across the listed parameters and their intercepts and slopes; different formulas and the levels of nested factors (1 | plot/plant) are independent terms. With a double bar, all the random coefficients of the formula are independent, across the parameters as well as their intercepts and slopes: b1 + b2 ~ 1 || individual is list(b1 ~ 1 | individual, b2 ~ 1 | individual), a diagonal covariance matrix as random=pdDiag(b1 + b2 ~ 1) in nlme. A list of formulas combines the two into a block-diagonal covariance matrix: list(b1 + b2 ~ 1 | individual, b3 ~ 1 | individual) gives correlated random effects of b1 and b2, and a random effect of b3 independent of both, as random=pdBlocked(list(pdSymm(b1 + b2 ~ 1), pdSymm(b3 ~ 1))) in nlme. The random slopes of a parameter usually go with a fixed effect of the covariate in fform. NULL (default) for no random effects.
+#' @param rform Formula, list of formulas, or NULL. Random effects: a formula of the form b1 + b2 ~ 1 | ID for random intercepts, or b1 ~ x | ID for random intercepts and slopes in a covariate x, or a list of such formulas, e.g. list(b1 + b2 ~ 1 | ID, b1 ~ 1 | site). The random effects within a formula are correlated across the listed parameters and their intercepts and slopes; different formulas and the levels of nested factors (1 | site/ID) are independent terms. With a double bar, all the random coefficients of the formula are independent, across the parameters as well as their intercepts and slopes: b1 + b2 ~ 1 || ID is list(b1 ~ 1 | ID, b2 ~ 1 | ID), a diagonal covariance matrix as random=pdDiag(b1 + b2 ~ 1) in nlme. A list of formulas combines the two into a block-diagonal covariance matrix: list(b1 + b2 ~ 1 | ID, b3 ~ 1 | ID) gives correlated random effects of b1 and b2, and a random effect of b3 independent of both, as random=pdBlocked(list(pdSymm(b1 + b2 ~ 1), pdSymm(b3 ~ 1))) in nlme. The random slopes of a parameter usually go with a fixed effect of the covariate in fform. NULL (default) for no random effects.
 #' @param data Data frame. Observations with missing values in the variables of the model or in the weights are left out.
 #' @param start Numeric vector or NULL. Starting values for each model coefficient. NA entries are replaced by the starting values of \code{\link{gcTMBstart}}, and NULL (default) uses them for all coefficients. Alternatively, a vector named by parameter, e.g. c(b1=10), gives the same starting value to all coefficients of each named parameter.
 #' @param fix Logical vector or NULL. One entry for each model coefficient. If TRUE, a model coefficient is fixed to its value in start. Alternatively, a vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of the named parameters; their values must then be given in start, e.g. start=c(b1=10). NULL (default) fixes only the parameters that are fixed by default. The threshold (start of growth) b4 and the asymmetry b5 are fixed by default, at b4 = 0 (the curve starts at zero at t = 0) and b5 = 1 (the symmetric curve) unless given in start; so is the intercept b4 of the chapmanrichards and korf models, at the breast height of 1.3, while the rates b4 and b5 of the preecebaines model are estimated; fix=c(b4=FALSE) or fix=c(b5=FALSE), or an unnamed fix vector, estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.
-#' @param weights Numeric vector or NULL. Weights, one for each row of data; NULL (default) for a weight of 1 for every row. Unlike the
-#'   \code{weights} of nlme, which are variance functions (\code{varFunc}), these are numeric case
-#'   weights of the log-likelihood; with a correlation structure, they are precision weights, as
-#'   \code{weights=varFixed(~ 1/w)} in nlme.
+#' @param correlation A correlation structure or NULL. The autocorrelation of the residuals within
+#'   groups over time, \code{\link{corAR1}} or \code{\link{corCAR1}} (or the same structures of
+#'   the package nlme), e.g. \code{corCAR1(form=~ time | ID)}, for the gaussian and lognormal (on the
+#'   log scale) families. NULL (default) for independent residuals. See \code{\link{corStruct}}; with
+#'   a correlation structure, the weights are precision weights, with residual variance sigma^2/w.
 #' @param lower Numeric, a single value or a vector. Lower bounds for the model coefficients b1-b5, a single value or a vector with the same length as start. Bounds of fixed coefficients are ignored; variance parameters are unbounded.
 #' @param upper Numeric, a single value or a vector. Upper bounds for the model coefficients b1-b5, a single value or a vector with the same length as start.
 #' @param family Character string. The distribution of the response, one of "gaussian", "lognormal", "binomial", "betabinomial", "beta", "poisson", "nbinom2", and "nbinom1". For the lognormal family, log(y) is normal with mean log f(t) and standard deviation sigma: the curve f is the median of a positive response, with a constant coefficient of variation; the mean is f(t) exp(sigma^2/2). The negative binomial families are for overdispersed counts, with variance mu (1 + mu/theta) for nbinom2 and mu (1 + phi) for nbinom1, and the beta-binomial family for overdispersed binomial counts, with variance n mu (1 - mu) (1 + (n - 1)/(phi + 1)) for n trials, as in glmmTMB.
@@ -28,11 +29,10 @@
 #'   }
 #'   A link that a model does not allow gives an error naming the allowed ones. The coefficients, and start, fix, lower, upper and curves of \code{\link{timeto}}, are on the scale of the links, see Details.
 #' @param b1type Character string. The meaning of b1: "asymptote" (default), or "rate" for the maximum growth rate of the curve, see Details. With "rate", covariates and random effects on b1 are effects on the maximum growth rate, which \code{\link{anova.gcTMB}} and \code{\link{partest}} can test.
-#' @param correlation A correlation structure or NULL. The autocorrelation of the residuals within
-#'   groups over time, \code{\link{corAR1}} or \code{\link{corCAR1}} (or the same structures of
-#'   the package nlme), e.g. \code{corCAR1(form=~ day | plant)}, for the gaussian and lognormal (on the
-#'   log scale) families. NULL (default) for independent residuals. See \code{\link{corStruct}}; with
-#'   a correlation structure, the weights are precision weights, with residual variance sigma^2/w.
+#' @param weights Numeric vector or NULL. Weights, one for each row of data; NULL (default) for a weight of 1 for every row. Unlike the
+#'   \code{weights} of nlme, which are variance functions (\code{varFunc}), these are numeric case
+#'   weights of the log-likelihood; with a correlation structure, they are precision weights, as
+#'   \code{weights=varFixed(~ 1/w)} in nlme.
 #' @param gsl Numeric vector or NULL. Lower bounds for a grid search, same length as start; NA for the default range. If gsl, gsu and gsn are all NULL (default), no grid search is performed and the starting values come from linear models (method "lm" of gcTMBstart); if any of them is given, NULL for the others means the default ranges and 10 grid points. See \code{\link{gcTMBstart}}.
 #' @param gsu Numeric vector or NULL. Upper bounds for a grid search, same length as start; NA for the default range, see gsl for NULL.
 #' @param gsn Integer, a single number or a vector, or NULL. Number of grid points for each parameter, a single number or a vector with the same length as start. \code{gsn=10} alone runs a grid search over the default ranges; see gsl for NULL.
@@ -93,10 +93,10 @@
 #' \itemize{
 #'   \item the fixed and random effects are formulas for the parameters, as the arguments \code{fixed}
 #'     and \code{random} of \code{nlme::nlme}: \code{fform=b1 + b2 ~ trt} or
-#'     \code{fform=list(b1 ~ trt, b2 ~ 1)}, and \code{rform=b1 + b2 ~ 1 | plant}. The random effects of a
+#'     \code{fform=list(b1 ~ trt, b2 ~ 1)}, and \code{rform=b1 + b2 ~ 1 | ID}. The random effects of a
 #'     formula have an unstructured covariance matrix, as \code{pdSymm}; uncorrelated random effects,
-#'     as \code{pdDiag}, are separate terms, e.g. \code{rform=list(b1 ~ 1 | plant, b2 ~ 1 | plant)} or
-#'     \code{b1 ~ x || plant}. Nested factors (\code{1 | plot/plant}) and the double bar use the syntax
+#'     as \code{pdDiag}, are separate terms, e.g. \code{rform=list(b1 ~ 1 | ID, b2 ~ 1 | ID)} or
+#'     \code{b1 ~ x || ID}. Nested factors (\code{1 | site/ID}) and the double bar use the syntax
 #'     of lme4;
 #'   \item the correlation structures \code{\link{corAR1}} and \code{\link{corCAR1}} have the
 #'     arguments and the parameterisation of nlme, whose objects are accepted as well, and
@@ -210,7 +210,7 @@
 #' coef(fitt)
 #' @export
 
-gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weights=NULL, lower=-Inf, upper=Inf, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type=c("asymptote", "rate"), correlation=NULL, gsl=NULL, gsu=NULL, gsn=NULL, control=list()){
+gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, correlation=NULL, lower=-Inf, upper=Inf, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type=c("asymptote", "rate"), weights=NULL, gsl=NULL, gsu=NULL, gsn=NULL, control=list()){
   b1type <- match.arg(b1type)
   # control list
   control <- do.call(gcTMBcontrol, control)
@@ -253,20 +253,38 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weig
   upper <- bounds(upper, Inf)
 
   ctrl <- list(iter.max=control$iter.max, eval.max=control$eval.max)
-  if (is.null(rform)){
-    # Newton steps with the Hessian; quasi-Newton steps if the Hessian is not finite on the way, e.g.
-    # for parameters far outside the range of the data
-    opt <- tryCatch(nlminb(start=obj$par, objective=obj$fn, gradient=obj$gr, hessian=obj$he, lower=lower, upper=upper, control=ctrl),
-                    error=function(e) nlminb(start=obj$par, objective=obj$fn, gradient=obj$gr, lower=lower, upper=upper, control=ctrl))
-  } else {
-    opt <- nlminb(start=obj$par, objective=obj$fn, gradient=obj$gr, lower=lower, upper=upper, control=ctrl)
-    opt <- retryvariances(obj, opt, dd$re$terms, lower, upper, ctrl)
+  # control onerror="warning": an error of the fitting is kept in fiterror, and the fit continues
+  # from the fallback, e.g. the starting values
+  fiterror <- NULL
+  catchfit <- function(expr, fallback){
+    if (control$onerror == "stop") return(expr)
+    tryCatch(expr, error=function(e){
+      fiterror <<- c(fiterror, conditionMessage(e))
+      fallback()
+    })
   }
+  failedopt <- function(par) function(){
+    objective <- tryCatch(as.numeric(obj$fn(par)), error=function(e) NaN)
+    list(par=par, objective=objective, convergence=1L, message=paste("error:", fiterror[length(fiterror)]),
+         iterations=0L, evaluations=c("function"=0L, gradient=0L))
+  }
+  opt <- catchfit({
+    if (is.null(rform)){
+      # Newton steps with the Hessian; quasi-Newton steps if the Hessian is not finite on the way, e.g.
+      # for parameters far outside the range of the data
+      tryCatch(nlminb(start=obj$par, objective=obj$fn, gradient=obj$gr, hessian=obj$he, lower=lower, upper=upper, control=ctrl),
+               error=function(e) nlminb(start=obj$par, objective=obj$fn, gradient=obj$gr, lower=lower, upper=upper, control=ctrl))
+    } else {
+      opt <- nlminb(start=obj$par, objective=obj$fn, gradient=obj$gr, lower=lower, upper=upper, control=ctrl)
+      retryvariances(obj, opt, dd$re$terms, lower, upper, ctrl)
+    }
+  }, failedopt(obj$par))
   # truncated curves: the likelihood has a kink in the threshold b4 at each observation time, where
   # the optimiser often stops before the other parameters are optimal
   i4 <- which(dd$npi[!fix] == 4)
   if (isTRUE(dd$trunc) && length(i4) > 0 && is.finite(opt$objective) && opt$convergence != 0){
-    opt <- thresholdopt(obj, opt, i4, lower, upper, ctrl, dd, start, fix)
+    opt0 <- opt
+    opt <- catchfit(thresholdopt(obj, opt, i4, lower, upper, ctrl, dd, start, fix), function() opt0)
   }
   # restart: once more from the estimates, if the optimiser did not report convergence or the gradient
   # is large; the better of the two optima is kept, and the improvement shows whether the first one
@@ -283,7 +301,10 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weig
       obj$fn(opt$par)
     }
   }
-  if (!is.finite(opt$objective)){
+  if (!is.null(fiterror)){
+    warning("the fit failed: ", fiterror[1], if (is.null(opt$iterations) || opt$iterations == 0)
+      "; the object is returned at the starting values" else "; the object is returned at the last optimum", call.=FALSE)
+  } else if (!is.finite(opt$objective)){
     warning("the negative log-likelihood is not finite at the estimates; some observations may be impossible under the model, e.g. positive counts where the curve is zero.", call.=FALSE)
   } else if (opt$convergence != 0){
     warning("the optimiser did not converge: ", opt$message, call.=FALSE)
@@ -319,8 +340,15 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, weig
   res$obj <- obj
   # without random effects, the Hessian by automatic differentiation: the default finite differences of
   # sdreport use absolute steps, which fail for coefficients on a small scale
-  res$sdrl <- if (isFALSE(control$sdreport)) nosdreport(obj, opt, dd$re$terms) else
-    sdreport(obj, par.fixed=opt$par, hessian.fixed=if (is.null(rform)) obj$he(opt$par))
+  # a failed optimisation has no covariance of the estimates; a failed sdreport gives the estimates
+  # without standard errors
+  res$sdrl <- if (isFALSE(control$sdreport) || !is.null(fiterror)) nosdreport(obj, opt, dd$re$terms) else
+    catchfit(sdreport(obj, par.fixed=opt$par, hessian.fixed=if (is.null(rform)) obj$he(opt$par)),
+             function(){
+               warning("the fit failed: ", fiterror[length(fiterror)], "; the object is returned without standard errors", call.=FALSE)
+               nosdreport(obj, opt, dd$re$terms)
+             })
+  res$fiterror <- fiterror
   # NaN standard errors of a Hessian that is not positive definite are reported by summary.gcTMB
   res$ssdrl <- if (inherits(res$sdrl, "nosdreport")) nosdrsummary(res$sdrl) else suppressWarnings(summary(res$sdrl))
   # residual degrees of freedom for small-sample inference of gaussian and lognormal models without
@@ -389,7 +417,8 @@ nosdreport <- function(obj, opt, terms){
   # the conditional modes of the random effects at the estimates (not last.par.best, the best point
   # evaluated so far, which need not be the estimates)
   par.random <- if (!is.null(r)){
-    obj$fn(opt$par)
+    # a failed fit (control onerror="warning") may not be evaluable at its estimates
+    try(obj$fn(opt$par), silent=TRUE)
     env$last.par[r]
   } else numeric(0)
   pl <- env$parList(opt$par)

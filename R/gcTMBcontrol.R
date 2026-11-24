@@ -21,6 +21,16 @@
 #'   then hardly changes the log-likelihood. The improvement of the log-likelihood by the restart is
 #'   kept in the fit (\code{fit$restart$improvement}), and \code{\link{converged}} accepts a fit that
 #'   the restart improved by less than its argument lltol. FALSE (default) for no restart.
+#' @param onerror Character string. What a fit does when the fitting itself fails with an error, e.g.
+#'   the optimiser stops at a point where the likelihood cannot be evaluated, or the covariance of the
+#'   estimates (sdreport) cannot be computed: "stop" (default) stops with the error, as before;
+#'   "warning" turns the error into a warning and returns the gcTMB object, so that a loop over many
+#'   fits, e.g. a simulation study, keeps the failed ones. If the optimiser fails, the returned
+#'   object has the starting values as its estimates (or the optimum before a failed refinement);
+#'   if only sdreport fails, it has the estimates without standard errors, as with
+#'   \code{sdreport=FALSE}. The error message is kept in \code{fit$fiterror}, printed by print and
+#'   summary, and \code{\link{converged}} reports the fit as not converged. Errors in the
+#'   specification of the model (formulas, data, links, starting values) stop in either case.
 #'
 #' @return A list with the control parameters.
 #' @examples
@@ -33,12 +43,18 @@
 #' fit <- gcTMB(height ~ DAS, rform=b1 + b2 + b3 ~ 1 | plant_ID, data=FabaHeights25,
 #'              control=list(restart=TRUE))
 #' converged(fit)
+#' # a loop over models: a fit that fails is returned with a warning instead of stopping the loop
+#' fits <- lapply(c("logistic", "gompertz"), function(m)
+#'   gcTMB(height ~ DAS, data=FabaHeights25, model=m, control=list(onerror="warning")))
+#' # the error of each fit, NULL if it did not fail
+#' lapply(fits, function(f) f$fiterror)
 #' @export
 #'
 
 gcTMBcontrol <- function(optimiser="nlminb", iter.max=1000, eval.max=2000, smallsample=TRUE, sdreport=TRUE,
-                         restart=FALSE){
+                         restart=FALSE, onerror=c("stop", "warning")){
     if (!identical(optimiser, "nlminb")) stop("the only available optimiser is \"nlminb\".")
+    onerror <- match.arg(onerror)
     list(optimiser=optimiser, iter.max=iter.max, eval.max=eval.max, smallsample=smallsample, sdreport=sdreport,
-         restart=restart)
+         restart=restart, onerror=onerror)
 }
