@@ -2,10 +2,14 @@
 
 Validation plots (`type="validation"`, the default): residuals against
 the fitted values, residuals against x (e.g. time), a normal QQ plot of
-the residuals, and normal QQ plots of the predicted random effects.
-Fitted curves (`type="curves"`): the data with the fitted curves. With
-`type=c("validation", "curves")`, the curves plot is drawn last on the
-same page as the validation plots. The graphs are ggplot2 graphs.
+the residuals, and normal QQ plots of the predicted random effects, with
+the data and the fitted curves drawn last on the same page, without a
+legend. Fitted curves (`type="curves"`): for models with random effects,
+two panels with one legend, the data with the curves of the individuals,
+and the population curves of the fixed effects alone; for models without
+random effects, a single graph of the data with the fitted curves.
+`type=c("validation", "curves")` is the same as `type="validation"`. The
+graphs are ggplot2 graphs.
 
 ## Usage
 
@@ -34,9 +38,11 @@ plot(
 
 - type:
 
-  Character vector. "validation" (default) for the validation plots,
-  "curves" for the data with the fitted curves, or both,
-  `c("validation", "curves")`, with the curves last
+  Character vector. "validation" (default) for the validation plots with
+  the data and the fitted curves last, without a legend; "curves" for
+  the data with the curves of the individuals and the population curves
+  in two panels with one legend. `c("validation", "curves")` is the same
+  as "validation"
 
 - which:
 
@@ -89,7 +95,8 @@ plot(
 
 a list of ggplot objects, invisibly, for changing or drawing single
 graphs: fitted, time, qq and ranef for the validation plots, and curves
-for the curves plot
+for the curves plot (with `type="curves"` and random effects, one graph
+with the two panels as facets)
 
 ## Details
 
@@ -123,21 +130,21 @@ effects, the curve of each individual (each combination of the grouping
 variables of the random effects) with its predicted random effects, and
 the population curves, with the random effects at zero, as thick lines
 for each combination of the covariates of the fixed effects (`fform`).
-Points and curves are coloured by these covariates. A single numeric
-covariate is shown on a continuous colour scale, with the population
-curves at its 10\\ first observation.
+With `type="curves"`, the population curves are in a panel of their own,
+next to the data and the curves of the individuals, and both panels
+share the colours and the legend. Points and curves are coloured by
+these covariates. A single numeric covariate is shown on a continuous
+colour scale, with the population curves at its 10\\ first observation.
 
 ## Examples
 
 ``` r
 fit <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25)
+# validation plots with the curves last
 plot(fit, which=1:4)
 
-# the data with the curves of the plants and the population curve, from sowing
+# the data with the curves of the plants, and the population curve, from sowing
 plot(fit, type="curves", times=seq(0, 61, by=0.1))
-
-# validation plots with the curves last
-plot(fit, type=c("validation", "curves"))
 
 # by treatment
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)

@@ -201,6 +201,7 @@ parameter):
 fitre <- gcTMB(Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, rform = b1 + b2 + b5 ~ 1 | ID,
                data = berkeley, model = "preecebaines", start = unname(custom),
                control = list(restart = TRUE))
+#> Warning: the optimiser did not converge: false convergence (8)
 summary(fitre)
 #> Call:
 #> gcTMB(form = Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, 
@@ -235,7 +236,8 @@ summary(fitre)
 #> 
 #> Residual standard deviation: 2.087
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.02
+#> Optimiser: false convergence (8), maximum absolute gradient 0.0065
+#> Warning: the optimiser did not converge: false convergence (8)
 converged(fitre)
 #> [1] TRUE
 ```
@@ -353,13 +355,13 @@ summary(fitrr)
 #> 
 #> Coefficients:
 #>                  Estimate Std. Error
-#> b1:(Intercept)   2.007187      0.014
-#> b1:Sexfemale    -0.002928      0.020
+#> b1:(Intercept)   2.007188      0.014
+#> b1:Sexfemale    -0.002929      0.020
 #> b2:(Intercept)   0.381010      0.006
 #> b2:Sexfemale     0.072460      0.005
-#> b3:(Intercept)   4.477683      0.053
-#> b4:(Intercept) 131.815373      0.598
-#> b4:Sexfemale    -7.368561      0.836
+#> b3:(Intercept)   4.477682      0.053
+#> b4:(Intercept) 131.815382      0.598
+#> b4:Sexfemale    -7.368548      0.836
 #> Tests of the differences between curves, with p-values and confidence intervals: partest().
 #> The coefficients of b1, b3 are on the log scale.
 #> 
@@ -371,7 +373,7 @@ summary(fitrr)
 #> 
 #> Residual standard deviation: 1.57
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.0024
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.0087
 maxrate(fitrr, newdata = sexes)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
@@ -443,8 +445,8 @@ pars <- predict(fitrr, newdata = sexes, type = "parameters", random = FALSE)
 data.frame(Sex = sexes$Sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
            growth_in_spurt = pars[, "asymptote"], adult_height = pars[, "b4"] + pars[, "asymptote"])
 #>      Sex peak_rate height_before_spurt growth_in_spurt adult_height
-#> 1   male  7.442353            131.8154        52.79488     184.6102
-#> 2 female  7.420597            124.4468        44.22909     168.6759
+#> 1   male  7.442358            131.8154        52.79491     184.6103
+#> 2 female  7.420593            124.4468        44.22908     168.6759
 ```
 
 The adult heights agree with the asymptotes $`b_1`$ of the Preece-Baines

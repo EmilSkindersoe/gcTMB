@@ -695,14 +695,14 @@ when $`b_3`$ has no covariates or random effects.
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws
 validation plots: residuals against the fitted values and against time,
 and a normal QQ plot of the randomised quantile residuals (Dunn and
-Smyth, 1996). With `type = c("validation", "curves")`, the data with the
-fitted curve are added as the last graph. The repeated measurements of
-the same plants are not independent; the random effects of the plants
-(vignette *Fixed and random effects*) account for that.
+Smyth, 1996). The data with the fitted curve are added as the last
+graph; `type = "curves"` draws the curves alone. The repeated
+measurements of the same plants are not independent; the random effects
+of the plants (vignette *Fixed and random effects*) account for that.
 
 ``` r
 
-plot(fit, type = c("validation", "curves"))
+plot(fit)
 ```
 
 ![](growth-models_files/figure-html/unnamed-chunk-11-1.png)

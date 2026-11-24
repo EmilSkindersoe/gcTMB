@@ -248,7 +248,7 @@ fitre
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr
-#>  Plant_ID b1   9.484        
+#>  Plant_ID b1   9.483        
 #>           b2   2.194    0.35
 #> 
 #> Residual standard deviation: 3.709
@@ -311,12 +311,12 @@ fitp <- gcTMB(Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, 
 genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
 cbind(genotypes, predict(fitp, newdata = genotypes, type = "parameters", random = FALSE))
 #>   Genotype        b1       b2       b3 b4
-#> 1   Aurora 14.599604 70.05332 1.338929 65
-#> 2    Capri 11.197692 69.20293 1.338929 65
-#> 3   ILB938  9.120942 69.04494 1.338929 65
-#> 4     Lynx 19.581598 72.79717 1.338929 65
-#> 5  Melodie 25.297229 73.29756 1.338929 65
-#> 6   Navara 17.779349 72.65386 1.338929 65
+#> 1   Aurora 14.599634 70.05332 1.338935 65
+#> 2    Capri 11.197618 69.20292 1.338935 65
+#> 3   ILB938  9.120981 69.04494 1.338935 65
+#> 4     Lynx 19.581583 72.79718 1.338935 65
+#> 5  Melodie 25.297268 73.29758 1.338935 65
+#> 6   Navara 17.779358 72.65387 1.338935 65
 ```
 
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) checks a count
@@ -354,7 +354,7 @@ maxrate(fitre, newdata = trts)
 #> tmax:Soil=Loamy,Treatment=Irrigated          60.917  2.68e-01
 #> rate:Soil=Loamy,Treatment=Irrigated           2.612  3.75e-02
 #> fraction:Soil=Loamy,Treatment=Irrigated       0.500  1.43e-05
-#> tmax:Soil=Sandy,Treatment=Irrigated          59.763  2.75e-01
+#> tmax:Soil=Sandy,Treatment=Irrigated          59.764  2.75e-01
 #> rate:Soil=Sandy,Treatment=Irrigated           2.261  3.65e-02
 #> fraction:Soil=Sandy,Treatment=Irrigated       0.500  1.66e-05
 #> tmax:Soil=Loamy,Treatment=NotIrrigated       58.025  2.71e-01
@@ -381,27 +381,27 @@ partest(fitpr, newdata = genotypes, contrasts = "tukey")
 #> Pairwise differences of b1 (maximum growth rate) on the scale of its log link:
 #> 
 #>                                    Estimate Std.Error z value p.value  lower
-#> Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78767 -0.360
+#> Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78771 -0.360
 #> Genotype=Aurora - Genotype=ILB938    0.4572     0.231   1.976 0.35585 -0.202
 #> Genotype=Aurora - Genotype=Lynx     -0.2753     0.231  -1.192 0.84196 -0.933
 #> Genotype=Aurora - Genotype=Melodie  -0.5368     0.245  -2.191 0.24139 -1.235
 #> Genotype=Aurora - Genotype=Navara   -0.1767     0.232  -0.762 0.97484 -0.838
 #> Genotype=Capri - Genotype=ILB938     0.1570     0.218   0.722 0.98021 -0.463
-#> Genotype=Capri - Genotype=Lynx      -0.5755     0.217  -2.650 0.08513 -1.194
-#> Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00444 -1.498
-#> Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24384 -1.099
+#> Genotype=Capri - Genotype=Lynx      -0.5754     0.217  -2.649 0.08514 -1.194
+#> Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00443 -1.498
+#> Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24385 -1.099
 #> Genotype=ILB938 - Genotype=Lynx     -0.7324     0.217  -3.376 0.00970 -1.351
 #> Genotype=ILB938 - Genotype=Melodie  -0.9940     0.232  -4.288 0.00032 -1.655
-#> Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04185 -1.255
-#> Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87005 -0.921
+#> Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04186 -1.255
+#> Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87004 -0.921
 #> Genotype=Lynx - Genotype=Navara      0.0985     0.218   0.453 0.99757 -0.521
-#> Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63191 -0.302
+#> Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63192 -0.302
 #>                                      upper ratio ratio.lower ratio.upper
 #> Genotype=Aurora - Genotype=Capri    0.9600 1.350       0.698       2.612
-#> Genotype=Aurora - Genotype=ILB938   1.1164 1.580       0.817       3.054
+#> Genotype=Aurora - Genotype=ILB938   1.1165 1.580       0.817       3.054
 #> Genotype=Aurora - Genotype=Lynx     0.3828 0.759       0.393       1.466
 #> Genotype=Aurora - Genotype=Melodie  0.1613 0.585       0.291       1.175
-#> Genotype=Aurora - Genotype=Navara   0.4841 0.838       0.433       1.623
+#> Genotype=Aurora - Genotype=Navara   0.4842 0.838       0.433       1.623
 #> Genotype=Capri - Genotype=ILB938    0.7769 1.170       0.629       2.175
 #> Genotype=Capri - Genotype=Lynx      0.0434 0.562       0.303       1.044
 #> Genotype=Capri - Genotype=Melodie  -0.1763 0.433       0.224       0.838
