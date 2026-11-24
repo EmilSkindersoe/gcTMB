@@ -201,6 +201,7 @@ parameter):
 fitre <- gcTMB(height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, rform = b1 + b2 + b5 ~ 1 | id,
                data = berkeley, model = "preecebaines", start = unname(custom),
                control = list(restart = TRUE))
+#> Warning: the optimiser did not converge: false convergence (8)
 summary(fitre)
 #> Call:
 #> gcTMB(form = height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, 
@@ -235,7 +236,7 @@ summary(fitre)
 #> 
 #> Residual standard deviation: 2.087
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.02
+#> Optimiser: false convergence (8), maximum absolute gradient 0.0065
 converged(fitre)
 #> [1] TRUE
 ```
@@ -285,13 +286,13 @@ the middle of puberty $`b_2`$ (see below for the details of
 
 ``` r
 
-partest(fitre, newdata = sexes, parm = "b2")
+partest(fitre, newdata = sexes, parm = "b2", adjust = "none")
 #> Differences to the reference of b2 (location in time):
 #> 
-#>                       Estimate Std.Error z value p.value lower upper
-#> sex=female - sex=male    -2.27     0.296   -7.67  <2e-16 -2.85 -1.68
+#>                       Estimate Std.Error z value  p.value lower upper
+#> sex=female - sex=male    -2.27     0.296   -7.67 1.77e-14 -2.85 -1.69
 #> 
-#> Wald z tests; p-values and confidence limits adjusted by the single-step (Dunnett) method, 95% confidence limits.
+#> Wald z tests; unadjusted p-values and 95% confidence limits.
 ```
 
 The height and the growth rate of the population curves of the sexes,
@@ -353,13 +354,13 @@ summary(fitrr)
 #> 
 #> Coefficients:
 #>                  Estimate Std. Error
-#> b1:(Intercept)   2.007187      0.014
-#> b1:sexfemale    -0.002928      0.020
+#> b1:(Intercept)   2.007188      0.014
+#> b1:sexfemale    -0.002929      0.020
 #> b2:(Intercept)   0.381010      0.006
 #> b2:sexfemale     0.072460      0.005
-#> b3:(Intercept)   4.477683      0.053
-#> b4:(Intercept) 131.815373      0.598
-#> b4:sexfemale    -7.368561      0.836
+#> b3:(Intercept)   4.477682      0.053
+#> b4:(Intercept) 131.815382      0.598
+#> b4:sexfemale    -7.368548      0.836
 #> Tests of the differences between curves, with p-values and confidence intervals: partest().
 #> The coefficients of b1, b3 are on the log scale.
 #> 
@@ -371,7 +372,7 @@ summary(fitrr)
 #> 
 #> Residual standard deviation: 1.57
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.0024
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.0087
 maxrate(fitrr, newdata = sexes)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
@@ -402,29 +403,32 @@ anova(fitrr0, fitrr)
 ```
 
 [`partest()`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
-compares the maximum growth rates of all pairs of rows of `newdata` by
-Wald tests. By default, the p-values and the confidence intervals are
-adjusted for the number of pairs by the single-step method, the
-generalisation of Tukey’s honestly significant differences to the
+compares the maximum growth rates between the rows of `newdata` by Wald
+tests: by default each row against the first row
+(`contrasts = "dunnett"`; another reference with `ref`), or all the
+pairs of rows with `contrasts = "tukey"`. By default, the p-values and
+the confidence intervals are adjusted for the number of comparisons by
+the single-step method, Dunnett’s or Tukey’s method generalised to the
 correlated estimates of a model, so that the intervals cover all the
 differences simultaneously; `adjust = "holm"` and the other methods of
 [`p.adjust()`](https://rdrr.io/r/stats/p.adjust.html) adjust the
-p-values only. With two sexes there is a single pair, and no adjustment.
-With the log link, the differences are log ratios of the rates, and the
-ratios are given as well. The same works for the other parameters,
-e.g. `parm = "b2"` as above.
+p-values only, and `adjust = "none"` gives the unadjusted tests. With
+two sexes there is a single difference, girls against boys, shown here
+without adjustment. With the log link, the differences are log ratios of
+the rates, and the ratios are given as well. The same works for the
+other parameters, e.g. `parm = "b2"` as above.
 
 ``` r
 
-partest(fitrr, newdata = sexes)
+partest(fitrr, newdata = sexes, adjust = "none")
 #> Differences to the reference of b1 (maximum growth rate) on the scale of its log link:
 #> 
 #>                       Estimate Std.Error z value p.value   lower  upper ratio
-#> sex=female - sex=male -0.00293      0.02  -0.146   0.884 -0.0424 0.0366 0.997
+#> sex=female - sex=male -0.00293      0.02  -0.146   0.884 -0.0422 0.0363 0.997
 #>                       ratio.lower ratio.upper
-#> sex=female - sex=male       0.958        1.04
+#> sex=female - sex=male       0.959        1.04
 #> 
-#> Wald z tests; p-values and confidence limits adjusted by the single-step (Dunnett) method, 95% confidence limits, and ratios.
+#> Wald z tests; unadjusted p-values and 95% confidence limits, and ratios.
 ```
 
 [`predict()`](https://rdrr.io/r/stats/predict.html) with
@@ -440,8 +444,8 @@ pars <- predict(fitrr, newdata = sexes, type = "parameters", random = FALSE)
 data.frame(sex = sexes$sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
            growth_in_spurt = pars[, "asymptote"], adult_height = pars[, "b4"] + pars[, "asymptote"])
 #>      sex peak_rate height_before_spurt growth_in_spurt adult_height
-#> 1   male  7.442353            131.8154        52.79488     184.6102
-#> 2 female  7.420597            124.4468        44.22909     168.6759
+#> 1   male  7.442358            131.8154        52.79491     184.6103
+#> 2 female  7.420593            124.4468        44.22908     168.6759
 ```
 
 The adult heights agree with the asymptotes $`b_1`$ of the Preece-Baines
