@@ -113,11 +113,11 @@ autocorrelation and of the variance function.
 ## Examples
 
 ``` r
-fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
 fixef(fit)
 #> b1:(Intercept) b2:(Intercept) b3:(Intercept) 
 #>      121.08844       30.86626       12.84146 
-head(ranef(fit)$plant_ID)
+head(ranef(fit)$Plant_ID)
 #>             b1         b2
 #> 6    9.7005206  0.9458512
 #> 7    0.3047415  1.5134969
@@ -126,7 +126,7 @@ head(ranef(fit)$plant_ID)
 #> 10   3.5648711 -0.9288945
 #> 11   1.8398292  2.0643038
 VarCorr(fit)
-#> $plant_ID
+#> $Plant_ID
 #>            b1        b2
 #> b1 104.794030 -3.159913
 #> b2  -3.159913  6.558684

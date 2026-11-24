@@ -9,7 +9,7 @@ measured on eight days between 14 and 61 days after sowing (2025)."><meta proper
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9016</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9017</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,13 +65,13 @@ measured on eight days between 14 and 61 days after sowing (2025).</p>
 <dt>DAS</dt>
 <dd><p>days after sowing</p></dd>
 
-<dt>height</dt>
+<dt>Height</dt>
 <dd><p>plant height</p></dd>
 
 <dt>DASfact</dt>
 <dd><p>days after sowing, the same values as DAS</p></dd>
 
-<dt>plant_ID</dt>
+<dt>Plant_ID</dt>
 <dd><p>identifier of the plant, the same values as Tube_ID</p></dd>
 
 
@@ -80,15 +80,15 @@ measured on eight days between 14 and 61 days after sowing (2025).</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, rform<span class="op">=</span><span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plant_ID</span>, data<span class="op">=</span><span class="va">FabaHeights25</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, rform<span class="op">=</span><span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plant_ID</span>, data<span class="op">=</span><span class="va">FabaHeights25</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> gcTMB(form = height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> gcTMB(form = Height ~ DAS, rform = b1 + b2 ~ 1 | Plant_ID, data = FabaHeights25)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Model:  logistic, truncated at b4 = 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Family: gaussian, identity link for all parameters</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Number of observations: 200, groups: plant_ID 25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of observations: 200, groups: Plant_ID 25</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -513.7 (df = 7), AIC: 1041, BIC: 1064</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
@@ -99,7 +99,7 @@ measured on eight days between 14 and 61 days after sowing (2025).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Groups   Name Std.Dev. Corr </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  plant_ID b1   10.237        </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Plant_ID b1   10.237        </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           b2    2.561   -0.12</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Residual standard deviation: 2.074</span>

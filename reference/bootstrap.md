@@ -78,7 +78,7 @@ the scale of
 ## Examples
 
 ``` r
-fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 bt <- bootstrap(fit, nsim=50, seed=1, progress=FALSE)
 bt
 #> Parametric bootstrap: 50 of 50 fits converged

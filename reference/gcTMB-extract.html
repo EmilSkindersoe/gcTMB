@@ -19,7 +19,7 @@ list of covariance matrices (nlme returns a character table)."><meta property="o
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9016</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9017</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -146,11 +146,11 @@ of the residual autocorrelation and of the variance function.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, rform<span class="op">=</span><span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plant_ID</span>, data<span class="op">=</span><span class="va">FabaHeights25</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, rform<span class="op">=</span><span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plant_ID</span>, data<span class="op">=</span><span class="va">FabaHeights25</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">fixef</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept) b2:(Intercept) b3:(Intercept) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      121.08844       30.86626       12.84146 </span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu">ranef</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">$</span><span class="va">plant_ID</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu">ranef</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">$</span><span class="va">Plant_ID</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             b1         b2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6    9.7005206  0.9458512</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 7    0.3047415  1.5134969</span>
@@ -159,7 +159,7 @@ of the residual autocorrelation and of the variance function.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 10   3.5648711 -0.9288945</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 11   1.8398292  2.0643038</span>
 <span class="r-in"><span><span class="fu">VarCorr</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $plant_ID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $Plant_ID</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            b1        b2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> b1 104.794030 -3.159913</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> b2  -3.159913  6.558684</span>

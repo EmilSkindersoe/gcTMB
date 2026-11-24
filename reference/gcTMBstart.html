@@ -9,7 +9,7 @@ which can be inspected, modified, and passed to the start argument of gcTMB."><m
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9016</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9017</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -173,15 +173,15 @@ user-specified bounds.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">gcTMBstart</span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, model<span class="op">=</span><span class="st">"gompertz"</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">gcTMBstart</span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, model<span class="op">=</span><span class="st">"gompertz"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept) b2:(Intercept) b3:(Intercept) b4:(Intercept) b5:(Intercept) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      131.87454       27.92580       19.32536        0.00000        1.00000 </span>
 <span class="r-in"><span><span class="co"># with a given asymptote, from which b2 and b3 are linearised</span></span></span>
-<span class="r-in"><span><span class="fu">gcTMBstart</span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1<span class="op">=</span><span class="fl">120</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">gcTMBstart</span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1<span class="op">=</span><span class="fl">120</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept) b2:(Intercept) b3:(Intercept) b4:(Intercept) b5:(Intercept) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      120.00000       33.47664       11.57527        0.00000        1.00000 </span>
 <span class="r-in"><span><span class="co"># best point of a grid of b2 and b3 values</span></span></span>
-<span class="r-in"><span><span class="fu">gcTMBstart</span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, method<span class="op">=</span><span class="st">"grid"</span>, gsn<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span>, <span class="fl">10</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">gcTMBstart</span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, method<span class="op">=</span><span class="st">"grid"</span>, gsn<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span>, <span class="fl">10</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept) b2:(Intercept) b3:(Intercept) b4:(Intercept) b5:(Intercept) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     118.820547      33.583333       9.643623       0.000000       1.000000 </span>
 </code></pre></div>

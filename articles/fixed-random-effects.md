@@ -29,10 +29,10 @@ shape $`b_3`$ (Richards, 1959).
 
 library(gcTMB)
 library(ggplot2)
-fit <- gcTMB(height ~ dbh, data = PineHeightDiameter, model = "chapmanrichards", start = c(b4 = 1.3))
+fit <- gcTMB(Height ~ DBH, data = PineHeightDiameter, model = "chapmanrichards", start = c(b4 = 1.3))
 summary(fit)
 #> Call:
-#> gcTMB(form = height ~ dbh, data = PineHeightDiameter, start = c(b4 = 1.3), 
+#> gcTMB(form = Height ~ DBH, data = PineHeightDiameter, start = c(b4 = 1.3), 
 #>     model = "chapmanrichards")
 #> 
 #> Model:  chapmanrichards
@@ -51,7 +51,7 @@ summary(fit)
 #> Residual standard deviation: 2.434 on 1675 degrees of freedom
 #> 
 #> Optimiser: relative convergence (4), maximum absolute gradient 0.00028
-ggplot(PineHeightDiameter, aes(x = dbh, y = height, colour = dmean)) +
+ggplot(PineHeightDiameter, aes(x = DBH, y = Height, colour = Dmean)) +
   geom_point(size = 0.8) +
   scale_colour_viridis_c(end = 0.9) +
   labs(x = "Diameter at breast height (cm)", y = "Height (m)", colour = "Mean diameter\nof the plot (cm)",
@@ -63,36 +63,36 @@ ggplot(PineHeightDiameter, aes(x = dbh, y = height, colour = dmean)) +
 
 ## Covariates and random effects
 
-Covariates on the parameters are given by `fform`, e.g. `b1 ~ dmean` for
+Covariates on the parameters are given by `fform`, e.g. `b1 ~ Dmean` for
 an asymptote that depends on the mean diameter of the plot: trees of the
 same diameter are taller in plots of larger trees, a generalised
 height-diameter model. Random effects are given by `rform`,
-e.g. `b1 + b2 ~ 1 | plot` for correlated random effects of each plot on
+e.g. `b1 + b2 ~ 1 | Plot` for correlated random effects of each plot on
 the asymptote and on the rate, which account for the trees of a plot
 sharing their site and stand.
 
 ``` r
 
-fitdm <- gcTMB(height ~ dbh, fform = b1 ~ dmean, data = PineHeightDiameter, model = "chapmanrichards",
+fitdm <- gcTMB(Height ~ DBH, fform = b1 ~ Dmean, data = PineHeightDiameter, model = "chapmanrichards",
                start = c(b4 = 1.3))
-fitre <- gcTMB(height ~ dbh, fform = b1 ~ dmean, rform = b1 + b2 ~ 1 | plot, data = PineHeightDiameter,
+fitre <- gcTMB(Height ~ DBH, fform = b1 ~ Dmean, rform = b1 + b2 ~ 1 | Plot, data = PineHeightDiameter,
                model = "chapmanrichards", start = c(b4 = 1.3))
 summary(fitre)
 #> Call:
-#> gcTMB(form = height ~ dbh, fform = b1 ~ dmean, rform = b1 + b2 ~ 
-#>     1 | plot, data = PineHeightDiameter, start = c(b4 = 1.3), 
+#> gcTMB(form = Height ~ DBH, fform = b1 ~ Dmean, rform = b1 + b2 ~ 
+#>     1 | Plot, data = PineHeightDiameter, start = c(b4 = 1.3), 
 #>     model = "chapmanrichards")
 #> 
 #> Model:  chapmanrichards
 #> Family: gaussian, identity link for all parameters
 #> 
-#> Number of observations: 1678, groups: plot 56
+#> Number of observations: 1678, groups: Plot 56
 #> Log-likelihood: -2541 (df = 8), AIC: 5098, BIC: 5142
 #> 
 #> Coefficients:
 #>                Estimate Std. Error
 #> b1:(Intercept)   8.6471      1.117
-#> b1:dmean         0.4950      0.065
+#> b1:Dmean         0.4950      0.065
 #> b2:(Intercept)   0.1384      0.010
 #> b3:(Intercept)   1.3993      0.060
 #> Tests of the differences between curves, with p-values and confidence intervals: partest().
@@ -100,7 +100,7 @@ summary(fitre)
 #> 
 #> Random effects:
 #>  Groups Name Std.Dev. Corr 
-#>  plot   b1   4.30895       
+#>  Plot   b1   4.30895       
 #>         b2   0.04967  -0.90
 #> 
 #> Residual standard deviation: 0.9868
@@ -116,7 +116,7 @@ here with and without the effect of the mean diameter.
 
 ``` r
 
-fitre0 <- gcTMB(height ~ dbh, rform = b1 + b2 ~ 1 | plot, data = PineHeightDiameter, model = "chapmanrichards",
+fitre0 <- gcTMB(Height ~ DBH, rform = b1 + b2 ~ 1 | Plot, data = PineHeightDiameter, model = "chapmanrichards",
                 start = c(b4 = 1.3))
 #> Warning in nlminb(start = obj$par, objective = obj$fn, gradient = obj$gr, :
 #> NA/NaN function evaluation
@@ -167,7 +167,7 @@ just above the tolerance of
 
 ``` r
 
-fitre1 <- gcTMB(height ~ dbh, fform = b1 ~ dmean, rform = b1 ~ 1 | plot, data = PineHeightDiameter,
+fitre1 <- gcTMB(Height ~ DBH, fform = b1 ~ Dmean, rform = b1 ~ 1 | Plot, data = PineHeightDiameter,
                 model = "chapmanrichards", start = c(b4 = 1.3), control = list(restart = TRUE))
 anova(fitdm, fitre1, fitre)
 #> Likelihood ratio tests of gcTMB models
@@ -194,11 +194,11 @@ each simulation and takes several minutes:
 anova(fitre1, fitre, test = "boot", nsim = 100, seed = 1)
 ```
 
-The random effects of `b1 + b2 ~ 1 | plot` are correlated. With a double
-bar, `b1 + b2 ~ 1 || plot`, they are independent, the same as
-`list(b1 ~ 1 | plot, b2 ~ 1 | plot)` and as
+The random effects of `b1 + b2 ~ 1 | Plot` are correlated. With a double
+bar, `b1 + b2 ~ 1 || Plot`, they are independent, the same as
+`list(b1 ~ 1 | Plot, b2 ~ 1 | Plot)` and as
 `random = pdDiag(b1 + b2 ~ 1)` in nlme. A list of formulas mixes the
-two: `list(b1 + b2 ~ 1 | plot, b3 ~ 1 | plot)` gives correlated random
+two: `list(b1 + b2 ~ 1 | Plot, b3 ~ 1 | Plot)` gives correlated random
 effects of $`b_1`$ and $`b_2`$, and a random effect of $`b_3`$ that is
 independent of both, a block-diagonal covariance matrix as `pdBlocked`
 in nlme. The likelihood ratio test of the correlated and the independent
@@ -206,7 +206,7 @@ random effects tests their correlation:
 
 ``` r
 
-fitred <- gcTMB(height ~ dbh, fform = b1 ~ dmean, rform = b1 + b2 ~ 1 || plot, data = PineHeightDiameter,
+fitred <- gcTMB(Height ~ DBH, fform = b1 ~ Dmean, rform = b1 + b2 ~ 1 || Plot, data = PineHeightDiameter,
                 model = "chapmanrichards", start = c(b4 = 1.3), control = list(restart = TRUE))
 #> Warning in nlminb(start = obj$par, objective = obj$fn, gradient = obj$gr, :
 #> NA/NaN function evaluation
@@ -219,7 +219,7 @@ anova(fitred, fitre)
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 VarCorr(fitre)
-#> $plot
+#> $Plot
 #>            b1           b2
 #> b1 18.5670869 -0.192100461
 #> b2 -0.1921005  0.002467342
@@ -246,7 +246,7 @@ their AIC:
 
 ``` r
 
-fitk <- gcTMB(height ~ dbh, fform = b1 ~ dmean, rform = b1 + b2 ~ 1 | plot, data = PineHeightDiameter,
+fitk <- gcTMB(Height ~ DBH, fform = b1 ~ Dmean, rform = b1 + b2 ~ 1 | Plot, data = PineHeightDiameter,
               model = "korf", start = c(b4 = 1.3), control = list(restart = TRUE))
 AIC(fitre, fitk)
 #>       df      AIC
@@ -280,12 +280,12 @@ p$curves + labs(x = "Diameter at breast height (cm)", y = "Height (m)", colour =
 
 ``` r
 
-nd <- expand.grid(dbh = seq(0, 52, by = 0.2), dmean = c(10, 20, 30))
+nd <- expand.grid(DBH = seq(0, 52, by = 0.2), Dmean = c(10, 20, 30))
 nd <- cbind(nd, predict(fitre, newdata = nd, random = FALSE, interval = "confidence"))
-ggplot(PineHeightDiameter, aes(x = dbh, y = height)) +
+ggplot(PineHeightDiameter, aes(x = DBH, y = Height)) +
   geom_point(colour = "grey80", size = 0.6) +
-  geom_ribbon(data = nd, aes(x = dbh, ymin = lwr, ymax = upr, group = dmean, fill = dmean), inherit.aes = FALSE, alpha = 0.3) +
-  geom_line(data = nd, aes(y = fit, group = dmean, colour = dmean), linewidth = 1) +
+  geom_ribbon(data = nd, aes(x = DBH, ymin = lwr, ymax = upr, group = Dmean, fill = Dmean), inherit.aes = FALSE, alpha = 0.3) +
+  geom_line(data = nd, aes(y = fit, group = Dmean, colour = Dmean), linewidth = 1) +
   scale_colour_viridis_c(end = 0.9, breaks = c(10, 20, 30), aesthetics = c("colour", "fill")) +
   labs(x = "Diameter at breast height (cm)", y = "Height (m)", colour = "Mean diameter\nof the plot (cm)",
        fill = "Mean diameter\nof the plot (cm)", title = "Population curves with 95% confidence intervals",
@@ -309,11 +309,11 @@ growth rate for each genotype, and a random asymptote for each plant:
 
 ``` r
 
-fitp <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+fitp <- gcTMB(Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
               family = "poisson", fix = c(b4 = FALSE))
 summary(fitp)
 #> Call:
-#> gcTMB(form = pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 
+#> gcTMB(form = Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 
 #>     1 | Tube_ID, data = FabaCounts23, fix = c(b4 = FALSE), family = "poisson")
 #> 
 #> Model:  logistic, truncated at the threshold b4
@@ -364,7 +364,7 @@ random asymptote:
 days <- seq(61, 79, by = 0.05)
 ndp <- merge(unique(FabaCounts23[, c("Tube_ID", "Genotype")]), data.frame(DAS = days))
 ndp$fit <- predict(fitp, newdata = ndp)
-ggplot(FabaCounts23, aes(x = DAS, y = pods, colour = Genotype)) +
+ggplot(FabaCounts23, aes(x = DAS, y = Pods, colour = Genotype)) +
   geom_point() +
   geom_line(data = ndp, aes(y = fit, group = Tube_ID)) +
   labs(x = "Days after sowing", y = "Number of pods", colour = "Genotype") +
@@ -383,7 +383,7 @@ the mean are computed on the log scale, so that they stay positive.
 # the population curve of each genotype
 ndg <- merge(genotypes, data.frame(DAS = days))
 ndg <- cbind(ndg, predict(fitp, newdata = ndg, random = FALSE, interval = "confidence"))
-ggplot(FabaCounts23, aes(x = DAS, y = pods)) +
+ggplot(FabaCounts23, aes(x = DAS, y = Pods)) +
   geom_ribbon(data = ndg, aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "blue", alpha = 0.2) +
   geom_line(data = ndp, aes(y = fit, group = Tube_ID), colour = "grey50") +
   geom_line(data = ndg, aes(y = fit), colour = "blue", linewidth = 1) +
@@ -400,7 +400,7 @@ sowing:
 
 ``` r
 
-fitp0 <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+fitp0 <- gcTMB(Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
                family = "poisson")
 AIC(fitp0, fitp)
 #>       df      AIC

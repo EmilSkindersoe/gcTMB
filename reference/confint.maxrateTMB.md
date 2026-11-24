@@ -84,7 +84,7 @@ bootstrap intervals.
 ## Examples
 
 ``` r
-fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 mr <- maxrate(fit)
 confint(mr, method="wald")
 #>               2.5 %     97.5 %

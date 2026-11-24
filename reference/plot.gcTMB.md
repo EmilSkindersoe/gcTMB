@@ -130,7 +130,7 @@ curves at its 10\\ first observation.
 ## Examples
 
 ``` r
-fit <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25)
 plot(fit, which=1:4)
 
 # the data with the curves of the plants and the population curve, from sowing
@@ -141,7 +141,7 @@ plot(fit, type=c("validation", "curves"))
 
 # by treatment
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-fitt <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+fitt <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
 plot(fitt, type="curves")
 
 # a single graph, changed
@@ -149,7 +149,7 @@ p <- plot(fit, which=2, draw=FALSE)
 p$time + ggplot2::labs(x="Days after sowing")
 
 # counts: the randomised quantile residuals are reproducible with a seed
-fitp <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
+fitp <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
 plot(fitp, seed=1)
 
 ```

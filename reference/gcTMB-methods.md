@@ -269,15 +269,15 @@ responses the proportion).
 ## Examples
 
 ``` r
-fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
 summary(fit)
 #> Call:
-#> gcTMB(form = height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)
+#> gcTMB(form = Height ~ DAS, rform = b1 + b2 ~ 1 | Plant_ID, data = FabaHeights25)
 #> 
 #> Model:  logistic, truncated at b4 = 0
 #> Family: gaussian, identity link for all parameters
 #> 
-#> Number of observations: 200, groups: plant_ID 25
+#> Number of observations: 200, groups: Plant_ID 25
 #> Log-likelihood: -513.7 (df = 7), AIC: 1041, BIC: 1064
 #> 
 #> Coefficients:
@@ -288,7 +288,7 @@ summary(fit)
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr 
-#>  plant_ID b1   10.237        
+#>  Plant_ID b1   10.237        
 #>           b2    2.561   -0.12
 #> 
 #> Residual standard deviation: 2.074
@@ -297,7 +297,7 @@ summary(fit)
 coef(fit)
 #>          b1:(Intercept)          b2:(Intercept)          b3:(Intercept) 
 #>             121.0884446              30.8662604              12.8414641 
-#>      log_sd:b1|plant_ID      log_sd:b2|plant_ID corr_par:b2,b1|plant_ID 
+#>      log_sd:b1|Plant_ID      log_sd:b2|Plant_ID corr_par:b2,b1|Plant_ID 
 #>               2.3259984               0.9403950              -0.1214161 
 #>               log_sigma 
 #>               0.7294995 
@@ -316,9 +316,9 @@ predict(fit, newdata=nd, random=FALSE, interval="prediction")
 #> 2  77.60741 1.772894 59.58726  95.62755
 #> 3 108.71077 1.958312 88.99044 128.43109
 # the curve of plant 6, and its parameters
-predict(fit, newdata=data.frame(DAS=c(20, 40, 60), plant_ID=6))
+predict(fit, newdata=data.frame(DAS=c(20, 40, 60), Plant_ID=6))
 #> [1]  29.42109  81.76640 116.58430
-predict(fit, newdata=data.frame(plant_ID=6), type="parameters")
+predict(fit, newdata=data.frame(Plant_ID=6), type="parameters")
 #>           b1       b2       b3
 #> [1,] 130.789 31.81211 12.84146
 head(residuals(fit, type="quantile"))
@@ -326,7 +326,7 @@ head(residuals(fit, type="quantile"))
 dim(simulate(fit, nsim=5, seed=1))
 #> [1] 200   5
 # three new plants at new times
-nd <- expand.grid(DAS=seq(10, 80, 10), plant_ID=c("new1", "new2", "new3"))
+nd <- expand.grid(DAS=seq(10, 80, 10), Plant_ID=c("new1", "new2", "new3"))
 sims <- simulate(fit, nsim=2, seed=1, newdata=nd)
 head(sims)
 #>       sim_1     sim_2
@@ -338,7 +338,7 @@ head(sims)
 #> 6 118.26703 95.285112
 # the simulated random effects of the first simulation, and the true curves
 attr(sims, "ranef")$sim_1
-#> $plant_ID
+#> $Plant_ID
 #>             b1         b2
 #> new1  6.282544 -4.2577268
 #> new2 -1.906770 -0.7764702

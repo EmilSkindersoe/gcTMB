@@ -70,7 +70,7 @@ by default.
 ## Examples
 
 ``` r
-fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 pr <- profile(timeto(fit, level=c(10, 90)), progress=FALSE)
 confint(pr)
 #>        2.5 %   97.5 %

@@ -79,7 +79,7 @@ reached.
 ## Examples
 
 ``` r
-fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
 converged(fit)
 #> [1] TRUE
 ```

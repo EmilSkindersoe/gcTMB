@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9016</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9017</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -199,15 +199,15 @@ effects (the median for lognormal; for binomial and beta-binomial responses the 
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, rform<span class="op">=</span><span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plant_ID</span>, data<span class="op">=</span><span class="va">FabaHeights25</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, rform<span class="op">=</span><span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plant_ID</span>, data<span class="op">=</span><span class="va">FabaHeights25</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> gcTMB(form = height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> gcTMB(form = Height ~ DAS, rform = b1 + b2 ~ 1 | Plant_ID, data = FabaHeights25)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Model:  logistic, truncated at b4 = 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Family: gaussian, identity link for all parameters</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Number of observations: 200, groups: plant_ID 25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of observations: 200, groups: Plant_ID 25</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -513.7 (df = 7), AIC: 1041, BIC: 1064</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
@@ -218,7 +218,7 @@ effects (the median for lognormal; for binomial and beta-binomial responses the 
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Groups   Name Std.Dev. Corr </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  plant_ID b1   10.237        </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Plant_ID b1   10.237        </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           b2    2.561   -0.12</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Residual standard deviation: 2.074</span>
@@ -227,7 +227,7 @@ effects (the median for lognormal; for binomial and beta-binomial responses the 
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          b1:(Intercept)          b2:(Intercept)          b3:(Intercept) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             121.0884446              30.8662604              12.8414641 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      log_sd:b1|plant_ID      log_sd:b2|plant_ID corr_par:b2,b1|plant_ID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      log_sd:b1|Plant_ID      log_sd:b2|Plant_ID corr_par:b2,b1|Plant_ID </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>               2.3259984               0.9403950              -0.1214161 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>               log_sigma </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>               0.7294995 </span>
@@ -246,9 +246,9 @@ effects (the median for lognormal; for binomial and beta-binomial responses the 
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2  77.60741 1.772894 59.58726  95.62755</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3 108.71077 1.958312 88.99044 128.43109</span>
 <span class="r-in"><span><span class="co"># the curve of plant 6, and its parameters</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>DAS<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">40</span>, <span class="fl">60</span><span class="op">)</span>, plant_ID<span class="op">=</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>DAS<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">40</span>, <span class="fl">60</span><span class="op">)</span>, Plant_ID<span class="op">=</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1]  29.42109  81.76640 116.58430</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>plant_ID<span class="op">=</span><span class="fl">6</span><span class="op">)</span>, type<span class="op">=</span><span class="st">"parameters"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Plant_ID<span class="op">=</span><span class="fl">6</span><span class="op">)</span>, type<span class="op">=</span><span class="st">"parameters"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           b1       b2       b3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 130.789 31.81211 12.84146</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span>, type<span class="op">=</span><span class="st">"quantile"</span><span class="op">)</span><span class="op">)</span></span></span>
@@ -256,7 +256,7 @@ effects (the median for lognormal; for binomial and beta-binomial responses the 
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">fit</span>, nsim<span class="op">=</span><span class="fl">5</span>, seed<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 200   5</span>
 <span class="r-in"><span><span class="co"># three new plants at new times</span></span></span>
-<span class="r-in"><span><span class="va">nd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>DAS<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">80</span>, <span class="fl">10</span><span class="op">)</span>, plant_ID<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"new1"</span>, <span class="st">"new2"</span>, <span class="st">"new3"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">nd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>DAS<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">80</span>, <span class="fl">10</span><span class="op">)</span>, Plant_ID<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"new1"</span>, <span class="st">"new2"</span>, <span class="st">"new3"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sims</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">fit</span>, nsim<span class="op">=</span><span class="fl">2</span>, seed<span class="op">=</span><span class="fl">1</span>, newdata<span class="op">=</span><span class="va">nd</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sims</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       sim_1     sim_2</span>
@@ -268,7 +268,7 @@ effects (the median for lognormal; for binomial and beta-binomial responses the 
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6 118.26703 95.285112</span>
 <span class="r-in"><span><span class="co"># the simulated random effects of the first simulation, and the true curves</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">sims</span>, <span class="st">"ranef"</span><span class="op">)</span><span class="op">$</span><span class="va">sim_1</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $plant_ID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $Plant_ID</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             b1         b2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> new1  6.282544 -4.2577268</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> new2 -1.906770 -0.7764702</span>

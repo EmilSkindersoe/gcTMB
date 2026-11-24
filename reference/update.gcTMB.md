@@ -96,16 +96,16 @@ small-sample correction of
 ## Examples
 
 ``` r
-fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
 # larger asymptote, an asymmetric curve, and a larger variance of b1
-vc <- VarCorr(fit)$plant_ID
+vc <- VarCorr(fit)$Plant_ID
 vc[1, 1] <- 2*vc[1, 1]
-fit2 <- update(fit, fixef=c(b1=150, b5=4), VarCorr=list(plant_ID=vc))
+fit2 <- update(fit, fixef=c(b1=150, b5=4), VarCorr=list(Plant_ID=vc))
 fixef(fit2)
 #> b1:(Intercept) b2:(Intercept) b3:(Intercept) b5:(Intercept) 
 #>      150.00000       30.86626       12.84146        4.00000 
 VarCorr(fit2)
-#> $plant_ID
+#> $Plant_ID
 #>            b1        b2
 #> b1 209.588060 -3.159913
 #> b2  -3.159913  6.558684
@@ -122,8 +122,8 @@ VarCorr(fit2)
 # refit with another growth model
 fitg <- update(fit, model="gompertz")
 # a weaker autocorrelation of the residuals, the other parameters unchanged
-fitc <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=FabaHeights25,
-              correlation=corCAR1(form=~ DAS | plant_ID))
+fitc <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25,
+              correlation=corCAR1(form=~ DAS | Plant_ID))
 corpars(update(fitc, rho=0.7))
 #> rho 
 #> 0.7 

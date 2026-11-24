@@ -9,7 +9,7 @@ treatment &quot;ww&quot;, on twelve days between 61 and 79 days after sowing (20
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9016</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9017</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,20 +65,20 @@ treatment "ww", on twelve days between 61 and 79 days after sowing (2023).</p>
 <dt>DAS</dt>
 <dd><p>days after sowing</p></dd>
 
-<dt>new</dt>
+<dt>New</dt>
 <dd><p>number of new flowers</p></dd>
 
-<dt>open</dt>
+<dt>Open</dt>
 <dd><p>number of open flowers</p></dd>
 
-<dt>old</dt>
+<dt>Old</dt>
 <dd><p>number of old flowers</p></dd>
 
-<dt>pods</dt>
+<dt>Pods</dt>
 <dd><p>number of pods</p></dd>
 
-<dt>n_flowers</dt>
-<dd><p>number of flowers, the sum of new, open and old</p></dd>
+<dt>N_flowers</dt>
+<dd><p>number of flowers, the sum of New, Open and Old</p></dd>
 
 
 </dl><p>The raw data and the script that converts them are in the directory data-raw of the source package.</p>
@@ -86,10 +86,10 @@ treatment "ww", on twelve days between 61 and 79 days after sowing (2023).</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform<span class="op">=</span><span class="va">b1</span> <span class="op">~</span> <span class="va">Genotype</span>, data<span class="op">=</span><span class="va">FabaCounts23</span>, family<span class="op">=</span><span class="st">"poisson"</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform<span class="op">=</span><span class="va">b1</span> <span class="op">~</span> <span class="va">Genotype</span>, data<span class="op">=</span><span class="va">FabaCounts23</span>, family<span class="op">=</span><span class="st">"poisson"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> gcTMB(form = pods ~ DAS, fform = b1 ~ Genotype, data = FabaCounts23, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> gcTMB(form = Pods ~ DAS, fform = b1 ~ Genotype, data = FabaCounts23, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     family = "poisson")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Model:  logistic, truncated at b4 = 0</span>

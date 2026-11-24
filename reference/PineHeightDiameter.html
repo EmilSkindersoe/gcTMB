@@ -13,7 +13,7 @@ height of 1.3 m."><meta property="og:image" content="https://emilskindersoe.gith
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9016</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9017</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,22 +59,22 @@ height of 1.3 m.</p>
 
     <div class="section level2">
     <h2 id="format">Format<a class="anchor" aria-label="anchor" href="#format"></a></h2>
-    <p>A data frame with 1678 rows and 6 variables:</p><dl><dt>plot</dt>
+    <p>A data frame with 1678 rows and 6 variables:</p><dl><dt>Plot</dt>
 <dd><p>identifier of the sample plot, a factor</p></dd>
 
-<dt>dbh</dt>
+<dt>DBH</dt>
 <dd><p>diameter at breast height in cm</p></dd>
 
-<dt>height</dt>
+<dt>Height</dt>
 <dd><p>tree height in m</p></dd>
 
-<dt>ntrees</dt>
+<dt>Ntrees</dt>
 <dd><p>number of trees on the plot</p></dd>
 
-<dt>dmean</dt>
+<dt>Dmean</dt>
 <dd><p>mean diameter of the trees on the plot, in cm</p></dd>
 
-<dt>dvar</dt>
+<dt>Dvar</dt>
 <dd><p>variance of the diameters of the trees on the plot</p></dd>
 
 
@@ -97,17 +97,17 @@ in R. Chapman and Hall/CRC, New York. <a href="https://doi.org/10.1201/978042917
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># a Chapman-Richards curve from the breast height, the intercept b4 = 1.3, with a random asymptote</span></span></span>
 <span class="r-in"><span><span class="co"># of each plot</span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">dbh</span>, rform<span class="op">=</span><span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plot</span>, data<span class="op">=</span><span class="va">PineHeightDiameter</span>,</span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DBH</span>, rform<span class="op">=</span><span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plot</span>, data<span class="op">=</span><span class="va">PineHeightDiameter</span>,</span></span>
 <span class="r-in"><span>             model<span class="op">=</span><span class="st">"chapmanrichards"</span>, start<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4<span class="op">=</span><span class="fl">1.3</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> gcTMB(form = height ~ dbh, rform = b1 ~ 1 | plot, data = PineHeightDiameter, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> gcTMB(form = Height ~ DBH, rform = b1 ~ 1 | Plot, data = PineHeightDiameter, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     start = c(b4 = 1.3), model = "chapmanrichards")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Model:  chapmanrichards</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Family: gaussian, identity link for all parameters</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Number of observations: 1678, groups: plot 56</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of observations: 1678, groups: Plot 56</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -2740 (df = 5), AIC: 5490, BIC: 5517</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
@@ -119,7 +119,7 @@ in R. Chapman and Hall/CRC, New York. <a href="https://doi.org/10.1201/978042917
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Groups Name Std.Dev.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  plot   b1   5.163   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Plot   b1   5.163   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Residual standard deviation: 1.141</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>

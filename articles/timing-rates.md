@@ -31,12 +31,12 @@ the model is fitted from 2 years, first for the girls:
 
 library(gcTMB)
 library(ggplot2)
-berkeley <- subset(BerkeleyGrowth, age >= 2 & !is.na(height))
-girls <- subset(berkeley, sex == "female")
-fitg <- gcTMB(height ~ age, data = girls, model = "preecebaines")
+berkeley <- subset(BerkeleyGrowth, Age >= 2 & !is.na(Height))
+girls <- subset(berkeley, Sex == "female")
+fitg <- gcTMB(Height ~ Age, data = girls, model = "preecebaines")
 summary(fitg)
 #> Call:
-#> gcTMB(form = height ~ age, data = girls, model = "preecebaines")
+#> gcTMB(form = Height ~ Age, data = girls, model = "preecebaines")
 #> 
 #> Model:  preecebaines
 #> Family: gaussian, identity link for all parameters
@@ -55,10 +55,10 @@ summary(fitg)
 #> Residual standard deviation: 5.863 on 1906 degrees of freedom
 #> 
 #> Optimiser: relative convergence (4), maximum absolute gradient 6.9e-06
-ages <- data.frame(age = seq(2, 21, by = 0.05))
-ggplot(girls, aes(x = age, y = height)) +
-  geom_line(aes(group = id), colour = "grey70") +
-  geom_line(data = cbind(ages, height = predict(fitg, newdata = ages)), colour = "blue", linewidth = 1) +
+ages <- data.frame(Age = seq(2, 21, by = 0.05))
+ggplot(girls, aes(x = Age, y = Height)) +
+  geom_line(aes(group = ID), colour = "grey70") +
+  geom_line(data = cbind(ages, Height = predict(fitg, newdata = ages)), colour = "blue", linewidth = 1) +
   labs(x = "Age (years)", y = "Height (cm)") +
   theme_minimal()
 ```
@@ -155,7 +155,7 @@ differences of the girls from them:
 
 ``` r
 
-fitb <- gcTMB(height ~ age, data = subset(berkeley, sex == "male"), model = "preecebaines")
+fitb <- gcTMB(Height ~ Age, data = subset(berkeley, Sex == "male"), model = "preecebaines")
 cb <- coef(fitb)[1:5]
 cg <- coef(fitg)[1:5]
 ```
@@ -170,20 +170,20 @@ coefficients of the boys and the differences of the girls from them:
 
 ``` r
 
-default <- gcTMBstart(height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, data = berkeley, model = "preecebaines")
+default <- gcTMBstart(Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, data = berkeley, model = "preecebaines")
 custom <- setNames(as.vector(rbind(cb, cg - cb)), names(default))
 round(cbind(default, custom), 3)
 #>                   default  custom
 #> b1:(Intercept)    190.906 180.572
-#> b1:sexfemale        0.000 -14.235
+#> b1:Sexfemale        0.000 -14.235
 #> b2:(Intercept)     20.000  14.123
-#> b2:sexfemale        0.000  -2.189
+#> b2:Sexfemale        0.000  -2.189
 #> b3:(Intercept)    183.243 166.584
-#> b3:sexfemale        0.000 -12.572
+#> b3:Sexfemale        0.000 -12.572
 #> b4:(Intercept)      0.109   0.099
-#> b4:sexfemale        0.000   0.019
+#> b4:Sexfemale        0.000   0.019
 #> b5:(Intercept) 113206.324   0.790
-#> b5:sexfemale        0.000   0.092
+#> b5:Sexfemale        0.000   0.092
 ```
 
 Here the default values do not even describe the pooled data: with the
@@ -198,38 +198,38 @@ parameter):
 
 ``` r
 
-fitre <- gcTMB(height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, rform = b1 + b2 + b5 ~ 1 | id,
+fitre <- gcTMB(Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, rform = b1 + b2 + b5 ~ 1 | ID,
                data = berkeley, model = "preecebaines", start = unname(custom),
                control = list(restart = TRUE))
 summary(fitre)
 #> Call:
-#> gcTMB(form = height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, 
-#>     rform = b1 + b2 + b5 ~ 1 | id, data = berkeley, start = unname(custom), 
+#> gcTMB(form = Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, 
+#>     rform = b1 + b2 + b5 ~ 1 | ID, data = berkeley, start = unname(custom), 
 #>     model = "preecebaines", control = list(restart = TRUE))
 #> 
 #> Model:  preecebaines
 #> Family: gaussian, identity link for all parameters
 #> 
-#> Number of observations: 3801, groups: id 136
+#> Number of observations: 3801, groups: ID 136
 #> Log-likelihood: -8820 (df = 17), AIC: 17674, BIC: 17780
 #> 
 #> Coefficients:
 #>                 Estimate Std. Error
 #> b1:(Intercept) 184.96761      0.383
-#> b1:sexfemale   -15.47509      0.496
+#> b1:Sexfemale   -15.47509      0.496
 #> b2:(Intercept)  14.79657      0.211
-#> b2:sexfemale    -2.26792      0.296
+#> b2:Sexfemale    -2.26792      0.296
 #> b3:(Intercept) 168.79822      0.226
-#> b3:sexfemale   -13.67711      0.333
+#> b3:Sexfemale   -13.67711      0.333
 #> b4:(Intercept)   0.08631      0.001
-#> b4:sexfemale     0.01575      0.002
+#> b4:Sexfemale     0.01575      0.002
 #> b5:(Intercept)   0.60790      0.020
-#> b5:sexfemale     0.01405      0.028
+#> b5:Sexfemale     0.01405      0.028
 #> Tests of the differences between curves, with p-values and confidence intervals: partest().
 #> 
 #> Random effects:
 #>  Groups Name Std.Dev. Corr       
-#>  id     b1   2.2010              
+#>  ID     b1   2.2010              
 #>         b2   1.6534   -0.96      
 #>         b5   0.1216    0.43 -0.52
 #> 
@@ -255,25 +255,25 @@ the population curves of the sexes (`random = FALSE`):
 
 ``` r
 
-sexes <- data.frame(sex = c("male", "female"))
+sexes <- data.frame(Sex = c("male", "female"))
 timeto(fitre, level = c(90, 99), newdata = sexes, random = FALSE)
 #> Times to reach the percentages of the asymptote:
 #> 
 #>                Estimate Std.Error
-#> 90%:sex=male       14.4     0.162
-#> 90%:sex=female     12.1     0.150
-#> 99%:sex=male       19.4     0.290
-#> 99%:sex=female     16.9     0.268
+#> 90%:Sex=male       14.4     0.162
+#> 90%:Sex=female     12.1     0.150
+#> 99%:Sex=male       19.4     0.290
+#> 99%:Sex=female     16.9     0.268
 maxrate(fitre, newdata = sexes)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
 #>                     Estimate Std.Error
-#> tmax:sex=male         13.050    0.1991
-#> rate:sex=male          6.326    0.1717
-#> fraction:sex=male      0.855    0.0047
-#> tmax:sex=female       10.019    0.3102
-#> rate:sex=female        6.221    0.1468
-#> fraction:sex=female    0.828    0.0107
+#> tmax:Sex=male         13.050    0.1991
+#> rate:Sex=male          6.326    0.1717
+#> fraction:Sex=male      0.855    0.0047
+#> tmax:Sex=female       10.019    0.3102
+#> rate:Sex=female        6.221    0.1468
+#> fraction:Sex=female    0.828    0.0107
 ```
 
 The girls reach the middle of puberty, the peak of their growth spurt
@@ -289,7 +289,7 @@ partest(fitre, newdata = sexes, parm = "b2", adjust = "none")
 #> Differences to the reference of b2 (location in time):
 #> 
 #>                       Estimate Std.Error z value  p.value lower upper
-#> sex=female - sex=male    -2.27     0.296   -7.67 1.77e-14 -2.85 -1.69
+#> Sex=female - Sex=male    -2.27     0.296   -7.67 1.77e-14 -2.85 -1.69
 #> 
 #> Wald z tests; unadjusted p-values and 95% confidence limits.
 ```
@@ -300,11 +300,11 @@ the growth rate by the differences of the predicted heights:
 ``` r
 
 nd <- merge(sexes, ages)
-nd$height <- predict(fitre, newdata = nd, random = FALSE)
-nd$rate <- ave(nd$height, nd$sex, FUN = function(h) c(NA, diff(h)) / 0.05)
-curves <- rbind(data.frame(nd[, c("sex", "age")], value = nd$height, panel = "Height (cm)"),
-                data.frame(nd[, c("sex", "age")], value = nd$rate, panel = "Growth rate (cm/year)"))
-ggplot(curves, aes(x = age, y = value, colour = sex)) +
+nd$Height <- predict(fitre, newdata = nd, random = FALSE)
+nd$rate <- ave(nd$Height, nd$Sex, FUN = function(h) c(NA, diff(h)) / 0.05)
+curves <- rbind(data.frame(nd[, c("Sex", "Age")], value = nd$Height, panel = "Height (cm)"),
+                data.frame(nd[, c("Sex", "Age")], value = nd$rate, panel = "Growth rate (cm/year)"))
+ggplot(curves, aes(x = Age, y = value, colour = Sex)) +
   geom_line(na.rm = TRUE) +
   facet_wrap(~ panel, scales = "free_y") +
   labs(x = "Age (years)", y = NULL, colour = "Sex") +
@@ -334,38 +334,38 @@ of $`b_3`$ and a restart of the optimiser from the estimates
 
 ``` r
 
-spurt <- subset(BerkeleyGrowth, age >= 8 & !is.na(height))
-fitrr <- gcTMB(height ~ age, fform = b1 + b2 + b4 ~ sex, rform = b1 + b2 + b4 ~ 1 | id, data = spurt,
+spurt <- subset(BerkeleyGrowth, Age >= 8 & !is.na(Height))
+fitrr <- gcTMB(Height ~ Age, fform = b1 + b2 + b4 ~ Sex, rform = b1 + b2 + b4 ~ 1 | ID, data = spurt,
                model = "chapmanrichards", start = c(b4 = 120), fix = c(b4 = FALSE), b1type = "rate",
                link = c(b1 = "log", b3 = "log"), control = list(restart = TRUE))
 summary(fitrr)
 #> Call:
-#> gcTMB(form = height ~ age, fform = b1 + b2 + b4 ~ sex, rform = b1 + 
-#>     b2 + b4 ~ 1 | id, data = spurt, start = c(b4 = 120), fix = c(b4 = FALSE), 
+#> gcTMB(form = Height ~ Age, fform = b1 + b2 + b4 ~ Sex, rform = b1 + 
+#>     b2 + b4 ~ 1 | ID, data = spurt, start = c(b4 = 120), fix = c(b4 = FALSE), 
 #>     model = "chapmanrichards", link = c(b1 = "log", b3 = "log"), 
 #>     b1type = "rate", control = list(restart = TRUE))
 #> 
 #> Model:  chapmanrichards; b1 is the maximum growth rate
 #> Family: gaussian, log link for b1, log link for b3, identity link for the other parameters
 #> 
-#> Number of observations: 2985, groups: id 136
+#> Number of observations: 2985, groups: ID 136
 #> Log-likelihood: -6298 (df = 14), AIC: 12625, BIC: 12709
 #> 
 #> Coefficients:
 #>                  Estimate Std. Error
 #> b1:(Intercept)   2.007187      0.014
-#> b1:sexfemale    -0.002928      0.020
+#> b1:Sexfemale    -0.002928      0.020
 #> b2:(Intercept)   0.381010      0.006
-#> b2:sexfemale     0.072460      0.005
+#> b2:Sexfemale     0.072460      0.005
 #> b3:(Intercept)   4.477683      0.053
 #> b4:(Intercept) 131.815373      0.598
-#> b4:sexfemale    -7.368561      0.836
+#> b4:Sexfemale    -7.368561      0.836
 #> Tests of the differences between curves, with p-values and confidence intervals: partest().
 #> The coefficients of b1, b3 are on the log scale.
 #> 
 #> Random effects:
 #>  Groups Name Std.Dev. Corr         
-#>  id     b1   0.1071                
+#>  ID     b1   0.1071                
 #>         b2   0.0309   0.78         
 #>         b4   4.5736    0.034 -0.170
 #> 
@@ -376,12 +376,12 @@ maxrate(fitrr, newdata = sexes)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
 #>                     Estimate Std.Error
-#> tmax:sex=male         11.752  0.119576
-#> rate:sex=male          7.442  0.106394
-#> fraction:sex=male      0.366  0.000111
-#> tmax:sex=female        9.874  0.088034
-#> rate:sex=female        7.421  0.107249
-#> fraction:sex=female    0.366  0.000111
+#> tmax:Sex=male         11.752  0.119576
+#> rate:Sex=male          7.442  0.106394
+#> fraction:Sex=male      0.366  0.000111
+#> tmax:Sex=female        9.874  0.088034
+#> rate:Sex=female        7.421  0.107249
+#> fraction:Sex=female    0.366  0.000111
 ```
 
 Whether boys and girls have the same peak height velocity is a
@@ -390,7 +390,7 @@ $`b_1`$, keeping those on $`b_2`$ and $`b_4`$:
 
 ``` r
 
-fitrr0 <- gcTMB(height ~ age, fform = b2 + b4 ~ sex, rform = b1 + b2 + b4 ~ 1 | id, data = spurt,
+fitrr0 <- gcTMB(Height ~ Age, fform = b2 + b4 ~ Sex, rform = b1 + b2 + b4 ~ 1 | ID, data = spurt,
                 model = "chapmanrichards", start = c(b4 = 120), fix = c(b4 = FALSE), b1type = "rate",
                 link = c(b1 = "log", b3 = "log"), control = list(restart = TRUE))
 anova(fitrr0, fitrr)
@@ -423,9 +423,9 @@ partest(fitrr, newdata = sexes, adjust = "none")
 #> Differences to the reference of b1 (maximum growth rate) on the scale of its log link:
 #> 
 #>                       Estimate Std.Error z value p.value   lower  upper ratio
-#> sex=female - sex=male -0.00293      0.02  -0.146   0.884 -0.0422 0.0363 0.997
+#> Sex=female - Sex=male -0.00293      0.02  -0.146   0.884 -0.0422 0.0363 0.997
 #>                       ratio.lower ratio.upper
-#> sex=female - sex=male       0.959        1.04
+#> Sex=female - Sex=male       0.959        1.04
 #> 
 #> Wald z tests; unadjusted p-values and 95% confidence limits, and ratios.
 ```
@@ -440,9 +440,9 @@ $`b_4`$ plus the asymptote:
 ``` r
 
 pars <- predict(fitrr, newdata = sexes, type = "parameters", random = FALSE)
-data.frame(sex = sexes$sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
+data.frame(Sex = sexes$Sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
            growth_in_spurt = pars[, "asymptote"], adult_height = pars[, "b4"] + pars[, "asymptote"])
-#>      sex peak_rate height_before_spurt growth_in_spurt adult_height
+#>      Sex peak_rate height_before_spurt growth_in_spurt adult_height
 #> 1   male  7.442353            131.8154        52.79488     184.6102
 #> 2 female  7.420597            124.4468        44.22909     168.6759
 ```

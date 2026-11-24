@@ -91,7 +91,7 @@ for confidence intervals,
 ## Examples
 
 ``` r
-fit <- gcTMB(height ~ DAS, data=FabaHeights25, model="logistic")
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25, model="logistic")
 mr <- maxrate(fit)
 mr
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
@@ -107,7 +107,7 @@ confint(mr, method="wald")
 #> fraction  0.4386425  0.4693352
 
 # the Richards curve, with an estimated asymmetry
-fitr <- gcTMB(height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE), link=c(b5="log"))
+fitr <- gcTMB(Height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE), link=c(b5="log"))
 maxrate(fitr)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
@@ -118,7 +118,7 @@ maxrate(fitr)
 
 # a curve for each treatment level
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-fit2 <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25)
+fit2 <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25)
 maxrate(fit2, newdata=data.frame(trt=levels(FabaHeights25$trt)))
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 

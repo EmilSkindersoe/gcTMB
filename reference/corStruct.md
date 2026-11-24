@@ -109,8 +109,8 @@ residuals that are independent under the model.
 
 ``` r
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-fit <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25,
-             correlation=corCAR1(form=~ DAS | plant_ID))
+fit <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25,
+             correlation=corCAR1(form=~ DAS | Plant_ID))
 corpars(fit)
 #>       rho 
 #> 0.9593852 

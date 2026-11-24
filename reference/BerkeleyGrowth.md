@@ -19,24 +19,24 @@ BerkeleyGrowth
 
 A data frame with 4884 rows and 5 variables:
 
-- id:
+- ID:
 
   identifier of the child, a factor: 201-278 for the boys, 301-385 for
   the girls
 
-- sex:
+- Sex:
 
   male or female
 
-- age:
+- Age:
 
   age in years
 
-- height:
+- Height:
 
   height in cm
 
-- weight:
+- Weight:
 
   weight in kg
 
@@ -62,8 +62,8 @@ Growth Curve Analysis. R package,
 ``` r
 # the growth of the girls from 2 years on: the Preece-Baines curve, with the adult height b1 and
 # the middle of puberty b2, and the peak height velocity of the pubertal growth spurt
-girls <- subset(BerkeleyGrowth, sex == "female" & age >= 2)
-fit <- gcTMB(height ~ age, data=girls, model="preecebaines")
+girls <- subset(BerkeleyGrowth, Sex == "female" & Age >= 2)
+fit <- gcTMB(Height ~ Age, data=girls, model="preecebaines")
 coef(fit)
 #> b1:(Intercept) b2:(Intercept) b3:(Intercept) b4:(Intercept) b5:(Intercept) 
 #>    166.3370146     11.9345925    154.0119514      0.1180604      0.8819423 

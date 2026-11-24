@@ -180,15 +180,15 @@ b1 is only included in the grid with user-specified bounds.
 ## Examples
 
 ``` r
-gcTMBstart(height ~ DAS, data=FabaHeights25, model="gompertz")
+gcTMBstart(Height ~ DAS, data=FabaHeights25, model="gompertz")
 #> b1:(Intercept) b2:(Intercept) b3:(Intercept) b4:(Intercept) b5:(Intercept) 
 #>      131.87454       27.92580       19.32536        0.00000        1.00000 
 # with a given asymptote, from which b2 and b3 are linearised
-gcTMBstart(height ~ DAS, data=FabaHeights25, start=c(b1=120))
+gcTMBstart(Height ~ DAS, data=FabaHeights25, start=c(b1=120))
 #> b1:(Intercept) b2:(Intercept) b3:(Intercept) b4:(Intercept) b5:(Intercept) 
 #>      120.00000       33.47664       11.57527        0.00000        1.00000 
 # best point of a grid of b2 and b3 values
-gcTMBstart(height ~ DAS, data=FabaHeights25, method="grid", gsn=c(1, 10, 10, 1, 1))
+gcTMBstart(Height ~ DAS, data=FabaHeights25, method="grid", gsn=c(1, 10, 10, 1, 1))
 #> b1:(Intercept) b2:(Intercept) b3:(Intercept) b4:(Intercept) b5:(Intercept) 
 #>     118.820547      33.583333       9.643623       0.000000       1.000000 
 ```

@@ -200,12 +200,12 @@ Chapman-Richards curve:
 
 ``` r
 
-fithd <- gcTMB(height ~ dbh, rform = b1 ~ 1 | plot, data = PineHeightDiameter,
+fithd <- gcTMB(Height ~ DBH, rform = b1 ~ 1 | Plot, data = PineHeightDiameter,
                model = "chapmanrichards", start = c(b4 = 1.3))
-nd <- data.frame(dbh = seq(0, 52, by = 0.5))
-ggplot(PineHeightDiameter, aes(x = dbh, y = height)) +
+nd <- data.frame(DBH = seq(0, 52, by = 0.5))
+ggplot(PineHeightDiameter, aes(x = DBH, y = Height)) +
   geom_point(colour = "grey60", size = 0.8) +
-  geom_line(data = cbind(nd, height = predict(fithd, newdata = nd, random = FALSE)), colour = "blue") +
+  geom_line(data = cbind(nd, Height = predict(fithd, newdata = nd, random = FALSE)), colour = "blue") +
   labs(x = "Diameter at breast height (cm)", y = "Height (m)",
        title = "Scots pines: Chapman-Richards curve from breast height") +
   theme_minimal()
@@ -306,7 +306,7 @@ pods, is estimated.
 
 ``` r
 
-fitp <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+fitp <- gcTMB(Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
               family = "poisson", fix = c(b4 = FALSE))
 genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
 cbind(genotypes, predict(fitp, newdata = genotypes, type = "parameters", random = FALSE))
@@ -375,7 +375,7 @@ method with simultaneous confidence intervals.
 
 ``` r
 
-fitpr <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+fitpr <- gcTMB(Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
                family = "poisson", fix = c(b4 = FALSE), b1type = "rate", link = c(b1 = "log"))
 partest(fitpr, newdata = genotypes, contrasts = "tukey")
 #> Pairwise differences of b1 (maximum growth rate) on the scale of its log link:

@@ -432,10 +432,10 @@ for the starting values.
 
 ``` r
 # logistic growth of the faba bean plants
-fit <- gcTMB(height ~ DAS, data=FabaHeights25, model="logistic")
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25, model="logistic")
 summary(fit)
 #> Call:
-#> gcTMB(form = height ~ DAS, data = FabaHeights25, model = "logistic")
+#> gcTMB(form = Height ~ DAS, data = FabaHeights25, model = "logistic")
 #> 
 #> Model:  logistic, truncated at b4 = 0
 #> Family: gaussian, identity link for all parameters
@@ -454,16 +454,16 @@ summary(fit)
 #> Optimiser: relative convergence (4), maximum absolute gradient 3.4e-08
 
 # the other models, compared by AIC
-fitg <- gcTMB(height ~ DAS, data=FabaHeights25, model="gompertz")
-fith <- gcTMB(height ~ DAS, data=FabaHeights25, model="hill")
-fitw <- gcTMB(height ~ DAS, data=FabaHeights25, model="weibull")
-fitn <- gcTMB(height ~ DAS, data=FabaHeights25, model="normal")
-fitgam <- gcTMB(height ~ DAS, data=FabaHeights25, model="gamma")
-fitlin <- gcTMB(height ~ DAS, data=FabaHeights25, model="linear")
+fitg <- gcTMB(Height ~ DAS, data=FabaHeights25, model="gompertz")
+fith <- gcTMB(Height ~ DAS, data=FabaHeights25, model="hill")
+fitw <- gcTMB(Height ~ DAS, data=FabaHeights25, model="weibull")
+fitn <- gcTMB(Height ~ DAS, data=FabaHeights25, model="normal")
+fitgam <- gcTMB(Height ~ DAS, data=FabaHeights25, model="gamma")
+fitlin <- gcTMB(Height ~ DAS, data=FabaHeights25, model="linear")
 # the forestry models from zero instead of their default intercept, the breast height of 1.3 m
-fitcr <- gcTMB(height ~ DAS, data=FabaHeights25, model="chapmanrichards", start=c(b4=0))
-fitb <- gcTMB(height ~ DAS, data=FabaHeights25, model="beta_capped")
-fitk <- gcTMB(height ~ DAS, data=FabaHeights25, model="korf", start=c(b4=0))
+fitcr <- gcTMB(Height ~ DAS, data=FabaHeights25, model="chapmanrichards", start=c(b4=0))
+fitb <- gcTMB(Height ~ DAS, data=FabaHeights25, model="beta_capped")
+fitk <- gcTMB(Height ~ DAS, data=FabaHeights25, model="korf", start=c(b4=0))
 AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin, fitcr, fitb, fitk)
 #>        df      AIC
 #> fit     4 1406.470
@@ -478,9 +478,9 @@ AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin, fitcr, fitb, fitk)
 #> fitk    4 1415.341
 
 # a height-diameter model from the breast height of 1.3 m, the default intercept b4
-gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards")
+gcTMB(Height ~ DBH, data=PineHeightDiameter, model="chapmanrichards")
 #> Call:
-#> gcTMB(form = height ~ dbh, data = PineHeightDiameter, model = "chapmanrichards")
+#> gcTMB(form = Height ~ DBH, data = PineHeightDiameter, model = "chapmanrichards")
 #> 
 #> Model:  chapmanrichards
 #> Family: gaussian, identity link for all parameters
@@ -493,15 +493,15 @@ gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards")
 #> Residual standard deviation: 2.434
 
 # the Richards curve: the logistic model with an estimated asymmetry b5
-fitr5 <- gcTMB(height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE))
+fitr5 <- gcTMB(Height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE))
 coef(fitr5)
 #> b1:(Intercept) b2:(Intercept) b3:(Intercept) b5:(Intercept)      log_sigma 
 #>    120.9525457     30.6657471     12.9844198      0.9728521      2.0772341 
 
 # the rate 1/b3 instead of the scale b3
-gcTMB(height ~ DAS, data=FabaHeights25, link=c(b3="inverse"))
+gcTMB(Height ~ DAS, data=FabaHeights25, link=c(b3="inverse"))
 #> Call:
-#> gcTMB(form = height ~ DAS, data = FabaHeights25, link = c(b3 = "inverse"))
+#> gcTMB(form = Height ~ DAS, data = FabaHeights25, link = c(b3 = "inverse"))
 #> 
 #> Model:  logistic, truncated at b4 = 0
 #> Family: gaussian, inverse link for b3, identity link for the other parameters
@@ -514,23 +514,23 @@ gcTMB(height ~ DAS, data=FabaHeights25, link=c(b3="inverse"))
 
 # treatment effects on the asymptote as ratios, with the log link
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-fitl <- gcTMB(height ~ DAS, fform=b1 ~ trt, data=FabaHeights25, link=c(b1="log"))
+fitl <- gcTMB(Height ~ DAS, fform=b1 ~ trt, data=FabaHeights25, link=c(b1="log"))
 exp(coef(fitl)[2:5])
 #> b1:trt0.3 b1:trt0.5 b1:trt0.6 b1:trt0.8 
 #>  1.007483  1.077149  1.075851  1.050422 
 
 # treatment effects on the asymptote and random effects of the plants
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-fitre <- gcTMB(height ~ DAS, fform=b1 ~ trt, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+fitre <- gcTMB(Height ~ DAS, fform=b1 ~ trt, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
 summary(fitre)
 #> Call:
-#> gcTMB(form = height ~ DAS, fform = b1 ~ trt, rform = b1 + b2 ~ 
-#>     1 | plant_ID, data = FabaHeights25)
+#> gcTMB(form = Height ~ DAS, fform = b1 ~ trt, rform = b1 + b2 ~ 
+#>     1 | Plant_ID, data = FabaHeights25)
 #> 
 #> Model:  logistic, truncated at b4 = 0
 #> Family: gaussian, identity link for all parameters
 #> 
-#> Number of observations: 200, groups: plant_ID 25
+#> Number of observations: 200, groups: Plant_ID 25
 #> Log-likelihood: -509.5 (df = 11), AIC: 1041, BIC: 1077
 #> 
 #> Coefficients:
@@ -546,7 +546,7 @@ summary(fitre)
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr 
-#>  plant_ID b1   8.842         
+#>  Plant_ID b1   8.842         
 #>           b2   2.550    -0.33
 #> 
 #> Residual standard deviation: 2.075
@@ -555,8 +555,8 @@ summary(fitre)
 
 # treatment effects on the maximum growth rate, b1 with b1type = "rate", tested by a likelihood
 # ratio test and compared with the first treatment
-fitr <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25, b1type="rate")
-fitr0 <- gcTMB(height ~ DAS, fform=b2 ~ trt, data=FabaHeights25, b1type="rate")
+fitr <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25, b1type="rate")
+fitr0 <- gcTMB(Height ~ DAS, fform=b2 ~ trt, data=FabaHeights25, b1type="rate")
 anova(fitr0, fitr)
 #> Likelihood ratio tests of gcTMB models
 #> 
@@ -577,16 +577,16 @@ partest(fitr, newdata=data.frame(trt=levels(FabaHeights25$trt)))
 #> Wald t tests on 189 degrees of freedom; p-values and confidence limits adjusted by the single-step (Dunnett) method, 95% confidence limits.
 
 # residuals of each plant correlated over time, continuous-time AR(1)
-fitc <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25,
-              correlation=corCAR1(form=~ DAS | plant_ID))
+fitc <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25,
+              correlation=corCAR1(form=~ DAS | Plant_ID))
 corpars(fitc)
 #>      rho 
 #> 0.953607 
 
 # pod counts with a poisson distribution
-gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson")
+gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson")
 #> Call:
-#> gcTMB(form = pods ~ DAS, data = FabaCounts23, family = "poisson")
+#> gcTMB(form = Pods ~ DAS, data = FabaCounts23, family = "poisson")
 #> 
 #> Model:  logistic, truncated at b4 = 0
 #> Family: poisson, identity link for all parameters
@@ -596,7 +596,7 @@ gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson")
 #>         16.361          71.947           1.569  
 
 # no pods before a threshold b4, after which the count grows
-fitt <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
+fitt <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
 coef(fitt)
 #> b1:(Intercept) b2:(Intercept) b3:(Intercept) b4:(Intercept) 
 #>      17.690093      72.296815       2.117993      65.000000 

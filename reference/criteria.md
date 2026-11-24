@@ -86,8 +86,8 @@ generalized nonlinear mixed-effects models. Biometrics 52, 572-587.
 ## Examples
 
 ``` r
-fl <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
-fg <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25, model="gompertz")
+fl <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
+fg <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25, model="gompertz")
 criteria(logistic=fl, gompertz=fg)
 #>             logLik df nobs      AIC     AICc      BIC     BICc    evBIC
 #> logistic -513.6748  7  200 1041.350 1041.933 1064.438 1066.185 1059.301

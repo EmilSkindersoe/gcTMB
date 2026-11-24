@@ -9,7 +9,7 @@ response, with standard errors by the delta method and automatic differentiation
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9016</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9017</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -121,7 +121,7 @@ for the times of fitted groups, see <code><a href="confint.gcTMB.html">confint.t
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, model<span class="op">=</span><span class="st">"logistic"</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span>, model<span class="op">=</span><span class="st">"logistic"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># days after sowing at which the plants reach 10%, 50% and 90% of their final height</span></span></span>
 <span class="r-in"><span><span class="va">tt</span> <span class="op">&lt;-</span> <span class="fu">timeto</span><span class="op">(</span><span class="va">fit</span>, level<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">50</span>, <span class="fl">90</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">tt</span></span></span>
@@ -146,7 +146,7 @@ for the times of fitted groups, see <code><a href="confint.gcTMB.html">confint.t
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># a curve for each treatment level</span></span></span>
 <span class="r-in"><span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">trt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">Treatment</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, fform<span class="op">=</span><span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">trt</span>, data<span class="op">=</span><span class="va">FabaHeights25</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, fform<span class="op">=</span><span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">trt</span>, data<span class="op">=</span><span class="va">FabaHeights25</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">timeto</span><span class="op">(</span><span class="va">fit2</span>, level<span class="op">=</span><span class="fl">90</span>, newdata<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>trt<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">trt</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Times to reach the percentages of the asymptote:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>

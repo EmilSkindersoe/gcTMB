@@ -16,27 +16,27 @@ PineHeightDiameter
 
 A data frame with 1678 rows and 6 variables:
 
-- plot:
+- Plot:
 
   identifier of the sample plot, a factor
 
-- dbh:
+- DBH:
 
   diameter at breast height in cm
 
-- height:
+- Height:
 
   tree height in m
 
-- ntrees:
+- Ntrees:
 
   number of trees on the plot
 
-- dmean:
+- Dmean:
 
   mean diameter of the trees on the plot, in cm
 
-- dvar:
+- Dvar:
 
   variance of the diameters of the trees on the plot
 
@@ -61,17 +61,17 @@ Environmental Data: with Examples in R. Chapman and Hall/CRC, New York.
 ``` r
 # a Chapman-Richards curve from the breast height, the intercept b4 = 1.3, with a random asymptote
 # of each plot
-fit <- gcTMB(height ~ dbh, rform=b1 ~ 1 | plot, data=PineHeightDiameter,
+fit <- gcTMB(Height ~ DBH, rform=b1 ~ 1 | Plot, data=PineHeightDiameter,
              model="chapmanrichards", start=c(b4=1.3))
 summary(fit)
 #> Call:
-#> gcTMB(form = height ~ dbh, rform = b1 ~ 1 | plot, data = PineHeightDiameter, 
+#> gcTMB(form = Height ~ DBH, rform = b1 ~ 1 | Plot, data = PineHeightDiameter, 
 #>     start = c(b4 = 1.3), model = "chapmanrichards")
 #> 
 #> Model:  chapmanrichards
 #> Family: gaussian, identity link for all parameters
 #> 
-#> Number of observations: 1678, groups: plot 56
+#> Number of observations: 1678, groups: Plot 56
 #> Log-likelihood: -2740 (df = 5), AIC: 5490, BIC: 5517
 #> 
 #> Coefficients:
@@ -83,7 +83,7 @@ summary(fit)
 #> 
 #> Random effects:
 #>  Groups Name Std.Dev.
-#>  plot   b1   5.163   
+#>  Plot   b1   5.163   
 #> 
 #> Residual standard deviation: 1.141
 #> 

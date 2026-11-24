@@ -17,7 +17,7 @@ growth data of the package fda."><meta property="og:image" content="https://emil
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9016</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9017</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,19 +65,19 @@ Tuddenham and Snyder (1954). The heights of the first 18 years of most of the ch
 
     <div class="section level2">
     <h2 id="format">Format<a class="anchor" aria-label="anchor" href="#format"></a></h2>
-    <p>A data frame with 4884 rows and 5 variables:</p><dl><dt>id</dt>
+    <p>A data frame with 4884 rows and 5 variables:</p><dl><dt>ID</dt>
 <dd><p>identifier of the child, a factor: 201-278 for the boys, 301-385 for the girls</p></dd>
 
-<dt>sex</dt>
+<dt>Sex</dt>
 <dd><p>male or female</p></dd>
 
-<dt>age</dt>
+<dt>Age</dt>
 <dd><p>age in years</p></dd>
 
-<dt>height</dt>
+<dt>Height</dt>
 <dd><p>height in cm</p></dd>
 
-<dt>weight</dt>
+<dt>Weight</dt>
 <dd><p>weight in kg</p></dd>
 
 
@@ -101,8 +101,8 @@ R package, <a href="https://CRAN.R-project.org/package=sitar" class="external-li
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># the growth of the girls from 2 years on: the Preece-Baines curve, with the adult height b1 and</span></span></span>
 <span class="r-in"><span><span class="co"># the middle of puberty b2, and the peak height velocity of the pubertal growth spurt</span></span></span>
-<span class="r-in"><span><span class="va">girls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">BerkeleyGrowth</span>, <span class="va">sex</span> <span class="op">==</span> <span class="st">"female"</span> <span class="op">&amp;</span> <span class="va">age</span> <span class="op">&gt;=</span> <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">age</span>, data<span class="op">=</span><span class="va">girls</span>, model<span class="op">=</span><span class="st">"preecebaines"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">girls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">BerkeleyGrowth</span>, <span class="va">Sex</span> <span class="op">==</span> <span class="st">"female"</span> <span class="op">&amp;</span> <span class="va">Age</span> <span class="op">&gt;=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">Age</span>, data<span class="op">=</span><span class="va">girls</span>, model<span class="op">=</span><span class="st">"preecebaines"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept) b2:(Intercept) b3:(Intercept) b4:(Intercept) b5:(Intercept) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    166.3370146     11.9345925    154.0119514      0.1180604      0.8819423 </span>

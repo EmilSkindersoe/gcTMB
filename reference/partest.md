@@ -148,7 +148,7 @@ in general parametric models. Biometrical Journal 50, 346-363.
 ``` r
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
 # b1 as the maximum growth rate, on the log scale: differences of log rates
-fit <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25, b1type="rate", link=c(b1="log"))
+fit <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25, b1type="rate", link=c(b1="log"))
 nd <- data.frame(trt=levels(FabaHeights25$trt))
 # each treatment against the first level, by Dunnett's method
 partest(fit, newdata=nd, parm="b1")

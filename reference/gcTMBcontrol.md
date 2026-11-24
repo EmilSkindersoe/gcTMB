@@ -118,9 +118,9 @@ gcTMBcontrol(iter.max=2000)
 #> [1] "stop"
 #> 
 # small-sample inference switched off: maximum likelihood estimate of the residual sd
-gcTMB(height ~ DAS, data=FabaHeights25, control=list(smallsample=FALSE))
+gcTMB(Height ~ DAS, data=FabaHeights25, control=list(smallsample=FALSE))
 #> Call:
-#> gcTMB(form = height ~ DAS, data = FabaHeights25, control = list(smallsample = FALSE))
+#> gcTMB(form = Height ~ DAS, data = FabaHeights25, control = list(smallsample = FALSE))
 #> 
 #> Model:  logistic, truncated at b4 = 0
 #> Family: gaussian, identity link for all parameters
@@ -131,9 +131,9 @@ gcTMB(height ~ DAS, data=FabaHeights25, control=list(smallsample=FALSE))
 #> 
 #> Residual standard deviation: 7.982
 # estimates only, without standard errors
-gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=FabaHeights25, control=list(sdreport=FALSE))
+gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25, control=list(sdreport=FALSE))
 #> Call:
-#> gcTMB(form = height ~ DAS, rform = b1 ~ 1 | plant_ID, data = FabaHeights25, 
+#> gcTMB(form = Height ~ DAS, rform = b1 ~ 1 | Plant_ID, data = FabaHeights25, 
 #>     control = list(sdreport = FALSE))
 #> 
 #> Model:  logistic, truncated at b4 = 0
@@ -145,17 +145,17 @@ gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=FabaHeights25, control=list(sd
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev.
-#>  plant_ID b1   11.85   
+#>  Plant_ID b1   11.85   
 #> 
 #> Residual standard deviation: 3.127
 # a second optimisation from the estimates when the first one does not converge
-fit <- gcTMB(height ~ DAS, rform=b1 + b2 + b3 ~ 1 | plant_ID, data=FabaHeights25,
+fit <- gcTMB(Height ~ DAS, rform=b1 + b2 + b3 ~ 1 | Plant_ID, data=FabaHeights25,
              control=list(restart=TRUE))
 converged(fit)
 #> [1] TRUE
 # a loop over models: a fit that fails is returned with a warning instead of stopping the loop
 fits <- lapply(c("logistic", "gompertz"), function(m)
-  gcTMB(height ~ DAS, data=FabaHeights25, model=m, control=list(onerror="warning")))
+  gcTMB(Height ~ DAS, data=FabaHeights25, model=m, control=list(onerror="warning")))
 # the error of each fit, NULL if it did not fail
 lapply(fits, function(f) f$fiterror)
 #> [[1]]

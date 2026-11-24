@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9016</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9017</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -278,18 +278,18 @@
 <p>The data set <code>FabaHeights25</code> has the heights of 25 faba bean plants under five treatments, measured on eight days after sowing. Treatment effects on the asymptote and the time of the maximum growth rate, correlated random effects of the plants on both, and continuous-time AR(1) residuals within the plants:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">trt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">Treatment</span><span class="op">)</span></span>
-<span><span class="va">fit1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">height</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">trt</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plant_ID</span>,</span>
-<span>              data <span class="op">=</span> <span class="va">FabaHeights25</span>, correlation <span class="op">=</span> <span class="fu"><a href="reference/corStruct.html">corCAR1</a></span><span class="op">(</span>form <span class="op">=</span> <span class="op">~</span> <span class="va">DAS</span> <span class="op">|</span> <span class="va">plant_ID</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fit1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">trt</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plant_ID</span>,</span>
+<span>              data <span class="op">=</span> <span class="va">FabaHeights25</span>, correlation <span class="op">=</span> <span class="fu"><a href="reference/corStruct.html">corCAR1</a></span><span class="op">(</span>form <span class="op">=</span> <span class="op">~</span> <span class="va">DAS</span> <span class="op">|</span> <span class="va">Plant_ID</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; gcTMB(form = height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + </span></span>
-<span><span class="co">#&gt;     b2 ~ 1 | plant_ID, data = FabaHeights25, correlation = corCAR1(form = ~DAS | </span></span>
-<span><span class="co">#&gt;     plant_ID))</span></span>
+<span><span class="co">#&gt; gcTMB(form = Height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + </span></span>
+<span><span class="co">#&gt;     b2 ~ 1 | Plant_ID, data = FabaHeights25, correlation = corCAR1(form = ~DAS | </span></span>
+<span><span class="co">#&gt;     Plant_ID))</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model:  logistic, truncated at b4 = 0</span></span>
 <span><span class="co">#&gt; Family: gaussian, identity link for all parameters</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Number of observations: 200, groups: plant_ID 25</span></span>
+<span><span class="co">#&gt; Number of observations: 200, groups: Plant_ID 25</span></span>
 <span><span class="co">#&gt; Log-likelihood: -480.8 (df = 16), AIC: 993.5, BIC: 1046</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
@@ -309,12 +309,12 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;  Groups   Name Std.Dev. Corr </span></span>
-<span><span class="co">#&gt;  plant_ID b1   8.256         </span></span>
+<span><span class="co">#&gt;  Plant_ID b1   8.256         </span></span>
 <span><span class="co">#&gt;           b2   1.814    -0.54</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation: 3.29</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Correlation structure: continuous-time AR(1) in DAS within plant_ID</span></span>
+<span><span class="co">#&gt; Correlation structure: continuous-time AR(1) in DAS within Plant_ID</span></span>
 <span><span class="co">#&gt; rho: 0.9594</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.00024</span></span></code></pre></div>
@@ -360,7 +360,7 @@
 <p>The data set <code>FabaCounts23</code> has the numbers of pods of 22 plants of six genotypes. A Poisson model with an estimated start of growth, the time of the first pods, and the maximum growth rate as the parameter b1, so that the genotypes are compared by their maximum growth rates:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">genotypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Genotype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">FabaCounts23</span><span class="op">$</span><span class="va">Genotype</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">fitp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Genotype</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Tube_ID</span>, data <span class="op">=</span> <span class="va">FabaCounts23</span>,</span>
+<span><span class="va">fitp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Genotype</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Tube_ID</span>, data <span class="op">=</span> <span class="va">FabaCounts23</span>,</span>
 <span>              family <span class="op">=</span> <span class="st">"poisson"</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, b1type <span class="op">=</span> <span class="st">"rate"</span>, link <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b1 <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/partest.html">partest</a></span><span class="op">(</span><span class="va">fitp</span>, newdata <span class="op">=</span> <span class="va">genotypes</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Differences to the reference of b1 (maximum growth rate) on the scale of its log link:</span></span>

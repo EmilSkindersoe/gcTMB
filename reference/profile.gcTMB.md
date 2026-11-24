@@ -106,7 +106,7 @@ coefficient, as profile intervals of nls.
 ## Examples
 
 ``` r
-fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 pr <- profile(fit, progress=FALSE)
 confint(pr)
 #>                    2.5 %    97.5 %

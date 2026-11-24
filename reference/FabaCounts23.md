@@ -30,25 +30,25 @@ A data frame with 263 rows and 9 variables:
 
   days after sowing
 
-- new:
+- New:
 
   number of new flowers
 
-- open:
+- Open:
 
   number of open flowers
 
-- old:
+- Old:
 
   number of old flowers
 
-- pods:
+- Pods:
 
   number of pods
 
-- n_flowers:
+- N_flowers:
 
-  number of flowers, the sum of new, open and old
+  number of flowers, the sum of New, Open and Old
 
 The raw data and the script that converts them are in the directory
 data-raw of the source package.
@@ -56,10 +56,10 @@ data-raw of the source package.
 ## Examples
 
 ``` r
-fit <- gcTMB(pods ~ DAS, fform=b1 ~ Genotype, data=FabaCounts23, family="poisson")
+fit <- gcTMB(Pods ~ DAS, fform=b1 ~ Genotype, data=FabaCounts23, family="poisson")
 summary(fit)
 #> Call:
-#> gcTMB(form = pods ~ DAS, fform = b1 ~ Genotype, data = FabaCounts23, 
+#> gcTMB(form = Pods ~ DAS, fform = b1 ~ Genotype, data = FabaCounts23, 
 #>     family = "poisson")
 #> 
 #> Model:  logistic, truncated at b4 = 0

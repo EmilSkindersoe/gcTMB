@@ -30,7 +30,7 @@ A data frame with 200 rows and 7 variables:
 
   days after sowing
 
-- height:
+- Height:
 
   plant height
 
@@ -38,7 +38,7 @@ A data frame with 200 rows and 7 variables:
 
   days after sowing, the same values as DAS
 
-- plant_ID:
+- Plant_ID:
 
   identifier of the plant, the same values as Tube_ID
 
@@ -48,15 +48,15 @@ data-raw of the source package.
 ## Examples
 
 ``` r
-fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
 summary(fit)
 #> Call:
-#> gcTMB(form = height ~ DAS, rform = b1 + b2 ~ 1 | plant_ID, data = FabaHeights25)
+#> gcTMB(form = Height ~ DAS, rform = b1 + b2 ~ 1 | Plant_ID, data = FabaHeights25)
 #> 
 #> Model:  logistic, truncated at b4 = 0
 #> Family: gaussian, identity link for all parameters
 #> 
-#> Number of observations: 200, groups: plant_ID 25
+#> Number of observations: 200, groups: Plant_ID 25
 #> Log-likelihood: -513.7 (df = 7), AIC: 1041, BIC: 1064
 #> 
 #> Coefficients:
@@ -67,7 +67,7 @@ summary(fit)
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr 
-#>  plant_ID b1   10.237        
+#>  Plant_ID b1   10.237        
 #>           b2    2.561   -0.12
 #> 
 #> Residual standard deviation: 2.074

@@ -125,7 +125,7 @@ whose results can be reused with `confint`.
 ## Examples
 
 ``` r
-fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 confint(fit)
 #> Computing profile confidence intervals ...
 #>                     2.5 %    97.5 %

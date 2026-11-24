@@ -56,7 +56,7 @@ a profile.maxrateTMB object, which has the confint and plot methods of
 ## Examples
 
 ``` r
-fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 pr <- profile(maxrate(fit), parm="rate")
 confint(pr)
 #>         2.5 %   97.5 %

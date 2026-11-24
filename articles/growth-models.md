@@ -393,14 +393,14 @@ between 14 and 61 days after sowing (`DAS`).
 library(gcTMB)
 library(ggplot2)
 head(FabaHeights25)
-#>   Tube_ID Treatment       Date DAS height DASfact plant_ID
+#>   Tube_ID Treatment       Date DAS Height DASfact Plant_ID
 #> 1       6       0.8 2025-09-24  14     19      14        6
 #> 2       7       0.8 2025-09-24  14     18      14        7
 #> 3       8       0.8 2025-09-24  14     18      14        8
 #> 4       9       0.8 2025-09-24  14     16      14        9
 #> 5      10       0.8 2025-09-24  14     17      14       10
 #> 6      11       0.6 2025-09-24  14     17      14       11
-ggplot(FabaHeights25, aes(x = DAS, y = height, group = plant_ID, colour = factor(Treatment))) +
+ggplot(FabaHeights25, aes(x = DAS, y = Height, group = Plant_ID, colour = factor(Treatment))) +
   geom_line() +
   geom_point() +
   labs(x = "Days after sowing", y = "Height", colour = "Treatment") +
@@ -418,10 +418,10 @@ with the response and the time in the formula, and the growth model in
 
 ``` r
 
-fit <- gcTMB(height ~ DAS, data = FabaHeights25, model = "logistic")
+fit <- gcTMB(Height ~ DAS, data = FabaHeights25, model = "logistic")
 summary(fit)
 #> Call:
-#> gcTMB(form = height ~ DAS, data = FabaHeights25, model = "logistic")
+#> gcTMB(form = Height ~ DAS, data = FabaHeights25, model = "logistic")
 #> 
 #> Model:  logistic, truncated at b4 = 0
 #> Family: gaussian, identity link for all parameters
@@ -453,7 +453,7 @@ parameters at these values.
 
 ``` r
 
-gcTMBstart(height ~ DAS, data = FabaHeights25, model = "logistic")
+gcTMBstart(Height ~ DAS, data = FabaHeights25, model = "logistic")
 #> b1:(Intercept) b2:(Intercept) b3:(Intercept) b4:(Intercept) b5:(Intercept) 
 #>      118.82055       33.02562       11.24957        0.00000        1.00000
 ```
@@ -502,9 +502,9 @@ sets <- list("b1, b2, b3" = list(),
              "b1, b2, b3, b4, b5" = list(fix = c(b4 = FALSE, b5 = FALSE), link = c(b5 = "log")))
 # the models of each set; non-converged fits are reported below instead of warning here
 allfits <- lapply(sets, function(s) lapply(growth, function(m)
-  suppressWarnings(do.call(gcTMB, c(list(height ~ DAS, data = FabaHeights25, model = m,
+  suppressWarnings(do.call(gcTMB, c(list(Height ~ DAS, data = FabaHeights25, model = m,
                                          start = if (m %in% c("chapmanrichards", "korf")) c(b4 = 0)), s)))))
-allfits[["b1, b2, b3"]]$linear <- gcTMB(height ~ DAS, data = FabaHeights25, model = "linear")
+allfits[["b1, b2, b3"]]$linear <- gcTMB(Height ~ DAS, data = FabaHeights25, model = "linear")
 lapply(allfits, function(f) coef(f$logistic))
 #> $`b1, b2, b3`
 #> b1:(Intercept) b2:(Intercept) b3:(Intercept)      log_sigma 
@@ -555,8 +555,8 @@ ndm <- data.frame(DAS = seq(0, 80, by = 0.1))
 curveplot <- function(set){
   fs <- allfits[[set]]
   curves <- do.call(rbind, lapply(names(fs), function(m)
-    data.frame(ndm, height = predict(fs[[m]], newdata = ndm), model = m)))
-  ggplot(FabaHeights25, aes(x = DAS, y = height)) +
+    data.frame(ndm, Height = predict(fs[[m]], newdata = ndm), model = m)))
+  ggplot(FabaHeights25, aes(x = DAS, y = Height)) +
     geom_point(colour = "grey50") +
     geom_line(data = curves, aes(colour = model)) +
     labs(x = "Days after sowing", y = "Height", colour = "Model", title = paste("Estimated parameters:", set)) +
@@ -596,7 +596,7 @@ and confidence intervals for the mean response by the delta method; with
 
 nd <- data.frame(DAS = seq(0, 80, by = 0.1))
 ci <- predict(fit, newdata = nd, interval = "confidence")
-ggplot(FabaHeights25, aes(x = DAS, y = height)) +
+ggplot(FabaHeights25, aes(x = DAS, y = Height)) +
   geom_ribbon(data = cbind(nd, ci), aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "blue", alpha = 0.25) +
   geom_line(data = cbind(nd, ci), aes(x = DAS, y = fit), colour = "blue") +
   geom_point() +
@@ -626,7 +626,7 @@ without fitting the models again.
 bt <- bootstrap(fit, nsim = 500, seed = 1, progress = FALSE)
 cib <- predict(fit, newdata = nd, interval = "confidence", boot = bt)
 # delta method: shaded; bootstrap: dashed limits
-ggplot(FabaHeights25, aes(x = DAS, y = height)) +
+ggplot(FabaHeights25, aes(x = DAS, y = Height)) +
   geom_ribbon(data = cbind(nd, ci), aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "blue", alpha = 0.25) +
   geom_line(data = cbind(nd, cib), aes(x = DAS, y = lwr), linetype = "dashed", colour = "red") +
   geom_line(data = cbind(nd, cib), aes(x = DAS, y = upr), linetype = "dashed", colour = "red") +
@@ -674,7 +674,7 @@ random effects act additively on the rate instead of the scale.
 
 ``` r
 
-fitr <- gcTMB(height ~ DAS, data = FabaHeights25, link = c(b3 = "inverse"))
+fitr <- gcTMB(Height ~ DAS, data = FabaHeights25, link = c(b3 = "inverse"))
 coef(fitr)
 #> b1:(Intercept) b2:(Intercept) b3:(Intercept)      log_sigma 
 #>   120.78511756    30.72998092     0.07763509     2.07723531
@@ -722,7 +722,7 @@ accounts for them.
 
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
 trts <- data.frame(trt = levels(FabaHeights25$trt))
-fittrt <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, data = FabaHeights25)
+fittrt <- gcTMB(Height ~ DAS, fform = b1 + b2 ~ trt, data = FabaHeights25)
 coef(fittrt)
 #> b1:(Intercept)      b1:trt0.3      b1:trt0.5      b1:trt0.6      b1:trt0.8 
 #>    115.4809437     -1.7965772     10.1843921     11.1921913      8.7152228 
@@ -748,7 +748,7 @@ cbind(trts, predict(fittrt, newdata = trts, type = "parameters"))
 #> 5 0.8 124.1962 31.73178 12.95397
 ndt <- merge(trts, data.frame(DAS = seq(0, 80, by = 0.5)))
 ndt <- cbind(ndt, predict(fittrt, newdata = ndt, interval = "confidence"))
-ggplot(FabaHeights25, aes(x = DAS, y = height, colour = trt)) +
+ggplot(FabaHeights25, aes(x = DAS, y = Height, colour = trt)) +
   geom_ribbon(data = ndt, aes(x = DAS, ymin = lwr, ymax = upr, fill = trt), inherit.aes = FALSE, alpha = 0.1) +
   geom_line(data = ndt, aes(y = fit)) +
   geom_point(alpha = 0.6) +
