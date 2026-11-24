@@ -95,12 +95,12 @@ confint(fit, method = "wald")
 The other faba bean data sets, `FabaHeights25` (heights of 25 plants grown in tubes at five treatment levels) and `FabaCounts23` (counts of pods), are used in the vignettes *Growth models and their parameters* and *Fixed and random effects*, and for the counts below. Besides the faba bean data, the package has growth data from other fields: `BerkeleyGrowth` (heights and weights of children from birth to 21 years, used in the vignette *Timing and maximum growth rates* with the Preece-Baines curve), `SorghumMaize` (biomass of three crops at two input levels, used in the vignette *Autocorrelation and simulation* with the beta curve) and `PineHeightDiameter` (heights and diameters of Scots pine trees, used in the vignette *Fixed and random effects*). The x-axis need not be time: in a height-diameter model the height grows with the diameter, from the breast height of 1.3 m, the intercept $b_4$ of the Chapman-Richards curve:
 
 ```{r, fig.width = 6, fig.height = 4}
-fithd <- gcTMB(height ~ dbh, rform = b1 ~ 1 | plot, data = PineHeightDiameter,
+fithd <- gcTMB(Height ~ DBH, rform = b1 ~ 1 | Plot, data = PineHeightDiameter,
                model = "chapmanrichards", start = c(b4 = 1.3))
-nd <- data.frame(dbh = seq(0, 52, by = 0.5))
-ggplot(PineHeightDiameter, aes(x = dbh, y = height)) +
+nd <- data.frame(DBH = seq(0, 52, by = 0.5))
+ggplot(PineHeightDiameter, aes(x = DBH, y = Height)) +
   geom_point(colour = "grey60", size = 0.8) +
-  geom_line(data = cbind(nd, height = predict(fithd, newdata = nd, random = FALSE)), colour = "blue") +
+  geom_line(data = cbind(nd, Height = predict(fithd, newdata = nd, random = FALSE)), colour = "blue") +
   labs(x = "Diameter at breast height (cm)", y = "Height (m)",
        title = "Scots pines: Chapman-Richards curve from breast height") +
   theme_minimal()
@@ -140,7 +140,7 @@ p$curves + labs(x = "Days after sowing", y = "Height (cm)", colour = "Soil, irri
 The `family` argument gives the distribution of the response: "gaussian", "lognormal", "poisson", "nbinom2", "nbinom1", "binomial", "betabinomial" or "beta". The data set `FabaCounts23` contains the numbers of pods of 22 plants of six genotypes; the plants have no pods at the first counts, so the threshold $b_4$, the time of the first pods, is estimated.
 
 ```{r}
-fitp <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+fitp <- gcTMB(Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
               family = "poisson", fix = c(b4 = FALSE))
 genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
 cbind(genotypes, predict(fitp, newdata = genotypes, type = "parameters", random = FALSE))
@@ -160,7 +160,7 @@ maxrate(fitre, newdata = trts)
 With `b1type = "rate"`, $b_1$ is the maximum growth rate, so that covariates on $b_1$ are effects on the maximum growth rate: `anova()` tests whether they differ, and `partest()` with `contrasts = "tukey"` compares all pairs of genotypes, by Tukey's method with simultaneous confidence intervals.
 
 ```{r}
-fitpr <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+fitpr <- gcTMB(Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
                family = "poisson", fix = c(b4 = FALSE), b1type = "rate", link = c(b1 = "log"))
 partest(fitpr, newdata = genotypes, contrasts = "tukey")
 ```

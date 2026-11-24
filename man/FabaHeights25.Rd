@@ -11,9 +11,9 @@ A data frame with 200 rows and 7 variables:
 \item{Treatment}{treatment level: 0.1, 0.3, 0.5, 0.6 or 0.8}
 \item{Date}{date of the measurement}
 \item{DAS}{days after sowing}
-\item{height}{plant height}
+\item{Height}{plant height}
 \item{DASfact}{days after sowing, the same values as DAS}
-\item{plant_ID}{identifier of the plant, the same values as Tube_ID}
+\item{Plant_ID}{identifier of the plant, the same values as Tube_ID}
 }
 The raw data and the script that converts them are in the directory data-raw of the source package.
 }
@@ -25,7 +25,7 @@ Repeated height measurements of 25 faba bean plants, five at each of five treatm
 measured on eight days between 14 and 61 days after sowing (2025).
 }
 \examples{
-fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
 summary(fit)
 }
 \keyword{datasets}

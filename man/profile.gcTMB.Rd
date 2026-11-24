@@ -69,7 +69,7 @@ sum(w) log(1 + F/(n - p)) with the quantile F of the F distribution with 1 and n
 freedom, which gives the intervals of a t-test of each coefficient, as profile intervals of nls.
 }
 \examples{
-fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 pr <- profile(fit, progress=FALSE)
 confint(pr)
 plot(pr)

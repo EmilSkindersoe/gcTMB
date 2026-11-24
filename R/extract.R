@@ -46,9 +46,9 @@
 #' so it returns an empty vector, as the extractor for a variance function once it is added.
 #'
 #' @examples
-#' fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+#' fit <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
 #' fixef(fit)
-#' head(ranef(fit)$plant_ID)
+#' head(ranef(fit)$Plant_ID)
 #' VarCorr(fit)
 #' sigma(fit)^2
 #' corpars(fit)
@@ -229,8 +229,8 @@ termgroups <- function(tm, data){
 #' mixed-effects models. Biometrics 52, 572-587.
 #'
 #' @examples
-#' fl <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
-#' fg <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25, model="gompertz")
+#' fl <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
+#' fg <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25, model="gompertz")
 #' criteria(logistic=fl, gompertz=fg)
 #' criteria(logistic=fl, gompertz=fg, which=c("AIC", "R2", "BIC"))
 #'

@@ -95,7 +95,7 @@ test_that("plot gives diagnostic ggplots", {
 })
 
 test_that("the QQ plot of non-normal residuals warns", {
-  fp <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
+  fp <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
   expect_warning(plot(fp, residuals="pearson", draw=FALSE), "not normally distributed")
   expect_warning(plot(fp, residuals="response", which=3, draw=FALSE), "not normally distributed")
   expect_no_warning(plot(fp, draw=FALSE, seed=1))

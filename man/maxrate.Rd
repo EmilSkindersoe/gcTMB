@@ -56,18 +56,18 @@ on the shape of the curve only, \code{confint} returns Wald intervals with a mes
 \code{method="profile"}.
 }
 \examples{
-fit <- gcTMB(height ~ DAS, data=FabaHeights25, model="logistic")
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25, model="logistic")
 mr <- maxrate(fit)
 mr
 confint(mr, method="wald")
 
 # the Richards curve, with an estimated asymmetry
-fitr <- gcTMB(height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE), link=c(b5="log"))
+fitr <- gcTMB(Height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE), link=c(b5="log"))
 maxrate(fitr)
 
 # a curve for each treatment level
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-fit2 <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25)
+fit2 <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25)
 maxrate(fit2, newdata=data.frame(trt=levels(FabaHeights25$trt)))
 }
 \seealso{

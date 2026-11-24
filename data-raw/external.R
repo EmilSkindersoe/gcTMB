@@ -6,23 +6,23 @@
 # girls from birth to 21 years, with the transcription errors corrected in sitar. The other body
 # measurements, mostly missing and only from 6-8 years on, are left out.
 data("berkeley", package="sitar", envir=environment())
-BerkeleyGrowth <- data.frame(id=factor(berkeley$id),
-                             sex=factor(berkeley$sex, levels=c("1", "2"), labels=c("male", "female")),
-                             age=berkeley$age,
-                             height=berkeley$height,
-                             weight=berkeley$weight)
-BerkeleyGrowth <- BerkeleyGrowth[order(BerkeleyGrowth$id, BerkeleyGrowth$age), ]
+BerkeleyGrowth <- data.frame(ID=factor(berkeley$id),
+                             Sex=factor(berkeley$sex, levels=c("1", "2"), labels=c("male", "female")),
+                             Age=berkeley$age,
+                             Height=berkeley$height,
+                             Weight=berkeley$weight)
+BerkeleyGrowth <- BerkeleyGrowth[order(BerkeleyGrowth$ID, BerkeleyGrowth$Age), ]
 rownames(BerkeleyGrowth) <- NULL
 
 # Scots pine heights and diameters in Ilomantsi, Finland (lmfor::spati2, GPL-2): 1678 trees on 56
 # plots, with the number of trees and the mean and variance of the diameters of each plot
 data("spati2", package="lmfor", envir=environment())
-PineHeightDiameter <- data.frame(plot=factor(spati2$plot),
-                                 dbh=spati2$d,
-                                 height=spati2$h,
-                                 ntrees=spati2$n,
-                                 dmean=spati2$dmean,
-                                 dvar=spati2$dvar)
+PineHeightDiameter <- data.frame(Plot=factor(spati2$plot),
+                                 DBH=spati2$d,
+                                 Height=spati2$h,
+                                 Ntrees=spati2$n,
+                                 Dmean=spati2$dmean,
+                                 Dvar=spati2$dvar)
 rownames(PineHeightDiameter) <- NULL
 
 # biomass of fiber sorghum, sweet sorghum and maize in Greece (nlraa::sm, GPL-3): 3 crops at 2 input

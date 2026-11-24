@@ -60,19 +60,19 @@ test_that("random effects of several terms, nested and crossed factors and slope
 test_that("simulate uses the fitted model, not the last parameters evaluated by TMB", {
   # a fit stopped short of the optimum; a later optimisation of its objective finds better parameters,
   # which TMB keeps as last.par.best
-  fit <- suppressWarnings(gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25, control=list(iter.max=3)))
+  fit <- suppressWarnings(gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25, control=list(iter.max=3)))
   m1 <- attr(simulate(fit, seed=1, random=FALSE), "mean")[[1]]
   invisible(nlminb(fit$opt$par, fit$obj$fn, fit$obj$gr))
   m2 <- attr(simulate(fit, seed=1, random=FALSE), "mean")[[1]]
   expect_equal(m2, m1)
   expect_equal(m2, unname(predict(fit)), tolerance=1e-8)
   expect_equal(simulate(fit, seed=2)[[1]], {
-    fit2 <- suppressWarnings(gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25, control=list(iter.max=3)))
+    fit2 <- suppressWarnings(gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25, control=list(iter.max=3)))
     simulate(fit2, seed=2)[[1]]
   })
   # control sdreport=FALSE: the random effects are the conditional modes at the estimates
-  fn <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25, control=list(sdreport=FALSE))
-  fs <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+  fn <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25, control=list(sdreport=FALSE))
+  fs <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
   expect_equal(fn$sdrl$par.random, fs$sdrl$par.random, tolerance=1e-6)
 })
 
@@ -100,9 +100,9 @@ test_that("a double bar makes all random coefficients independent, as pdDiag of 
 test_that("a double bar agrees with pdDiag of nlme for a growth curve", {
   skip_if_not_installed("nlme")
   d <- FabaHeights25
-  f <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 || plant_ID, data=d, truncated=FALSE)
-  n <- nlme::nlme(height ~ b1/(1 + exp(-(DAS - b2)/b3)), data=d, fixed=b1 + b2 + b3 ~ 1,
-                  random=nlme::pdDiag(b1 + b2 ~ 1), groups=~ plant_ID, start=unname(fixef(f)[1:3]), method="ML")
+  f <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 || Plant_ID, data=d, truncated=FALSE)
+  n <- nlme::nlme(Height ~ b1/(1 + exp(-(DAS - b2)/b3)), data=d, fixed=b1 + b2 + b3 ~ 1,
+                  random=nlme::pdDiag(b1 + b2 ~ 1), groups=~ Plant_ID, start=unname(fixef(f)[1:3]), method="ML")
   # nlme maximises its linearised approximation of the likelihood, so its log-likelihood is a little lower
   expect_gte(as.numeric(logLik(f)), as.numeric(logLik(n)) - 1e-6)
   expect_lt(as.numeric(logLik(f)) - as.numeric(logLik(n)), 0.5)

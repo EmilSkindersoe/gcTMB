@@ -57,18 +57,18 @@ test_that("truncated fits: gradient, predictions and times", {
 
 test_that("zero counts at a mean of zero before the threshold", {
   # the maximum is at a kink, at the observation time 65 with only zero counts
-  expect_no_warning(fit <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE)))
+  expect_no_warning(fit <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE)))
   expect_equal(fit$opt$convergence, 0)
   expect_match(fit$opt$message, "kink")
   expect_equal(coef(fit)[["b4:(Intercept)"]], 65)
   # the maximum with b4 held at 65, the same with log links
-  fit65 <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", start=c(b4=65), fix=c(b4=TRUE))
+  fit65 <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", start=c(b4=65), fix=c(b4=TRUE))
   expect_equal(as.numeric(logLik(fit)), as.numeric(logLik(fit65)), tolerance=1e-8)
-  fitl <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE), link=c(b1="log", b4="log"))
+  fitl <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE), link=c(b1="log", b4="log"))
   expect_equal(as.numeric(logLik(fitl)), as.numeric(logLik(fit)), tolerance=1e-8)
   expect_true(is.finite(logLik(fit)))
   b4 <- coef(fit)[["b4:(Intercept)"]]
-  expect_true(all(FabaCounts23$pods[FabaCounts23$DAS <= b4] == 0))
+  expect_true(all(FabaCounts23$Pods[FabaCounts23$DAS <= b4] == 0))
   r <- residuals(fit, type="pearson")
   expect_true(all(is.finite(r)))
   expect_true(all(r[FabaCounts23$DAS <= b4] == 0))
@@ -78,13 +78,13 @@ test_that("zero counts at a mean of zero before the threshold", {
 })
 
 test_that("b4 is only used by truncated curves", {
-  expect_error(gcTMB(height ~ DAS, truncated=FALSE, rform=b4 ~ 1 | plant_ID, data=FabaHeights25), "does not use b4")
-  expect_error(gcTMB(height ~ DAS, data=FabaHeights25, truncated=NA), "truncated must be TRUE or FALSE")
-  expect_false("b4:(Intercept)" %in% names(coef(gcTMB(height ~ DAS, truncated=FALSE, data=FabaHeights25))))
+  expect_error(gcTMB(Height ~ DAS, truncated=FALSE, rform=b4 ~ 1 | Plant_ID, data=FabaHeights25), "does not use b4")
+  expect_error(gcTMB(Height ~ DAS, data=FabaHeights25, truncated=NA), "truncated must be TRUE or FALSE")
+  expect_false("b4:(Intercept)" %in% names(coef(gcTMB(Height ~ DAS, truncated=FALSE, data=FabaHeights25))))
 })
 
 test_that("by default the curves are truncated at b4 = 0, fixed", {
-  f <- gcTMB(height ~ DAS, data=FabaHeights25)
+  f <- gcTMB(Height ~ DAS, data=FabaHeights25)
   expect_true(f$truncated)
   expect_equal(f$fix, c(FALSE, FALSE, FALSE, TRUE, TRUE))
   expect_equal(f$start[4:5], c(0, 1))
@@ -98,12 +98,12 @@ test_that("by default the curves are truncated at b4 = 0, fixed", {
                b[[1]]*(plogis((c(0, 20) - b[[2]])/b[[3]]) - plogis(-b[[2]]/b[[3]]))/(1 - plogis(-b[[2]]/b[[3]])))
   # a threshold at zero does not truncate the hill and weibull curves
   for (m in c("hill", "weibull")){
-    expect_equal(gcTMB(height ~ DAS, data=FabaHeights25, model=m)$opt$objective,
-                 gcTMB(height ~ DAS, data=FabaHeights25, model=m, truncated=FALSE)$opt$objective, tolerance=1e-8)
+    expect_equal(gcTMB(Height ~ DAS, data=FabaHeights25, model=m)$opt$objective,
+                 gcTMB(Height ~ DAS, data=FabaHeights25, model=m, truncated=FALSE)$opt$objective, tolerance=1e-8)
   }
   # an estimated threshold, and the log link of b4 needs a value
-  fb <- gcTMB(height ~ DAS, data=FabaHeights25, fix=c(b4=FALSE))
+  fb <- gcTMB(Height ~ DAS, data=FabaHeights25, fix=c(b4=FALSE))
   expect_equal(fb$fix, c(FALSE, FALSE, FALSE, FALSE, TRUE))
   expect_true(any(grepl("truncated at the threshold b4", capture.output(print(fb)))))
-  expect_error(gcTMB(height ~ DAS, data=FabaHeights25, link=c(b4="log")), "outside the range of its log link")
+  expect_error(gcTMB(Height ~ DAS, data=FabaHeights25, link=c(b4="log")), "outside the range of its log link")
 })

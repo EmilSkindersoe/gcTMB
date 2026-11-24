@@ -9,8 +9,8 @@ test_that("b1type = 'rate' gives the same fit with b1 the maximum growth rate", 
                 list(model="logistic", fix=c(b4=FALSE)))
   for (cs in cases){
     lab <- paste(deparse(cs), collapse="")
-    fa <- do.call(gcTMB, c(list(height ~ DAS, data=FabaHeights25), cs))
-    fr <- do.call(gcTMB, c(list(height ~ DAS, data=FabaHeights25, b1type="rate"), cs))
+    fa <- do.call(gcTMB, c(list(Height ~ DAS, data=FabaHeights25), cs))
+    fr <- do.call(gcTMB, c(list(Height ~ DAS, data=FabaHeights25, b1type="rate"), cs))
     expect_equal(as.numeric(logLik(fr)), as.numeric(logLik(fa)), tolerance=1e-6, label=lab)
     expect_equal(bcoef(fr)[[1]], coef(maxrate(fa))[["rate"]], tolerance=1e-4, label=lab)
     # the same curve, and maxrate of the rate fit is its b1
@@ -22,8 +22,8 @@ test_that("b1type = 'rate' gives the same fit with b1 the maximum growth rate", 
 test_that("b1 as the rate: predictions, times, parameters and summary", {
   d <- FabaHeights25
   d$trt <- factor(d$Treatment)
-  fa <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=d)
-  fr <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=d, b1type="rate")
+  fa <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=d)
+  fr <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=d, b1type="rate")
   nd <- data.frame(trt=levels(d$trt), DAS=30)
   expect_equal(predict(fr, newdata=nd), predict(fa, newdata=nd), tolerance=1e-5)
   expect_equal(predict(fr, newdata=nd, se.fit=TRUE)$se.fit, predict(fa, newdata=nd, se.fit=TRUE)$se.fit, tolerance=1e-3)
@@ -46,16 +46,16 @@ test_that("b1 as the rate: predictions, times, parameters and summary", {
 
 test_that("b1 as the rate needs b5 = 1 for the gompertz, weibull, normal and gamma models", {
   for (m in c("gompertz", "weibull", "normal", "gamma")){
-    expect_error(gcTMB(height ~ DAS, data=FabaHeights25, model=m, b1type="rate", fix=c(b5=FALSE)), "b5 must be fixed at 1", label=m)
-    expect_error(gcTMB(height ~ DAS, data=FabaHeights25, model=m, b1type="rate", start=c(b5=2)), "b5 must be fixed at 1", label=m)
+    expect_error(gcTMB(Height ~ DAS, data=FabaHeights25, model=m, b1type="rate", fix=c(b5=FALSE)), "b5 must be fixed at 1", label=m)
+    expect_error(gcTMB(Height ~ DAS, data=FabaHeights25, model=m, b1type="rate", start=c(b5=2)), "b5 must be fixed at 1", label=m)
   }
-  expect_silent(gcTMB(height ~ DAS, data=FabaHeights25, model="gompertz", b1type="rate", start=c(b5=1)))
+  expect_silent(gcTMB(Height ~ DAS, data=FabaHeights25, model="gompertz", b1type="rate", start=c(b5=1)))
 })
 
 test_that("partest compares a parameter between curves", {
   d <- FabaHeights25
   d$trt <- factor(d$Treatment)
-  fr <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=d, b1type="rate", link=c(b1="log"))
+  fr <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=d, b1type="rate", link=c(b1="log"))
   nd <- data.frame(trt=levels(d$trt))
   pw <- partest(fr, nd, contrasts="tukey", adjust="none")
   expect_s3_class(pw, "partest.gcTMB")
@@ -92,7 +92,7 @@ test_that("the single-step (Tukey) adjustment", {
 
   d <- FabaHeights25
   d$trt <- factor(d$Treatment)
-  fr <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=d, b1type="rate", link=c(b1="log"))
+  fr <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=d, b1type="rate", link=c(b1="log"))
   nd <- data.frame(trt=levels(d$trt))
   set.seed(5)
   r1 <- runif(1)
@@ -122,7 +122,7 @@ test_that("Dunnett contrasts, the default of partest", {
 
   d <- FabaHeights25
   d$trt <- factor(d$Treatment)
-  fr <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=d, b1type="rate", link=c(b1="log"))
+  fr <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=d, b1type="rate", link=c(b1="log"))
   nd <- data.frame(trt=levels(d$trt))
   b1trt <- paste("b1:trt", levels(d$trt)[-1], sep="")
 

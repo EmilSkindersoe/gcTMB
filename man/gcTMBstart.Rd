@@ -97,9 +97,9 @@ with a single coefficient in \code{fform}; the asymptote b1 is only included in 
 user-specified bounds.
 }
 \examples{
-gcTMBstart(height ~ DAS, data=FabaHeights25, model="gompertz")
+gcTMBstart(Height ~ DAS, data=FabaHeights25, model="gompertz")
 # with a given asymptote, from which b2 and b3 are linearised
-gcTMBstart(height ~ DAS, data=FabaHeights25, start=c(b1=120))
+gcTMBstart(Height ~ DAS, data=FabaHeights25, start=c(b1=120))
 # best point of a grid of b2 and b3 values
-gcTMBstart(height ~ DAS, data=FabaHeights25, method="grid", gsn=c(1, 10, 10, 1, 1))
+gcTMBstart(Height ~ DAS, data=FabaHeights25, method="grid", gsn=c(1, 10, 10, 1, 1))
 }

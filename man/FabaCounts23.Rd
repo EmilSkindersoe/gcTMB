@@ -11,11 +11,11 @@ A data frame with 263 rows and 9 variables:
 \item{Genotype}{genotype: Aurora, Capri, ILB938, Lynx, Melodie or Navara}
 \item{Treatment}{treatment, "ww" for all plants}
 \item{DAS}{days after sowing}
-\item{new}{number of new flowers}
-\item{open}{number of open flowers}
-\item{old}{number of old flowers}
-\item{pods}{number of pods}
-\item{n_flowers}{number of flowers, the sum of new, open and old}
+\item{New}{number of new flowers}
+\item{Open}{number of open flowers}
+\item{Old}{number of old flowers}
+\item{Pods}{number of pods}
+\item{N_flowers}{number of flowers, the sum of New, Open and Old}
 }
 The raw data and the script that converts them are in the directory data-raw of the source package.
 }
@@ -27,7 +27,7 @@ Repeated counts of flowers and pods of 22 faba bean plants of six genotypes, all
 treatment "ww", on twelve days between 61 and 79 days after sowing (2023).
 }
 \examples{
-fit <- gcTMB(pods ~ DAS, fform=b1 ~ Genotype, data=FabaCounts23, family="poisson")
+fit <- gcTMB(Pods ~ DAS, fform=b1 ~ Genotype, data=FabaCounts23, family="poisson")
 summary(fit)
 }
 \keyword{datasets}

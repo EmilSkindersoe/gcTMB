@@ -102,15 +102,15 @@ test_that("the logit link keeps a binomial asymptote in (0, 1)", {
 
 test_that("covariates act multiplicatively with the log link", {
   FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-  f <- gcTMB(height ~ DAS, truncated=FALSE, fform=b1 ~ trt, data=FabaHeights25)
-  fl <- gcTMB(height ~ DAS, truncated=FALSE, fform=b1 ~ trt, data=FabaHeights25, link=c(b1="log"))
+  f <- gcTMB(Height ~ DAS, truncated=FALSE, fform=b1 ~ trt, data=FabaHeights25)
+  fl <- gcTMB(Height ~ DAS, truncated=FALSE, fform=b1 ~ trt, data=FabaHeights25, link=c(b1="log"))
   # a factor alone: the same fit, with ratios of the asymptotes
   expect_equal(fl$opt$objective, f$opt$objective, tolerance=1e-7)
   b <- coef(f)[1:5]
   bl <- coef(fl)[1:5]
   expect_equal(unname(exp(bl[2:5])), unname((b[1] + b[2:5])/b[1]), tolerance=1e-5)
   # random effects on the log scale of the asymptote
-  fr <- gcTMB(height ~ DAS, truncated=FALSE, rform=b1 ~ 1 | plant_ID, data=FabaHeights25, link=c(b1="log"))
+  fr <- gcTMB(Height ~ DAS, truncated=FALSE, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25, link=c(b1="log"))
   expect_equal(fr$opt$convergence, 0)
   expect_true(is.finite(logLik(fr)))
 })

@@ -44,18 +44,18 @@
 #'   are numbered.
 #' @seealso \code{\link{confint.maxrateTMB}} for confidence intervals, \code{\link{timeto}}
 #' @examples
-#' fit <- gcTMB(height ~ DAS, data=FabaHeights25, model="logistic")
+#' fit <- gcTMB(Height ~ DAS, data=FabaHeights25, model="logistic")
 #' mr <- maxrate(fit)
 #' mr
 #' confint(mr, method="wald")
 #'
 #' # the Richards curve, with an estimated asymmetry
-#' fitr <- gcTMB(height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE), link=c(b5="log"))
+#' fitr <- gcTMB(Height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE), link=c(b5="log"))
 #' maxrate(fitr)
 #'
 #' # a curve for each treatment level
 #' FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-#' fit2 <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25)
+#' fit2 <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25)
 #' maxrate(fit2, newdata=data.frame(trt=levels(FabaHeights25$trt)))
 #' @export
 maxrate <- function(x, curves=NULL, newdata=NULL){
@@ -283,7 +283,7 @@ vcov.maxrateTMB <- function(object, ...) object$variance
 #'
 #' @return a matrix with the lower and upper confidence limits
 #' @examples
-#' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+#' fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 #' mr <- maxrate(fit)
 #' confint(mr, method="wald")
 #' confint(mr, parm=c("tmax", "rate"))
@@ -360,7 +360,7 @@ profileable <- function(object, parm){
 #' @return a profile.maxrateTMB object, which has the confint and plot methods of
 #'   \code{\link{profile.gcTMB}}
 #' @examples
-#' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+#' fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 #' pr <- profile(maxrate(fit), parm="rate")
 #' confint(pr)
 #' @export

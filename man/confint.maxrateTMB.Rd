@@ -47,7 +47,7 @@ with a message. Wald intervals use t quantiles with small-sample inference
 the bootstrap intervals.
 }
 \examples{
-fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 mr <- maxrate(fit)
 confint(mr, method="wald")
 confint(mr, parm=c("tmax", "rate"))

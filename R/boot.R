@@ -16,7 +16,7 @@
 #' @param ... Not used.
 #'
 #' @examples
-#' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+#' fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 #' bt <- bootstrap(fit, nsim=50, seed=1, progress=FALSE)
 #' bt
 #' confint(bt)

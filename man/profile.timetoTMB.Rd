@@ -44,7 +44,7 @@ not included. Gaussian models without random effects use the F-based cutoff of
 \code{\link{profile.gcTMB}} by default.
 }
 \examples{
-fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 pr <- profile(timeto(fit, level=c(10, 90)), progress=FALSE)
 confint(pr)
 plot(pr)

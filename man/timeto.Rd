@@ -56,7 +56,7 @@ level that is not in the fitted data, are treated as above. Profile intervals ar
 for the times of fitted groups, see \code{\link{confint.timetoTMB}}.
 }
 \examples{
-fit <- gcTMB(height ~ DAS, data=FabaHeights25, model="logistic")
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25, model="logistic")
 # days after sowing at which the plants reach 10\%, 50\% and 90\% of their final height
 tt <- timeto(fit, level=c(10, 50, 90))
 tt
@@ -66,7 +66,7 @@ timeto(fit, level=50, type="absolute")
 
 # a curve for each treatment level
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-fit2 <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25)
+fit2 <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25)
 timeto(fit2, level=90, newdata=data.frame(trt=levels(FabaHeights25$trt)))
 }
 \seealso{

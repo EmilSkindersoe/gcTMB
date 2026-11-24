@@ -28,7 +28,7 @@ test_that("gradients agree with finite differences for the families", {
   d$yl <- 40*mu*exp(rnorm(nrow(d), 0, 0.1)) + 1
   fits <- list(
     binomial=gcTMB(cbind(yb, n - yb) ~ day, truncated=FALSE, data=d, family="binomial"),
-    poisson=gcTMB(pods ~ DAS, truncated=FALSE, data=FabaCounts23, family="poisson", model="gompertz"),
+    poisson=gcTMB(Pods ~ DAS, truncated=FALSE, data=FabaCounts23, family="poisson", model="gompertz"),
     nbinom2=gcTMB(yn ~ day, truncated=FALSE, data=d, family="nbinom2"),
     beta=gcTMB(yr ~ day, truncated=FALSE, data=d, family="beta"),
     lognormal=gcTMB(yl ~ day, truncated=FALSE, data=d, family="lognormal")

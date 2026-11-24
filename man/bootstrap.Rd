@@ -44,7 +44,7 @@ estimates. The bootstrap sample can be used for confidence intervals of the mode
 the times of \code{\link{timeto}}, see \code{\link{confint.gcTMB}}, without fitting the models again.
 }
 \examples{
-fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 bt <- bootstrap(fit, nsim=50, seed=1, progress=FALSE)
 bt
 confint(bt)

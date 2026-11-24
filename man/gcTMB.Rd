@@ -185,59 +185,59 @@ anyway.
 }
 \examples{
 # logistic growth of the faba bean plants
-fit <- gcTMB(height ~ DAS, data=FabaHeights25, model="logistic")
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25, model="logistic")
 summary(fit)
 
 # the other models, compared by AIC
-fitg <- gcTMB(height ~ DAS, data=FabaHeights25, model="gompertz")
-fith <- gcTMB(height ~ DAS, data=FabaHeights25, model="hill")
-fitw <- gcTMB(height ~ DAS, data=FabaHeights25, model="weibull")
-fitn <- gcTMB(height ~ DAS, data=FabaHeights25, model="normal")
-fitgam <- gcTMB(height ~ DAS, data=FabaHeights25, model="gamma")
-fitlin <- gcTMB(height ~ DAS, data=FabaHeights25, model="linear")
+fitg <- gcTMB(Height ~ DAS, data=FabaHeights25, model="gompertz")
+fith <- gcTMB(Height ~ DAS, data=FabaHeights25, model="hill")
+fitw <- gcTMB(Height ~ DAS, data=FabaHeights25, model="weibull")
+fitn <- gcTMB(Height ~ DAS, data=FabaHeights25, model="normal")
+fitgam <- gcTMB(Height ~ DAS, data=FabaHeights25, model="gamma")
+fitlin <- gcTMB(Height ~ DAS, data=FabaHeights25, model="linear")
 # the forestry models from zero instead of their default intercept, the breast height of 1.3 m
-fitcr <- gcTMB(height ~ DAS, data=FabaHeights25, model="chapmanrichards", start=c(b4=0))
-fitb <- gcTMB(height ~ DAS, data=FabaHeights25, model="beta_capped")
-fitk <- gcTMB(height ~ DAS, data=FabaHeights25, model="korf", start=c(b4=0))
+fitcr <- gcTMB(Height ~ DAS, data=FabaHeights25, model="chapmanrichards", start=c(b4=0))
+fitb <- gcTMB(Height ~ DAS, data=FabaHeights25, model="beta_capped")
+fitk <- gcTMB(Height ~ DAS, data=FabaHeights25, model="korf", start=c(b4=0))
 AIC(fit, fitg, fith, fitw, fitn, fitgam, fitlin, fitcr, fitb, fitk)
 
 # a height-diameter model from the breast height of 1.3 m, the default intercept b4
-gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards")
+gcTMB(Height ~ DBH, data=PineHeightDiameter, model="chapmanrichards")
 
 # the Richards curve: the logistic model with an estimated asymmetry b5
-fitr5 <- gcTMB(height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE))
+fitr5 <- gcTMB(Height ~ DAS, data=FabaHeights25, fix=c(b5=FALSE))
 coef(fitr5)
 
 # the rate 1/b3 instead of the scale b3
-gcTMB(height ~ DAS, data=FabaHeights25, link=c(b3="inverse"))
+gcTMB(Height ~ DAS, data=FabaHeights25, link=c(b3="inverse"))
 
 # treatment effects on the asymptote as ratios, with the log link
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-fitl <- gcTMB(height ~ DAS, fform=b1 ~ trt, data=FabaHeights25, link=c(b1="log"))
+fitl <- gcTMB(Height ~ DAS, fform=b1 ~ trt, data=FabaHeights25, link=c(b1="log"))
 exp(coef(fitl)[2:5])
 
 # treatment effects on the asymptote and random effects of the plants
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-fitre <- gcTMB(height ~ DAS, fform=b1 ~ trt, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+fitre <- gcTMB(Height ~ DAS, fform=b1 ~ trt, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
 summary(fitre)
 
 # treatment effects on the maximum growth rate, b1 with b1type = "rate", tested by a likelihood
 # ratio test and compared with the first treatment
-fitr <- gcTMB(height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25, b1type="rate")
-fitr0 <- gcTMB(height ~ DAS, fform=b2 ~ trt, data=FabaHeights25, b1type="rate")
+fitr <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25, b1type="rate")
+fitr0 <- gcTMB(Height ~ DAS, fform=b2 ~ trt, data=FabaHeights25, b1type="rate")
 anova(fitr0, fitr)
 partest(fitr, newdata=data.frame(trt=levels(FabaHeights25$trt)))
 
 # residuals of each plant correlated over time, continuous-time AR(1)
-fitc <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25,
-              correlation=corCAR1(form=~ DAS | plant_ID))
+fitc <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25,
+              correlation=corCAR1(form=~ DAS | Plant_ID))
 corpars(fitc)
 
 # pod counts with a poisson distribution
-gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson")
+gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson")
 
 # no pods before a threshold b4, after which the count grows
-fitt <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
+fitt <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
 coef(fitt)
 }
 \references{

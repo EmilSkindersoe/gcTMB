@@ -41,7 +41,7 @@
 #' @export
 #'
 #' @examples
-#' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+#' fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 #' pr <- profile(fit, progress=FALSE)
 #' confint(pr)
 #' plot(pr)
@@ -216,7 +216,7 @@ profcutoffs <- function(object, level){
 #' @param ... Not used.
 #'
 #' @examples
-#' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+#' fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 #' pr <- profile(timeto(fit, level=c(10, 90)), progress=FALSE)
 #' confint(pr)
 #' plot(pr)
@@ -439,7 +439,7 @@ timevalue <- function(object, i, lpv){
 #' @return a matrix with the lower and upper confidence limits
 #' @export
 #' @examples
-#' fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+#' fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 #' confint(fit)
 #' confint(fit, method="wald")
 #' confint(timeto(fit, level=c(10, 50, 90)))

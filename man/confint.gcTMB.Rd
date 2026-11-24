@@ -79,7 +79,7 @@ Computing profiles can take a while for models with random effects; see \code{\l
 and \code{\link{profile.timetoTMB}}, whose results can be reused with \code{confint}.
 }
 \examples{
-fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 confint(fit)
 confint(fit, method="wald")
 confint(timeto(fit, level=c(10, 50, 90)))

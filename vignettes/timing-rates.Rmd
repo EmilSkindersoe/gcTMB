@@ -34,14 +34,14 @@ the adult height $b_1$, the age $b_2$ in the middle of puberty, the height $b_3$
 ```{r, fig.width = 6, fig.height = 4}
 library(gcTMB)
 library(ggplot2)
-berkeley <- subset(BerkeleyGrowth, age >= 2 & !is.na(height))
-girls <- subset(berkeley, sex == "female")
-fitg <- gcTMB(height ~ age, data = girls, model = "preecebaines")
+berkeley <- subset(BerkeleyGrowth, Age >= 2 & !is.na(Height))
+girls <- subset(berkeley, Sex == "female")
+fitg <- gcTMB(Height ~ Age, data = girls, model = "preecebaines")
 summary(fitg)
-ages <- data.frame(age = seq(2, 21, by = 0.05))
-ggplot(girls, aes(x = age, y = height)) +
-  geom_line(aes(group = id), colour = "grey70") +
-  geom_line(data = cbind(ages, height = predict(fitg, newdata = ages)), colour = "blue", linewidth = 1) +
+ages <- data.frame(Age = seq(2, 21, by = 0.05))
+ggplot(girls, aes(x = Age, y = Height)) +
+  geom_line(aes(group = ID), colour = "grey70") +
+  geom_line(data = cbind(ages, Height = predict(fitg, newdata = ages)), colour = "blue", linewidth = 1) +
   labs(x = "Age (years)", y = "Height (cm)") +
   theme_minimal()
 ```
@@ -78,7 +78,7 @@ confint(mr)
 Covariates on all five parameters give a curve for each sex, and random effects of the children on the adult height, the middle of puberty and the rate during puberty a curve for each child. The default starting values pool the boys and the girls, and are far from the curve of either sex when all five parameters differ between the sexes; the fits of each sex give better starting values, the coefficients of the boys and the differences of the girls from them:
 
 ```{r}
-fitb <- gcTMB(height ~ age, data = subset(berkeley, sex == "male"), model = "preecebaines")
+fitb <- gcTMB(Height ~ Age, data = subset(berkeley, Sex == "male"), model = "preecebaines")
 cb <- coef(fitb)[1:5]
 cg <- coef(fitg)[1:5]
 ```
@@ -86,7 +86,7 @@ cg <- coef(fitg)[1:5]
 A starting vector has one entry for each coefficient, in the order of the coefficients of the model, which `gcTMBstart()` gives with their names: for each parameter the intercept, here the boys, and the contrast of the girls. The default starting values are those of the pooled data, with the contrasts zero; the custom ones are the coefficients of the boys and the differences of the girls from them:
 
 ```{r}
-default <- gcTMBstart(height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, data = berkeley, model = "preecebaines")
+default <- gcTMBstart(Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, data = berkeley, model = "preecebaines")
 custom <- setNames(as.vector(rbind(cb, cg - cb)), names(default))
 round(cbind(default, custom), 3)
 ```
@@ -96,7 +96,7 @@ Here the default values do not even describe the pooled data: with the boys and 
 The custom vector is given to `start` without its names (an unnamed vector in the order of the coefficients; a vector named by parameter, e.g. `c(b4 = 0.1)`, gives the value to all the coefficients of that parameter):
 
 ```{r}
-fitre <- gcTMB(height ~ age, fform = b1 + b2 + b3 + b4 + b5 ~ sex, rform = b1 + b2 + b5 ~ 1 | id,
+fitre <- gcTMB(Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, rform = b1 + b2 + b5 ~ 1 | ID,
                data = berkeley, model = "preecebaines", start = unname(custom),
                control = list(restart = TRUE))
 summary(fitre)
@@ -108,7 +108,7 @@ With 17 parameters and strongly correlated random effects, the optimiser stops w
 `timeto()` and `maxrate()` with `newdata` give the times and rates of the curves of each row, here the population curves of the sexes (`random = FALSE`):
 
 ```{r}
-sexes <- data.frame(sex = c("male", "female"))
+sexes <- data.frame(Sex = c("male", "female"))
 timeto(fitre, level = c(90, 99), newdata = sexes, random = FALSE)
 maxrate(fitre, newdata = sexes)
 ```
@@ -123,11 +123,11 @@ The height and the growth rate of the population curves of the sexes, the growth
 
 ```{r, fig.width = 7, fig.height = 4}
 nd <- merge(sexes, ages)
-nd$height <- predict(fitre, newdata = nd, random = FALSE)
-nd$rate <- ave(nd$height, nd$sex, FUN = function(h) c(NA, diff(h)) / 0.05)
-curves <- rbind(data.frame(nd[, c("sex", "age")], value = nd$height, panel = "Height (cm)"),
-                data.frame(nd[, c("sex", "age")], value = nd$rate, panel = "Growth rate (cm/year)"))
-ggplot(curves, aes(x = age, y = value, colour = sex)) +
+nd$Height <- predict(fitre, newdata = nd, random = FALSE)
+nd$rate <- ave(nd$Height, nd$Sex, FUN = function(h) c(NA, diff(h)) / 0.05)
+curves <- rbind(data.frame(nd[, c("Sex", "Age")], value = nd$Height, panel = "Height (cm)"),
+                data.frame(nd[, c("Sex", "Age")], value = nd$rate, panel = "Growth rate (cm/year)"))
+ggplot(curves, aes(x = Age, y = value, colour = Sex)) +
   geom_line(na.rm = TRUE) +
   facet_wrap(~ panel, scales = "free_y") +
   labs(x = "Age (years)", y = NULL, colour = "Sex") +
@@ -139,8 +139,8 @@ ggplot(curves, aes(x = age, y = value, colour = sex)) +
 With `b1type = "rate"`, $b_1$ is the maximum growth rate of the curve instead of its asymptote (see *The maximum growth rate as a parameter* in the vignette *Growth models and their parameters*), so that covariates on $b_1$ are effects on the maximum growth rate. This needs a curve whose maximum growth rate is proportional to $b_1$, which is not the case for the Preece-Baines curve. The growth spurt alone, from 8 years on, is a sigmoid curve above the height reached before it, as the Chapman-Richards curve with the intercept $b_4$ estimated; with `b1type = "rate"` and the log link, $b_1$ is the peak height velocity, and the effect of the sex a ratio of the rates. Each child has random effects on the peak height velocity, on the rate $b_2$, which together with the shape $b_3$ sets the timing of the spurt, $\log(b_3)/b_2$, and on the height before the spurt. The spurt is close to a Gompertz curve, the limit of a large shape $b_3$, here about 90; the log link of $b_3$ and a restart of the optimiser from the estimates (`control = list(restart = TRUE)`) let the optimiser converge there:
 
 ```{r}
-spurt <- subset(BerkeleyGrowth, age >= 8 & !is.na(height))
-fitrr <- gcTMB(height ~ age, fform = b1 + b2 + b4 ~ sex, rform = b1 + b2 + b4 ~ 1 | id, data = spurt,
+spurt <- subset(BerkeleyGrowth, Age >= 8 & !is.na(Height))
+fitrr <- gcTMB(Height ~ Age, fform = b1 + b2 + b4 ~ Sex, rform = b1 + b2 + b4 ~ 1 | ID, data = spurt,
                model = "chapmanrichards", start = c(b4 = 120), fix = c(b4 = FALSE), b1type = "rate",
                link = c(b1 = "log", b3 = "log"), control = list(restart = TRUE))
 summary(fitrr)
@@ -150,7 +150,7 @@ maxrate(fitrr, newdata = sexes)
 Whether boys and girls have the same peak height velocity is a likelihood ratio test of the models with and without the sex effect on $b_1$, keeping those on $b_2$ and $b_4$:
 
 ```{r}
-fitrr0 <- gcTMB(height ~ age, fform = b2 + b4 ~ sex, rform = b1 + b2 + b4 ~ 1 | id, data = spurt,
+fitrr0 <- gcTMB(Height ~ Age, fform = b2 + b4 ~ Sex, rform = b1 + b2 + b4 ~ 1 | ID, data = spurt,
                 model = "chapmanrichards", start = c(b4 = 120), fix = c(b4 = FALSE), b1type = "rate",
                 link = c(b1 = "log", b3 = "log"), control = list(restart = TRUE))
 anova(fitrr0, fitrr)
@@ -166,7 +166,7 @@ partest(fitrr, newdata = sexes, adjust = "none")
 
 ```{r}
 pars <- predict(fitrr, newdata = sexes, type = "parameters", random = FALSE)
-data.frame(sex = sexes$sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
+data.frame(Sex = sexes$Sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
            growth_in_spurt = pars[, "asymptote"], adult_height = pars[, "b4"] + pars[, "asymptote"])
 ```
 

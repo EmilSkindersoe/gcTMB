@@ -57,8 +57,8 @@ with p the number of free coefficients. R2 and CCC are larger for better models.
 For binomial and beta-binomial responses the residuals are on the scale of proportions.
 }
 \examples{
-fl <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
-fg <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25, model="gompertz")
+fl <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
+fg <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25, model="gompertz")
 criteria(logistic=fl, gompertz=fg)
 criteria(logistic=fl, gompertz=fg, which=c("AIC", "R2", "BIC"))
 

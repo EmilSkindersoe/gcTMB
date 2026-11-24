@@ -55,7 +55,7 @@ test_that("starting values of the hill and weibull models", {
     expect_equal(unname(sv2[3]), ltpars[[m]][3], tolerance=0.3, label=m)
   }
   # the weibull shape starts above 1
-  expect_gt(gcTMBstart(height ~ DAS, truncated=FALSE, data=FabaHeights25, model="weibull", link=c(b3="identity"))[[3]], 1)
+  expect_gt(gcTMBstart(Height ~ DAS, truncated=FALSE, data=FabaHeights25, model="weibull", link=c(b3="identity"))[[3]], 1)
 })
 
 test_that("times of the hill and weibull curves, with standard errors and profiles", {
@@ -101,15 +101,15 @@ test_that("truncated hill and weibull curves recover the threshold", {
 test_that("hill and weibull models with covariates, random effects, links and other families", {
   FabaHeights25$trt <- factor(FabaHeights25$Treatment)
   for (m in lt){
-    f <- gcTMB(height ~ DAS, truncated=FALSE, data=FabaHeights25, model=m)
+    f <- gcTMB(Height ~ DAS, truncated=FALSE, data=FabaHeights25, model=m)
     expect_equal(f$opt$convergence, 0, label=m)
-    fl <- gcTMB(height ~ DAS, truncated=FALSE, data=FabaHeights25, model=m, link=c(b2="log", b3="log"))
+    fl <- gcTMB(Height ~ DAS, truncated=FALSE, data=FabaHeights25, model=m, link=c(b2="log", b3="log"))
     expect_equal(fl$opt$objective, f$opt$objective, tolerance=1e-7, label=m)
-    fr <- gcTMB(height ~ DAS, truncated=FALSE, fform=b1 ~ trt, rform=b1 ~ 1 | plant_ID, data=FabaHeights25, model=m)
+    fr <- gcTMB(Height ~ DAS, truncated=FALSE, fform=b1 ~ trt, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25, model=m)
     expect_equal(fr$opt$convergence, 0, label=m)
-    fp <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", model=m, fix=c(b4=FALSE))
+    fp <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", model=m, fix=c(b4=FALSE))
     expect_equal(fp$opt$convergence, 0, label=m)
     expect_true(is.finite(logLik(fp)))
   }
-  expect_error(gcTMB(height ~ DAS, truncated=FALSE, data=FabaHeights25, model="hill", link=c(b3="inverse")), "not available for b3")
+  expect_error(gcTMB(Height ~ DAS, truncated=FALSE, data=FabaHeights25, model="hill", link=c(b3="inverse")), "not available for b3")
 })

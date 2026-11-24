@@ -250,18 +250,18 @@ AR(1) residuals within the plants:
 
 ``` r
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-fit1 <- gcTMB(height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | plant_ID,
-              data = FabaHeights25, correlation = corCAR1(form = ~ DAS | plant_ID))
+fit1 <- gcTMB(Height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + b2 ~ 1 | Plant_ID,
+              data = FabaHeights25, correlation = corCAR1(form = ~ DAS | Plant_ID))
 summary(fit1)
 #> Call:
-#> gcTMB(form = height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + 
-#>     b2 ~ 1 | plant_ID, data = FabaHeights25, correlation = corCAR1(form = ~DAS | 
-#>     plant_ID))
+#> gcTMB(form = Height ~ DAS, fform = b1 + b2 ~ trt, rform = b1 + 
+#>     b2 ~ 1 | Plant_ID, data = FabaHeights25, correlation = corCAR1(form = ~DAS | 
+#>     Plant_ID))
 #> 
 #> Model:  logistic, truncated at b4 = 0
 #> Family: gaussian, identity link for all parameters
 #> 
-#> Number of observations: 200, groups: plant_ID 25
+#> Number of observations: 200, groups: Plant_ID 25
 #> Log-likelihood: -480.8 (df = 16), AIC: 993.5, BIC: 1046
 #> 
 #> Coefficients:
@@ -281,12 +281,12 @@ summary(fit1)
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr 
-#>  plant_ID b1   8.256         
+#>  Plant_ID b1   8.256         
 #>           b2   1.814    -0.54
 #> 
 #> Residual standard deviation: 3.29
 #> 
-#> Correlation structure: continuous-time AR(1) in DAS within plant_ID
+#> Correlation structure: continuous-time AR(1) in DAS within Plant_ID
 #> rho: 0.9594
 #> 
 #> Optimiser: relative convergence (4), maximum absolute gradient 0.00024
@@ -347,7 +347,7 @@ that the genotypes are compared by their maximum growth rates:
 
 ``` r
 genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
-fitp <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
+fitp <- gcTMB(Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
               family = "poisson", fix = c(b4 = FALSE), b1type = "rate", link = c(b1 = "log"))
 partest(fitp, newdata = genotypes)
 #> Differences to the reference of b1 (maximum growth rate) on the scale of its log link:

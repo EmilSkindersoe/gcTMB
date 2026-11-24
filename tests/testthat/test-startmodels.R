@@ -156,22 +156,22 @@ test_that("chapmanrichards, beta and korf fits agree with nls", {
 
 test_that("the intercept b4 of chapmanrichards and korf, fixed and estimated", {
   set.seed(4)
-  d <- data.frame(dbh=runif(150, 5, 60))
-  d$h <- gcTMB:::gcmeanR(mcr, d$dbh, 30, 0.06, 2, 1.3) + rnorm(150, 0, 1)
+  d <- data.frame(DBH=runif(150, 5, 60))
+  d$h <- gcTMB:::gcmeanR(mcr, d$DBH, 30, 0.06, 2, 1.3) + rnorm(150, 0, 1)
   # fixed at the breast height
-  f <- gcTMB(h ~ dbh, data=d, model="chapmanrichards", start=c(b4=1.3))
-  n <- nls(h ~ 1.3 + b1*(1 - exp(-b2*dbh))^b3, data=d, start=list(b1=30, b2=0.06, b3=2))
+  f <- gcTMB(h ~ DBH, data=d, model="chapmanrichards", start=c(b4=1.3))
+  n <- nls(h ~ 1.3 + b1*(1 - exp(-b2*DBH))^b3, data=d, start=list(b1=30, b2=0.06, b3=2))
   expect_equal(unname(bcoef(f)[1:3]), unname(coef(n)), tolerance=1e-5)
-  expect_equal(unname(predict(f, newdata=data.frame(dbh=0))), 1.3)
+  expect_equal(unname(predict(f, newdata=data.frame(DBH=0))), 1.3)
   expect_false(any(grepl("truncated", capture.output(print(f)))))
   # estimated
-  fe <- gcTMB(h ~ dbh, data=d, model="chapmanrichards", fix=c(b4=FALSE))
-  ne <- nls(h ~ b4 + b1*(1 - exp(-b2*dbh))^b3, data=d, start=list(b1=30, b2=0.06, b3=2, b4=1.3))
+  fe <- gcTMB(h ~ DBH, data=d, model="chapmanrichards", fix=c(b4=FALSE))
+  ne <- nls(h ~ b4 + b1*(1 - exp(-b2*DBH))^b3, data=d, start=list(b1=30, b2=0.06, b3=2, b4=1.3))
   expect_equal(unname(bcoef(fe)), unname(coef(ne)), tolerance=1e-4)
   # korf from the breast height
-  d$h <- gcTMB:::gcmeanR(mko, d$dbh, 30, 14, 2, 1.3) + rnorm(150, 0, 1)
-  fw <- gcTMB(h ~ dbh, data=d, model="korf", start=c(b4=1.3), link=c(b3="identity"))
-  nw <- nls(h ~ 1.3 + a*exp(b/((1 - c)*dbh^(c - 1))), data=d, start=list(a=30, b=14, c=2))
+  d$h <- gcTMB:::gcmeanR(mko, d$DBH, 30, 14, 2, 1.3) + rnorm(150, 0, 1)
+  fw <- gcTMB(h ~ DBH, data=d, model="korf", start=c(b4=1.3), link=c(b3="identity"))
+  nw <- nls(h ~ 1.3 + a*exp(b/((1 - c)*DBH^(c - 1))), data=d, start=list(a=30, b=14, c=2))
   expect_equal(unname(bcoef(fw)), unname(coef(nw)), tolerance=1e-4)
   # timeto and maxrate do not depend on the intercept; absolute times include it
   cw <- coef(fw)
@@ -179,33 +179,33 @@ test_that("the intercept b4 of chapmanrichards and korf, fixed and estimated", {
   ta <- timeto(fw, level=10, type="absolute")
   expect_equal(gcTMB:::gcmeanR(mko, coef(ta)[[1]], cw[[1]], cw[[2]], cw[[3]], 1.3), 10, tolerance=1e-8)
   p <- plot(fw, which=2, draw=FALSE)
-  expect_equal(p$time$labels$title, "Residuals vs dbh")
+  expect_equal(p$time$labels$title, "Residuals vs DBH")
 })
 
 test_that("b4 defaults to the breast height for chapmanrichards and korf, to 0 for the other curves, and is estimated for preecebaines", {
-  f <- gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards")
+  f <- gcTMB(Height ~ DBH, data=PineHeightDiameter, model="chapmanrichards")
   expect_equal(f$start[4], 1.3)
   expect_true(f$fix[4])
-  expect_equal(unname(predict(f, newdata=data.frame(dbh=0))), 1.3)
-  expect_equal(logLik(f), logLik(gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards", start=c(b4=1.3))))
+  expect_equal(unname(predict(f, newdata=data.frame(DBH=0))), 1.3)
+  expect_equal(logLik(f), logLik(gcTMB(Height ~ DBH, data=PineHeightDiameter, model="chapmanrichards", start=c(b4=1.3))))
   set.seed(5)
-  dk <- data.frame(dbh=runif(150, 2, 60))
-  dk$h <- gcTMB:::gcmeanR(mko, dk$dbh, 30, 14, 2, 1.3) + rnorm(150, 0, 1)
-  w <- gcTMB(h ~ dbh, data=dk, model="korf")
-  expect_equal(unname(predict(w, newdata=data.frame(dbh=0))), 1.3)
+  dk <- data.frame(DBH=runif(150, 2, 60))
+  dk$h <- gcTMB:::gcmeanR(mko, dk$DBH, 30, 14, 2, 1.3) + rnorm(150, 0, 1)
+  w <- gcTMB(h ~ DBH, data=dk, model="korf")
+  expect_equal(unname(predict(w, newdata=data.frame(DBH=0))), 1.3)
   expect_equal(w$start[4], 1.3)
   expect_equal(w$fix[3:4], c(FALSE, TRUE))
   # given in start, or estimated from the breast height
-  expect_equal(unname(gcTMBstart(height ~ dbh, data=PineHeightDiameter, model="korf", start=c(b4=0))[4]), 0)
-  expect_false(gcTMB(height ~ dbh, data=PineHeightDiameter, model="chapmanrichards", fix=c(b4=FALSE))$fix[4])
+  expect_equal(unname(gcTMBstart(Height ~ DBH, data=PineHeightDiameter, model="korf", start=c(b4=0))[4]), 0)
+  expect_false(gcTMB(Height ~ DBH, data=PineHeightDiameter, model="chapmanrichards", fix=c(b4=FALSE))$fix[4])
   # the threshold of the sigmoid curves and the start of beta
   for (m in c("logistic", "gompertz", "beta_capped")){
-    fm <- gcTMB(height ~ DAS, data=FabaHeights25, model=m)
+    fm <- gcTMB(Height ~ DAS, data=FabaHeights25, model=m)
     expect_equal(fm$start[4], 0, label=m)
     expect_true(fm$fix[4], label=m)
   }
   # preecebaines estimates its rates b4 and b5
-  fp <- gcTMB(height ~ age, data=subset(BerkeleyGrowth, sex == "female" & age >= 2), model="preecebaines")
+  fp <- gcTMB(Height ~ Age, data=subset(BerkeleyGrowth, Sex == "female" & Age >= 2), model="preecebaines")
   expect_false(any(fp$fix[4:5]))
 })
 

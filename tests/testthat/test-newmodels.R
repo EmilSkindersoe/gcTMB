@@ -64,8 +64,8 @@ test_that("normal and gamma fits agree with nls", {
 })
 
 test_that("the linear model is least squares, without truncation and without an asymptote", {
-  f <- gcTMB(height ~ DAS, data=FabaHeights25, model="linear")
-  l <- lm(height ~ DAS, data=FabaHeights25)
+  f <- gcTMB(Height ~ DAS, data=FabaHeights25, model="linear")
+  l <- lm(Height ~ DAS, data=FabaHeights25)
   expect_equal(unname(bcoef(f)), unname(rev(coef(l))), tolerance=1e-6)
   expect_false(f$truncated)
   expect_equal(f$fix, c(FALSE, FALSE, TRUE, TRUE, TRUE))

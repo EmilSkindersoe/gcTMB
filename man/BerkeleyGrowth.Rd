@@ -7,11 +7,11 @@
 \format{
 A data frame with 4884 rows and 5 variables:
 \describe{
-\item{id}{identifier of the child, a factor: 201-278 for the boys, 301-385 for the girls}
-\item{sex}{male or female}
-\item{age}{age in years}
-\item{height}{height in cm}
-\item{weight}{weight in kg}
+\item{ID}{identifier of the child, a factor: 201-278 for the boys, 301-385 for the girls}
+\item{Sex}{male or female}
+\item{Age}{age in years}
+\item{Height}{height in cm}
+\item{Weight}{weight in kg}
 }
 }
 \source{
@@ -33,8 +33,8 @@ Tuddenham and Snyder (1954). The heights of the first 18 years of most of the ch
 \examples{
 # the growth of the girls from 2 years on: the Preece-Baines curve, with the adult height b1 and
 # the middle of puberty b2, and the peak height velocity of the pubertal growth spurt
-girls <- subset(BerkeleyGrowth, sex == "female" & age >= 2)
-fit <- gcTMB(height ~ age, data=girls, model="preecebaines")
+girls <- subset(BerkeleyGrowth, Sex == "female" & Age >= 2)
+fit <- gcTMB(Height ~ Age, data=girls, model="preecebaines")
 coef(fit)
 maxrate(fit)
 }

@@ -9,14 +9,14 @@
 #'   \item{Treatment}{treatment level: 0.1, 0.3, 0.5, 0.6 or 0.8}
 #'   \item{Date}{date of the measurement}
 #'   \item{DAS}{days after sowing}
-#'   \item{height}{plant height}
+#'   \item{Height}{plant height}
 #'   \item{DASfact}{days after sowing, the same values as DAS}
-#'   \item{plant_ID}{identifier of the plant, the same values as Tube_ID}
+#'   \item{Plant_ID}{identifier of the plant, the same values as Tube_ID}
 #' }
 #' The raw data and the script that converts them are in the directory data-raw of the source package.
 #'
 #' @examples
-#' fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+#' fit <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
 #' summary(fit)
 "FabaHeights25"
 
@@ -141,16 +141,16 @@
 #'   \item{Genotype}{genotype: Aurora, Capri, ILB938, Lynx, Melodie or Navara}
 #'   \item{Treatment}{treatment, "ww" for all plants}
 #'   \item{DAS}{days after sowing}
-#'   \item{new}{number of new flowers}
-#'   \item{open}{number of open flowers}
-#'   \item{old}{number of old flowers}
-#'   \item{pods}{number of pods}
-#'   \item{n_flowers}{number of flowers, the sum of new, open and old}
+#'   \item{New}{number of new flowers}
+#'   \item{Open}{number of open flowers}
+#'   \item{Old}{number of old flowers}
+#'   \item{Pods}{number of pods}
+#'   \item{N_flowers}{number of flowers, the sum of New, Open and Old}
 #' }
 #' The raw data and the script that converts them are in the directory data-raw of the source package.
 #'
 #' @examples
-#' fit <- gcTMB(pods ~ DAS, fform=b1 ~ Genotype, data=FabaCounts23, family="poisson")
+#' fit <- gcTMB(Pods ~ DAS, fform=b1 ~ Genotype, data=FabaCounts23, family="poisson")
 #' summary(fit)
 "FabaCounts23"
 
@@ -165,11 +165,11 @@
 #'
 #' @format A data frame with 4884 rows and 5 variables:
 #' \describe{
-#'   \item{id}{identifier of the child, a factor: 201-278 for the boys, 301-385 for the girls}
-#'   \item{sex}{male or female}
-#'   \item{age}{age in years}
-#'   \item{height}{height in cm}
-#'   \item{weight}{weight in kg}
+#'   \item{ID}{identifier of the child, a factor: 201-278 for the boys, 301-385 for the girls}
+#'   \item{Sex}{male or female}
+#'   \item{Age}{age in years}
+#'   \item{Height}{height in cm}
+#'   \item{Weight}{weight in kg}
 #' }
 #' @source The data set \code{berkeley} of the package sitar (version 1.5.0, licence GPL (>= 2)), with
 #'   the transcription errors corrected there, without the other body measurements. The script that
@@ -184,8 +184,8 @@
 #' @examples
 #' # the growth of the girls from 2 years on: the Preece-Baines curve, with the adult height b1 and
 #' # the middle of puberty b2, and the peak height velocity of the pubertal growth spurt
-#' girls <- subset(BerkeleyGrowth, sex == "female" & age >= 2)
-#' fit <- gcTMB(height ~ age, data=girls, model="preecebaines")
+#' girls <- subset(BerkeleyGrowth, Sex == "female" & Age >= 2)
+#' fit <- gcTMB(Height ~ Age, data=girls, model="preecebaines")
 #' coef(fit)
 #' maxrate(fit)
 "BerkeleyGrowth"
@@ -199,12 +199,12 @@
 #'
 #' @format A data frame with 1678 rows and 6 variables:
 #' \describe{
-#'   \item{plot}{identifier of the sample plot, a factor}
-#'   \item{dbh}{diameter at breast height in cm}
-#'   \item{height}{tree height in m}
-#'   \item{ntrees}{number of trees on the plot}
-#'   \item{dmean}{mean diameter of the trees on the plot, in cm}
-#'   \item{dvar}{variance of the diameters of the trees on the plot}
+#'   \item{Plot}{identifier of the sample plot, a factor}
+#'   \item{DBH}{diameter at breast height in cm}
+#'   \item{Height}{tree height in m}
+#'   \item{Ntrees}{number of trees on the plot}
+#'   \item{Dmean}{mean diameter of the trees on the plot, in cm}
+#'   \item{Dvar}{variance of the diameters of the trees on the plot}
 #' }
 #' @source The data set \code{spati2} of the package lmfor (version 1.7, licence GPL-2), with the
 #'   variables renamed. The script that converts it is in the directory data-raw of the source
@@ -218,7 +218,7 @@
 #' @examples
 #' # a Chapman-Richards curve from the breast height, the intercept b4 = 1.3, with a random asymptote
 #' # of each plot
-#' fit <- gcTMB(height ~ dbh, rform=b1 ~ 1 | plot, data=PineHeightDiameter,
+#' fit <- gcTMB(Height ~ DBH, rform=b1 ~ 1 | Plot, data=PineHeightDiameter,
 #'              model="chapmanrichards", start=c(b4=1.3))
 #' summary(fit)
 "PineHeightDiameter"

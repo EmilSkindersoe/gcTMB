@@ -18,7 +18,7 @@ test_that("the mean functions are the logistic and gompertz curves", {
 
 test_that("gaussian fits agree with nls, with the same standard errors (faba bean heights)", {
   for (m in models){
-    f <- gcTMB(height ~ DAS, truncated=FALSE, data=FabaHeights25, model=m)
+    f <- gcTMB(Height ~ DAS, truncated=FALSE, data=FabaHeights25, model=m)
     n <- fabanls(m)
     # to the convergence tolerance of nls
     expect_equal(unname(bcoef(f)), unname(coef(n)), tolerance=1e-5, label=m)
@@ -120,12 +120,12 @@ test_that("grid search starting values", {
 
 test_that("covariates on the parameters agree with nls (faba bean heights)", {
   d <- transform(FabaHeights25, trt=factor(Treatment))
-  f <- gcTMB(height ~ DAS, truncated=FALSE, fform=b1 + b2 ~ trt, data=d)
+  f <- gcTMB(Height ~ DAS, truncated=FALSE, fform=b1 + b2 ~ trt, data=d)
   expect_equal(f$coefnames[1:6], c("b1:(Intercept)", "b1:trt0.3", "b1:trt0.5", "b1:trt0.6", "b1:trt0.8", "b2:(Intercept)"))
   # the curve of each treatment, with a common scale: nls with indexed parameters
-  fc <- gcTMB(height ~ DAS, truncated=FALSE, fform=b1 + b2 ~ 0 + trt, data=d)
+  fc <- gcTMB(Height ~ DAS, truncated=FALSE, fform=b1 + b2 ~ 0 + trt, data=d)
   expect_equal(fc$opt$objective, f$opt$objective, tolerance=1e-8)
-  n <- nls(height ~ a[trt]/(1 + exp(-(DAS - c[trt])/s)), data=d, start=list(a=rep(110, 5), c=rep(32, 5), s=11))
+  n <- nls(Height ~ a[trt]/(1 + exp(-(DAS - c[trt])/s)), data=d, start=list(a=rep(110, 5), c=rep(32, 5), s=11))
   expect_equal(unname(bcoef(fc)), unname(coef(n)), tolerance=1e-5)
   expect_equal(as.numeric(logLik(fc)), as.numeric(logLik(n)), tolerance=1e-8)
 })
@@ -133,11 +133,11 @@ test_that("covariates on the parameters agree with nls (faba bean heights)", {
 test_that("poisson fits maximise the poisson likelihood (faba bean pods)", {
   d <- FabaCounts23
   for (m in models){
-    f <- gcTMB(pods ~ DAS, truncated=FALSE, data=d, model=m, family="poisson")
+    f <- gcTMB(Pods ~ DAS, truncated=FALSE, data=d, model=m, family="poisson")
     b <- unname(bcoef(f))
     nll <- function(b){
       mu <- gcmean(m, d$DAS, b)
-      if (any(mu < 0)) Inf else -sum(dpois(d$pods, mu, log=TRUE))
+      if (any(mu < 0)) Inf else -sum(dpois(d$Pods, mu, log=TRUE))
     }
     # the log-likelihood of the counts at the estimates, which are a maximum
     expect_equal(as.numeric(logLik(f)), -nll(b), tolerance=1e-10, label=m)
@@ -156,9 +156,9 @@ test_that("poisson fits maximise the poisson likelihood (faba bean pods)", {
 
 test_that("poisson models with covariates and random effects (faba bean pods)", {
   d <- FabaCounts23
-  f0 <- gcTMB(pods ~ DAS, truncated=FALSE, data=d, family="poisson")
-  f1 <- gcTMB(pods ~ DAS, truncated=FALSE, fform=b1 ~ Genotype, data=d, family="poisson")
-  f2 <- gcTMB(pods ~ DAS, truncated=FALSE, fform=b1 ~ Genotype, rform=b1 ~ 1 | Tube_ID, data=d, family="poisson")
+  f0 <- gcTMB(Pods ~ DAS, truncated=FALSE, data=d, family="poisson")
+  f1 <- gcTMB(Pods ~ DAS, truncated=FALSE, fform=b1 ~ Genotype, data=d, family="poisson")
+  f2 <- gcTMB(Pods ~ DAS, truncated=FALSE, fform=b1 ~ Genotype, rform=b1 ~ 1 | Tube_ID, data=d, family="poisson")
   expect_length(bcoef(f1), 8)
   expect_gt(as.numeric(logLik(f1)), as.numeric(logLik(f0)))
   expect_gt(as.numeric(logLik(f2)), as.numeric(logLik(f1)))

@@ -13,13 +13,13 @@ test_that("the model index, parameters and defaults", {
   expect_equal(gcTMB:::modelnames[5], "beta")
   set.seed(1)
   d <- data.frame(age=rep(seq(2, 20, by=0.5), 2))
-  d$height <- pbcurve(d$age, 170, 13, 158, 0.1, 1) + rnorm(nrow(d))
-  f <- gcTMB(height ~ age, data=d, model="preecebaines")
+  d$Height <- pbcurve(d$age, 170, 13, 158, 0.1, 1) + rnorm(nrow(d))
+  f <- gcTMB(Height ~ age, data=d, model="preecebaines")
   # the rates b4 and b5 are estimated by default, and the curve is not truncated
   expect_equal(f$fix, rep(FALSE, 5))
   expect_false(f$truncated)
   expect_false(any(grepl("truncated", capture.output(print(f)))))
-  expect_error(gcTMB(height ~ age, data=d, model="preecebaines", b1type="rate"), "not available for the preecebaines")
+  expect_error(gcTMB(Height ~ age, data=d, model="preecebaines", b1type="rate"), "not available for the preecebaines")
 })
 
 test_that("the curve, its inverse and the peak of the pubertal growth spurt", {
@@ -46,10 +46,10 @@ test_that("the curve, its inverse and the peak of the pubertal growth spurt", {
 test_that("Preece-Baines fits agree with nls, with timeto and maxrate", {
   set.seed(2)
   d <- data.frame(age=rep(seq(2, 20, by=0.5), 3))
-  d$height <- pbcurve(d$age, 170, 13, 158, 0.1, 1) + rnorm(nrow(d))
-  f <- gcTMB(height ~ age, data=d, model="preecebaines")
+  d$Height <- pbcurve(d$age, 170, 13, 158, 0.1, 1) + rnorm(nrow(d))
+  f <- gcTMB(Height ~ age, data=d, model="preecebaines")
   expect_equal(f$opt$convergence, 0)
-  n <- nls(height ~ pbcurve(age, b1, b2, b3, b4, b5), data=d, start=list(b1=170, b2=13, b3=158, b4=0.1, b5=1))
+  n <- nls(Height ~ pbcurve(age, b1, b2, b3, b4, b5), data=d, start=list(b1=170, b2=13, b3=158, b4=0.1, b5=1))
   expect_equal(unname(bcoef(f)), unname(coef(n)), tolerance=1e-5)
   expect_equal(unname(predict(f, newdata=data.frame(age=c(5, 13)))), pbcurve(c(5, 13), coef(n)[1], coef(n)[2], coef(n)[3], coef(n)[4], coef(n)[5]),
                tolerance=1e-5)

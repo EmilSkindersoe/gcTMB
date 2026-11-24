@@ -4,8 +4,8 @@ test_that("control onerror='warning' returns a fit whose optimiser fails", {
   expect_equal(gcTMBcontrol()$onerror, "stop")
 
   local_mocked_bindings(nlminb=function(...) stop("optimiser broke"))
-  expect_error(gcTMB(height ~ DAS, data=d), "optimiser broke")
-  expect_warning(f <- gcTMB(height ~ DAS, data=d, control=list(onerror="warning")),
+  expect_error(gcTMB(Height ~ DAS, data=d), "optimiser broke")
+  expect_warning(f <- gcTMB(Height ~ DAS, data=d, control=list(onerror="warning")),
                  "the fit failed: optimiser broke; the object is returned at the starting values")
   expect_s3_class(f, "gcTMB")
   expect_match(f$fiterror, "optimiser broke")
@@ -19,17 +19,17 @@ test_that("control onerror='warning' returns a fit whose optimiser fails", {
   expect_output(print(summary(f)), "The fit failed: optimiser broke")
 
   # with random effects
-  expect_warning(fr <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=d, control=list(onerror="warning")),
+  expect_warning(fr <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, control=list(onerror="warning")),
                  "the fit failed")
   expect_false(converged(fr))
 })
 
 test_that("control onerror='warning' returns a fit whose sdreport fails, without standard errors", {
   d <- FabaHeights25
-  f0 <- gcTMB(height ~ DAS, data=d)
+  f0 <- gcTMB(Height ~ DAS, data=d)
   local_mocked_bindings(sdreport=function(...) stop("no covariance"))
-  expect_error(gcTMB(height ~ DAS, data=d), "no covariance")
-  expect_warning(f <- gcTMB(height ~ DAS, data=d, control=list(onerror="warning")),
+  expect_error(gcTMB(Height ~ DAS, data=d), "no covariance")
+  expect_warning(f <- gcTMB(Height ~ DAS, data=d, control=list(onerror="warning")),
                  "returned without standard errors")
   # the estimates of the successful optimisation
   expect_equal(coef(f), coef(f0), tolerance=1e-8)
@@ -39,10 +39,10 @@ test_that("control onerror='warning' returns a fit whose sdreport fails, without
 })
 
 test_that("summary repeats the warning of a fit that did not converge", {
-  expect_warning(f <- gcTMB(height ~ DAS, rform=b1 ~ 1 | plant_ID, data=FabaHeights25, control=list(iter.max=2)),
+  expect_warning(f <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25, control=list(iter.max=2)),
                  "the optimiser did not converge")
   expect_output(print(summary(f)), paste("Warning: the optimiser did not converge:", f$opt$message), fixed=TRUE)
   # a converged fit has no such warning
-  s <- capture.output(print(summary(gcTMB(height ~ DAS, data=FabaHeights25))))
+  s <- capture.output(print(summary(gcTMB(Height ~ DAS, data=FabaHeights25))))
   expect_false(any(grepl("did not converge", s)))
 })

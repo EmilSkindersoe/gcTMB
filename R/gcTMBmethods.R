@@ -53,7 +53,7 @@
 #' effects (the median for lognormal; for binomial and beta-binomial responses the proportion).
 #'
 #' @examples
-#' fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+#' fit <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
 #' summary(fit)
 #' coef(fit)
 #' logLik(fit)
@@ -62,12 +62,12 @@
 #' predict(fit, newdata=nd, random=FALSE, interval="confidence")
 #' predict(fit, newdata=nd, random=FALSE, interval="prediction")
 #' # the curve of plant 6, and its parameters
-#' predict(fit, newdata=data.frame(DAS=c(20, 40, 60), plant_ID=6))
-#' predict(fit, newdata=data.frame(plant_ID=6), type="parameters")
+#' predict(fit, newdata=data.frame(DAS=c(20, 40, 60), Plant_ID=6))
+#' predict(fit, newdata=data.frame(Plant_ID=6), type="parameters")
 #' head(residuals(fit, type="quantile"))
 #' dim(simulate(fit, nsim=5, seed=1))
 #' # three new plants at new times
-#' nd <- expand.grid(DAS=seq(10, 80, 10), plant_ID=c("new1", "new2", "new3"))
+#' nd <- expand.grid(DAS=seq(10, 80, 10), Plant_ID=c("new1", "new2", "new3"))
 #' sims <- simulate(fit, nsim=2, seed=1, newdata=nd)
 #' head(sims)
 #' # the simulated random effects of the first simulation, and the true curves

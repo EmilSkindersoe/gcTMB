@@ -59,8 +59,8 @@ bcoef <- function(fit){
 
 # nls fit of model m to the faba bean heights of the package (FabaHeights25)
 fabanls <- function(m, d=FabaHeights25){
-  fo <- list(logistic=height ~ b1/(1 + exp(-(DAS - b2)/b3)),
-             gompertz=height ~ b1*exp(-exp(-(DAS - b2)/b3)))[[m]]
+  fo <- list(logistic=Height ~ b1/(1 + exp(-(DAS - b2)/b3)),
+             gompertz=Height ~ b1*exp(-exp(-(DAS - b2)/b3)))[[m]]
   nls(fo, data=d, start=list(b1=120, b2=30, b3=15))
 }
 

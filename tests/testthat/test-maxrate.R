@@ -74,11 +74,11 @@ test_that("maxrate for curves of newdata and for truncated fits", {
   mr <- maxrate(f, newdata=data.frame(g=c("a", "b")))
   b <- bcoef(f)
   expect_equal(unname(coef(mr)[c("rate:g=a", "rate:g=b")]), c(b[[1]], b[[1]] + b[[2]])/(4*b[[4]]))
-  ft <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
+  ft <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
   bt <- coef(ft)[1:4]
   expect_equal(unname(coef(maxrate(ft))), unname(gcTMB:::maxrateR(1, c(bt, 1), trunc=TRUE)))
   # a hill curve with b3 b5 < 1, by a linear function that scales b5 = 1 down to 0.01
-  fh <- gcTMB(height ~ DAS, truncated=FALSE, data=FabaHeights25, model="hill")
+  fh <- gcTMB(Height ~ DAS, truncated=FALSE, data=FabaHeights25, model="hill")
   expect_warning(mh <- maxrate(fh, curves=diag(c(1, 1, 1, 1, 0.01))), "no inflection point")
   expect_true(all(is.na(coef(mh))))
 })

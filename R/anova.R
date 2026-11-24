@@ -50,12 +50,12 @@
 #'
 #' @examples
 #' FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-#' fit0 <- gcTMB(height ~ DAS, data=FabaHeights25)
-#' fit1 <- gcTMB(height ~ DAS, fform=b1 ~ trt, data=FabaHeights25)
+#' fit0 <- gcTMB(Height ~ DAS, data=FabaHeights25)
+#' fit1 <- gcTMB(Height ~ DAS, fform=b1 ~ trt, data=FabaHeights25)
 #' anova(fit0, fit1)
 #' anova(fit0, fit1, test="F")
 #' # random effects of the plants
-#' fit2 <- gcTMB(height ~ DAS, fform=b1 ~ trt, rform=b1 ~ 1 | plant_ID, data=FabaHeights25)
+#' fit2 <- gcTMB(Height ~ DAS, fform=b1 ~ trt, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25)
 #' anova(fit1, fit2)
 #'
 #' @return a data frame of class anova with the number of parameters (npar), AIC, BIC, log-likelihood

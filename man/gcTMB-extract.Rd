@@ -91,9 +91,9 @@ the covariance matrices of the random effects, the residual standard deviation, 
 of the residual autocorrelation and of the variance function.
 }
 \examples{
-fit <- gcTMB(height ~ DAS, rform=b1 + b2 ~ 1 | plant_ID, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
 fixef(fit)
-head(ranef(fit)$plant_ID)
+head(ranef(fit)$Plant_ID)
 VarCorr(fit)
 sigma(fit)^2
 corpars(fit)

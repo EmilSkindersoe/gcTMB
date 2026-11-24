@@ -7,12 +7,12 @@
 \format{
 A data frame with 1678 rows and 6 variables:
 \describe{
-\item{plot}{identifier of the sample plot, a factor}
-\item{dbh}{diameter at breast height in cm}
-\item{height}{tree height in m}
-\item{ntrees}{number of trees on the plot}
-\item{dmean}{mean diameter of the trees on the plot, in cm}
-\item{dvar}{variance of the diameters of the trees on the plot}
+\item{Plot}{identifier of the sample plot, a factor}
+\item{DBH}{diameter at breast height in cm}
+\item{Height}{tree height in m}
+\item{Ntrees}{number of trees on the plot}
+\item{Dmean}{mean diameter of the trees on the plot, in cm}
+\item{Dvar}{variance of the diameters of the trees on the plot}
 }
 }
 \source{
@@ -32,7 +32,7 @@ height of 1.3 m.
 \examples{
 # a Chapman-Richards curve from the breast height, the intercept b4 = 1.3, with a random asymptote
 # of each plot
-fit <- gcTMB(height ~ dbh, rform=b1 ~ 1 | plot, data=PineHeightDiameter,
+fit <- gcTMB(Height ~ DBH, rform=b1 ~ 1 | Plot, data=PineHeightDiameter,
              model="chapmanrichards", start=c(b4=1.3))
 summary(fit)
 }

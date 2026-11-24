@@ -35,7 +35,7 @@ Profiles the negative log-likelihood over the time of the maximum growth rate (b
 maximum growth rate (by b1) of a curve, re-optimising the other coefficients.
 }
 \examples{
-fit <- gcTMB(height ~ DAS, data=FabaHeights25)
+fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 pr <- profile(maxrate(fit), parm="rate")
 confint(pr)
 }

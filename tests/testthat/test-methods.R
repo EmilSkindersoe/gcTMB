@@ -15,7 +15,7 @@ test_that("print shows the call, model, coefficients and variance parameters", {
 
 test_that("logLik, AIC, BIC and nobs agree with nls (faba bean heights)", {
   d <- FabaHeights25
-  f <- gcTMB(height ~ DAS, truncated=FALSE, data=d, model="gompertz")
+  f <- gcTMB(Height ~ DAS, truncated=FALSE, data=d, model="gompertz")
   n <- fabanls("gompertz")
   expect_equal(as.numeric(logLik(f)), as.numeric(logLik(n)), tolerance=1e-8)
   expect_equal(attr(logLik(f), "df"), attr(logLik(n), "df"))
@@ -73,7 +73,7 @@ test_that("fitted values and residuals", {
 })
 
 test_that("normalized residuals fall back to pearson residuals with a warning for the count families", {
-  fp <- gcTMB(pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
+  fp <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
   expect_warning(rn <- residuals(fp, type="normalized"), "only available for the gaussian and lognormal")
   expect_equal(rn, residuals(fp, type="pearson"))
   expect_no_warning(residuals(gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic")), type="normalized"))
