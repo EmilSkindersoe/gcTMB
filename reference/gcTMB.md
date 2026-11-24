@@ -444,10 +444,12 @@ summary(fit)
 #> Log-likelihood: -699.2 (df = 4), AIC: 1406, BIC: 1420
 #> 
 #> Coefficients:
-#>                Estimate Std. Error
-#> b1:(Intercept)   120.79      3.652
-#> b2:(Intercept)    30.73      0.682
-#> b3:(Intercept)    12.88      0.977
+#>                Estimate Std. Error t value Pr(>|t|)    
+#> b1:(Intercept) 120.7851     3.6524   33.07   <2e-16 ***
+#> b2:(Intercept)  30.7300     0.6822   45.05   <2e-16 ***
+#> b3:(Intercept)  12.8808     0.9769   13.19   <2e-16 ***
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #> 
 #> Residual standard deviation: 8.043 on 197 degrees of freedom
 #> 
@@ -534,15 +536,17 @@ summary(fitre)
 #> Log-likelihood: -509.5 (df = 11), AIC: 1041, BIC: 1077
 #> 
 #> Coefficients:
-#>                Estimate Std. Error
-#> b1:(Intercept)  115.742      4.058
-#> b1:trt0.3        -3.157      5.681
-#> b1:trt0.5         9.850      5.593
-#> b1:trt0.6        11.136      5.618
-#> b1:trt0.8         8.983      5.635
-#> b2:(Intercept)   30.874      0.540
-#> b3:(Intercept)   12.844      0.250
-#> Tests of the differences between curves, with p-values and confidence intervals: partest().
+#>                Estimate Std. Error z value Pr(>|z|)    
+#> b1:(Intercept) 115.7419     4.0576  28.525   <2e-16 ***
+#> b1:trt0.3       -3.1569     5.6806  -0.556   0.5784    
+#> b1:trt0.5        9.8502     5.5933   1.761   0.0782 .  
+#> b1:trt0.6       11.1356     5.6175   1.982   0.0474 *  
+#> b1:trt0.8        8.9832     5.6351   1.594   0.1109    
+#> b2:(Intercept)  30.8745     0.5402  57.151   <2e-16 ***
+#> b3:(Intercept)  12.8441     0.2498  51.418   <2e-16 ***
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr 

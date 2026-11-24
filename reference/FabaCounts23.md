@@ -69,16 +69,18 @@ summary(fit)
 #> Log-likelihood: -445.7 (df = 8), AIC: 907.3, BIC: 935.9
 #> 
 #> Coefficients:
-#>                    Estimate Std. Error
-#> b1:(Intercept)       18.177      1.365
-#> b1:GenotypeCapri     -2.358      1.607
-#> b1:GenotypeILB938    -5.628      1.548
-#> b1:GenotypeLynx      -1.265      1.627
-#> b1:GenotypeMelodie    2.315      1.822
-#> b1:GenotypeNavara    -2.486      1.604
-#> b2:(Intercept)       71.946      0.229
-#> b3:(Intercept)        1.568      0.097
-#> Tests of the differences between curves, with p-values and confidence intervals: partest().
+#>                    Estimate Std. Error z value Pr(>|z|)    
+#> b1:(Intercept)     18.17704    1.36539  13.313  < 2e-16 ***
+#> b1:GenotypeCapri   -2.35787    1.60652  -1.468 0.142190    
+#> b1:GenotypeILB938  -5.62794    1.54764  -3.636 0.000276 ***
+#> b1:GenotypeLynx    -1.26468    1.62713  -0.777 0.437015    
+#> b1:GenotypeMelodie  2.31500    1.82222   1.270 0.203931    
+#> b1:GenotypeNavara  -2.48648    1.60413  -1.550 0.121129    
+#> b2:(Intercept)     71.94586    0.22891 314.294  < 2e-16 ***
+#> b3:(Intercept)      1.56828    0.09711  16.149  < 2e-16 ***
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
 #> 
 #> Optimiser: both X-convergence and relative convergence (5), maximum absolute gradient 1.1e-06
 ```

@@ -75,10 +75,12 @@ summary(fit)
 #> Log-likelihood: -2740 (df = 5), AIC: 5490, BIC: 5517
 #> 
 #> Coefficients:
-#>                Estimate Std. Error
-#> b1:(Intercept) 19.37099      0.791
-#> b2:(Intercept)  0.05821      0.004
-#> b3:(Intercept)  0.91887      0.029
+#>                 Estimate Std. Error z value Pr(>|z|)    
+#> b1:(Intercept) 19.370992   0.790586   24.50   <2e-16 ***
+#> b2:(Intercept)  0.058208   0.003636   16.01   <2e-16 ***
+#> b3:(Intercept)  0.918873   0.029403   31.25   <2e-16 ***
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #> Fixed: b4:(Intercept) = 1.3
 #> 
 #> Random effects:

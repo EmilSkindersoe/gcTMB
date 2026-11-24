@@ -126,21 +126,23 @@ summary(fitrec)
 #> Log-likelihood: -466.3 (df = 16), AIC: 964.5, BIC: 1018
 #> 
 #> Coefficients:
-#>                                Estimate Std. Error
-#> b1:(Intercept)                  32.6795      2.353
-#> b1:CropMaize                   -13.0754      2.947
-#> b1:CropSweet sorghum            -0.1908      3.341
-#> b1:InputHigh                     7.1624      3.694
-#> b1:CropMaize:InputHigh           1.2994      4.793
-#> b1:CropSweet sorghum:InputHigh   2.2539      5.329
-#> b2:(Intercept)                 237.4210      1.439
-#> b2:CropMaize                    -5.3300      2.361
-#> b2:CropSweet sorghum             2.3127      1.798
-#> b2:InputHigh                    -0.6375      1.835
-#> b2:CropMaize:InputHigh           0.5966      3.205
-#> b2:CropSweet sorghum:InputHigh   0.5322      2.444
-#> b3:(Intercept)                 278.3070      1.079
-#> Tests of the differences between curves, with p-values and confidence intervals: partest().
+#>                                Estimate Std. Error z value Pr(>|z|)    
+#> b1:(Intercept)                  32.6795     2.3532  13.887  < 2e-16 ***
+#> b1:CropMaize                   -13.0754     2.9466  -4.437  9.1e-06 ***
+#> b1:CropSweet sorghum            -0.1908     3.3406  -0.057   0.9545    
+#> b1:InputHigh                     7.1624     3.6936   1.939   0.0525 .  
+#> b1:CropMaize:InputHigh           1.2994     4.7927   0.271   0.7863    
+#> b1:CropSweet sorghum:InputHigh   2.2539     5.3285   0.423   0.6723    
+#> b2:(Intercept)                 237.4210     1.4388 165.012  < 2e-16 ***
+#> b2:CropMaize                    -5.3300     2.3608  -2.258   0.0240 *  
+#> b2:CropSweet sorghum             2.3127     1.7981   1.286   0.1984    
+#> b2:InputHigh                    -0.6375     1.8354  -0.347   0.7283    
+#> b2:CropMaize:InputHigh           0.5966     3.2051   0.186   0.8523    
+#> b2:CropSweet sorghum:InputHigh   0.5322     2.4436   0.218   0.8276    
+#> b3:(Intercept)                 278.3070     1.0786 258.028  < 2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
 #> Fixed: b4:(Intercept) = 141
 #> 
 #> Random effects:
@@ -162,7 +164,7 @@ anova(fitre, fitrec)
 #> 
 #>        npar    AIC    BIC  logLik deviance         LR Df Pr(>LR)
 #> fitre    15 962.53 1012.9 -466.27   932.53                      
-#> fitrec   16 964.53 1018.2 -466.27   932.53 2.8821e-08  1  0.9999
+#> fitrec   16 964.53 1018.2 -466.27   932.53 2.8823e-08  1  0.9999
 ```
 
 The estimate of $`\rho`$ moves far down from its starting value, to a

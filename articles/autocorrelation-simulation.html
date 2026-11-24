@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9018</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9019</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -224,21 +224,23 @@ the relative deviations from the curve:</p>
 <span><span class="co">#&gt; Log-likelihood: -466.3 (df = 16), AIC: 964.5, BIC: 1018</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
-<span><span class="co">#&gt;                                Estimate Std. Error</span></span>
-<span><span class="co">#&gt; b1:(Intercept)                  32.6795      2.353</span></span>
-<span><span class="co">#&gt; b1:CropMaize                   -13.0754      2.947</span></span>
-<span><span class="co">#&gt; b1:CropSweet sorghum            -0.1908      3.341</span></span>
-<span><span class="co">#&gt; b1:InputHigh                     7.1624      3.694</span></span>
-<span><span class="co">#&gt; b1:CropMaize:InputHigh           1.2994      4.793</span></span>
-<span><span class="co">#&gt; b1:CropSweet sorghum:InputHigh   2.2539      5.329</span></span>
-<span><span class="co">#&gt; b2:(Intercept)                 237.4210      1.439</span></span>
-<span><span class="co">#&gt; b2:CropMaize                    -5.3300      2.361</span></span>
-<span><span class="co">#&gt; b2:CropSweet sorghum             2.3127      1.798</span></span>
-<span><span class="co">#&gt; b2:InputHigh                    -0.6375      1.835</span></span>
-<span><span class="co">#&gt; b2:CropMaize:InputHigh           0.5966      3.205</span></span>
-<span><span class="co">#&gt; b2:CropSweet sorghum:InputHigh   0.5322      2.444</span></span>
-<span><span class="co">#&gt; b3:(Intercept)                 278.3070      1.079</span></span>
-<span><span class="co">#&gt; Tests of the differences between curves, with p-values and confidence intervals: partest().</span></span>
+<span><span class="co">#&gt;                                Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
+<span><span class="co">#&gt; b1:(Intercept)                  32.6795     2.3532  13.887  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b1:CropMaize                   -13.0754     2.9466  -4.437  9.1e-06 ***</span></span>
+<span><span class="co">#&gt; b1:CropSweet sorghum            -0.1908     3.3406  -0.057   0.9545    </span></span>
+<span><span class="co">#&gt; b1:InputHigh                     7.1624     3.6936   1.939   0.0525 .  </span></span>
+<span><span class="co">#&gt; b1:CropMaize:InputHigh           1.2994     4.7927   0.271   0.7863    </span></span>
+<span><span class="co">#&gt; b1:CropSweet sorghum:InputHigh   2.2539     5.3285   0.423   0.6723    </span></span>
+<span><span class="co">#&gt; b2:(Intercept)                 237.4210     1.4388 165.012  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b2:CropMaize                    -5.3300     2.3608  -2.258   0.0240 *  </span></span>
+<span><span class="co">#&gt; b2:CropSweet sorghum             2.3127     1.7981   1.286   0.1984    </span></span>
+<span><span class="co">#&gt; b2:InputHigh                    -0.6375     1.8354  -0.347   0.7283    </span></span>
+<span><span class="co">#&gt; b2:CropMaize:InputHigh           0.5966     3.2051   0.186   0.8523    </span></span>
+<span><span class="co">#&gt; b2:CropSweet sorghum:InputHigh   0.5322     2.4436   0.218   0.8276    </span></span>
+<span><span class="co">#&gt; b3:(Intercept)                 278.3070     1.0786 258.028  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().</span></span>
 <span><span class="co">#&gt; Fixed: b4:(Intercept) = 141</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
@@ -260,7 +262,7 @@ the relative deviations from the curve:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;        npar    AIC    BIC  logLik deviance         LR Df Pr(&gt;LR)</span></span>
 <span><span class="co">#&gt; fitre    15 962.53 1012.9 -466.27   932.53                      </span></span>
-<span><span class="co">#&gt; fitrec   16 964.53 1018.2 -466.27   932.53 2.8821e-08  1  0.9999</span></span></code></pre></div>
+<span><span class="co">#&gt; fitrec   16 964.53 1018.2 -466.27   932.53 2.8823e-08  1  0.9999</span></span></code></pre></div>
 <p>The estimate of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 moves far down from its starting value, to a correlation of practically

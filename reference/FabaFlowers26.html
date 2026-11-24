@@ -27,7 +27,7 @@ include those of earlier days, and FlowersTotal does not start at 0."><meta prop
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9018</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9019</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -132,17 +132,19 @@ data-raw of the source package.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -1944 (df = 11), AIC: 3910, BIC: 3961</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                    Estimate Std. Error</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept)                      27.1292      1.646</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b1:SoilSandy                        -9.8595      2.303</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b1:TreatmentNotIrrigated           -12.0468      2.302</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b1:SoilSandy:TreatmentNotIrrigated   2.1591      3.245</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b2:(Intercept)                      74.8665      0.165</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b2:SoilSandy                        -0.6645      0.271</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b2:TreatmentNotIrrigated            -1.2939      0.290</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b2:SoilSandy:TreatmentNotIrrigated  -0.4712      0.605</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b3:(Intercept)                       2.1007      0.085</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Tests of the differences between curves, with p-values and confidence intervals: partest().</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                     Estimate Std. Error z value Pr(&gt;|z|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept)                      27.12920    1.64583  16.484  &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b1:SoilSandy                        -9.85954    2.30309  -4.281 1.86e-05 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b1:TreatmentNotIrrigated           -12.04680    2.30204  -5.233 1.67e-07 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b1:SoilSandy:TreatmentNotIrrigated   2.15909    3.24524   0.665    0.506    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b2:(Intercept)                      74.86645    0.16510 453.448  &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b2:SoilSandy                        -0.66446    0.27051  -2.456    0.014 *  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b2:TreatmentNotIrrigated            -1.29395    0.28956  -4.469 7.87e-06 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b2:SoilSandy:TreatmentNotIrrigated  -0.47124    0.60528  -0.779    0.436    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b3:(Intercept)                       2.10069    0.08466  24.813  &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Groups   Name Std.Dev.</span>

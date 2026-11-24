@@ -11,7 +11,7 @@ the Laplace approximation."><meta property="og:image" content="https://emilskind
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9018</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9019</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -291,10 +291,12 @@ function of determinate growth. Annals of Botany 91, 361-371.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -699.2 (df = 4), AIC: 1406, BIC: 1420</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                Estimate Std. Error</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept)   120.79      3.652</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b2:(Intercept)    30.73      0.682</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b3:(Intercept)    12.88      0.977</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                Estimate Std. Error t value Pr(&gt;|t|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept) 120.7851     3.6524   33.07   &lt;2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b2:(Intercept)  30.7300     0.6822   45.05   &lt;2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b3:(Intercept)  12.8808     0.9769   13.19   &lt;2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Residual standard deviation: 8.043 on 197 degrees of freedom</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -381,15 +383,17 @@ function of determinate growth. Annals of Botany 91, 361-371.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -509.5 (df = 11), AIC: 1041, BIC: 1077</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                Estimate Std. Error</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept)  115.742      4.058</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b1:trt0.3        -3.157      5.681</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b1:trt0.5         9.850      5.593</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b1:trt0.6        11.136      5.618</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b1:trt0.8         8.983      5.635</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b2:(Intercept)   30.874      0.540</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b3:(Intercept)   12.844      0.250</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Tests of the differences between curves, with p-values and confidence intervals: partest().</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                Estimate Std. Error z value Pr(&gt;|z|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept) 115.7419     4.0576  28.525   &lt;2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b1:trt0.3       -3.1569     5.6806  -0.556   0.5784    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b1:trt0.5        9.8502     5.5933   1.761   0.0782 .  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b1:trt0.6       11.1356     5.6175   1.982   0.0474 *  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b1:trt0.8        8.9832     5.6351   1.594   0.1109    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b2:(Intercept)  30.8745     0.5402  57.151   &lt;2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b3:(Intercept)  12.8441     0.2498  51.418   &lt;2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Groups   Name Std.Dev. Corr </span>

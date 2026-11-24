@@ -45,12 +45,14 @@ summary(fitg)
 #> Log-likelihood: -6089 (df = 6), AIC: 12190, BIC: 12223
 #> 
 #> Coefficients:
-#>                Estimate Std. Error
-#> b1:(Intercept) 166.3370      0.324
-#> b2:(Intercept)  11.9346      0.107
-#> b3:(Intercept) 154.0120      0.473
-#> b4:(Intercept)   0.1181      0.004
-#> b5:(Intercept)   0.8819      0.058
+#>                 Estimate Std. Error t value Pr(>|t|)    
+#> b1:(Intercept) 1.663e+02  3.242e-01  513.05   <2e-16 ***
+#> b2:(Intercept) 1.193e+01  1.068e-01  111.72   <2e-16 ***
+#> b3:(Intercept) 1.540e+02  4.734e-01  325.37   <2e-16 ***
+#> b4:(Intercept) 1.181e-01  3.554e-03   33.22   <2e-16 ***
+#> b5:(Intercept) 8.819e-01  5.776e-02   15.27   <2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Residual standard deviation: 5.863 on 1906 degrees of freedom
 #> 
@@ -201,7 +203,6 @@ parameter):
 fitre <- gcTMB(Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, rform = b1 + b2 + b5 ~ 1 | ID,
                data = berkeley, model = "preecebaines", start = unname(custom),
                control = list(restart = TRUE))
-#> Warning: the optimiser did not converge: false convergence (8)
 summary(fitre)
 #> Call:
 #> gcTMB(form = Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, 
@@ -215,18 +216,20 @@ summary(fitre)
 #> Log-likelihood: -8820 (df = 17), AIC: 17674, BIC: 17780
 #> 
 #> Coefficients:
-#>                 Estimate Std. Error
-#> b1:(Intercept) 184.96761      0.383
-#> b1:Sexfemale   -15.47509      0.496
-#> b2:(Intercept)  14.79657      0.211
-#> b2:Sexfemale    -2.26792      0.296
-#> b3:(Intercept) 168.79822      0.226
-#> b3:Sexfemale   -13.67711      0.333
-#> b4:(Intercept)   0.08631      0.001
-#> b4:Sexfemale     0.01575      0.002
-#> b5:(Intercept)   0.60790      0.020
-#> b5:Sexfemale     0.01405      0.028
-#> Tests of the differences between curves, with p-values and confidence intervals: partest().
+#>                  Estimate Std. Error z value Pr(>|z|)    
+#> b1:(Intercept)  1.850e+02  3.829e-01 483.093  < 2e-16 ***
+#> b1:Sexfemale   -1.548e+01  4.962e-01 -31.186  < 2e-16 ***
+#> b2:(Intercept)  1.480e+01  2.108e-01  70.203  < 2e-16 ***
+#> b2:Sexfemale   -2.268e+00  2.958e-01  -7.666 1.77e-14 ***
+#> b3:(Intercept)  1.688e+02  2.262e-01 746.168  < 2e-16 ***
+#> b3:Sexfemale   -1.368e+01  3.335e-01 -41.014  < 2e-16 ***
+#> b4:(Intercept)  8.631e-02  9.322e-04  92.585  < 2e-16 ***
+#> b4:Sexfemale    1.575e-02  1.584e-03   9.940  < 2e-16 ***
+#> b5:(Intercept)  6.079e-01  2.041e-02  29.786  < 2e-16 ***
+#> b5:Sexfemale    1.405e-02  2.826e-02   0.497    0.619    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
 #> 
 #> Random effects:
 #>  Groups Name Std.Dev. Corr       
@@ -236,8 +239,7 @@ summary(fitre)
 #> 
 #> Residual standard deviation: 2.087
 #> 
-#> Optimiser: false convergence (8), maximum absolute gradient 0.0065
-#> Warning: the optimiser did not converge: false convergence (8)
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.02
 converged(fitre)
 #> [1] TRUE
 ```
@@ -354,15 +356,17 @@ summary(fitrr)
 #> Log-likelihood: -6298 (df = 14), AIC: 12625, BIC: 12709
 #> 
 #> Coefficients:
-#>                  Estimate Std. Error
-#> b1:(Intercept)   2.007188      0.014
-#> b1:Sexfemale    -0.002929      0.020
-#> b2:(Intercept)   0.381010      0.006
-#> b2:Sexfemale     0.072460      0.005
-#> b3:(Intercept)   4.477682      0.053
-#> b4:(Intercept) 131.815382      0.598
-#> b4:Sexfemale    -7.368548      0.836
-#> Tests of the differences between curves, with p-values and confidence intervals: partest().
+#>                  Estimate Std. Error z value Pr(>|z|)    
+#> b1:(Intercept)   2.007187   0.014296 140.404   <2e-16 ***
+#> b1:Sexfemale    -0.002928   0.020022  -0.146    0.884    
+#> b2:(Intercept)   0.381010   0.005656  67.360   <2e-16 ***
+#> b2:Sexfemale     0.072460   0.005456  13.281   <2e-16 ***
+#> b3:(Intercept)   4.477683   0.052745  84.893   <2e-16 ***
+#> b4:(Intercept) 131.815373   0.598137 220.377   <2e-16 ***
+#> b4:Sexfemale    -7.368561   0.835740  -8.817   <2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
 #> The coefficients of b1, b3 are on the log scale.
 #> 
 #> Random effects:
@@ -373,7 +377,7 @@ summary(fitrr)
 #> 
 #> Residual standard deviation: 1.57
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.0087
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.0024
 maxrate(fitrr, newdata = sexes)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
@@ -445,8 +449,8 @@ pars <- predict(fitrr, newdata = sexes, type = "parameters", random = FALSE)
 data.frame(Sex = sexes$Sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
            growth_in_spurt = pars[, "asymptote"], adult_height = pars[, "b4"] + pars[, "asymptote"])
 #>      Sex peak_rate height_before_spurt growth_in_spurt adult_height
-#> 1   male  7.442358            131.8154        52.79491     184.6103
-#> 2 female  7.420593            124.4468        44.22908     168.6759
+#> 1   male  7.442353            131.8154        52.79488     184.6102
+#> 2 female  7.420597            124.4468        44.22909     168.6759
 ```
 
 The adult heights agree with the asymptotes $`b_1`$ of the Preece-Baines

@@ -88,17 +88,19 @@ summary(fit)
 #> Log-likelihood: -1944 (df = 11), AIC: 3910, BIC: 3961
 #> 
 #> Coefficients:
-#>                                    Estimate Std. Error
-#> b1:(Intercept)                      27.1292      1.646
-#> b1:SoilSandy                        -9.8595      2.303
-#> b1:TreatmentNotIrrigated           -12.0468      2.302
-#> b1:SoilSandy:TreatmentNotIrrigated   2.1591      3.245
-#> b2:(Intercept)                      74.8665      0.165
-#> b2:SoilSandy                        -0.6645      0.271
-#> b2:TreatmentNotIrrigated            -1.2939      0.290
-#> b2:SoilSandy:TreatmentNotIrrigated  -0.4712      0.605
-#> b3:(Intercept)                       2.1007      0.085
-#> Tests of the differences between curves, with p-values and confidence intervals: partest().
+#>                                     Estimate Std. Error z value Pr(>|z|)    
+#> b1:(Intercept)                      27.12920    1.64583  16.484  < 2e-16 ***
+#> b1:SoilSandy                        -9.85954    2.30309  -4.281 1.86e-05 ***
+#> b1:TreatmentNotIrrigated           -12.04680    2.30204  -5.233 1.67e-07 ***
+#> b1:SoilSandy:TreatmentNotIrrigated   2.15909    3.24524   0.665    0.506    
+#> b2:(Intercept)                      74.86645    0.16510 453.448  < 2e-16 ***
+#> b2:SoilSandy                        -0.66446    0.27051  -2.456    0.014 *  
+#> b2:TreatmentNotIrrigated            -1.29395    0.28956  -4.469 7.87e-06 ***
+#> b2:SoilSandy:TreatmentNotIrrigated  -0.47124    0.60528  -0.779    0.436    
+#> b3:(Intercept)                       2.10069    0.08466  24.813  < 2e-16 ***
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev.

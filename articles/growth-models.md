@@ -430,10 +430,12 @@ summary(fit)
 #> Log-likelihood: -699.2 (df = 4), AIC: 1406, BIC: 1420
 #> 
 #> Coefficients:
-#>                Estimate Std. Error
-#> b1:(Intercept)   120.79      3.652
-#> b2:(Intercept)    30.73      0.682
-#> b3:(Intercept)    12.88      0.977
+#>                Estimate Std. Error t value Pr(>|t|)    
+#> b1:(Intercept) 120.7851     3.6524   33.07   <2e-16 ***
+#> b2:(Intercept)  30.7300     0.6822   45.05   <2e-16 ***
+#> b3:(Intercept)  12.8808     0.9769   13.19   <2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Residual standard deviation: 8.043 on 197 degrees of freedom
 #> 

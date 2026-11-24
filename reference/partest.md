@@ -3,14 +3,13 @@
 Compares a parameter of the population curves (random effects at zero)
 between the rows of `newdata`, e.g. the treatment levels: every row
 against a reference row (`contrasts="dunnett"`, the default), or every
-pair of rows (`contrasts="tukey"`). This is the function for the
-hypothesis tests of the differences between curves; the summary of the
-fit
+pair of rows (`contrasts="tukey"`), with the tests adjusted for the
+number of comparisons; the summary of the fit
 ([`summary.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-methods.md))
-gives only the estimates and their standard errors. For each comparison
-it gives the difference of the parameter on the scale of its link, its
-standard error from the covariance of the fixed effects, a Wald test of
-no difference, and a confidence interval. With `b1type="rate"` in
+gives unadjusted tests of the coefficients. For each comparison it gives
+the difference of the parameter on the scale of its link, its standard
+error from the covariance of the fixed effects, a Wald test of no
+difference, and a confidence interval. With `b1type="rate"` in
 [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md), b1
 is the maximum growth rate, and `partest(fit, newdata, "b1")` compares
 the maximum growth rates.
@@ -132,7 +131,8 @@ the parameter, see
 [`anova.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/anova.gcTMB.md).
 With treatment contrasts in fform and the levels in newdata in the order
 of the factor, the differences to the first level are the coefficients
-of the parameter in the summary of the fit.
+of the parameter in the summary of the fit, and `adjust="none"` gives
+their unadjusted tests of the summary.
 
 ## References
 
@@ -155,10 +155,10 @@ partest(fit, newdata=nd, parm="b1")
 #> Differences to the reference of b1 (maximum growth rate) on the scale of its log link:
 #> 
 #>                   Estimate Std.Error t value p.value    lower  upper ratio
-#> trt=0.3 - trt=0.1 -0.00614    0.0319  -0.193  0.9990 -0.08472 0.0724 0.994
-#> trt=0.5 - trt=0.1  0.08075    0.0323   2.502  0.0456  0.00116 0.1603 1.084
-#> trt=0.6 - trt=0.1  0.08555    0.0327   2.617  0.0337  0.00492 0.1662 1.089
-#> trt=0.8 - trt=0.1  0.06441    0.0332   1.940  0.1640 -0.01749 0.1463 1.067
+#> trt=0.3 - trt=0.1 -0.00614    0.0319  -0.193  0.9990 -0.08467 0.0724 0.994
+#> trt=0.5 - trt=0.1  0.08075    0.0323   2.502  0.0454  0.00122 0.1603 1.084
+#> trt=0.6 - trt=0.1  0.08555    0.0327   2.617  0.0336  0.00498 0.1661 1.089
+#> trt=0.8 - trt=0.1  0.06441    0.0332   1.940  0.1655 -0.01744 0.1463 1.067
 #>                   ratio.lower ratio.upper
 #> trt=0.3 - trt=0.1       0.919        1.08
 #> trt=0.5 - trt=0.1       1.001        1.17
@@ -171,18 +171,18 @@ partest(fit, newdata=nd, parm="b1", contrasts="tukey")
 #> Pairwise differences of b1 (maximum growth rate) on the scale of its log link:
 #> 
 #>                   Estimate Std.Error t value p.value   lower     upper ratio
-#> trt=0.1 - trt=0.3  0.00614    0.0319   0.193  0.9997 -0.0816  0.093918 1.006
-#> trt=0.1 - trt=0.5 -0.08075    0.0323  -2.502  0.0944 -0.1697  0.008151 0.922
-#> trt=0.1 - trt=0.6 -0.08555    0.0327  -2.617  0.0721 -0.1756  0.004512 0.918
-#> trt=0.1 - trt=0.8 -0.06441    0.0332  -1.940  0.3006 -0.1559  0.027074 0.938
-#> trt=0.3 - trt=0.5 -0.08689    0.0312  -2.787  0.0457 -0.1728 -0.000983 0.917
-#> trt=0.3 - trt=0.6 -0.09168    0.0316  -2.900  0.0339 -0.1788 -0.004571 0.912
-#> trt=0.3 - trt=0.8 -0.07054    0.0322  -2.194  0.1867 -0.1591  0.018039 0.932
-#> trt=0.5 - trt=0.6 -0.00479    0.0320  -0.150  0.9998 -0.0930  0.083371 0.995
-#> trt=0.5 - trt=0.8  0.01634    0.0325   0.502  0.9871 -0.0733  0.105964 1.016
-#> trt=0.6 - trt=0.8  0.02114    0.0329   0.642  0.9681 -0.0696  0.111874 1.021
+#> trt=0.1 - trt=0.3  0.00614    0.0319   0.193  0.9997 -0.0817  0.093961 1.006
+#> trt=0.1 - trt=0.5 -0.08075    0.0323  -2.502  0.0944 -0.1697  0.008194 0.922
+#> trt=0.1 - trt=0.6 -0.08555    0.0327  -2.617  0.0719 -0.1756  0.004555 0.918
+#> trt=0.1 - trt=0.8 -0.06441    0.0332  -1.940  0.3009 -0.1559  0.027119 0.938
+#> trt=0.3 - trt=0.5 -0.08689    0.0312  -2.787  0.0462 -0.1728 -0.000941 0.917
+#> trt=0.3 - trt=0.6 -0.09168    0.0316  -2.900  0.0340 -0.1788 -0.004529 0.912
+#> trt=0.3 - trt=0.8 -0.07054    0.0322  -2.194  0.1881 -0.1592  0.018082 0.932
+#> trt=0.5 - trt=0.6 -0.00479    0.0320  -0.150  0.9998 -0.0930  0.083414 0.995
+#> trt=0.5 - trt=0.8  0.01634    0.0325   0.502  0.9876 -0.0733  0.106007 1.016
+#> trt=0.6 - trt=0.8  0.02114    0.0329   0.642  0.9683 -0.0696  0.111918 1.021
 #>                   ratio.lower ratio.upper
-#> trt=0.1 - trt=0.3       0.922       1.098
+#> trt=0.1 - trt=0.3       0.922       1.099
 #> trt=0.1 - trt=0.5       0.844       1.008
 #> trt=0.1 - trt=0.6       0.839       1.005
 #> trt=0.1 - trt=0.8       0.856       1.027

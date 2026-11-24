@@ -273,19 +273,21 @@ summary(fit1)
 #> Log-likelihood: -480.8 (df = 16), AIC: 993.5, BIC: 1046
 #> 
 #> Coefficients:
-#>                Estimate Std. Error
-#> b1:(Intercept)  114.315      4.209
-#> b1:trt0.3        -1.967      5.796
-#> b1:trt0.5        12.109      5.843
-#> b1:trt0.6        13.840      5.862
-#> b1:trt0.8        11.427      5.863
-#> b2:(Intercept)   30.099      1.157
-#> b2:trt0.3        -1.480      1.609
-#> b2:trt0.5         1.212      1.610
-#> b2:trt0.6         1.884      1.616
-#> b2:trt0.8         2.224      1.627
-#> b3:(Intercept)   12.948      0.363
-#> Tests of the differences between curves, with p-values and confidence intervals: partest().
+#>                Estimate Std. Error z value Pr(>|z|)    
+#> b1:(Intercept) 114.3152     4.2094  27.157   <2e-16 ***
+#> b1:trt0.3       -1.9674     5.7958  -0.339   0.7343    
+#> b1:trt0.5       12.1092     5.8426   2.073   0.0382 *  
+#> b1:trt0.6       13.8402     5.8619   2.361   0.0182 *  
+#> b1:trt0.8       11.4271     5.8630   1.949   0.0513 .  
+#> b2:(Intercept)  30.0994     1.1568  26.019   <2e-16 ***
+#> b2:trt0.3       -1.4804     1.6088  -0.920   0.3575    
+#> b2:trt0.5        1.2117     1.6096   0.753   0.4516    
+#> b2:trt0.6        1.8835     1.6164   1.165   0.2439    
+#> b2:trt0.8        2.2236     1.6268   1.367   0.1717    
+#> b3:(Intercept)  12.9485     0.3633  35.638   <2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr 

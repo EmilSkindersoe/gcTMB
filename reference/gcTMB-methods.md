@@ -226,14 +226,19 @@ autocorrelation the parameter cor_par:AR1 or cor_par:CAR1 on the
 unconstrained scale of nlme (`coef` of an nlme corStruct), see
 [`corStruct`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md).
 summary returns a summary.gcTMB object with the coefficient table
-(Estimate, Std. Error), the variance components, log-likelihood, AIC and
-BIC, sample sizes and convergence information. Whether the family suits
-the data, e.g. overdispersion of counts, is assessed with the quantile
-residuals (`residuals(fit, type="quantile")` and
+(Estimate, Std. Error, and the Wald test of a coefficient of zero: the z
+value and its p-value, or the t value with small-sample inference, see
+[`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)),
+the variance components, log-likelihood, AIC and BIC, sample sizes and
+convergence information. Whether the family suits the data, e.g.
+overdispersion of counts, is assessed with the quantile residuals
+(`residuals(fit, type="quantile")` and
 [`plot.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/plot.gcTMB.md)),
-which are standard normal under the model for every family. The
-coefficient table has no tests: the tests of the differences between
-curves, e.g. between treatments, are done by
+which are standard normal under the model for every family. The p-values
+of the coefficient table are not adjusted for the number of tests. With
+treatment contrasts in fform, the coefficients of a parameter are the
+differences of the levels to the reference level; the tests of the
+differences between curves adjusted for their number are done by
 [`partest`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
 (by default each level against a reference, by Dunnett's method), and
 the test that a parameter is the same for all curves by
@@ -281,10 +286,12 @@ summary(fit)
 #> Log-likelihood: -513.7 (df = 7), AIC: 1041, BIC: 1064
 #> 
 #> Coefficients:
-#>                Estimate Std. Error
-#> b1:(Intercept)   121.09      2.257
-#> b2:(Intercept)    30.87      0.542
-#> b3:(Intercept)    12.84      0.250
+#>                Estimate Std. Error z value Pr(>|z|)    
+#> b1:(Intercept) 121.0884     2.2574   53.64   <2e-16 ***
+#> b2:(Intercept)  30.8663     0.5424   56.91   <2e-16 ***
+#> b3:(Intercept)  12.8415     0.2496   51.44   <2e-16 ***
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr 

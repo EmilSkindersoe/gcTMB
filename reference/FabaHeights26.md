@@ -64,14 +64,16 @@ summary(fit)
 #> Log-likelihood: -15267 (df = 7), AIC: 30548, BIC: 30593
 #> 
 #> Coefficients:
-#>                                    Estimate Std. Error
-#> b1:(Intercept)                       81.368      0.377
-#> b1:SoilSandy                        -10.309      0.483
-#> b1:TreatmentNotIrrigated             -6.871      0.496
-#> b1:SoilSandy:TreatmentNotIrrigated  -12.455      0.683
-#> b2:(Intercept)                       58.746      0.139
-#> b3:(Intercept)                        8.119      0.123
-#> Tests of the differences between curves, with p-values and confidence intervals: partest().
+#>                                    Estimate Std. Error t value Pr(>|t|)    
+#> b1:(Intercept)                      81.3680     0.3770  215.80   <2e-16 ***
+#> b1:SoilSandy                       -10.3094     0.4828  -21.36   <2e-16 ***
+#> b1:TreatmentNotIrrigated            -6.8713     0.4956  -13.87   <2e-16 ***
+#> b1:SoilSandy:TreatmentNotIrrigated -12.4552     0.6828  -18.24   <2e-16 ***
+#> b2:(Intercept)                      58.7464     0.1393  421.67   <2e-16 ***
+#> b3:(Intercept)                       8.1190     0.1229   66.06   <2e-16 ***
+#> ---
+#> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
 #> 
 #> Residual standard deviation: 8.33 on 4309 degrees of freedom
 #> 

@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9018</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9019</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -113,12 +113,14 @@ years on; the model is fitted from 2 years, first for the girls:</p>
 <span><span class="co">#&gt; Log-likelihood: -6089 (df = 6), AIC: 12190, BIC: 12223</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
-<span><span class="co">#&gt;                Estimate Std. Error</span></span>
-<span><span class="co">#&gt; b1:(Intercept) 166.3370      0.324</span></span>
-<span><span class="co">#&gt; b2:(Intercept)  11.9346      0.107</span></span>
-<span><span class="co">#&gt; b3:(Intercept) 154.0120      0.473</span></span>
-<span><span class="co">#&gt; b4:(Intercept)   0.1181      0.004</span></span>
-<span><span class="co">#&gt; b5:(Intercept)   0.8819      0.058</span></span>
+<span><span class="co">#&gt;                 Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; b1:(Intercept) 1.663e+02  3.242e-01  513.05   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; b2:(Intercept) 1.193e+01  1.068e-01  111.72   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; b3:(Intercept) 1.540e+02  4.734e-01  325.37   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; b4:(Intercept) 1.181e-01  3.554e-03   33.22   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; b5:(Intercept) 8.819e-01  5.776e-02   15.27   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation: 5.863 on 1906 degrees of freedom</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -250,7 +252,6 @@ coefficients of that parameter):</p>
 <code class="sourceCode R"><span><span class="va">fitre</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">Age</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b3</span> <span class="op">+</span> <span class="va">b4</span> <span class="op">+</span> <span class="va">b5</span> <span class="op">~</span> <span class="va">Sex</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">+</span> <span class="va">b5</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">ID</span>,</span>
 <span>               data <span class="op">=</span> <span class="va">berkeley</span>, model <span class="op">=</span> <span class="st">"preecebaines"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">custom</span><span class="op">)</span>,</span>
 <span>               control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: the optimiser did not converge: false convergence (8)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fitre</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; gcTMB(form = Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, </span></span>
@@ -264,18 +265,20 @@ coefficients of that parameter):</p>
 <span><span class="co">#&gt; Log-likelihood: -8820 (df = 17), AIC: 17674, BIC: 17780</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
-<span><span class="co">#&gt;                 Estimate Std. Error</span></span>
-<span><span class="co">#&gt; b1:(Intercept) 184.96761      0.383</span></span>
-<span><span class="co">#&gt; b1:Sexfemale   -15.47509      0.496</span></span>
-<span><span class="co">#&gt; b2:(Intercept)  14.79657      0.211</span></span>
-<span><span class="co">#&gt; b2:Sexfemale    -2.26792      0.296</span></span>
-<span><span class="co">#&gt; b3:(Intercept) 168.79822      0.226</span></span>
-<span><span class="co">#&gt; b3:Sexfemale   -13.67711      0.333</span></span>
-<span><span class="co">#&gt; b4:(Intercept)   0.08631      0.001</span></span>
-<span><span class="co">#&gt; b4:Sexfemale     0.01575      0.002</span></span>
-<span><span class="co">#&gt; b5:(Intercept)   0.60790      0.020</span></span>
-<span><span class="co">#&gt; b5:Sexfemale     0.01405      0.028</span></span>
-<span><span class="co">#&gt; Tests of the differences between curves, with p-values and confidence intervals: partest().</span></span>
+<span><span class="co">#&gt;                  Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
+<span><span class="co">#&gt; b1:(Intercept)  1.850e+02  3.829e-01 483.093  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b1:Sexfemale   -1.548e+01  4.962e-01 -31.186  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b2:(Intercept)  1.480e+01  2.108e-01  70.203  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b2:Sexfemale   -2.268e+00  2.958e-01  -7.666 1.77e-14 ***</span></span>
+<span><span class="co">#&gt; b3:(Intercept)  1.688e+02  2.262e-01 746.168  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b3:Sexfemale   -1.368e+01  3.335e-01 -41.014  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b4:(Intercept)  8.631e-02  9.322e-04  92.585  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b4:Sexfemale    1.575e-02  1.584e-03   9.940  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b5:(Intercept)  6.079e-01  2.041e-02  29.786  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b5:Sexfemale    1.405e-02  2.826e-02   0.497    0.619    </span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;  Groups Name Std.Dev. Corr       </span></span>
@@ -285,8 +288,7 @@ coefficients of that parameter):</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation: 2.087</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: false convergence (8), maximum absolute gradient 0.0065</span></span>
-<span><span class="co">#&gt; Warning: the optimiser did not converge: false convergence (8)</span></span>
+<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.02</span></span>
 <span><span class="fu"><a href="../reference/converged.html">converged</a></span><span class="op">(</span><span class="va">fitre</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>With 17 parameters and strongly correlated random effects, the
@@ -401,15 +403,17 @@ there:</p>
 <span><span class="co">#&gt; Log-likelihood: -6298 (df = 14), AIC: 12625, BIC: 12709</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
-<span><span class="co">#&gt;                  Estimate Std. Error</span></span>
-<span><span class="co">#&gt; b1:(Intercept)   2.007188      0.014</span></span>
-<span><span class="co">#&gt; b1:Sexfemale    -0.002929      0.020</span></span>
-<span><span class="co">#&gt; b2:(Intercept)   0.381010      0.006</span></span>
-<span><span class="co">#&gt; b2:Sexfemale     0.072460      0.005</span></span>
-<span><span class="co">#&gt; b3:(Intercept)   4.477682      0.053</span></span>
-<span><span class="co">#&gt; b4:(Intercept) 131.815382      0.598</span></span>
-<span><span class="co">#&gt; b4:Sexfemale    -7.368548      0.836</span></span>
-<span><span class="co">#&gt; Tests of the differences between curves, with p-values and confidence intervals: partest().</span></span>
+<span><span class="co">#&gt;                  Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
+<span><span class="co">#&gt; b1:(Intercept)   2.007187   0.014296 140.404   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; b1:Sexfemale    -0.002928   0.020022  -0.146    0.884    </span></span>
+<span><span class="co">#&gt; b2:(Intercept)   0.381010   0.005656  67.360   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; b2:Sexfemale     0.072460   0.005456  13.281   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; b3:(Intercept)   4.477683   0.052745  84.893   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; b4:(Intercept) 131.815373   0.598137 220.377   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; b4:Sexfemale    -7.368561   0.835740  -8.817   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().</span></span>
 <span><span class="co">#&gt; The coefficients of b1, b3 are on the log scale.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
@@ -420,7 +424,7 @@ there:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation: 1.57</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.0087</span></span>
+<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.0024</span></span>
 <span><span class="fu"><a href="../reference/maxrate.html">maxrate</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -486,8 +490,8 @@ plus the asymptote:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Sex <span class="op">=</span> <span class="va">sexes</span><span class="op">$</span><span class="va">Sex</span>, peak_rate <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b1"</span><span class="op">]</span>, height_before_spurt <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b4"</span><span class="op">]</span>,</span>
 <span>           growth_in_spurt <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"asymptote"</span><span class="op">]</span>, adult_height <span class="op">=</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"b4"</span><span class="op">]</span> <span class="op">+</span> <span class="va">pars</span><span class="op">[</span>, <span class="st">"asymptote"</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      Sex peak_rate height_before_spurt growth_in_spurt adult_height</span></span>
-<span><span class="co">#&gt; 1   male  7.442358            131.8154        52.79491     184.6103</span></span>
-<span><span class="co">#&gt; 2 female  7.420593            124.4468        44.22908     168.6759</span></span></code></pre></div>
+<span><span class="co">#&gt; 1   male  7.442353            131.8154        52.79488     184.6102</span></span>
+<span><span class="co">#&gt; 2 female  7.420597            124.4468        44.22909     168.6759</span></span></code></pre></div>
 <p>The adult heights agree with the asymptotes
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
 of the Preece-Baines curves of the sexes above.</p>

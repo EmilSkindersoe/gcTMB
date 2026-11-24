@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9018</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9019</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -174,14 +174,17 @@ and the log residual standard deviation (log_sigma, gaussian; of log(y) for logn
 (log_theta, nbinom2), log dispersion (log_phi, nbinom1) or log precision (log_phi, betabinomial); and
 for an estimated autocorrelation the parameter cor_par:AR1 or cor_par:CAR1 on the unconstrained scale of
 nlme (<code>coef</code> of an nlme corStruct), see <code><a href="corStruct.html">corStruct</a></code>.
-summary returns a summary.gcTMB object with the coefficient table (Estimate, Std. Error), the
-variance components, log-likelihood, AIC and BIC, sample sizes and convergence information. Whether
-the family suits the data, e.g. overdispersion of counts, is assessed with the quantile residuals
-(<code>residuals(fit, type="quantile")</code> and <code><a href="plot.gcTMB.html">plot.gcTMB</a></code>), which are standard normal
-under the model for every family. The coefficient table has no tests: the
-tests of the differences between curves, e.g. between treatments, are done by <code><a href="partest.html">partest</a></code>
-(by default each level against a reference, by Dunnett's method), and the test that a parameter is
-the same for all curves by <code><a href="anova.gcTMB.html">anova.gcTMB</a></code>. logLik returns the log-likelihood at the
+summary returns a summary.gcTMB object with the coefficient table (Estimate, Std. Error, and the
+Wald test of a coefficient of zero: the z value and its p-value, or the t value with small-sample
+inference, see <code><a href="gcTMB.html">gcTMB</a></code>), the variance components, log-likelihood, AIC and BIC, sample
+sizes and convergence information. Whether the family suits the data, e.g. overdispersion of
+counts, is assessed with the quantile residuals (<code>residuals(fit, type="quantile")</code> and
+<code><a href="plot.gcTMB.html">plot.gcTMB</a></code>), which are standard normal under the model for every family. The p-values
+of the coefficient table are not adjusted for the number of tests. With treatment contrasts in
+fform, the coefficients of a parameter are the differences of the levels to the reference level;
+the tests of the differences between curves adjusted for their number are done by
+<code><a href="partest.html">partest</a></code> (by default each level against a reference, by Dunnett's method), and the
+test that a parameter is the same for all curves by <code><a href="anova.gcTMB.html">anova.gcTMB</a></code>. logLik returns the log-likelihood at the
 estimates, with the number of free coefficients and variance parameters as degrees of freedom; it is the
 maximum likelihood, comparable with nlme fits with <code>method="ML"</code>, not with the REML fits of <code><a href="https://rdrr.io/pkg/nlme/man/lme.html" class="external-link">nlme::lme</a></code> and <code><a href="https://rdrr.io/pkg/nlme/man/gls.html" class="external-link">nlme::gls</a></code>.
 df.residual returns the residual degrees of freedom n - p of gaussian and lognormal models without random
@@ -211,10 +214,12 @@ effects (the median for lognormal; for binomial and beta-binomial responses the 
 <span class="r-out co"><span class="r-pr">#&gt;</span> Log-likelihood: -513.7 (df = 7), AIC: 1041, BIC: 1064</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                Estimate Std. Error</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept)   121.09      2.257</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b2:(Intercept)    30.87      0.542</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b3:(Intercept)    12.84      0.250</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                Estimate Std. Error z value Pr(&gt;|z|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept) 121.0884     2.2574   53.64   &lt;2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b2:(Intercept)  30.8663     0.5424   56.91   &lt;2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b3:(Intercept)  12.8415     0.2496   51.44   &lt;2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Groups   Name Std.Dev. Corr </span>
