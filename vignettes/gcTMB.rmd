@@ -157,12 +157,12 @@ timeto(fitre, level = 90, newdata = trts, random = FALSE)
 maxrate(fitre, newdata = trts)
 ```
 
-With `b1type = "rate"`, $b_1$ is the maximum growth rate, so that covariates on $b_1$ are effects on the maximum growth rate: `anova()` tests whether they differ, and `partest()` compares all pairs of genotypes, with simultaneous confidence intervals.
+With `b1type = "rate"`, $b_1$ is the maximum growth rate, so that covariates on $b_1$ are effects on the maximum growth rate: `anova()` tests whether they differ, and `partest()` with `contrasts = "tukey"` compares all pairs of genotypes, by Tukey's method with simultaneous confidence intervals.
 
 ```{r}
 fitpr <- gcTMB(pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
                family = "poisson", fix = c(b4 = FALSE), b1type = "rate", link = c(b1 = "log"))
-partest(fitpr, newdata = genotypes)
+partest(fitpr, newdata = genotypes, contrasts = "tukey")
 ```
 
 ## Autocorrelation
