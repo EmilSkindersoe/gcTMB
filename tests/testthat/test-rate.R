@@ -155,7 +155,9 @@ test_that("Dunnett contrasts, the default of partest", {
   expect_error(partest(fr, nd, contrasts="dunnett", ref=6), "ref must be")
   expect_error(partest(fr, nd, contrasts="dunnett", ref="trt=1"), "ref must be")
 
-  # summary has no tests, and points to partest
-  expect_equal(colnames(s0), c("Estimate", "Std. Error"))
-  expect_output(print(summary(fr)), "partest\\(\\)")
+  # summary: unadjusted t tests of the coefficients, the same as partest without adjustment, and a
+  # pointer to partest for the adjusted tests
+  expect_equal(colnames(s0), c("Estimate", "Std. Error", "t value", "Pr(>|t|)"))
+  expect_equal(p0$p.value, unname(s0[b1trt, "Pr(>|t|)"]), tolerance=1e-6)
+  expect_output(print(summary(fr)), "Unadjusted Wald tests; .*partest\\(\\)")
 })

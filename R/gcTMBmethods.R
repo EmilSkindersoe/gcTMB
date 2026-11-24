@@ -30,14 +30,17 @@
 #' (log_theta, nbinom2), log dispersion (log_phi, nbinom1) or log precision (log_phi, betabinomial); and
 #' for an estimated autocorrelation the parameter cor_par:AR1 or cor_par:CAR1 on the unconstrained scale of
 #' nlme (\code{coef} of an nlme corStruct), see \code{\link{corStruct}}.
-#' summary returns a summary.gcTMB object with the coefficient table (Estimate, Std. Error), the
-#' variance components, log-likelihood, AIC and BIC, sample sizes and convergence information. Whether
-#' the family suits the data, e.g. overdispersion of counts, is assessed with the quantile residuals
-#' (\code{residuals(fit, type="quantile")} and \code{\link{plot.gcTMB}}), which are standard normal
-#' under the model for every family. The coefficient table has no tests: the
-#' tests of the differences between curves, e.g. between treatments, are done by \code{\link{partest}}
-#' (by default each level against a reference, by Dunnett's method), and the test that a parameter is
-#' the same for all curves by \code{\link{anova.gcTMB}}. logLik returns the log-likelihood at the
+#' summary returns a summary.gcTMB object with the coefficient table (Estimate, Std. Error, and the
+#' Wald test of a coefficient of zero: the z value and its p-value, or the t value with small-sample
+#' inference, see \code{\link{gcTMB}}), the variance components, log-likelihood, AIC and BIC, sample
+#' sizes and convergence information. Whether the family suits the data, e.g. overdispersion of
+#' counts, is assessed with the quantile residuals (\code{residuals(fit, type="quantile")} and
+#' \code{\link{plot.gcTMB}}), which are standard normal under the model for every family. The p-values
+#' of the coefficient table are not adjusted for the number of tests. With treatment contrasts in
+#' fform, the coefficients of a parameter are the differences of the levels to the reference level;
+#' the tests of the differences between curves adjusted for their number are done by
+#' \code{\link{partest}} (by default each level against a reference, by Dunnett's method), and the
+#' test that a parameter is the same for all curves by \code{\link{anova.gcTMB}}. logLik returns the log-likelihood at the
 #' estimates, with the number of free coefficients and variance parameters as degrees of freedom; it is the
 #' maximum likelihood, comparable with nlme fits with \code{method="ML"}, not with the REML fits of \code{nlme::lme} and \code{nlme::gls}.
 #' df.residual returns the residual degrees of freedom n - p of gaussian and lognormal models without random
@@ -115,6 +118,13 @@ summary.gcTMB <- function(object, ...){
   rownames(coefs) <- object$coefnames[!object$fix]
   # NaN for a Hessian that is not positive definite, with a warning in the printed summary
   coefs[, 2] <- suppressWarnings(sqrt(diag(fixedcov(object))))[seq_len(nrow(coefs))]
+  # unadjusted Wald tests of a coefficient of zero: t tests with small-sample inference, z tests
+  # otherwise; adjusted tests of the differences between curves are in partest
+  stat <- coefs[, 1]/coefs[, 2]
+  stat[!is.finite(coefs[, 2]) | coefs[, 2] <= 0] <- NA
+  pval <- if (is.null(object$rdf)) 2*pnorm(-abs(stat)) else 2*pt(-abs(stat), object$rdf)
+  coefs <- cbind(coefs[, 1:2, drop=FALSE], stat, pval)
+  colnames(coefs) <- c("Estimate", "Std. Error", if (is.null(object$rdf)) c("z value", "Pr(>|z|)") else c("t value", "Pr(>|t|)"))
 
   # standard deviations at the boundary (singular fit): the likelihood is flat in the log standard
   # deviation, which gives a very large or no standard error, independent of the scale of the parameter
@@ -179,9 +189,9 @@ print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...
 
   cat("\nCoefficients:\n")
   printCoefmat(x$coefficients, digits=digits)
-  # covariates in fform: the tests of the differences between the curves are in partest
+  # covariates in fform: the adjusted tests of the differences between the curves are in partest
   if (!all(grepl(":\\(Intercept\\)$", rownames(x$coefficients))))
-    cat("Tests of the differences between curves, with p-values and confidence intervals: partest().\n")
+    cat("Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().\n")
   if (length(x$atbound) > 0) cat("At a bound: ", paste(names(x$atbound), "=", format(x$atbound, digits=digits), collapse=", "),
                                   "; the standard errors and Wald intervals do not account for the bound.\n", sep="")
   if (isTRUE(x$b3inverse)) cat("The coefficients of b3 are on the inverse scale: the rate 1/b3.\n")

@@ -29,7 +29,10 @@ test_that("summary contains the coefficient table, sample sizes and variance com
   f <- gcTMB(y ~ day, truncated=FALSE, rform=list(b1 ~ 1 | id, b2 ~ 1 | id), data=d)
   s <- summary(f)
   expect_s3_class(s, "summary.gcTMB")
-  expect_equal(colnames(coef(s)), c("Estimate", "Std. Error"))
+  # unadjusted Wald z tests (random effects: no small-sample inference)
+  expect_equal(colnames(coef(s)), c("Estimate", "Std. Error", "z value", "Pr(>|z|)"))
+  expect_equal(unname(coef(s)[, 3]), unname(coef(s)[, 1]/coef(s)[, 2]))
+  expect_equal(unname(coef(s)[, 4]), unname(2*pnorm(-abs(coef(s)[, 3]))))
   # no covariates in fform: no pointer to partest
   expect_false(any(grepl("partest", capture.output(print(s)))))
   expect_equal(coef(s)[, 1], bcoef(f))

@@ -102,14 +102,17 @@ and the log residual standard deviation (log_sigma, gaussian; of log(y) for logn
 (log_theta, nbinom2), log dispersion (log_phi, nbinom1) or log precision (log_phi, betabinomial); and
 for an estimated autocorrelation the parameter cor_par:AR1 or cor_par:CAR1 on the unconstrained scale of
 nlme (\code{coef} of an nlme corStruct), see \code{\link{corStruct}}.
-summary returns a summary.gcTMB object with the coefficient table (Estimate, Std. Error), the
-variance components, log-likelihood, AIC and BIC, sample sizes and convergence information. Whether
-the family suits the data, e.g. overdispersion of counts, is assessed with the quantile residuals
-(\code{residuals(fit, type="quantile")} and \code{\link{plot.gcTMB}}), which are standard normal
-under the model for every family. The coefficient table has no tests: the
-tests of the differences between curves, e.g. between treatments, are done by \code{\link{partest}}
-(by default each level against a reference, by Dunnett's method), and the test that a parameter is
-the same for all curves by \code{\link{anova.gcTMB}}. logLik returns the log-likelihood at the
+summary returns a summary.gcTMB object with the coefficient table (Estimate, Std. Error, and the
+Wald test of a coefficient of zero: the z value and its p-value, or the t value with small-sample
+inference, see \code{\link{gcTMB}}), the variance components, log-likelihood, AIC and BIC, sample
+sizes and convergence information. Whether the family suits the data, e.g. overdispersion of
+counts, is assessed with the quantile residuals (\code{residuals(fit, type="quantile")} and
+\code{\link{plot.gcTMB}}), which are standard normal under the model for every family. The p-values
+of the coefficient table are not adjusted for the number of tests. With treatment contrasts in
+fform, the coefficients of a parameter are the differences of the levels to the reference level;
+the tests of the differences between curves adjusted for their number are done by
+\code{\link{partest}} (by default each level against a reference, by Dunnett's method), and the
+test that a parameter is the same for all curves by \code{\link{anova.gcTMB}}. logLik returns the log-likelihood at the
 estimates, with the number of free coefficients and variance parameters as degrees of freedom; it is the
 maximum likelihood, comparable with nlme fits with \code{method="ML"}, not with the REML fits of \code{nlme::lme} and \code{nlme::gls}.
 df.residual returns the residual degrees of freedom n - p of gaussian and lognormal models without random

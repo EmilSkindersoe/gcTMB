@@ -55,9 +55,9 @@ confidence limits, with the ratio and its limits for the log link.
 \description{
 Compares a parameter of the population curves (random effects at zero) between the rows of
 \code{newdata}, e.g. the treatment levels: every row against a reference row
-(\code{contrasts="dunnett"}, the default), or every pair of rows (\code{contrasts="tukey"}). This is
-the function for the hypothesis tests of the differences between curves; the summary of the fit
-(\code{\link{summary.gcTMB}}) gives only the estimates and their standard errors. For each
+(\code{contrasts="dunnett"}, the default), or every pair of rows (\code{contrasts="tukey"}), with
+the tests adjusted for the number of comparisons; the summary of the fit
+(\code{\link{summary.gcTMB}}) gives unadjusted tests of the coefficients. For each
 comparison it gives the
 difference of the parameter on the scale of its link, its standard error from the covariance of the
 fixed effects, a Wald test of no difference, and a confidence interval. With \code{b1type="rate"} in
@@ -89,7 +89,8 @@ confidence limits are given as well. Whether all the curves have the same value 
 is tested by a likelihood ratio test of the models with and without the covariates of the
 parameter, see \code{\link{anova.gcTMB}}. With treatment contrasts in fform and the levels in
 newdata in the order of the factor, the differences to the first level are the coefficients of the
-parameter in the summary of the fit.
+parameter in the summary of the fit, and \code{adjust="none"} gives their unadjusted tests of the
+summary.
 }
 \examples{
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
