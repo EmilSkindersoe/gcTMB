@@ -13,7 +13,7 @@ gcTMB also accepts)."><meta property="og:image" content="https://emilskindersoe.
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9015</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9016</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -94,8 +94,8 @@ $$cor(e_s, e_t) = rho^{|t - s|},$$
 with rho the correlation of residuals one unit of time apart (Zuur et al., 2009, Section 6.1;
 Pinheiro and Bates, 2000, Section 5.3):</p><ul><li><p><code>corAR1</code>: the autoregressive process of order 1 at integer times (positions), with
 -1 &lt; rho &lt; 1; gaps in the times are allowed, e.g. measurements every second day with
-<code>form = ~ day | plant</code> and a day without measurement, with the correlation rho^2 across a
-gap of two days. Without a time covariate (<code>form = ~ 1 | plant</code>), the time is the position
+<code>form = ~ day | ID</code> and a day without measurement, with the correlation rho^2 across a
+gap of two days. Without a time covariate (<code>form = ~ 1 | ID</code>), the time is the position
 of the observation within its group, in the order of the data;</p></li>
 <li><p><code>corCAR1</code>: the continuous-time autoregressive process of order 1, for times that need
 not be integers and unequally spaced observations, with 0 &lt; rho &lt; 1.</p></li>

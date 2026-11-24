@@ -57,9 +57,9 @@ Section 5.3):
 
 - `corAR1`: the autoregressive process of order 1 at integer times
   (positions), with -1 \< rho \< 1; gaps in the times are allowed, e.g.
-  measurements every second day with `form = ~ day | plant` and a day
+  measurements every second day with `form = ~ day | ID` and a day
   without measurement, with the correlation rho^2 across a gap of two
-  days. Without a time covariate (`form = ~ 1 | plant`), the time is the
+  days. Without a time covariate (`form = ~ 1 | ID`), the time is the
   position of the observation within its group, in the order of the
   data;
 

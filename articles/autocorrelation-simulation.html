@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9015</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9016</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -214,9 +214,8 @@ the relative deviations from the curve:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fitrec</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; gcTMB(form = Biomass ~ DOY, fform = b1 + b2 ~ Crop * Input, rform = b1 ~ </span></span>
-<span><span class="co">#&gt;     1 | plot, data = sm, start = c(b4 = 141), family = "lognormal", </span></span>
-<span><span class="co">#&gt;     model = "beta", correlation = corCAR1(value = 0.9, form = ~DOY | </span></span>
-<span><span class="co">#&gt;         plot))</span></span>
+<span><span class="co">#&gt;     1 | plot, data = sm, start = c(b4 = 141), correlation = corCAR1(value = 0.9, </span></span>
+<span><span class="co">#&gt;     form = ~DOY | plot), family = "lognormal", model = "beta")</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model:  beta</span></span>
 <span><span class="co">#&gt; Family: lognormal, identity link for all parameters</span></span>
@@ -261,7 +260,7 @@ the relative deviations from the curve:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;        npar    AIC    BIC  logLik deviance         LR Df Pr(&gt;LR)</span></span>
 <span><span class="co">#&gt; fitre    15 962.53 1012.9 -466.27   932.53                      </span></span>
-<span><span class="co">#&gt; fitrec   16 964.53 1018.2 -466.27   932.53 2.8821e-08  1  0.9999</span></span></code></pre></div>
+<span><span class="co">#&gt; fitrec   16 964.53 1018.2 -466.27   932.53 2.8823e-08  1  0.9999</span></span></code></pre></div>
 <p>The estimate of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 moves far down from its starting value, to a correlation of practically

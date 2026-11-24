@@ -15,7 +15,7 @@ gcTMB(
   data,
   start = NULL,
   fix = NULL,
-  weights = NULL,
+  correlation = NULL,
   lower = -Inf,
   upper = Inf,
   family = "gaussian",
@@ -23,7 +23,7 @@ gcTMB(
   truncated = TRUE,
   link = NULL,
   b1type = c("asymptote", "rate"),
-  correlation = NULL,
+  weights = NULL,
   gsl = NULL,
   gsu = NULL,
   gsn = NULL,
@@ -53,20 +53,19 @@ gcTMB(
 - rform:
 
   Formula, list of formulas, or NULL. Random effects: a formula of the
-  form b1 + b2 ~ 1 \| individual for random intercepts, or b1 ~ x \|
-  individual for random intercepts and slopes in a covariate x, or a
-  list of such formulas, e.g. list(b1 + b2 ~ 1 \| plant, b1 ~ 1 \|
-  plot). The random effects within a formula are correlated across the
-  listed parameters and their intercepts and slopes; different formulas
-  and the levels of nested factors (1 \| plot/plant) are independent
-  terms. With a double bar, all the random coefficients of the formula
-  are independent, across the parameters as well as their intercepts and
-  slopes: b1 + b2 ~ 1 \|\| individual is list(b1 ~ 1 \| individual, b2 ~
-  1 \| individual), a diagonal covariance matrix as random=pdDiag(b1 +
-  b2 ~ 1) in nlme. A list of formulas combines the two into a
-  block-diagonal covariance matrix: list(b1 + b2 ~ 1 \| individual, b3 ~
-  1 \| individual) gives correlated random effects of b1 and b2, and a
-  random effect of b3 independent of both, as
+  form b1 + b2 ~ 1 \| ID for random intercepts, or b1 ~ x \| ID for
+  random intercepts and slopes in a covariate x, or a list of such
+  formulas, e.g. list(b1 + b2 ~ 1 \| ID, b1 ~ 1 \| site). The random
+  effects within a formula are correlated across the listed parameters
+  and their intercepts and slopes; different formulas and the levels of
+  nested factors (1 \| site/ID) are independent terms. With a double
+  bar, all the random coefficients of the formula are independent,
+  across the parameters as well as their intercepts and slopes: b1 + b2
+  ~ 1 \|\| ID is list(b1 ~ 1 \| ID, b2 ~ 1 \| ID), a diagonal covariance
+  matrix as random=pdDiag(b1 + b2 ~ 1) in nlme. A list of formulas
+  combines the two into a block-diagonal covariance matrix: list(b1 + b2
+  ~ 1 \| ID, b3 ~ 1 \| ID) gives correlated random effects of b1 and b2,
+  and a random effect of b3 independent of both, as
   random=pdBlocked(list(pdSymm(b1 + b2 ~ 1), pdSymm(b3 ~ 1))) in nlme.
   The random slopes of a parameter usually go with a fixed effect of the
   covariate in fform. NULL (default) for no random effects.
@@ -101,13 +100,19 @@ gcTMB(
   vector, estimates them. Without truncation, b4 is not used and always
   fixed, at 0 unless given in start.
 
-- weights:
+- correlation:
 
-  Numeric vector or NULL. Weights, one for each row of data; NULL
-  (default) for a weight of 1 for every row. Unlike the `weights` of
-  nlme, which are variance functions (`varFunc`), these are numeric case
-  weights of the log-likelihood; with a correlation structure, they are
-  precision weights, as `weights=varFixed(~ 1/w)` in nlme.
+  A correlation structure or NULL. The autocorrelation of the residuals
+  within groups over time,
+  [`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  or
+  [`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  (or the same structures of the package nlme), e.g.
+  `corCAR1(form=~ time | ID)`, for the gaussian and lognormal (on the
+  log scale) families. NULL (default) for independent residuals. See
+  [`corStruct`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md);
+  with a correlation structure, the weights are precision weights, with
+  residual variance sigma^2/w.
 
 - lower:
 
@@ -196,19 +201,13 @@ gcTMB(
   [`partest`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
   can test.
 
-- correlation:
+- weights:
 
-  A correlation structure or NULL. The autocorrelation of the residuals
-  within groups over time,
-  [`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
-  or
-  [`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
-  (or the same structures of the package nlme), e.g.
-  `corCAR1(form=~ day | plant)`, for the gaussian and lognormal (on the
-  log scale) families. NULL (default) for independent residuals. See
-  [`corStruct`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md);
-  with a correlation structure, the weights are precision weights, with
-  residual variance sigma^2/w.
+  Numeric vector or NULL. Weights, one for each row of data; NULL
+  (default) for a weight of 1 for every row. Unlike the `weights` of
+  nlme, which are variance functions (`varFunc`), these are numeric case
+  weights of the log-likelihood; with a correlation structure, they are
+  precision weights, as `weights=varFixed(~ 1/w)` in nlme.
 
 - gsl:
 
@@ -336,12 +335,11 @@ and gcTMB:
   arguments `fixed` and `random` of
   [`nlme::nlme`](https://rdrr.io/pkg/nlme/man/nlme.html):
   `fform=b1 + b2 ~ trt` or `fform=list(b1 ~ trt, b2 ~ 1)`, and
-  `rform=b1 + b2 ~ 1 | plant`. The random effects of a formula have an
+  `rform=b1 + b2 ~ 1 | ID`. The random effects of a formula have an
   unstructured covariance matrix, as `pdSymm`; uncorrelated random
   effects, as `pdDiag`, are separate terms, e.g.
-  `rform=list(b1 ~ 1 | plant, b2 ~ 1 | plant)` or `b1 ~ x || plant`.
-  Nested factors (`1 | plot/plant`) and the double bar use the syntax of
-  lme4;
+  `rform=list(b1 ~ 1 | ID, b2 ~ 1 | ID)` or `b1 ~ x || ID`. Nested
+  factors (`1 | site/ID`) and the double bar use the syntax of lme4;
 
 - the correlation structures
   [`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)

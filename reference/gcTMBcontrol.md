@@ -11,7 +11,8 @@ gcTMBcontrol(
   eval.max = 2000,
   smallsample = TRUE,
   sdreport = TRUE,
-  restart = FALSE
+  restart = FALSE,
+  onerror = c("stop", "warning")
 )
 ```
 
@@ -70,6 +71,23 @@ gcTMBcontrol(
   accepts a fit that the restart improved by less than its argument
   lltol. FALSE (default) for no restart.
 
+- onerror:
+
+  Character string. What a fit does when the fitting itself fails with
+  an error, e.g. the optimiser stops at a point where the likelihood
+  cannot be evaluated, or the covariance of the estimates (sdreport)
+  cannot be computed: "stop" (default) stops with the error, as before;
+  "warning" turns the error into a warning and returns the gcTMB object,
+  so that a loop over many fits, e.g. a simulation study, keeps the
+  failed ones. If the optimiser fails, the returned object has the
+  starting values as its estimates (or the optimum before a failed
+  refinement); if only sdreport fails, it has the estimates without
+  standard errors, as with `sdreport=FALSE`. The error message is kept
+  in `fit$fiterror`, printed by print and summary, and
+  [`converged`](https://emilskindersoe.github.io/gcTMB/reference/converged.md)
+  reports the fit as not converged. Errors in the specification of the
+  model (formulas, data, links, starting values) stop in either case.
+
 ## Value
 
 A list with the control parameters.
@@ -95,6 +113,9 @@ gcTMBcontrol(iter.max=2000)
 #> 
 #> $restart
 #> [1] FALSE
+#> 
+#> $onerror
+#> [1] "stop"
 #> 
 # small-sample inference switched off: maximum likelihood estimate of the residual sd
 gcTMB(height ~ DAS, data=FabaHeights25, control=list(smallsample=FALSE))
@@ -132,4 +153,15 @@ fit <- gcTMB(height ~ DAS, rform=b1 + b2 + b3 ~ 1 | plant_ID, data=FabaHeights25
              control=list(restart=TRUE))
 converged(fit)
 #> [1] TRUE
+# a loop over models: a fit that fails is returned with a warning instead of stopping the loop
+fits <- lapply(c("logistic", "gompertz"), function(m)
+  gcTMB(height ~ DAS, data=FabaHeights25, model=m, control=list(onerror="warning")))
+# the error of each fit, NULL if it did not fail
+lapply(fits, function(f) f$fiterror)
+#> [[1]]
+#> NULL
+#> 
+#> [[2]]
+#> NULL
+#> 
 ```

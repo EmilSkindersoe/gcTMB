@@ -1,6 +1,10 @@
 # Convergence of a gcTMB fit
 
-Whether the fit converged to a maximum of the likelihood: the negative
+Whether the fit converged to a maximum of the likelihood. A fit that
+failed with an error and was returned by
+`control=list(onerror="warning")` (see
+[`gcTMBcontrol`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBcontrol.md))
+has not converged, with its error as the reason. Otherwise: the negative
 log-likelihood is finite, the optimiser reports convergence, the Hessian
 of the parameters is positive definite (not checked for fits with
 `control=list(sdreport=FALSE)`, see

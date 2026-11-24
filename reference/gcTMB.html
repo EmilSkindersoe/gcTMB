@@ -11,7 +11,7 @@ the Laplace approximation."><meta property="og:image" content="https://emilskind
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9015</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9016</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,7 +58,7 @@ the Laplace approximation.</p>
 <span>  <span class="va">data</span>,</span>
 <span>  start <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fix <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  correlation <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lower <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,</span>
 <span>  upper <span class="op">=</span> <span class="cn">Inf</span>,</span>
 <span>  family <span class="op">=</span> <span class="st">"gaussian"</span>,</span>
@@ -66,7 +66,7 @@ the Laplace approximation.</p>
 <span>  truncated <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  link <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  b1type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"asymptote"</span>, <span class="st">"rate"</span><span class="op">)</span>,</span>
-<span>  correlation <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  gsl <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  gsu <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  gsn <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -87,7 +87,7 @@ the Laplace approximation.</p>
 
 
 <dt id="arg-rform">rform<a class="anchor" aria-label="anchor" href="#arg-rform"></a></dt>
-<dd><p>Formula, list of formulas, or NULL. Random effects: a formula of the form b1 + b2 ~ 1 | individual for random intercepts, or b1 ~ x | individual for random intercepts and slopes in a covariate x, or a list of such formulas, e.g. list(b1 + b2 ~ 1 | plant, b1 ~ 1 | plot). The random effects within a formula are correlated across the listed parameters and their intercepts and slopes; different formulas and the levels of nested factors (1 | plot/plant) are independent terms. With a double bar, all the random coefficients of the formula are independent, across the parameters as well as their intercepts and slopes: b1 + b2 ~ 1 || individual is list(b1 ~ 1 | individual, b2 ~ 1 | individual), a diagonal covariance matrix as random=pdDiag(b1 + b2 ~ 1) in nlme. A list of formulas combines the two into a block-diagonal covariance matrix: list(b1 + b2 ~ 1 | individual, b3 ~ 1 | individual) gives correlated random effects of b1 and b2, and a random effect of b3 independent of both, as random=pdBlocked(list(pdSymm(b1 + b2 ~ 1), pdSymm(b3 ~ 1))) in nlme. The random slopes of a parameter usually go with a fixed effect of the covariate in fform. NULL (default) for no random effects.</p></dd>
+<dd><p>Formula, list of formulas, or NULL. Random effects: a formula of the form b1 + b2 ~ 1 | ID for random intercepts, or b1 ~ x | ID for random intercepts and slopes in a covariate x, or a list of such formulas, e.g. list(b1 + b2 ~ 1 | ID, b1 ~ 1 | site). The random effects within a formula are correlated across the listed parameters and their intercepts and slopes; different formulas and the levels of nested factors (1 | site/ID) are independent terms. With a double bar, all the random coefficients of the formula are independent, across the parameters as well as their intercepts and slopes: b1 + b2 ~ 1 || ID is list(b1 ~ 1 | ID, b2 ~ 1 | ID), a diagonal covariance matrix as random=pdDiag(b1 + b2 ~ 1) in nlme. A list of formulas combines the two into a block-diagonal covariance matrix: list(b1 + b2 ~ 1 | ID, b3 ~ 1 | ID) gives correlated random effects of b1 and b2, and a random effect of b3 independent of both, as random=pdBlocked(list(pdSymm(b1 + b2 ~ 1), pdSymm(b3 ~ 1))) in nlme. The random slopes of a parameter usually go with a fixed effect of the covariate in fform. NULL (default) for no random effects.</p></dd>
 
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
@@ -102,11 +102,12 @@ the Laplace approximation.</p>
 <dd><p>Logical vector or NULL. One entry for each model coefficient. If TRUE, a model coefficient is fixed to its value in start. Alternatively, a vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of the named parameters; their values must then be given in start, e.g. start=c(b1=10). NULL (default) fixes only the parameters that are fixed by default. The threshold (start of growth) b4 and the asymmetry b5 are fixed by default, at b4 = 0 (the curve starts at zero at t = 0) and b5 = 1 (the symmetric curve) unless given in start; so is the intercept b4 of the chapmanrichards and korf models, at the breast height of 1.3, while the rates b4 and b5 of the preecebaines model are estimated; fix=c(b4=FALSE) or fix=c(b5=FALSE), or an unnamed fix vector, estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.</p></dd>
 
 
-<dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
-<dd><p>Numeric vector or NULL. Weights, one for each row of data; NULL (default) for a weight of 1 for every row. Unlike the
-<code>weights</code> of nlme, which are variance functions (<code>varFunc</code>), these are numeric case
-weights of the log-likelihood; with a correlation structure, they are precision weights, as
-<code>weights=varFixed(~ 1/w)</code> in nlme.</p></dd>
+<dt id="arg-correlation">correlation<a class="anchor" aria-label="anchor" href="#arg-correlation"></a></dt>
+<dd><p>A correlation structure or NULL. The autocorrelation of the residuals within
+groups over time, <code><a href="corStruct.html">corAR1</a></code> or <code><a href="corStruct.html">corCAR1</a></code> (or the same structures of
+the package nlme), e.g. <code>corCAR1(form=~ time | ID)</code>, for the gaussian and lognormal (on the
+log scale) families. NULL (default) for independent residuals. See <code><a href="corStruct.html">corStruct</a></code>; with
+a correlation structure, the weights are precision weights, with residual variance sigma^2/w.</p></dd>
 
 
 <dt id="arg-lower">lower<a class="anchor" aria-label="anchor" href="#arg-lower"></a></dt>
@@ -141,12 +142,11 @@ weights of the log-likelihood; with a correlation structure, they are precision 
 <dd><p>Character string. The meaning of b1: "asymptote" (default), or "rate" for the maximum growth rate of the curve, see Details. With "rate", covariates and random effects on b1 are effects on the maximum growth rate, which <code><a href="anova.gcTMB.html">anova.gcTMB</a></code> and <code><a href="partest.html">partest</a></code> can test.</p></dd>
 
 
-<dt id="arg-correlation">correlation<a class="anchor" aria-label="anchor" href="#arg-correlation"></a></dt>
-<dd><p>A correlation structure or NULL. The autocorrelation of the residuals within
-groups over time, <code><a href="corStruct.html">corAR1</a></code> or <code><a href="corStruct.html">corCAR1</a></code> (or the same structures of
-the package nlme), e.g. <code>corCAR1(form=~ day | plant)</code>, for the gaussian and lognormal (on the
-log scale) families. NULL (default) for independent residuals. See <code><a href="corStruct.html">corStruct</a></code>; with
-a correlation structure, the weights are precision weights, with residual variance sigma^2/w.</p></dd>
+<dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
+<dd><p>Numeric vector or NULL. Weights, one for each row of data; NULL (default) for a weight of 1 for every row. Unlike the
+<code>weights</code> of nlme, which are variance functions (<code>varFunc</code>), these are numeric case
+weights of the log-likelihood; with a correlation structure, they are precision weights, as
+<code>weights=varFixed(~ 1/w)</code> in nlme.</p></dd>
 
 
 <dt id="arg-gsl">gsl<a class="anchor" aria-label="anchor" href="#arg-gsl"></a></dt>
@@ -219,10 +219,10 @@ growth spurt (the peak height velocity); <code>b1type="rate"</code> is not avail
 </ul><p><strong>Relation to nlme.</strong> Parts of the interface follow the package nlme (Pinheiro and Bates,
 2000), so that models can be moved between <code><a href="https://rdrr.io/pkg/nlme/man/nlme.html" class="external-link">nlme::nlme</a></code>/<code><a href="https://rdrr.io/pkg/nlme/man/gnls.html" class="external-link">nlme::gnls</a></code> and gcTMB:</p><ul><li><p>the fixed and random effects are formulas for the parameters, as the arguments <code>fixed</code>
 and <code>random</code> of <code><a href="https://rdrr.io/pkg/nlme/man/nlme.html" class="external-link">nlme::nlme</a></code>: <code>fform=b1 + b2 ~ trt</code> or
-<code>fform=list(b1 ~ trt, b2 ~ 1)</code>, and <code>rform=b1 + b2 ~ 1 | plant</code>. The random effects of a
+<code>fform=list(b1 ~ trt, b2 ~ 1)</code>, and <code>rform=b1 + b2 ~ 1 | ID</code>. The random effects of a
 formula have an unstructured covariance matrix, as <code>pdSymm</code>; uncorrelated random effects,
-as <code>pdDiag</code>, are separate terms, e.g. <code>rform=list(b1 ~ 1 | plant, b2 ~ 1 | plant)</code> or
-<code>b1 ~ x || plant</code>. Nested factors (<code>1 | plot/plant</code>) and the double bar use the syntax
+as <code>pdDiag</code>, are separate terms, e.g. <code>rform=list(b1 ~ 1 | ID, b2 ~ 1 | ID)</code> or
+<code>b1 ~ x || ID</code>. Nested factors (<code>1 | site/ID</code>) and the double bar use the syntax
 of lme4;</p></li>
 <li><p>the correlation structures <code><a href="corStruct.html">corAR1</a></code> and <code><a href="corStruct.html">corCAR1</a></code> have the
 arguments and the parameterisation of nlme, whose objects are accepted as well, and

@@ -116,9 +116,8 @@ fitrec <- gcTMB(Biomass ~ DOY, fform = b1 + b2 ~ Crop * Input, rform = b1 ~ 1 | 
 summary(fitrec)
 #> Call:
 #> gcTMB(form = Biomass ~ DOY, fform = b1 + b2 ~ Crop * Input, rform = b1 ~ 
-#>     1 | plot, data = sm, start = c(b4 = 141), family = "lognormal", 
-#>     model = "beta", correlation = corCAR1(value = 0.9, form = ~DOY | 
-#>         plot))
+#>     1 | plot, data = sm, start = c(b4 = 141), correlation = corCAR1(value = 0.9, 
+#>     form = ~DOY | plot), family = "lognormal", model = "beta")
 #> 
 #> Model:  beta
 #> Family: lognormal, identity link for all parameters
@@ -163,7 +162,7 @@ anova(fitre, fitrec)
 #> 
 #>        npar    AIC    BIC  logLik deviance         LR Df Pr(>LR)
 #> fitre    15 962.53 1012.9 -466.27   932.53                      
-#> fitrec   16 964.53 1018.2 -466.27   932.53 2.8821e-08  1  0.9999
+#> fitrec   16 964.53 1018.2 -466.27   932.53 2.8823e-08  1  0.9999
 ```
 
 The estimate of $`\rho`$ moves far down from its starting value, to a
