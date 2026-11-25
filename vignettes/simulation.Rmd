@@ -11,6 +11,13 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
+# cairo renders the Greek letters of the axis labels; on macOS it needs X11 libraries, so it is used
+# only if a cairo device opens, and the pdf device otherwise
+cairo <- tryCatch({
+  grDevices::cairo_pdf(tempfile(fileext = ".pdf"))
+  grDevices::dev.off()
+  TRUE
+}, warning = function(w) FALSE, error = function(e) FALSE)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -18,8 +25,7 @@ knitr::opts_chunk$set(
   fig.retina = 2,
   fig.align = "center",
   out.width = "100%",
-  # cairo renders the Greek letters of the axis labels; it needs X11 on macOS, so fall back to pdf
-  dev = if (isTRUE(capabilities("cairo"))) "cairo_pdf" else "pdf"
+  dev = if (cairo) "cairo_pdf" else "pdf"
 )
 ```
 

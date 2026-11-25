@@ -295,7 +295,9 @@ test_that("the spatial likelihood is the multivariate normal density of each gro
 })
 
 test_that("corExp and corGaus with a nugget agree with nlme::gnls", {
-  skip_if_not_installed("nlme")
+  # nlme 3.1-162 (bundled with R 4.2) crashes R in gnls with a spatial nugget (double free); the
+  # comparison runs with the versions known to work, from 3.1-168 (R 4.5) on
+  skip_if_not_installed("nlme", minimum_version="3.1-168")
   ds <- d[order(d$Plant_ID, d$DAS), ]
   for (k in 1:2){
     mk <- function(v) if (k == 1) corExp(v, form=~ DAS | Plant_ID, nugget=TRUE) else corGaus(v, form=~ DAS | Plant_ID, nugget=TRUE)
