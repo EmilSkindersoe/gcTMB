@@ -217,6 +217,7 @@ heights of 20 plants of <code>FabaHeights26</code>:</p>
 <span>  <span class="st">"random"</span>                <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rform <span class="op">=</span> <span class="va">re</span><span class="op">)</span>,</span>
 <span>  <span class="st">"random + power"</span>        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rform <span class="op">=</span> <span class="va">re</span>, variance <span class="op">=</span> <span class="va">power</span><span class="op">)</span>,</span>
 <span>  <span class="st">"random + rate"</span>         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rform <span class="op">=</span> <span class="va">re</span>, variance <span class="op">=</span> <span class="fu"><a href="../reference/varFunc.html">varPower</a></span><span class="op">(</span>form <span class="op">=</span> <span class="op">~</span> <span class="fu">rate</span><span class="op">(</span><span class="va">.</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="st">"random + day"</span>          <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rform <span class="op">=</span> <span class="va">re</span>, variance <span class="op">=</span> <span class="va">day</span><span class="op">)</span>,</span>
 <span>  <span class="st">"random + CAR(1)"</span>       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rform <span class="op">=</span> <span class="va">re</span>, correlation <span class="op">=</span> <span class="va">car</span><span class="op">)</span>,</span>
 <span>  <span class="st">"random + CAR(1) + day"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rform <span class="op">=</span> <span class="va">re</span>, correlation <span class="op">=</span> <span class="va">car</span>, variance <span class="op">=</span> <span class="va">day</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">specs</span>, <span class="kw">function</span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">gcTMB</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, data <span class="op">=</span> <span class="va">fh</span><span class="op">)</span>, <span class="va">s</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -230,6 +231,7 @@ heights of 20 plants of <code>FabaHeights26</code>:</p>
 <span><span class="co">#&gt; random                 7 1543.06 89.36 62.81 8.23  2.01  0.42  0.19</span></span>
 <span><span class="co">#&gt; random + power         8 1453.54 89.92 63.05 8.80  2.02  0.40  0.17</span></span>
 <span><span class="co">#&gt; random + rate          8 1539.90 89.03 62.73 8.16  2.07  0.43  0.21</span></span>
+<span><span class="co">#&gt; random + day          19 1340.38 89.04 63.02 8.77  2.15  0.40  0.11</span></span>
 <span><span class="co">#&gt; random + CAR(1)        8 1538.14 89.35 62.82 8.24  2.01  0.43  0.23</span></span>
 <span><span class="co">#&gt; random + CAR(1) + day 20 1309.54 89.65 63.22 8.96  2.21  0.45  0.15</span></span></code></pre></div>
 <p>Without random effects, the power of the fitted curve lowers the AIC
@@ -245,18 +247,22 @@ point (the power of the growth rate is close to 0):</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">fits</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"random + power"</span>, <span class="st">"random + rate"</span><span class="op">)</span><span class="op">]</span>, <span class="va">varpars</span><span class="op">)</span></span>
 <span><span class="co">#&gt; random + power.power  random + rate.power </span></span>
-<span><span class="co">#&gt;            0.3815162            0.0868291</span></span></code></pre></div>
-<p>A variance for each day, with the autocorrelation of the residuals of
-a plant, has the lowest AIC. Its ratios show a single day, 83, with much
-larger residuals than the others, which no smooth function of the curve
-can follow:</p>
+<span><span class="co">#&gt;           0.38151624           0.08682909</span></span></code></pre></div>
+<p>A variance for each day lowers the AIC the most, with or without the
+autocorrelation of the residuals of a plant. Its ratios show a single
+day, 83, with much larger residuals than the others, which no smooth
+function of the curve can follow:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="../reference/gcTMB-extract.html">varpars</a></span><span class="op">(</span><span class="va">fits</span><span class="op">[[</span><span class="st">"random + CAR(1) + day"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   28   35   42   49   56   63   69   83   90   98  106  114  122 </span></span>
-<span><span class="co">#&gt; 1.00 0.37 0.84 2.29 2.64 3.03 3.86 9.42 4.31 1.99 2.44 0.05 2.10</span></span></code></pre></div>
-<p>A variance for each day needs many observations per day, and a ratio
-close to 0, as for day 114, makes the AIC of such a model
-optimistic.</p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>day <span class="op">=</span> <span class="fu"><a href="../reference/gcTMB-extract.html">varpars</a></span><span class="op">(</span><span class="va">fits</span><span class="op">[[</span><span class="st">"random + day"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>            <span class="st">"CAR(1) + day"</span> <span class="op">=</span> <span class="fu"><a href="../reference/gcTMB-extract.html">varpars</a></span><span class="op">(</span><span class="va">fits</span><span class="op">[[</span><span class="st">"random + CAR(1) + day"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="co">#&gt;              28   35   42   49   56   63   69   83   90   98  106  114  122</span></span>
+<span><span class="co">#&gt; day           1 0.48 0.56 1.37 1.50 1.56 2.65 7.29 3.24 1.31 1.74 1.10 2.07</span></span>
+<span><span class="co">#&gt; CAR(1) + day  1 0.37 0.84 2.29 2.64 3.03 3.86 9.42 4.31 1.99 2.44 0.05 2.10</span></span></code></pre></div>
+<p>With the autocorrelation, but not without it, day 114 gets a ratio
+close to 0, probably because its residuals hardly differ from those of
+the previous day, so that given them almost no variance is left. Such a
+ratio makes the AIC of the model optimistic, and a variance for each day
+needs many observations per day.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

@@ -130,6 +130,7 @@ specs <- list(
   "random"                = list(rform = re),
   "random + power"        = list(rform = re, variance = power),
   "random + rate"         = list(rform = re, variance = varPower(form = ~ rate(.))),
+  "random + day"          = list(rform = re, variance = day),
   "random + CAR(1)"       = list(rform = re, correlation = car),
   "random + CAR(1) + day" = list(rform = re, correlation = car, variance = day))
 fits <- lapply(specs, function(s) do.call(gcTMB, c(list(Height ~ DAS, data = fh), s)))
@@ -143,6 +144,7 @@ round(tab, 2)
 #> random                 7 1543.06 89.36 62.81 8.23  2.01  0.42  0.19
 #> random + power         8 1453.54 89.92 63.05 8.80  2.02  0.40  0.17
 #> random + rate          8 1539.90 89.03 62.73 8.16  2.07  0.43  0.21
+#> random + day          19 1340.38 89.04 63.02 8.77  2.15  0.40  0.11
 #> random + CAR(1)        8 1538.14 89.35 62.82 8.24  2.01  0.43  0.23
 #> random + CAR(1) + day 20 1309.54 89.65 63.22 8.96  2.21  0.45  0.15
 ```
@@ -160,20 +162,25 @@ the inflection point (the power of the growth rate is close to 0):
 
 sapply(fits[c("random + power", "random + rate")], varpars)
 #> random + power.power  random + rate.power 
-#>            0.3815162            0.0868291
+#>           0.38151624           0.08682909
 ```
 
-A variance for each day, with the autocorrelation of the residuals of a
-plant, has the lowest AIC. Its ratios show a single day, 83, with much
-larger residuals than the others, which no smooth function of the curve
-can follow:
+A variance for each day lowers the AIC the most, with or without the
+autocorrelation of the residuals of a plant. Its ratios show a single
+day, 83, with much larger residuals than the others, which no smooth
+function of the curve can follow:
 
 ``` r
 
-round(varpars(fits[["random + CAR(1) + day"]]), 2)
-#>   28   35   42   49   56   63   69   83   90   98  106  114  122 
-#> 1.00 0.37 0.84 2.29 2.64 3.03 3.86 9.42 4.31 1.99 2.44 0.05 2.10
+round(rbind(day = varpars(fits[["random + day"]]),
+            "CAR(1) + day" = varpars(fits[["random + CAR(1) + day"]])), 2)
+#>              28   35   42   49   56   63   69   83   90   98  106  114  122
+#> day           1 0.48 0.56 1.37 1.50 1.56 2.65 7.29 3.24 1.31 1.74 1.10 2.07
+#> CAR(1) + day  1 0.37 0.84 2.29 2.64 3.03 3.86 9.42 4.31 1.99 2.44 0.05 2.10
 ```
 
-A variance for each day needs many observations per day, and a ratio
-close to 0, as for day 114, makes the AIC of such a model optimistic.
+With the autocorrelation, but not without it, day 114 gets a ratio close
+to 0, probably because its residuals hardly differ from those of the
+previous day, so that given them almost no variance is left. Such a
+ratio makes the AIC of the model optimistic, and a variance for each day
+needs many observations per day.
