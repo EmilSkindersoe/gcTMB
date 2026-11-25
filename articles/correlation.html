@@ -316,11 +316,12 @@ compete with each other, so that a tree that is taller than the curve
 predicts for its diameter may have neighbours that are taller too
 (Pukkala, 1989).</p>
 <p>To keep the example quick, we use the 41 plots with up to 20 measured
-trees each, leaving out the 15 plots with 48 to 105, and no random
-effects: a single curve for all plots, with the correlation of the
-residuals within each plot. The residuals of the fit without
-correlation, at the positions of the trees of four plots, show that the
-positive and the negative residuals cluster:</p>
+trees each, leaving out the 15 plots with 48 to 105. We first fit a
+single curve for all plots, without random effects, with the correlation
+of the residuals within each plot, and then compare the spatial
+correlation with random effects of the plots. The residuals of the fit
+without correlation, at the positions of the trees of four plots, show
+that the positive and the negative residuals cluster:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ntrees</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">PineHeightDiameter</span><span class="op">$</span><span class="va">Plot</span><span class="op">)</span></span>
 <span><span class="va">pines</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">PineHeightDiameter</span>, <span class="va">Plot</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">ntrees</span><span class="op">)</span><span class="op">[</span><span class="va">ntrees</span> <span class="op">&lt;=</span> <span class="fl">20</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
@@ -425,22 +426,16 @@ the nugget, avoids this:</p>
 <p>The spatial correlation improves the fit by far: the log-likelihood
 increases by 89.6 with the exponential correlation, at the cost of a
 single parameter. The nugget improves it further, and the exponential
-correlation with a nugget has the smallest AIC. Its range of 53.7 m
-gives the correlation
+correlation with a nugget has the smallest AIC of the three structures.
+Its range of 53.7 m gives the correlation
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mi>d</mi><mi>/</mi><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0.69</mn></mrow><annotation encoding="application/x-tex">(1 - n) \exp(-d/r) = 0.69</annotation></semantics></math>
 between trees 2 m apart and 0.49 between trees 20 m apart, across a plot
 of about 40 by 30 m, and the nugget, 0.28, is the share of the residual
-variance that a tree does not share with its neighbours. The correlation
-stays large across a plot, so it also describes the differences between
-the plots, which a random asymptote of each plot would otherwise
-describe; with both, the likelihood is nearly flat between them, and the
-fits are harder to converge. The likelihood ratio test of the nugget is
-on the boundary of its parameter space,
+variance that a tree does not share with its neighbours. The likelihood
+ratio test of the nugget is on the boundary of its parameter space,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">n = 0</annotation></semantics></math>,
-where the test is conservative; halving the p-value corrects for
-this.</p>
-<p>Wald intervals for the range and the nugget are computed on the
-scales
+where the test is conservative; halving the p-value corrects for this.
+Wald intervals for the range and the nugget are computed on the scales
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(r)</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(n/(1 - n))</annotation></semantics></math>
@@ -450,6 +445,66 @@ and transformed back:</p>
 <span><span class="co">#&gt;             2.5 %      97.5 %</span></span>
 <span><span class="co">#&gt; range  25.9835139 110.8047571</span></span>
 <span><span class="co">#&gt; nugget  0.1961161   0.3909378</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="spatial-correlation-or-random-effects">Spatial correlation or random effects<a class="anchor" aria-label="anchor" href="#spatial-correlation-or-random-effects"></a>
+</h3>
+<p>A range longer than the plots means that the correlation stays large
+across a whole plot: the trees of a plot deviate from the curve
+together. This is also what a random effect of the plot describes,
+e.g. a random asymptote, with which all trees of a plot are taller or
+shorter than the common curve. Both are models of the dependence of the
+trees of a plot, and they are compared by AIC, as both are fitted by
+maximum likelihood. We fit a random asymptote
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
+of each plot, random asymptotes and rates
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>,
+and a random asymptote together with the exponential correlation. The
+random effects of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
+are uncorrelated (<code>||</code>): with a correlation between them, the
+optimiser stops with false convergence, as the likelihood is nearly flat
+in some directions. With random effects,
+<code>control = list(restart = TRUE)</code> optimises once more from the
+estimates where the first optimisation stops short of convergence (see
+the vignette <em>Simulation</em>):</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ctl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">fitre1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit0</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plot</span>, control <span class="op">=</span> <span class="va">ctl</span><span class="op">)</span></span>
+<span><span class="va">fitre2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit0</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">||</span> <span class="va">Plot</span>, control <span class="op">=</span> <span class="va">ctl</span><span class="op">)</span></span>
+<span><span class="va">fitre1exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit0</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plot</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corExp</a></span><span class="op">(</span><span class="fl">5</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">X</span> <span class="op">+</span> <span class="va">Y</span> <span class="op">|</span> <span class="va">Plot</span><span class="op">)</span>, control <span class="op">=</span> <span class="va">ctl</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fitre1 <span class="op">=</span> <span class="va">fitre1</span>, fitre2 <span class="op">=</span> <span class="va">fitre2</span>, fitre1exp <span class="op">=</span> <span class="va">fitre1exp</span><span class="op">)</span>, <span class="va">converged</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    fitre1    fitre2 fitre1exp </span></span>
+<span><span class="co">#&gt;      TRUE      TRUE      TRUE</span></span>
+<span><span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fitre1exp</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   range </span></span>
+<span><span class="co">#&gt; 3.04906</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fit0</span>, <span class="va">fitexpn</span>, <span class="va">fitre1</span>, <span class="va">fitre2</span>, <span class="va">fitre1exp</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           df      AIC</span></span>
+<span><span class="co">#&gt; fit0       4 2733.321</span></span>
+<span><span class="co">#&gt; fitexpn    6 2442.538</span></span>
+<span><span class="co">#&gt; fitre1     5 2409.003</span></span>
+<span><span class="co">#&gt; fitre2     6 2355.868</span></span>
+<span><span class="co">#&gt; fitre1exp  6 2382.282</span></span></code></pre></div>
+<p>The random asymptote alone has a smaller AIC than any of the spatial
+correlation structures without random effects: most of the dependence of
+the trees of a plot is a shift of the whole plot, not a correlation that
+decreases with the distance. With the random asymptote, the exponential
+correlation still improves the fit, but its range drops to 3 m: what is
+left is a correlation between close neighbours, 0.52 between trees 2 m
+apart, which falls to practically zero across a plot. The random
+asymptotes and rates, without correlation, have the smallest AIC: the
+plots differ not only in the height the trees reach, but also in how
+fast the height increases with the diameter, and these differences
+between the plots capture the dependence of their trees better than the
+spatial correlation, alone or with a random asymptote. The spatial
+correlation without random effects describes these differences only
+through its long range, as deviations that the trees of a plot
+share.</p>
 </div>
 </div>
 <div class="section level2">

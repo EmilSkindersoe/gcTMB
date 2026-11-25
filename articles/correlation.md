@@ -214,11 +214,12 @@ other, so that a tree that is taller than the curve predicts for its
 diameter may have neighbours that are taller too (Pukkala, 1989).
 
 To keep the example quick, we use the 41 plots with up to 20 measured
-trees each, leaving out the 15 plots with 48 to 105, and no random
-effects: a single curve for all plots, with the correlation of the
-residuals within each plot. The residuals of the fit without
-correlation, at the positions of the trees of four plots, show that the
-positive and the negative residuals cluster:
+trees each, leaving out the 15 plots with 48 to 105. We first fit a
+single curve for all plots, without random effects, with the correlation
+of the residuals within each plot, and then compare the spatial
+correlation with random effects of the plots. The residuals of the fit
+without correlation, at the positions of the trees of four plots, show
+that the positive and the negative residuals cluster:
 
 ``` r
 
@@ -330,20 +331,15 @@ AIC(fit0, fitexp, fitexpn, fitgausn)
 The spatial correlation improves the fit by far: the log-likelihood
 increases by 89.6 with the exponential correlation, at the cost of a
 single parameter. The nugget improves it further, and the exponential
-correlation with a nugget has the smallest AIC. Its range of 53.7 m
-gives the correlation $`(1 - n) \exp(-d/r) = 0.69`$ between trees 2 m
-apart and 0.49 between trees 20 m apart, across a plot of about 40 by 30
-m, and the nugget, 0.28, is the share of the residual variance that a
-tree does not share with its neighbours. The correlation stays large
-across a plot, so it also describes the differences between the plots,
-which a random asymptote of each plot would otherwise describe; with
-both, the likelihood is nearly flat between them, and the fits are
-harder to converge. The likelihood ratio test of the nugget is on the
-boundary of its parameter space, $`n = 0`$, where the test is
-conservative; halving the p-value corrects for this.
-
-Wald intervals for the range and the nugget are computed on the scales
-$`\log(r)`$ and $`\log(n/(1 - n))`$ and transformed back:
+correlation with a nugget has the smallest AIC of the three structures.
+Its range of 53.7 m gives the correlation $`(1 - n) \exp(-d/r) = 0.69`$
+between trees 2 m apart and 0.49 between trees 20 m apart, across a plot
+of about 40 by 30 m, and the nugget, 0.28, is the share of the residual
+variance that a tree does not share with its neighbours. The likelihood
+ratio test of the nugget is on the boundary of its parameter space,
+$`n = 0`$, where the test is conservative; halving the p-value corrects
+for this. Wald intervals for the range and the nugget are computed on
+the scales $`\log(r)`$ and $`\log(n/(1 - n))`$ and transformed back:
 
 ``` r
 
@@ -352,6 +348,60 @@ confint(fitexpn, parm = c("cor_par:range", "cor_par:nugget"), method = "wald")
 #> range  25.9835139 110.8047571
 #> nugget  0.1961161   0.3909378
 ```
+
+### Spatial correlation or random effects
+
+A range longer than the plots means that the correlation stays large
+across a whole plot: the trees of a plot deviate from the curve
+together. This is also what a random effect of the plot describes,
+e.g. a random asymptote, with which all trees of a plot are taller or
+shorter than the common curve. Both are models of the dependence of the
+trees of a plot, and they are compared by AIC, as both are fitted by
+maximum likelihood. We fit a random asymptote $`b_1`$ of each plot,
+random asymptotes and rates $`b_1`$ and $`b_2`$, and a random asymptote
+together with the exponential correlation. The random effects of $`b_1`$
+and $`b_2`$ are uncorrelated (`||`): with a correlation between them,
+the optimiser stops with false convergence, as the likelihood is nearly
+flat in some directions. With random effects,
+`control = list(restart = TRUE)` optimises once more from the estimates
+where the first optimisation stops short of convergence (see the
+vignette *Simulation*):
+
+``` r
+
+ctl <- list(restart = TRUE)
+fitre1 <- update(fit0, rform = b1 ~ 1 | Plot, control = ctl)
+fitre2 <- update(fit0, rform = b1 + b2 ~ 1 || Plot, control = ctl)
+fitre1exp <- update(fit0, rform = b1 ~ 1 | Plot, correlation = corExp(5, form = ~ X + Y | Plot), control = ctl)
+sapply(list(fitre1 = fitre1, fitre2 = fitre2, fitre1exp = fitre1exp), converged)
+#>    fitre1    fitre2 fitre1exp 
+#>      TRUE      TRUE      TRUE
+corpars(fitre1exp)
+#>   range 
+#> 3.04906
+AIC(fit0, fitexpn, fitre1, fitre2, fitre1exp)
+#>           df      AIC
+#> fit0       4 2733.321
+#> fitexpn    6 2442.538
+#> fitre1     5 2409.003
+#> fitre2     6 2355.868
+#> fitre1exp  6 2382.282
+```
+
+The random asymptote alone has a smaller AIC than any of the spatial
+correlation structures without random effects: most of the dependence of
+the trees of a plot is a shift of the whole plot, not a correlation that
+decreases with the distance. With the random asymptote, the exponential
+correlation still improves the fit, but its range drops to 3 m: what is
+left is a correlation between close neighbours, 0.52 between trees 2 m
+apart, which falls to practically zero across a plot. The random
+asymptotes and rates, without correlation, have the smallest AIC: the
+plots differ not only in the height the trees reach, but also in how
+fast the height increases with the diameter, and these differences
+between the plots capture the dependence of their trees better than the
+spatial correlation, alone or with a random asymptote. The spatial
+correlation without random effects describes these differences only
+through its long range, as deviations that the trees of a plot share.
 
 ## References
 
