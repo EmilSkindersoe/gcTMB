@@ -37,10 +37,10 @@ gcTMBcontrol(
 - smallsample:
 
   Logical. If TRUE (default), gaussian and lognormal models without
-  random effects and without autocorrelation use the unbiased residual
-  variance with n - p residual degrees of freedom and t quantiles, as lm
-  and nls; if FALSE, the maximum likelihood estimate and normal
-  quantiles. See
+  random effects, without autocorrelation and without a variance
+  function use the unbiased residual variance with n - p residual
+  degrees of freedom and t quantiles, as lm and nls; if FALSE, the
+  maximum likelihood estimate and normal quantiles. See
   [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md).
 
 - sdreport:

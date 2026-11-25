@@ -13,6 +13,10 @@
   [`corExp()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
   [`corGaus()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
   : Autocorrelation of the residuals within groups
+- [`varIdent()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  [`varPower()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  [`varConstPower()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  : Variance functions for heteroscedastic residuals
 - [`update(`*`<gcTMB>`*`)`](https://emilskindersoe.github.io/gcTMB/reference/update.gcTMB.md)
   : Update a gcTMB fit, or set its parameters
 - [`converged()`](https://emilskindersoe.github.io/gcTMB/reference/converged.md)

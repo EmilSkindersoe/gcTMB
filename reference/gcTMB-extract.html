@@ -19,7 +19,7 @@ list of covariance matrices (nlme returns a character table)."><meta property="o
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9020</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9021</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,6 +35,7 @@ list of covariance matrices (nlme returns a character table)."><meta property="o
     <li><a class="dropdown-item" href="../articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="../articles/timing-rates.html">Timing and maximum growth rates</a></li>
     <li><a class="dropdown-item" href="../articles/correlation.html">Correlation structures</a></li>
+    <li><a class="dropdown-item" href="../articles/variance.html">Variance functions</a></li>
     <li><a class="dropdown-item" href="../articles/simulation.html">Simulation</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -129,15 +130,19 @@ as in <code>ranef</code>, with the standard deviations and the correlation matri
 maximum likelihood estimate, while <code><a href="https://rdrr.io/pkg/nlme/man/gnls.html" class="external-link">nlme::gnls</a></code> reports it with n - p degrees of freedom),
 or the dispersion parameter of the other families as printed by <code>print.gcTMB</code> (precision,
 size or dispersion), and NA for poisson and binomial models. The residual variance is
-<code>sigma(object)^2</code>. For gaussian models without random effects and small-sample inference (see
+<code>sigma(object)^2</code>; with a variance function (see <code><a href="varFunc.html">varFunc</a></code>), it is
+<code>sigma(object)^2</code> times the square of the function g of each observation. For gaussian models without random effects and small-sample inference (see
 <code><a href="gcTMB.html">gcTMB</a></code>), it is the unbiased estimate.</p>
 <p><code>corpars</code> returns the parameter of the autocorrelation of the residuals within groups (see
 <code><a href="corStruct.html">corStruct</a></code>), rho, the correlation of residuals one unit of time apart (the range, and
 the nugget, for <code><a href="corStruct.html">corExp</a></code> and <code><a href="corStruct.html">corGaus</a></code>), and an empty vector
 for a model with independent residuals; it is <code>coef(fit$modelStruct$corStruct,
 unconstrained=FALSE)</code> of nlme. <code>varpars</code> returns the parameters of the variance
-function of the residuals, as a named vector; the current models have a constant residual variance,
-so it returns an empty vector, as the extractor for a variance function once it is added.</p>
+function of the residuals (see <code><a href="varFunc.html">varFunc</a></code>) on their natural scale, as a named vector: the
+ratios of the standard deviations of the strata to the reference stratum for <code>varIdent</code>, the
+power for <code>varPower</code>, and the constant and the power for <code>varConstPower</code>, named by level
+with a grouping factor; an empty vector for a model with a constant residual variance. It is
+<code>coef(fit$modelStruct$varStruct, unconstrained=FALSE)</code> of nlme.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

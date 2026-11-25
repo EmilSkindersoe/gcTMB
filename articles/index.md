@@ -10,4 +10,6 @@
   rates](https://emilskindersoe.github.io/gcTMB/articles/timing-rates.md):
 - [Correlation
   structures](https://emilskindersoe.github.io/gcTMB/articles/correlation.md):
+- [Variance
+  functions](https://emilskindersoe.github.io/gcTMB/articles/variance.md):
 - [Simulation](https://emilskindersoe.github.io/gcTMB/articles/simulation.md):

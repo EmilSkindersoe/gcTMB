@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9020</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9021</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,6 +37,7 @@
     <li><a class="dropdown-item" href="../articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="../articles/timing-rates.html">Timing and maximum growth rates</a></li>
     <li><a class="dropdown-item" href="../articles/correlation.html">Correlation structures</a></li>
+    <li><a class="dropdown-item" href="../articles/variance.html">Variance functions</a></li>
     <li><a class="dropdown-item" href="../articles/simulation.html">Simulation</a></li>
   </ul>
 </li>
@@ -70,9 +71,10 @@
     
 <p>This vignette covers simulation studies: simulating data from a
 fitted model, refitting it, and comparing the estimates with the true
-parameters, including the autocorrelation parameter of the residuals.
-The correlation structures themselves, temporal and spatial, are
-described in the vignette <em>Correlation structures</em>.</p>
+parameters, including the autocorrelation parameter and the variance
+function of the residuals. The correlation structures themselves,
+temporal and spatial, are described in the vignette <em>Correlation
+structures</em>.</p>
 <div class="section level2">
 <h2 id="the-sorghum-and-maize-data">The sorghum and maize data<a class="anchor" aria-label="anchor" href="#the-sorghum-and-maize-data"></a>
 </h2>
@@ -294,7 +296,8 @@ keeps the others, without refitting, so that the result can serve as the
 true model of the simulation. Its arguments are <code>fixef</code> for
 the coefficients, <code>VarCorr</code> for the covariance matrices of
 the random effects, <code>sigma</code> for the residual standard
-deviation, and <code>rho</code> for the autocorrelation.</p>
+deviation, <code>rho</code> for the autocorrelation, and
+<code>varpar</code> for the parameters of a variance function.</p>
 <p>Here the true model is the lognormal fit <code>fitrec</code> from
 above, with crop and input effects, random asymptotes of the plots and
 continuous-time AR(1) residuals of
@@ -379,6 +382,79 @@ intervals, against the true value 0.8:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Estimate of "</span>, <span class="va">rho</span><span class="op">)</span><span class="op">)</span>, y <span class="op">=</span> <span class="st">"Simulations"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="simulation_files/figure-html/sim-carplot-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level3">
+<h3 id="recovering-a-variance-function">Recovering a variance function<a class="anchor" aria-label="anchor" href="#recovering-a-variance-function"></a>
+</h3>
+<p>A variance function (see <code><a href="../reference/varFunc.html">?varFunc</a></code> and the vignette
+<em>Variance functions</em>) makes the residual standard deviation
+depend on a covariate, here on the fitted curve: with
+<code>variance = varPower()</code>, the standard deviation of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(y)</annotation></semantics></math>
+is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>δ</mi></msup></mrow><annotation encoding="application/x-tex">\sigma f(t)^\delta</annotation></semantics></math>.
+A negative power
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+makes the small plants relatively more variable than the large ones. We
+fit it to the biomass:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fitvar</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Biomass</span> <span class="op">~</span> <span class="va">DOY</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Crop</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plot</span>, data <span class="op">=</span> <span class="va">sm</span>,</span>
+<span>                model <span class="op">=</span> <span class="st">"beta"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">141</span><span class="op">)</span>, family <span class="op">=</span> <span class="st">"lognormal"</span>, variance <span class="op">=</span> <span class="fu"><a href="../reference/varFunc.html">varPower</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/gcTMB-extract.html">varpars</a></span><span class="op">(</span><span class="va">fitvar</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      power </span></span>
+<span><span class="co">#&gt; -0.2255521</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fitsim</span>, <span class="va">fitvar</span><span class="op">)</span></span>
+<span><span class="co">#&gt;        df      AIC</span></span>
+<span><span class="co">#&gt; fitsim  9 984.9414</span></span>
+<span><span class="co">#&gt; fitvar 10 970.1678</span></span></code></pre></div>
+<p>The power is negative because it acts on the scale of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(y)</annotation></semantics></math>,
+where the standard deviation is about the coefficient of variation: the
+relative deviations of the biomass from the curve are larger for small
+plants than for large ones. On the original scale, the standard
+deviation still grows with the biomass, about as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mn>1</mn><mo>+</mo><mi>δ</mi></mrow></msup></mrow><annotation encoding="application/x-tex">f(t)^{1 + \delta}</annotation></semantics></math>;
+the same model with the gaussian family estimates a power of about
+0.8.</p>
+<p><code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> draws the residuals with the standard
+deviation of the variance function at each simulated curve. The true
+model sets the power to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>=</mo><mi>−</mi><mn>0.3</mn></mrow><annotation encoding="application/x-tex">\delta = -0.3</annotation></semantics></math>
+with <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> and keeps the other estimates:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">delta0</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">0.3</span></span>
+<span><span class="va">fitvartrue</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fitvar</span>, varpar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>power <span class="op">=</span> <span class="va">delta0</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>We simulate 50 data sets of 10 new plots of each crop, each sampled
+every 10 days from day 150 to day 300, and fit the model to each, with
+the power estimated:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>DOY <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">150</span>, <span class="fl">300</span>, by <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rep <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, Crop <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">SorghumMaize</span><span class="op">$</span><span class="va">Crop</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">design</span><span class="op">$</span><span class="va">plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/interaction.html" class="external-link">interaction</a></span><span class="op">(</span><span class="va">design</span><span class="op">$</span><span class="va">rep</span>, <span class="va">design</span><span class="op">$</span><span class="va">Crop</span>, drop <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">sims</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">fitvartrue</span>, nsim <span class="op">=</span> <span class="fl">50</span>, seed <span class="op">=</span> <span class="fl">1</span>, newdata <span class="op">=</span> <span class="va">design</span><span class="op">)</span></span>
+<span><span class="va">varsim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">sims</span>, <span class="kw">function</span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">design</span>, Biomass <span class="op">=</span> <span class="va">y</span><span class="op">)</span></span>
+<span>  <span class="va">f1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Biomass</span> <span class="op">~</span> <span class="va">DOY</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Crop</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plot</span>, data <span class="op">=</span> <span class="va">dat</span>,</span>
+<span>              model <span class="op">=</span> <span class="st">"beta"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">141</span><span class="op">)</span>, family <span class="op">=</span> <span class="st">"lognormal"</span>, variance <span class="op">=</span> <span class="fu"><a href="../reference/varFunc.html">varPower</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">ci</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">f1</span>, parm <span class="op">=</span> <span class="st">"var_par:power"</span>, method <span class="op">=</span> <span class="st">"wald"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>power <span class="op">=</span> <span class="fu"><a href="../reference/gcTMB-extract.html">varpars</a></span><span class="op">(</span><span class="va">f1</span><span class="op">)</span><span class="op">[[</span><span class="st">"power"</span><span class="op">]</span><span class="op">]</span>, lower <span class="op">=</span> <span class="va">ci</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, upper <span class="op">=</span> <span class="va">ci</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,</span>
+<span>             covered <span class="op">=</span> <span class="va">ci</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&lt;=</span> <span class="va">delta0</span> <span class="op">&amp;</span> <span class="va">delta0</span> <span class="op">&lt;=</span> <span class="va">ci</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>The means of the estimates of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+and of the bounds of their 95% Wald intervals, and the coverage of the
+intervals, against the true value
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mn>0.3</mn></mrow><annotation encoding="application/x-tex">-0.3</annotation></semantics></math>:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">varsim</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"power"</span>, <span class="st">"lower"</span>, <span class="st">"upper"</span>, <span class="st">"covered"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      power      lower      upper    covered </span></span>
+<span><span class="co">#&gt; -0.3004625 -0.3325022 -0.2684227  0.9200000</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">varsim</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">power</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">10</span>, fill <span class="op">=</span> <span class="st">"grey70"</span>, colour <span class="op">=</span> <span class="st">"grey30"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="va">delta0</span>, colour <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Estimate of "</span>, <span class="va">delta</span><span class="op">)</span><span class="op">)</span>, y <span class="op">=</span> <span class="st">"Simulations"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="simulation_files/figure-html/sim-varplot-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

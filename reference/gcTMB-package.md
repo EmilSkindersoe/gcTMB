@@ -155,7 +155,8 @@ an overview of most features;
 [`vignette("growth-models")`](https://emilskindersoe.github.io/gcTMB/articles/growth-models.md),
 [`vignette("fixed-random-effects")`](https://emilskindersoe.github.io/gcTMB/articles/fixed-random-effects.md),
 [`vignette("timing-rates")`](https://emilskindersoe.github.io/gcTMB/articles/timing-rates.md),
-[`vignette("correlation")`](https://emilskindersoe.github.io/gcTMB/articles/correlation.md)
+[`vignette("correlation")`](https://emilskindersoe.github.io/gcTMB/articles/correlation.md),
+[`vignette("variance")`](https://emilskindersoe.github.io/gcTMB/articles/variance.md)
 and
 [`vignette("simulation")`](https://emilskindersoe.github.io/gcTMB/articles/simulation.md).
 

@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9020</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9021</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,6 +42,7 @@
     <li><a class="dropdown-item" href="articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="articles/timing-rates.html">Timing and maximum growth rates</a></li>
     <li><a class="dropdown-item" href="articles/correlation.html">Correlation structures</a></li>
+    <li><a class="dropdown-item" href="articles/variance.html">Variance functions</a></li>
     <li><a class="dropdown-item" href="articles/simulation.html">Simulation</a></li>
   </ul>
 </li>
@@ -110,7 +111,9 @@
 <li>
 <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/correlation.pdf" class="external-link">Correlation structures</a>: temporal correlation of the residuals within individuals over time, and spatial correlation between neighbouring trees, with a nugget for measurement error.</li>
 <li>
-<a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/simulation.pdf" class="external-link">Simulation</a>: simulation studies, including the recovery of the autocorrelation parameter.</li>
+<a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/variance.pdf" class="external-link">Variance functions</a>: heteroscedastic residuals, with a variance for each stratum, or a power of the fitted curve, its growth rate or a covariate, and how they trade off against random effects and autocorrelation.</li>
+<li>
+<a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/simulation.pdf" class="external-link">Simulation</a>: simulation studies, including the recovery of the autocorrelation parameter and of a variance function.</li>
 </ol>
 <p><a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/gcTMB.pdf" class="external-link">The overview</a> shows most of the features in one document. Each function has a help page, and <code><a href="reference/gcTMB.html">?gcTMB</a></code> describes the models in detail.</p>
 </div>
@@ -251,13 +254,13 @@
 <tr>
 <td>Fitting</td>
 <td>
-<code><a href="reference/gcTMB.html">gcTMB()</a></code>, <code><a href="reference/gcTMBstart.html">gcTMBstart()</a></code>, <code><a href="reference/gcTMBcontrol.html">gcTMBcontrol()</a></code>, <code><a href="reference/corStruct.html">corAR1()</a></code>, <code><a href="reference/corStruct.html">corCAR1()</a></code>, <code><a href="reference/corStruct.html">corExp()</a></code>, <code><a href="reference/corStruct.html">corGaus()</a></code>, <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code>
+<code><a href="reference/gcTMB.html">gcTMB()</a></code>, <code><a href="reference/gcTMBstart.html">gcTMBstart()</a></code>, <code><a href="reference/gcTMBcontrol.html">gcTMBcontrol()</a></code>, <code><a href="reference/corStruct.html">corAR1()</a></code>, <code><a href="reference/corStruct.html">corCAR1()</a></code>, <code><a href="reference/corStruct.html">corExp()</a></code>, <code><a href="reference/corStruct.html">corGaus()</a></code>, <code><a href="reference/varFunc.html">varIdent()</a></code>, <code><a href="reference/varFunc.html">varPower()</a></code>, <code><a href="reference/varFunc.html">varConstPower()</a></code>, <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code>
 </td>
 </tr>
 <tr>
 <td>Results</td>
 <td>
-<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>, <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>, <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code>, <code><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik()</a></code>, <code><a href="reference/converged.html">converged()</a></code>, <code><a href="reference/gcTMB-extract.html">fixef()</a></code>, <code><a href="reference/gcTMB-extract.html">ranef()</a></code>, <code><a href="reference/gcTMB-extract.html">VarCorr()</a></code>, <code><a href="https://rdrr.io/r/stats/sigma.html" class="external-link">sigma()</a></code>, <code><a href="reference/gcTMB-extract.html">corpars()</a></code>
+<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>, <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>, <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code>, <code><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik()</a></code>, <code><a href="reference/converged.html">converged()</a></code>, <code><a href="reference/gcTMB-extract.html">fixef()</a></code>, <code><a href="reference/gcTMB-extract.html">ranef()</a></code>, <code><a href="reference/gcTMB-extract.html">VarCorr()</a></code>, <code><a href="https://rdrr.io/r/stats/sigma.html" class="external-link">sigma()</a></code>, <code><a href="reference/gcTMB-extract.html">corpars()</a></code>, <code><a href="reference/gcTMB-extract.html">varpars()</a></code>
 </td>
 </tr>
 <tr>
@@ -568,6 +571,7 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/emilskindersoe/gcTMB/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/emilskindersoe/gcTMB/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/emilskindersoe/gcTMB/actions/workflows/pkgdown.yaml" class="external-link"><img src="https://github.com/emilskindersoe/gcTMB/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></li>
 <li><a href="https://www.repostatus.org/#wip" class="external-link"><img src="https://www.repostatus.org/badges/latest/wip.svg" alt="Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public."></a></li>
 <li><a href="https://cran.r-project.org/" class="external-link"><img src="https://img.shields.io/badge/R-%3E%3D%204.2.0-276DC3?logo=r" alt="R version"></a></li>
 </ul>

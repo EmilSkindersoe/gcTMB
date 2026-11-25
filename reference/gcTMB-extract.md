@@ -87,8 +87,11 @@ log(y) for lognormal; the maximum likelihood estimate, while
 n - p degrees of freedom), or the dispersion parameter of the other
 families as printed by `print.gcTMB` (precision, size or dispersion),
 and NA for poisson and binomial models. The residual variance is
-`sigma(object)^2`. For gaussian models without random effects and
-small-sample inference (see
+`sigma(object)^2`; with a variance function (see
+[`varFunc`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)),
+it is `sigma(object)^2` times the square of the function g of each
+observation. For gaussian models without random effects and small-sample
+inference (see
 [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)),
 it is the unbiased estimate.
 
@@ -103,9 +106,14 @@ and
 and an empty vector for a model with independent residuals; it is
 `coef(fit$modelStruct$corStruct, unconstrained=FALSE)` of nlme.
 `varpars` returns the parameters of the variance function of the
-residuals, as a named vector; the current models have a constant
-residual variance, so it returns an empty vector, as the extractor for a
-variance function once it is added.
+residuals (see
+[`varFunc`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md))
+on their natural scale, as a named vector: the ratios of the standard
+deviations of the strata to the reference stratum for `varIdent`, the
+power for `varPower`, and the constant and the power for
+`varConstPower`, named by level with a grouping factor; an empty vector
+for a model with a constant residual variance. It is
+`coef(fit$modelStruct$varStruct, unconstrained=FALSE)` of nlme.
 
 ## Details
 

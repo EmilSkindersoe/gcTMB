@@ -2,9 +2,10 @@
 
 This vignette covers simulation studies: simulating data from a fitted
 model, refitting it, and comparing the estimates with the true
-parameters, including the autocorrelation parameter of the residuals.
-The correlation structures themselves, temporal and spatial, are
-described in the vignette *Correlation structures*.
+parameters, including the autocorrelation parameter and the variance
+function of the residuals. The correlation structures themselves,
+temporal and spatial, are described in the vignette *Correlation
+structures*.
 
 ## The sorghum and maize data
 
@@ -245,7 +246,8 @@ fitted model to chosen values and keeps the others, without refitting,
 so that the result can serve as the true model of the simulation. Its
 arguments are `fixef` for the coefficients, `VarCorr` for the covariance
 matrices of the random effects, `sigma` for the residual standard
-deviation, and `rho` for the autocorrelation.
+deviation, `rho` for the autocorrelation, and `varpar` for the
+parameters of a variance function.
 
 Here the true model is the lognormal fit `fitrec` from above, with crop
 and input effects, random asymptotes of the plots and continuous-time
@@ -335,3 +337,87 @@ ggplot(carsim, aes(x = rho)) +
 ```
 
 ![](simulation_files/figure-html/sim-carplot-1.png)
+
+### Recovering a variance function
+
+A variance function (see
+[`?varFunc`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+and the vignette *Variance functions*) makes the residual standard
+deviation depend on a covariate, here on the fitted curve: with
+`variance = varPower()`, the standard deviation of $`\log(y)`$ is
+$`\sigma f(t)^\delta`$. A negative power $`\delta`$ makes the small
+plants relatively more variable than the large ones. We fit it to the
+biomass:
+
+``` r
+
+fitvar <- gcTMB(Biomass ~ DOY, fform = b1 + b2 ~ Crop, rform = b1 ~ 1 | plot, data = sm,
+                model = "beta", start = c(b4 = 141), family = "lognormal", variance = varPower())
+varpars(fitvar)
+#>      power 
+#> -0.2255521
+AIC(fitsim, fitvar)
+#>        df      AIC
+#> fitsim  9 984.9414
+#> fitvar 10 970.1678
+```
+
+The power is negative because it acts on the scale of $`\log(y)`$, where
+the standard deviation is about the coefficient of variation: the
+relative deviations of the biomass from the curve are larger for small
+plants than for large ones. On the original scale, the standard
+deviation still grows with the biomass, about as $`f(t)^{1 + \delta}`$;
+the same model with the gaussian family estimates a power of about 0.8.
+
+[`simulate()`](https://rdrr.io/r/stats/simulate.html) draws the
+residuals with the standard deviation of the variance function at each
+simulated curve. The true model sets the power to $`\delta = -0.3`$ with
+[`update()`](https://rdrr.io/r/stats/update.html) and keeps the other
+estimates:
+
+``` r
+
+delta0 <- -0.3
+fitvartrue <- update(fitvar, varpar = c(power = delta0))
+```
+
+We simulate 50 data sets of 10 new plots of each crop, each sampled
+every 10 days from day 150 to day 300, and fit the model to each, with
+the power estimated:
+
+``` r
+
+design <- expand.grid(DOY = seq(150, 300, by = 10), rep = 1:10, Crop = levels(SorghumMaize$Crop))
+design$plot <- interaction(design$rep, design$Crop, drop = TRUE)
+sims <- simulate(fitvartrue, nsim = 50, seed = 1, newdata = design)
+varsim <- do.call(rbind, lapply(sims, function(y){
+  dat <- cbind(design, Biomass = y)
+  f1 <- gcTMB(Biomass ~ DOY, fform = b1 + b2 ~ Crop, rform = b1 ~ 1 | plot, data = dat,
+              model = "beta", start = c(b4 = 141), family = "lognormal", variance = varPower())
+  ci <- confint(f1, parm = "var_par:power", method = "wald")
+  data.frame(power = varpars(f1)[["power"]], lower = ci[1], upper = ci[2],
+             covered = ci[1] <= delta0 & delta0 <= ci[2])
+}))
+```
+
+The means of the estimates of $`\delta`$ and of the bounds of their 95%
+Wald intervals, and the coverage of the intervals, against the true
+value $`-0.3`$:
+
+``` r
+
+colMeans(varsim[, c("power", "lower", "upper", "covered")])
+#>      power      lower      upper    covered 
+#> -0.3004625 -0.3325022 -0.2684227  0.9200000
+```
+
+``` r
+
+ggplot(varsim, aes(x = power)) +
+  geom_histogram(bins = 10, fill = "grey70", colour = "grey30") +
+  geom_vline(xintercept = delta0, colour = "red") +
+  labs(x = expression(paste("Estimate of ", delta)), y = "Simulations") +
+  theme_minimal()
+```
+
+![](simulation_files/figure-html/sim-varplot-1.png)

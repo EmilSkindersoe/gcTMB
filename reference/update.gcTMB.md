@@ -1,8 +1,8 @@
 # Update a gcTMB fit, or set its parameters
 
-With `fixef`, `VarCorr`, `sigma` or `rho`, `update` returns the model
-with some of its parameters set to new values, e.g. as the true model of
-a simulation study (see
+With `fixef`, `VarCorr`, `sigma`, `rho` or `varpar`, `update` returns
+the model with some of its parameters set to new values, e.g. as the
+true model of a simulation study (see
 [`simulate.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-methods.md));
 the model is not refitted. Without them, it refits the model with the
 arguments in `...` changed, as
@@ -12,7 +12,15 @@ arguments in `...` changed, as
 
 ``` r
 # S3 method for class 'gcTMB'
-update(object, ..., fixef = NULL, VarCorr = NULL, sigma = NULL, rho = NULL)
+update(
+  object,
+  ...,
+  fixef = NULL,
+  VarCorr = NULL,
+  sigma = NULL,
+  rho = NULL,
+  varpar = NULL
+)
 ```
 
 ## Arguments
@@ -24,7 +32,7 @@ update(object, ..., fixef = NULL, VarCorr = NULL, sigma = NULL, rho = NULL)
 
 - ...:
 
-  Without fixef, VarCorr, sigma and rho: the arguments of
+  Without fixef, VarCorr, sigma, rho and varpar: the arguments of
   [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)
   to change, as in [`update`](https://rdrr.io/r/stats/update.html).
 
@@ -72,6 +80,17 @@ update(object, ..., fixef = NULL, VarCorr = NULL, sigma = NULL, rho = NULL)
   a named vector with the new range and/or nugget, e.g.
   `c(range=10, nugget=0.2)`. NULL (default) keeps it.
 
+- varpar:
+
+  Named numeric vector or NULL. New parameters of the variance function
+  (see
+  [`varFunc`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md))
+  on their natural scale, named as returned by
+  [`varpars`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md),
+  e.g. `c(power=1)` or `c(const=2, power=0.5)` for `varConstPower`, or
+  the ratio of a stratum for `varIdent`; the parameters not given keep
+  their values. NULL (default) keeps them.
+
 ## Value
 
 A gcTMB object.
@@ -81,11 +100,12 @@ A gcTMB object.
 Every parameter of the model can be set: the coefficients of b1-b5
 (`fixef`, including coefficients fixed in the fit), the covariance
 matrices of the random effects (`VarCorr`), the residual standard
-deviation or dispersion (`sigma`) and the autocorrelation (`rho`), i.e.
-all the entries of `coef`. The parameters that are not given keep their
-values, and the random effects are the conditional modes at the new
-parameters. The new values are not estimates: the standard errors, the
-covariance matrix of `vcov` and the confidence intervals are NA, and
+deviation or dispersion (`sigma`), the autocorrelation (`rho`) and the
+parameters of the variance function (`varpar`), i.e. all the entries of
+`coef`. The parameters that are not given keep their values, and the
+random effects are the conditional modes at the new parameters. The new
+values are not estimates: the standard errors, the covariance matrix of
+`vcov` and the confidence intervals are NA, and
 [`converged`](https://emilskindersoe.github.io/gcTMB/reference/converged.md)
 returns NA. The log-likelihood is that of the data at the new
 parameters. To fit the data as well as possible with a chosen value of a
@@ -132,4 +152,9 @@ fitc <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25,
 corpars(update(fitc, rho=0.7))
 #> rho 
 #> 0.7 
+# a residual standard deviation proportional to the fitted curve
+fitv <- gcTMB(Height ~ DAS, data=FabaHeights25, variance=varPower())
+varpars(update(fitv, varpar=c(power=1)))
+#> power 
+#>     1 
 ```

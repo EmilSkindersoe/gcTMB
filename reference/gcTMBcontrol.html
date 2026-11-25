@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9020</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9021</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,6 +23,7 @@
     <li><a class="dropdown-item" href="../articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="../articles/timing-rates.html">Timing and maximum growth rates</a></li>
     <li><a class="dropdown-item" href="../articles/correlation.html">Correlation structures</a></li>
+    <li><a class="dropdown-item" href="../articles/variance.html">Variance functions</a></li>
     <li><a class="dropdown-item" href="../articles/simulation.html">Simulation</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -75,7 +76,7 @@ gradients of TMB) is available, for the fit, the profiles and the bootstrap.</p>
 
 
 <dt id="arg-smallsample">smallsample<a class="anchor" aria-label="anchor" href="#arg-smallsample"></a></dt>
-<dd><p>Logical. If TRUE (default), gaussian and lognormal models without random effects and without autocorrelation use the unbiased
+<dd><p>Logical. If TRUE (default), gaussian and lognormal models without random effects, without autocorrelation and without a variance function use the unbiased
 residual variance with n - p residual degrees of freedom and t quantiles, as lm and nls; if
 FALSE, the maximum likelihood estimate and normal quantiles. See <code><a href="gcTMB.html">gcTMB</a></code>.</p></dd>
 

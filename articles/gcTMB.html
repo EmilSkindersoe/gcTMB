@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9020</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9021</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,6 +37,7 @@
     <li><a class="dropdown-item" href="../articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="../articles/timing-rates.html">Timing and maximum growth rates</a></li>
     <li><a class="dropdown-item" href="../articles/correlation.html">Correlation structures</a></li>
+    <li><a class="dropdown-item" href="../articles/variance.html">Variance functions</a></li>
     <li><a class="dropdown-item" href="../articles/simulation.html">Simulation</a></li>
   </ul>
 </li>
@@ -71,10 +72,10 @@
 <p>The package gcTMB fits growth curves over time by maximum likelihood
 with the Template Model Builder (TMB). The curves can depend on
 covariates, have random effects for repeated measurements of the same
-individuals, and have autocorrelated residuals, and the response can
-follow a range of distributions. This overview shows most of the
-features in one document, with short examples; five vignettes go into
-each topic in depth:</p>
+individuals, and have autocorrelated or heteroscedastic residuals, and
+the response can follow a range of distributions. This overview shows
+most of the features in one document, with short examples; six vignettes
+go into each topic in depth:</p>
 <ol style="list-style-type: decimal">
 <li>
 <em>Growth models and their parameters</em>
@@ -98,9 +99,14 @@ growth rate as a parameter, and pairwise comparisons;</li>
 residuals within individuals over time, and spatial correlation between
 neighbouring trees, with a nugget for measurement error;</li>
 <li>
+<em>Variance functions</em> (<code><a href="../articles/variance.html">vignette("variance")</a></code>): a
+variance for each stratum, or a power of the fitted curve, its growth
+rate or a covariate, and how variance functions trade off against random
+effects and autocorrelation;</li>
+<li>
 <em>Simulation</em> (<code><a href="../articles/simulation.html">vignette("simulation")</a></code>):
 simulation studies, including the recovery of the autocorrelation
-parameter.</li>
+parameter and of a variance function.</li>
 </ol>
 <div class="section level2">
 <h2 id="growth-models">Growth models<a class="anchor" aria-label="anchor" href="#growth-models"></a>
@@ -563,6 +569,36 @@ structures</em> describes the models and their likelihood, with an
 example of spatial correlation.</p>
 </div>
 <div class="section level2">
+<h2 id="variance-functions">Variance functions<a class="anchor" aria-label="anchor" href="#variance-functions"></a>
+</h2>
+<p>The residual variance of the gaussian and lognormal families can
+change over the course of growth, with a variance function in the
+argument <code>variance</code>: <code><a href="../reference/varFunc.html">varIdent()</a></code> gives each
+stratum its own variance, <code><a href="../reference/varFunc.html">varPower()</a></code> and
+<code><a href="../reference/varFunc.html">varConstPower()</a></code> a power of a covariate, the fitted curve
+<code>fitted(.)</code> (the default), its growth rate
+<code>rate(.)</code>, largest at the inflection point, or a variable of
+the data. Here each day of measurement has its own residual variance,
+besides the random effects of the plants:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fitrev</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fitre</span>, variance <span class="op">=</span> <span class="fu"><a href="../reference/varFunc.html">varIdent</a></span><span class="op">(</span>form <span class="op">=</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">DAS</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="../reference/gcTMB-extract.html">varpars</a></span><span class="op">(</span><span class="va">fitrev</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   28   35   42   49   56   63   69   77   83   90   98  106  114  122 </span></span>
+<span><span class="co">#&gt; 1.00 0.71 1.16 1.89 1.86 3.36 4.33 4.66 8.90 3.19 3.49 2.83 2.57 2.97</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">fitre</span>, <span class="va">fitrev</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Likelihood ratio tests of gcTMB models</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;        npar   AIC   BIC logLik deviance     LR Df   Pr(&gt;LR)    </span></span>
+<span><span class="co">#&gt; fitre    13 25313 25396 -12644    25287                        </span></span>
+<span><span class="co">#&gt; fitrev   26 22715 22880 -11331    22663 2624.4 13 &lt; 2.2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
+<p><code><a href="../reference/gcTMB-extract.html">varpars()</a></code> gives the standard deviation of each day
+relative to the first. The vignette <em>Variance functions</em> shows
+how variance functions change the confidence intervals of a curve, and
+how they trade off against random effects and autocorrelation.</p>
+</div>
+<div class="section level2">
 <h2 id="simulation">Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
 </h2>
 <p><code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> draws new responses from a fitted model, at
@@ -571,7 +607,7 @@ the observed times or for new times and individuals in
 residuals; <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> sets the parameters of a true model.
 Refitting the model to simulated data recovers its parameters, e.g. the
 autocorrelation:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>DAS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">28</span>, <span class="fl">122</span>, by <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>, Plant_ID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"p"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span>, Soil <span class="op">=</span> <span class="st">"Loamy"</span>,</span>
 <span>                      Treatment <span class="op">=</span> <span class="st">"Irrigated"</span><span class="op">)</span></span>
 <span><span class="va">design</span><span class="op">$</span><span class="va">Height</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">fitrec</span>, nsim <span class="op">=</span> <span class="fl">1</span>, seed <span class="op">=</span> <span class="fl">1</span>, newdata <span class="op">=</span> <span class="va">design</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>

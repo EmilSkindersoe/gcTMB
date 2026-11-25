@@ -100,9 +100,14 @@ data:
     temporal correlation of the residuals within individuals over time,
     and spatial correlation between neighbouring trees, with a nugget
     for measurement error.
-5.  [Simulation](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/simulation.pdf):
+5.  [Variance
+    functions](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/variance.pdf):
+    heteroscedastic residuals, with a variance for each stratum, or a
+    power of the fitted curve, its growth rate or a covariate, and how
+    they trade off against random effects and autocorrelation.
+6.  [Simulation](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/simulation.pdf):
     simulation studies, including the recovery of the autocorrelation
-    parameter.
+    parameter and of a variance function.
 
 [The
 overview](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/gcTMB.pdf)
@@ -209,8 +214,8 @@ and b3, profiled over the asymptote b1, or from a grid search
 
 | Purpose | Functions |
 |----|----|
-| Fitting | [`gcTMB()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md), [`gcTMBstart()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md), [`gcTMBcontrol()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBcontrol.md), [`corAR1()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md), [`corCAR1()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md), [`corExp()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md), [`corGaus()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md), [`update()`](https://rdrr.io/r/stats/update.html) |
-| Results | [`summary()`](https://rdrr.io/r/base/summary.html), [`coef()`](https://rdrr.io/r/stats/coef.html), [`vcov()`](https://rdrr.io/r/stats/vcov.html), [`logLik()`](https://rdrr.io/r/stats/logLik.html), [`converged()`](https://emilskindersoe.github.io/gcTMB/reference/converged.md), [`fixef()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md), [`ranef()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md), [`VarCorr()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md), [`sigma()`](https://rdrr.io/r/stats/sigma.html), [`corpars()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md) |
+| Fitting | [`gcTMB()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md), [`gcTMBstart()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md), [`gcTMBcontrol()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBcontrol.md), [`corAR1()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md), [`corCAR1()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md), [`corExp()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md), [`corGaus()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md), [`varIdent()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md), [`varPower()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md), [`varConstPower()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md), [`update()`](https://rdrr.io/r/stats/update.html) |
+| Results | [`summary()`](https://rdrr.io/r/base/summary.html), [`coef()`](https://rdrr.io/r/stats/coef.html), [`vcov()`](https://rdrr.io/r/stats/vcov.html), [`logLik()`](https://rdrr.io/r/stats/logLik.html), [`converged()`](https://emilskindersoe.github.io/gcTMB/reference/converged.md), [`fixef()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md), [`ranef()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md), [`VarCorr()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md), [`sigma()`](https://rdrr.io/r/stats/sigma.html), [`corpars()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md), [`varpars()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md) |
 | Confidence intervals | [`confint()`](https://rdrr.io/r/stats/confint.html), [`profile()`](https://rdrr.io/r/stats/profile.html), [`bootstrap()`](https://emilskindersoe.github.io/gcTMB/reference/bootstrap.md) |
 | Tests and model choice | [`anova()`](https://rdrr.io/r/stats/anova.html), [`criteria()`](https://emilskindersoe.github.io/gcTMB/reference/criteria.md), [`partest()`](https://emilskindersoe.github.io/gcTMB/reference/partest.md) |
 | Derived quantities | [`timeto()`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md), [`maxrate()`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md) |

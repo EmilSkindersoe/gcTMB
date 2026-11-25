@@ -11,7 +11,7 @@ the Laplace approximation."><meta property="og:image" content="https://emilskind
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9020</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9021</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -27,6 +27,7 @@ the Laplace approximation."><meta property="og:image" content="https://emilskind
     <li><a class="dropdown-item" href="../articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="../articles/timing-rates.html">Timing and maximum growth rates</a></li>
     <li><a class="dropdown-item" href="../articles/correlation.html">Correlation structures</a></li>
+    <li><a class="dropdown-item" href="../articles/variance.html">Variance functions</a></li>
     <li><a class="dropdown-item" href="../articles/simulation.html">Simulation</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -60,6 +61,7 @@ the Laplace approximation.</p>
 <span>  start <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fix <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  correlation <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  variance <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lower <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,</span>
 <span>  upper <span class="op">=</span> <span class="cn">Inf</span>,</span>
 <span>  family <span class="op">=</span> <span class="st">"gaussian"</span>,</span>
@@ -110,6 +112,15 @@ groups over time, <code><a href="corStruct.html">corAR1</a></code>, <code><a hre
 the package nlme), e.g. <code>corCAR1(form=~ time | ID)</code>, for the gaussian and lognormal (on the
 log scale) families. NULL (default) for independent residuals. See <code><a href="corStruct.html">corStruct</a></code>; with
 a correlation structure, the weights are precision weights, with residual variance sigma^2/w.</p></dd>
+
+
+<dt id="arg-variance">variance<a class="anchor" aria-label="anchor" href="#arg-variance"></a></dt>
+<dd><p>A variance function or NULL. Heteroscedastic residuals with the standard deviation
+sigma g, <code><a href="varFunc.html">varIdent</a></code>, <code><a href="varFunc.html">varPower</a></code> or <code><a href="varFunc.html">varConstPower</a></code> (or the
+same functions of the package nlme), e.g. <code>varIdent(form=~ 1 | Treatment)</code> for a variance
+for each treatment, or <code>varConstPower(form=~ rate(.))</code> for a standard deviation that grows
+with the growth rate of the curve, for the gaussian and lognormal (on the log scale) families.
+NULL (default) for a constant variance. See <code><a href="varFunc.html">varFunc</a></code>.</p></dd>
 
 
 <dt id="arg-lower">lower<a class="anchor" aria-label="anchor" href="#arg-lower"></a></dt>
@@ -230,6 +241,10 @@ of lme4;</p></li>
 and <code><a href="corStruct.html">corGaus</a></code> have the
 arguments and the parameterisation of nlme, whose objects are accepted as well, and
 <code>residuals(fit, type="normalized")</code> gives the normalized residuals of nlme;</p></li>
+<li><p>the variance functions <code><a href="varFunc.html">varIdent</a></code>, <code><a href="varFunc.html">varPower</a></code> and
+<code><a href="varFunc.html">varConstPower</a></code> go in the argument <code>variance</code> (the argument <code>weights</code> of
+nlme), with the arguments and parameterisation of nlme, plus the growth rate <code>rate(.)</code> as a
+covariate;</p></li>
 <li><p><code><a href="gcTMB-extract.html">fixef</a></code>, <code><a href="gcTMB-extract.html">ranef</a></code> and <code><a href="gcTMB-extract.html">VarCorr</a></code> are generics with the names
 of those of nlme, and work for gcTMB, nlme and lme4 fits whichever package is attached last;</p></li>
 <li><p><code>predict</code> and <code>fitted</code> with <code>random=FALSE</code> correspond to <code>level=0</code> of

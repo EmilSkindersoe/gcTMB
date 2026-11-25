@@ -71,7 +71,9 @@ timeto(
 - residual:
 
   Logical. If TRUE, the residual variance is included in the standard
-  error estimation (gaussian family only)
+  error estimation (gaussian family only), with the variance function of
+  the fit if it has one: the standard errors are those of the time at
+  which a single observation reaches the level, see Details
 
 - type:
 
@@ -111,6 +113,25 @@ terms without a grouping variable in newdata, or with a level that is
 not in the fitted data, are treated as above. Profile intervals are not
 available for the times of fitted groups, see
 [`confint.timetoTMB`](https://emilskindersoe.github.io/gcTMB/reference/confint.gcTMB.md).
+
+With `residual=TRUE` (gaussian family), the standard errors are those of
+the time at which a single observation, rather than the curve, reaches
+the level: the residual r of the observation shifts the response, and so
+the time by -r/f'(t), with the slope f'(t) of the curve at the estimated
+time t. The residual variance is sigma^2, or with a variance function
+(see
+[`varFunc`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md))
+sigma^2 g^2, with g evaluated at the estimated time on the curve of the
+row: the fitted curve at t for `fitted(.)`, its growth rate at t for
+`rate(.)`, and t for a covariate that is the time variable. Other
+covariates of the variance function, and the strata of `varIdent`, are
+taken from `newdata`; a `varIdent` by the time itself gives an error, as
+it has no variance between the observed times. The uncertainty of sigma
+and of the parameters of the variance function is not included, and the
+residual is the same for all the times of the call, so that their
+covariances include it. Times reached where the curve is flat, near the
+asymptote, get large residual variances. Profile intervals are not
+available with `residual=TRUE`.
 
 ## See also
 

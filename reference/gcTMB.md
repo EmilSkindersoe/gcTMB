@@ -16,6 +16,7 @@ gcTMB(
   start = NULL,
   fix = NULL,
   correlation = NULL,
+  variance = NULL,
   lower = -Inf,
   upper = Inf,
   family = "gaussian",
@@ -115,6 +116,21 @@ gcTMB(
   [`corStruct`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md);
   with a correlation structure, the weights are precision weights, with
   residual variance sigma^2/w.
+
+- variance:
+
+  A variance function or NULL. Heteroscedastic residuals with the
+  standard deviation sigma g,
+  [`varIdent`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md),
+  [`varPower`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  or
+  [`varConstPower`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  (or the same functions of the package nlme), e.g.
+  `varIdent(form=~ 1 | Treatment)` for a variance for each treatment, or
+  `varConstPower(form=~ rate(.))` for a standard deviation that grows
+  with the growth rate of the curve, for the gaussian and lognormal (on
+  the log scale) families. NULL (default) for a constant variance. See
+  [`varFunc`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md).
 
 - lower:
 
@@ -351,6 +367,15 @@ and gcTMB:
   have the arguments and the parameterisation of nlme, whose objects are
   accepted as well, and `residuals(fit, type="normalized")` gives the
   normalized residuals of nlme;
+
+- the variance functions
+  [`varIdent`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md),
+  [`varPower`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  and
+  [`varConstPower`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  go in the argument `variance` (the argument `weights` of nlme), with
+  the arguments and parameterisation of nlme, plus the growth rate
+  `rate(.)` as a covariate;
 
 - [`fixef`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md),
   [`ranef`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md)

@@ -3,10 +3,10 @@
 The package gcTMB fits growth curves over time by maximum likelihood
 with the Template Model Builder (TMB). The curves can depend on
 covariates, have random effects for repeated measurements of the same
-individuals, and have autocorrelated residuals, and the response can
-follow a range of distributions. This overview shows most of the
-features in one document, with short examples; five vignettes go into
-each topic in depth:
+individuals, and have autocorrelated or heteroscedastic residuals, and
+the response can follow a range of distributions. This overview shows
+most of the features in one document, with short examples; six vignettes
+go into each topic in depth:
 
 1.  *Growth models and their parameters*
     ([`vignette("growth-models")`](https://emilskindersoe.github.io/gcTMB/articles/growth-models.md)):
@@ -29,10 +29,15 @@ each topic in depth:
     temporal correlation of the residuals within individuals over time,
     and spatial correlation between neighbouring trees, with a nugget
     for measurement error;
-5.  *Simulation*
+5.  *Variance functions*
+    ([`vignette("variance")`](https://emilskindersoe.github.io/gcTMB/articles/variance.md)):
+    a variance for each stratum, or a power of the fitted curve, its
+    growth rate or a covariate, and how variance functions trade off
+    against random effects and autocorrelation;
+6.  *Simulation*
     ([`vignette("simulation")`](https://emilskindersoe.github.io/gcTMB/articles/simulation.md)):
     simulation studies, including the recovery of the autocorrelation
-    parameter.
+    parameter and of a variance function.
 
 ## Growth models
 
@@ -433,6 +438,43 @@ neighbouring trees are correlated. `residuals(type = "normalized")`
 gives residuals that are independent under the model. The vignette
 *Correlation structures* describes the models and their likelihood, with
 an example of spatial correlation.
+
+## Variance functions
+
+The residual variance of the gaussian and lognormal families can change
+over the course of growth, with a variance function in the argument
+`variance`:
+[`varIdent()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+gives each stratum its own variance,
+[`varPower()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+and
+[`varConstPower()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+a power of a covariate, the fitted curve `fitted(.)` (the default), its
+growth rate `rate(.)`, largest at the inflection point, or a variable of
+the data. Here each day of measurement has its own residual variance,
+besides the random effects of the plants:
+
+``` r
+
+fitrev <- update(fitre, variance = varIdent(form = ~ 1 | DAS))
+round(varpars(fitrev), 2)
+#>   28   35   42   49   56   63   69   77   83   90   98  106  114  122 
+#> 1.00 0.71 1.16 1.89 1.86 3.36 4.33 4.66 8.90 3.19 3.49 2.83 2.57 2.97
+anova(fitre, fitrev)
+#> Likelihood ratio tests of gcTMB models
+#> 
+#>        npar   AIC   BIC logLik deviance     LR Df   Pr(>LR)    
+#> fitre    13 25313 25396 -12644    25287                        
+#> fitrev   26 22715 22880 -11331    22663 2624.4 13 < 2.2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+[`varpars()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md)
+gives the standard deviation of each day relative to the first. The
+vignette *Variance functions* shows how variance functions change the
+confidence intervals of a curve, and how they trade off against random
+effects and autocorrelation.
 
 ## Simulation
 
