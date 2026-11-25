@@ -33,13 +33,16 @@ jobs:
           # (glmmTMB, through pbkrtest, doBy and Deriv) need R >= 4.5, so this row installs only
           # the packages gcTMB needs plus those the tests and vignettes use; the tests skip the rest.
           - {os: ubuntu-latest,  r: '4.2', dependencies: '"hard"',
-             extra-packages: 'any::knitr any::rmarkdown any::testthat any::nlme any::numDeriv'}
+             extra-packages: 'any::knitr any::rmarkdown any::testthat any::nlme any::numDeriv',
+             test-reporter: 'location'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       # Lets R CMD check run without all suggested packages installed (for the R 4.2 row)
       _R_CHECK_FORCE_SUGGESTS_: false
+      # The R 4.2 row crashes in the tests (heap corruption); its tests report each test as it starts
+      GCTMB_TEST_REPORTER: ${{ matrix.config.test-reporter }}
 
     steps:
       - uses: actions/checkout@v4

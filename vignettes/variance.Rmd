@@ -105,6 +105,7 @@ specs <- list(
   "random"                = list(rform = re),
   "random + power"        = list(rform = re, variance = power),
   "random + rate"         = list(rform = re, variance = varPower(form = ~ rate(.))),
+  "random + day"          = list(rform = re, variance = day),
   "random + CAR(1)"       = list(rform = re, correlation = car),
   "random + CAR(1) + day" = list(rform = re, correlation = car, variance = day))
 fits <- lapply(specs, function(s) do.call(gcTMB, c(list(Height ~ DAS, data = fh), s)))
@@ -120,10 +121,11 @@ Without random effects, the power of the fitted curve lowers the AIC a lot, as t
 sapply(fits[c("random + power", "random + rate")], varpars)
 ```
 
-A variance for each day, with the autocorrelation of the residuals of a plant, has the lowest AIC. Its ratios show a single day, 83, with much larger residuals than the others, which no smooth function of the curve can follow:
+A variance for each day lowers the AIC the most, with or without the autocorrelation of the residuals of a plant. Its ratios show a single day, 83, with much larger residuals than the others, which no smooth function of the curve can follow:
 
 ```{r faba-day}
-round(varpars(fits[["random + CAR(1) + day"]]), 2)
+round(rbind(day = varpars(fits[["random + day"]]),
+            "CAR(1) + day" = varpars(fits[["random + CAR(1) + day"]])), 2)
 ```
 
-A variance for each day needs many observations per day, and a ratio close to 0, as for day 114, makes the AIC of such a model optimistic.
+With the autocorrelation, but not without it, day 114 gets a ratio close to 0, probably because its residuals hardly differ from those of the previous day, so that given them almost no variance is left. Such a ratio makes the AIC of the model optimistic, and a variance for each day needs many observations per day.

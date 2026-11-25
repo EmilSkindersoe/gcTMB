@@ -18,7 +18,8 @@ knitr::opts_chunk$set(
   fig.retina = 2,
   fig.align = "center",
   out.width = "100%",
-  dev = "cairo_pdf"
+  # cairo renders the Greek letters of the axis labels; it needs X11 on macOS, so fall back to pdf
+  dev = if (isTRUE(capabilities("cairo"))) "cairo_pdf" else "pdf"
 )
 ```
 
