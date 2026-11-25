@@ -61,33 +61,15 @@ asymptote, e.g. the diameter of trees in a height-diameter model:
 | preecebaines | $`b_1 - \frac{2 (b_1 - b_3)}{\exp(b_4 (t - b_2)) + \exp(b_5 (t - b_2))}`$ | middle of puberty | height at $`b_2`$ |
 | linear | $`b_1 t + b_2`$ | intercept | not used |
 
-Two further parameters complete the curves: the threshold $`b_4`$,
-before which a truncated curve is zero (by default fixed at 0, the time
-of sowing; `fix = c(b4 = FALSE)` estimates it), and the asymmetry
-$`b_5`$ (by default fixed at 1, the curves above; `fix = c(b5 = FALSE)`
-estimates it, e.g. the Richards curve for the logistic model). The beta,
-Chapman-Richards and Korf curves are never truncated and have no
-asymmetry; the beta curve falls back to zero after its maximum at the
-end of growth $`b_3`$, while `"beta_capped"` stays at it: $`b_4`$ is the
-start of growth of the beta curve, and the intercept of the other two
-(by default the breast height of 1.3 m of a height-diameter model;
-`start = c(b4 = 0)` for a curve from zero); the Chapman-Richards curve
-is the Richards curve with a negative asymmetry. The Preece-Baines curve
-of human growth in height has the rates $`b_4`$ and $`b_5`$ of growth
-before and during puberty, estimated by default. With `b1type = "rate"`,
-$`b_1`$ is the maximum growth rate instead of the asymptote. Each
-parameter can have a link, e.g. `link = c(b3 = "inverse")` for the rate
-$`1/b_3`$ or `link = c(b1 = "log")` for effects as ratios. The vignette
-*Growth models and their parameters* gives all the formulas, the
-inflection points and maximum growth rates of each model, and the
-asymmetric curves.
+The threshold $`b_4`$ and the asymmetry $`b_5`$, the links of the
+parameters, and the inflection points and maximum growth rates of the
+models are described in the vignette *Growth models and their
+parameters*.
 
 ## Fitting a growth curve
 
-The data set `FabaHeights26` contains the heights (cm) of 320 faba bean
-plants in a field trial, five plants on each of 64 plots, with four
-genotypes on two soil types, irrigated or not, measured on 14 days
-between 28 and 122 days after sowing (`DAS`).
+The examples use the faba bean heights of `FabaHeights26` (see
+[`?FabaHeights26`](https://emilskindersoe.github.io/gcTMB/reference/FabaHeights26.md)).
 [`gcTMB()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)
 takes the response and the time in the formula and the growth model in
 `model`; starting values are found automatically
@@ -188,23 +170,12 @@ confint(fit, method = "wald")
 #> sigma          11.473127 11.967608
 ```
 
-## Other data sets
+## Other explanatory variables
 
-The other faba bean data sets, `FabaHeights25` (heights of 25 plants
-grown in tubes at five treatment levels) and `FabaCounts23` (counts of
-pods), are used in the vignettes *Growth models and their parameters*
-and *Fixed and random effects*, and for the counts below. Besides the
-faba bean data, the package has growth data from other fields:
-`BerkeleyGrowth` (heights and weights of children from birth to 21
-years, used in the vignette *Timing and maximum growth rates* with the
-Preece-Baines curve), `SorghumMaize` (biomass of three crops at two
-input levels, used in the vignettes *Correlation structures* and
-*Simulation* with the beta curve) and `PineHeightDiameter` (heights and
-diameters of Scots pine trees with their positions, used in the
-vignettes *Fixed and random effects* and *Correlation structures*). The
-x-axis need not be time: in a height-diameter model the height grows
-with the diameter, from the breast height of 1.3 m, the intercept
-$`b_4`$ of the Chapman-Richards curve:
+The x-axis need not be time: in a height-diameter model of
+`PineHeightDiameter`, the height grows with the diameter, from the
+breast height of 1.3 m, the intercept $`b_4`$ of the Chapman-Richards
+curve:
 
 ``` r
 
@@ -224,11 +195,10 @@ ggplot(PineHeightDiameter, aes(x = DBH, y = Height)) +
 ## Fixed and random effects
 
 Covariates on the parameters are formulas in `fform`, and random effects
-in `rform`, as in
-[`nlme::nlme`](https://rdrr.io/pkg/nlme/man/nlme.html). Here the soil
-type and the irrigation, and their interaction, act on the asymptote
-$`b_1`$ and the time of the maximum growth rate $`b_2`$, and each plant
-has correlated random effects on both:
+in `rform`. Here the soil type and the irrigation, and their
+interaction, act on the asymptote $`b_1`$ and the time of the maximum
+growth rate $`b_2`$, and each plant has correlated random effects on
+both:
 
 ``` r
 
@@ -307,10 +277,9 @@ random effects*.
 
 The `family` argument gives the distribution of the response:
 “gaussian”, “lognormal”, “poisson”, “nbinom2”, “nbinom1”, “binomial”,
-“betabinomial” or “beta”. The data set `FabaCounts23` contains the
-numbers of pods of 22 plants of six genotypes; the plants have no pods
-at the first counts, so the threshold $`b_4`$, the time of the first
-pods, is estimated.
+“betabinomial” or “beta”. The pods of `FabaCounts23` are zero at the
+first counts, so the threshold $`b_4`$, the time of the first pods, is
+estimated.
 
 ``` r
 
@@ -427,7 +396,7 @@ partest(fitpr, newdata = genotypes, contrasts = "tukey")
 ## Correlation structures
 
 The residuals of the gaussian and lognormal families can be correlated
-within individuals, with the correlation structures of nlme. Over time,
+within individuals. Over time,
 [`corAR1()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
 for integer times and
 [`corCAR1()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
@@ -486,22 +455,30 @@ c(true = corpars(fitrec), estimate = corpars(fitsim))
 #>    0.8516009    0.8150597
 ```
 
-The vignette *Simulation* repeats this for many data sets. In simulation
-studies, `control = list(sdreport = FALSE, restart = TRUE)` skips the
-standard errors and optimises a fit that does not converge once more
-from its estimates, and
+The vignette *Simulation* repeats this for many data sets.
+
+## Convergence
+
 [`converged()`](https://emilskindersoe.github.io/gcTMB/reference/converged.md)
-checks the fits.
+checks that the log-likelihood is finite, that the optimiser reports
+convergence with a largest absolute gradient below $`10^{-3}`$, and that
+the Hessian is positive definite. With few groups and several correlated
+random effects, the likelihood is often so flat in some directions that
+`nlminb` reports “singular convergence” or “false convergence”, or stops
+with a gradient slightly above $`10^{-3}`$, although it is at the
+maximum. With `control = list(restart = TRUE)`, such a fit is optimised
+once more from its estimates; the fit keeps the better optimum, and
+`fit$restart$improvement` holds the improvement of the log-likelihood.
+[`converged()`](https://emilskindersoe.github.io/gcTMB/reference/converged.md)
+accepts a fit that the restart improved by less than `lltol`
+($`10^{-6}`$ by default), since its maximum is stable. In a simulation
+study that does not need standard errors, `sdreport = FALSE` saves about
+a quarter of the time of each fit, but then the Hessian is not checked.
+The other vignettes use `restart = TRUE` for the fits with several
+random effects.
 
 ## References
 
 Dunn, P.K. and Smyth, G.K. (1996). Randomized quantile residuals.
 *Journal of Computational and Graphical Statistics* 5, 236–244.
 <doi:10.1080/10618600.1996.10474708>.
-
-Pinheiro, J.C. and Bates, D.M. (2000). *Mixed-Effects Models in S and
-S-PLUS*. Springer, New York.
-
-Zuur, A.F., Ieno, E.N., Walker, N.J., Saveliev, A.A. and Smith, G.M.
-(2009). *Mixed Effects Models and Extensions in Ecology with R*.
-Springer, New York.

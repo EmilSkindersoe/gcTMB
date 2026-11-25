@@ -9,14 +9,14 @@ for the heights of children of the Berkeley Child Guidance Study. The
 table of the inflection points and maximum growth rates of the growth
 models is in the vignette *Growth models and their parameters*.
 
-## The Berkeley data
+## The Preece-Baines model
 
-The data set `BerkeleyGrowth` contains the heights (cm) of 66 boys and
-70 girls born in Berkeley, California, in 1928-29, measured from birth
-to 21 years (Tuddenham and Snyder, 1954). Human growth in height is not
-a single sigmoid curve: it slows down through childhood, speeds up in
-the pubertal growth spurt, and stops at the adult height. Model 1 of
-Preece and Baines (1978) describes this with five parameters,
+The heights of the children of `BerkeleyGrowth` (see
+[`?BerkeleyGrowth`](https://emilskindersoe.github.io/gcTMB/reference/BerkeleyGrowth.md))
+are not a single sigmoid curve: their growth slows down through
+childhood, speeds up in the pubertal growth spurt, and stops at the
+adult height. Model 1 of Preece and Baines (1978) describes this with
+five parameters,
 
 ``` math
  h(t) = b_1 - \frac{2 (b_1 - b_3)}{\exp(b_4 (t - b_2)) + \exp(b_5 (t - b_2))}, 
@@ -244,12 +244,9 @@ converged(fitre)
 #> [1] TRUE
 ```
 
-With 17 parameters and strongly correlated random effects, the optimiser
-stops with a gradient above $`10^{-3}`$;
-`control = list(restart = TRUE)` optimises once more from the estimates,
-which no longer improves the log-likelihood, so that
-[`converged()`](https://emilskindersoe.github.io/gcTMB/reference/converged.md)
-accepts the fit (see the vignette *Simulation*).
+With 17 parameters and strongly correlated random effects, the fit needs
+`control = list(restart = TRUE)` to converge (see the overview
+[`vignette("gcTMB")`](https://emilskindersoe.github.io/gcTMB/articles/gcTMB.md)).
 
 [`timeto()`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md)
 and
@@ -284,8 +281,7 @@ The girls reach the middle of puberty, the peak of their growth spurt
 and their adult height about two years earlier than the boys.
 [`partest()`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
 compares a parameter between the rows of `newdata` by Wald tests, here
-the middle of puberty $`b_2`$ (see below for the details of
-[`partest()`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)):
+the middle of puberty $`b_2`$:
 
 ``` r
 
@@ -409,19 +405,12 @@ anova(fitrr0, fitrr)
 
 [`partest()`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
 compares the maximum growth rates between the rows of `newdata` by Wald
-tests: by default each row against the first row
-(`contrasts = "dunnett"`; another reference with `ref`), or all the
-pairs of rows with `contrasts = "tukey"`. By default, the p-values and
-the confidence intervals are adjusted for the number of comparisons by
-the single-step method, Dunnett’s or Tukey’s method generalised to the
-correlated estimates of a model, so that the intervals cover all the
-differences simultaneously; `adjust = "holm"` and the other methods of
-[`p.adjust()`](https://rdrr.io/r/stats/p.adjust.html) adjust the
-p-values only, and `adjust = "none"` gives the unadjusted tests. With
-two sexes there is a single difference, girls against boys, shown here
-without adjustment. With the log link, the differences are log ratios of
-the rates, and the ratios are given as well. The same works for the
-other parameters, e.g. `parm = "b2"` as above.
+tests (see
+[`?partest`](https://emilskindersoe.github.io/gcTMB/reference/partest.md)
+for the contrasts and the adjustment for multiple comparisons). With two
+sexes there is a single difference, girls against boys, shown here
+without adjustment; with the log link, the differences are log ratios of
+the rates, and the ratios are given as well.
 
 ``` r
 
@@ -461,7 +450,3 @@ curves of the sexes above.
 Preece, M.A. and Baines, M.J. (1978). A new family of mathematical
 models describing the human growth curve. *Annals of Human Biology* 5,
 1–24.
-
-Tuddenham, R.D. and Snyder, M.M. (1954). Physical growth of California
-boys and girls from birth to eighteen years. *University of California
-Publications in Child Development* 1, 183–364.

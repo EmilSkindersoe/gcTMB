@@ -76,49 +76,11 @@ described in the vignette <em>Correlation structures</em>.</p>
 <div class="section level2">
 <h2 id="the-sorghum-and-maize-data">The sorghum and maize data<a class="anchor" aria-label="anchor" href="#the-sorghum-and-maize-data"></a>
 </h2>
-<p>The data set <code>SorghumMaize</code> contains the above-ground
-biomass (Mg/ha) of fiber sorghum, sweet sorghum and maize at two input
-levels of water and nitrogen, in four blocks, sampled on 11 days of the
-year from sowing, day 141, to day 303 (Danalatos et al., 2009; Miguez,
-2025). Each combination of crop, input level and block is a plot,
-sampled repeatedly over the season. The growth of a crop over a season
-is determinate: it stops at maturity, after which the biomass may
-decline as leaves are lost. The beta growth function of Yin et
-al. (2003), <code>model = "beta"</code>, describes this, from the start
-of growth
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>,
-here fixed at sowing, to the maximum
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
-at the end of growth
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
-with the time of the fastest growth
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>,
-and back towards zero after
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
-reaching it at
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">2 b_3 - b_2</annotation></semantics></math>
-(see the vignette <em>Growth models and their parameters</em>;
-<code>model = "beta_capped"</code> stays at the maximum instead).</p>
-<p>The biomass varies little between the plots while it is small, and
-more as it grows. A gaussian model has a constant residual variance, as
-large at sowing as at maturity, and data simulated from it are often
-negative early in the season. The lognormal family,
-<code>family = "lognormal"</code>, has a constant coefficient of
-variation instead:
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(y)</annotation></semantics></math>
-is normal with mean
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log f(t)</annotation></semantics></math>
-and standard deviation
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>,
-so that the curve
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
-is the median of the biomass, and the residuals are relative deviations
-from it. It needs positive responses, so the zero biomass at sowing is
-left out; the beta curve is zero at sowing,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>=</mo><mn>141</mn></mrow><annotation encoding="application/x-tex">b_4 = 141</annotation></semantics></math>,
-anyway. The asymptote and the time of the fastest growth depend on the
-crop and the input level, and each plot has a random asymptote (see the
-vignette <em>Correlation structures</em>). The data:</p>
+<p>The examples use the biomass of <code>SorghumMaize</code> (see
+<code><a href="../reference/SorghumMaize.html">?SorghumMaize</a></code>), with the lognormal beta growth function of
+the vignette <em>Correlation structures</em>: each combination of crop,
+input level and block is a plot, and the zero biomass at sowing is left
+out.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://emilskindersoe.github.io/gcTMB/">gcTMB</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
@@ -135,22 +97,12 @@ vignette <em>Correlation structures</em>). The data:</p>
 <div class="section level2">
 <h2 id="the-model-with-autocorrelation">The model with autocorrelation<a class="anchor" aria-label="anchor" href="#the-model-with-autocorrelation"></a>
 </h2>
-<p>The autocorrelation of the residuals of a plot over time is modelled
-with <code>corCAR1(form = ~ DOY | plot)</code>, the continuous-time
-AR(1) process of the package nlme, for the unequally spaced samplings:
-residuals
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">dt</annotation></semantics></math>
-days apart have the correlation
+<p>The residuals of a plot have the continuous-time AR(1) correlation
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ρ</mi><mrow><mi>d</mi><mi>t</mi></mrow></msup><annotation encoding="application/x-tex">\rho^{dt}</annotation></semantics></math>
-(Pinheiro and Bates, 2000; Zuur et al., 2009, Chapter 6). The vignette
-<em>Correlation structures</em> describes it in detail. The starting
-value
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>0.9</mn></mrow><annotation encoding="application/x-tex">\rho = 0.9</annotation></semantics></math>
-gives a correlation of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>0.9</mn><mn>15</mn></msup><mo>≈</mo><mn>0.2</mn></mrow><annotation encoding="application/x-tex">0.9^{15} \approx 0.2</annotation></semantics></math>
-between samplings about 15 days apart; for the lognormal family, the
-correlation is that of the residuals of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(y)</annotation></semantics></math>:</p>
+between samplings
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">dt</annotation></semantics></math>
+days apart, <code>corCAR1(form = ~ DOY | plot)</code> (see the vignette
+<em>Correlation structures</em>):</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitrec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Biomass</span> <span class="op">~</span> <span class="va">DOY</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Crop</span> <span class="op">*</span> <span class="va">Input</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plot</span>, data <span class="op">=</span> <span class="va">sm</span>,</span>
 <span>                model <span class="op">=</span> <span class="st">"beta"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">141</span><span class="op">)</span>, family <span class="op">=</span> <span class="st">"lognormal"</span>,</span>
@@ -160,10 +112,9 @@ correlation is that of the residuals of
 <span><span class="co">#&gt; 0.04809179</span></span></code></pre></div>
 <p>The estimate of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
-is a correlation of practically zero between consecutive samplings: the
-relative deviations of a plot from its curve are independent over the
-season. Below, simulations with a true autocorrelation show that the
-model finds it when it is there.</p>
+is a correlation of practically zero between consecutive samplings.
+Below, simulations with a true autocorrelation show that the model finds
+it when it is there.</p>
 </div>
 <div class="section level2">
 <h2 id="simulation">Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
@@ -269,40 +220,6 @@ curve, with its own random effect drawn from the fitted variance.</p>
 <span>                model <span class="op">=</span> <span class="st">"beta"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">141</span><span class="op">)</span>, family <span class="op">=</span> <span class="st">"lognormal"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/converged.html">converged</a></span><span class="op">(</span><span class="va">simfit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
-<p><code><a href="../reference/converged.html">converged()</a></code> checks that the log-likelihood is finite,
-that the optimiser reports convergence with a largest absolute gradient
-below
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>3</mn></mrow></msup><annotation encoding="application/x-tex">10^{-3}</annotation></semantics></math>,
-and that the Hessian is positive definite. With few groups and several
-correlated random effects, the likelihood is often so flat in some
-directions that <code>nlminb</code> reports “singular convergence” or
-“false convergence”, or stops with a gradient slightly above
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>3</mn></mrow></msup><annotation encoding="application/x-tex">10^{-3}</annotation></semantics></math>,
-although it is at the maximum. With
-<code>control = list(restart = TRUE)</code>, such a fit is optimised
-once more from its estimates. The fit keeps the better optimum, and
-<code>fit$restart$improvement</code> holds the improvement of the
-log-likelihood. <code><a href="../reference/converged.html">converged()</a></code> accepts a fit that the restart
-improved by less than <code>lltol</code>
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>6</mn></mrow></msup><annotation encoding="application/x-tex">10^{-6}</annotation></semantics></math>
-by default), since its maximum is stable. In a simulation study that
-does not need standard errors, <code>sdreport = FALSE</code> also saves
-about a quarter of the time of each fit, but then the Hessian is not
-checked. Here, with three plots of each crop, the fit converges at once,
-so that the restart is not needed and <code>f1$restart</code> is
-<code>NULL</code>:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">small</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">simdata</span>, <span class="va">plot</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"plot"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fl">21</span><span class="op">:</span><span class="fl">23</span>, <span class="fl">41</span><span class="op">:</span><span class="fl">43</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">f0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Biomass</span> <span class="op">~</span> <span class="va">DOY</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Crop</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plot</span>, data <span class="op">=</span> <span class="va">small</span>,</span>
-<span>            model <span class="op">=</span> <span class="st">"beta"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">141</span><span class="op">)</span>, family <span class="op">=</span> <span class="st">"lognormal"</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sdreport <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/converged.html">converged</a></span><span class="op">(</span><span class="va">f0</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] TRUE</span></span>
-<span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Biomass</span> <span class="op">~</span> <span class="va">DOY</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Crop</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plot</span>, data <span class="op">=</span> <span class="va">small</span>,</span>
-<span>            model <span class="op">=</span> <span class="st">"beta"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">141</span><span class="op">)</span>, family <span class="op">=</span> <span class="st">"lognormal"</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sdreport <span class="op">=</span> <span class="cn">FALSE</span>, restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">f1</span><span class="op">$</span><span class="va">restart</span><span class="op">$</span><span class="va">improvement</span></span>
-<span><span class="co">#&gt; NULL</span></span>
-<span><span class="fu"><a href="../reference/converged.html">converged</a></span><span class="op">(</span><span class="va">f1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>The 95% parametric bootstrap confidence intervals of the coefficients
 and the variance parameters are compared with the true values, the
 estimates of the original fit. <code>confint</code> reports the standard
@@ -310,7 +227,7 @@ deviation of the random effects and the residual standard deviation on
 their natural scale, while <code>coef</code> has them on the log scale,
 so the true values and the estimates are transformed in the same
 way.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ci</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">simfit</span>, method <span class="op">=</span> <span class="st">"boot"</span>, nsim <span class="op">=</span> <span class="fl">50</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Computing bootstrap confidence intervals (50 simulations) ...</span></span>
 <span><span class="va">natural</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">{</span></span>
@@ -336,7 +253,7 @@ way.</p>
 <span><span class="co">#&gt; sd:b1|plot             3.581777   2.8538480   1.7905491   3.450739   FALSE</span></span>
 <span><span class="co">#&gt; sigma                  0.300555   0.3154057   0.3011981   0.331147   FALSE</span></span></code></pre></div>
 <p>The simulated biomass and the estimated curves of the 60 plots:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>DOY <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">141</span>, <span class="fl">300</span>, length.out <span class="op">=</span> <span class="fl">200</span><span class="op">)</span>, plot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">simdata</span><span class="op">$</span><span class="va">plot</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">grid</span><span class="op">$</span><span class="va">Crop</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">SorghumMaize</span><span class="op">$</span><span class="va">Crop</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">20</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="va">grid</span><span class="op">$</span><span class="va">plot</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">grid</span><span class="op">$</span><span class="va">Biomass</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">simfit</span>, newdata <span class="op">=</span> <span class="va">grid</span><span class="op">)</span></span>
@@ -390,7 +307,7 @@ with <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">u
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>0.8</mn><mn>10</mn></msup><mo>≈</mo><mn>0.11</mn></mrow><annotation encoding="application/x-tex">0.8^{10} \approx 0.11</annotation></semantics></math>
 between samplings 10 days apart, and all other parameters keep their
 estimates:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rho0</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span>
 <span><span class="va">fitcar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fitrec</span>, rho <span class="op">=</span> <span class="va">rho0</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> changes
@@ -411,7 +328,7 @@ to go when only
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 should differ from the fitted model, e.g. to compare simulations with
 different autocorrelations and otherwise the same parameters.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitfix</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Biomass</span> <span class="op">~</span> <span class="va">DOY</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Crop</span> <span class="op">*</span> <span class="va">Input</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plot</span>, data <span class="op">=</span> <span class="va">sm</span>,</span>
 <span>                model <span class="op">=</span> <span class="st">"beta"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">141</span><span class="op">)</span>, family <span class="op">=</span> <span class="st">"lognormal"</span>,</span>
 <span>                correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corCAR1</a></span><span class="op">(</span>value <span class="op">=</span> <span class="va">rho0</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">DOY</span> <span class="op">|</span> <span class="va">plot</span>, fixed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
@@ -433,7 +350,7 @@ from day 150 to day 300. We fit the model to each data set, now with
 estimated. <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> computes the Wald interval of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 on the logit scale and transforms it back.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>DOY <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">150</span>, <span class="fl">300</span>, by <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, rep <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, Crop <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">SorghumMaize</span><span class="op">$</span><span class="va">Crop</span><span class="op">)</span>,</span>
 <span>                      Input <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">SorghumMaize</span><span class="op">$</span><span class="va">Input</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">design</span><span class="op">$</span><span class="va">plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/interaction.html" class="external-link">interaction</a></span><span class="op">(</span><span class="va">design</span><span class="op">$</span><span class="va">rep</span>, <span class="va">design</span><span class="op">$</span><span class="va">Crop</span>, <span class="va">design</span><span class="op">$</span><span class="va">Input</span>, drop <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -451,11 +368,11 @@ on the logit scale and transforms it back.</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 and of the bounds of their 95% Wald intervals, and the coverage of the
 intervals, against the true value 0.8:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">carsim</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rho"</span>, <span class="st">"lower"</span>, <span class="st">"upper"</span>, <span class="st">"covered"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       rho     lower     upper   covered </span></span>
 <span><span class="co">#&gt; 0.7869091 0.7205922 0.8409081 0.9800000</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">carsim</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">rho</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">10</span>, fill <span class="op">=</span> <span class="st">"grey70"</span>, colour <span class="op">=</span> <span class="st">"grey30"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="va">rho0</span>, colour <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -463,25 +380,6 @@ intervals, against the true value 0.8:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="simulation_files/figure-html/sim-carplot-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
-</div>
-<div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
-</h2>
-<p>Danalatos, N.G., Archontoulis, S.V. and Tsiboukas, K. (2009).
-Comparative analysis of sorghum versus corn growing under optimum and
-under water/nitrogen limited conditions in central Greece. In:
-<em>Proceedings of the 17th European Biomass Conference</em>, Hamburg,
-538–544.</p>
-<p>Miguez, F. (2025). <em>nlraa: Nonlinear Regression for Agricultural
-Applications</em>. R package, <a href="https://CRAN.R-project.org/package=nlraa" class="external-link uri">https://CRAN.R-project.org/package=nlraa</a>.</p>
-<p>Pinheiro, J.C. and Bates, D.M. (2000). <em>Mixed-Effects Models in S
-and S-PLUS</em>. Springer, New York.</p>
-<p>Zuur, A.F., Ieno, E.N., Walker, N.J., Saveliev, A.A. and Smith, G.M.
-(2009). <em>Mixed Effects Models and Extensions in Ecology with R</em>.
-Springer, New York.</p>
-<p>Yin, X., Goudriaan, J., Lantinga, E.A., Vos, J. and Spiertz, H.J.
-(2003). A flexible sigmoid function of determinate growth. <em>Annals of
-Botany</em> 91, 361–371.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

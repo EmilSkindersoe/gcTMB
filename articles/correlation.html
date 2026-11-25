@@ -80,50 +80,15 @@ there.</p>
 <h2 id="temporal-correlation">Temporal correlation<a class="anchor" aria-label="anchor" href="#temporal-correlation"></a>
 </h2>
 <div class="section level3">
-<h3 id="the-sorghum-and-maize-data">The sorghum and maize data<a class="anchor" aria-label="anchor" href="#the-sorghum-and-maize-data"></a>
+<h3 id="the-model">The model<a class="anchor" aria-label="anchor" href="#the-model"></a>
 </h3>
-<p>The data set <code>SorghumMaize</code> contains the above-ground
-biomass (Mg/ha) of fiber sorghum, sweet sorghum and maize at two input
-levels of water and nitrogen, in four blocks, sampled on 11 days of the
-year from sowing, day 141, to day 303 (Danalatos et al., 2009; Miguez,
-2025). Each combination of crop, input level and block is a plot,
-sampled repeatedly over the season. The growth of a crop over a season
-is determinate: it stops at maturity, after which the biomass may
-decline as leaves are lost. The beta growth function of Yin et
-al. (2003), <code>model = "beta"</code>, describes this, from the start
-of growth
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>,
-here fixed at sowing, to the maximum
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
-at the end of growth
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
-with the time of the fastest growth
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>,
-and back towards zero after
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
-reaching it at
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">2 b_3 - b_2</annotation></semantics></math>
-(see the vignette <em>Growth models and their parameters</em>;
-<code>model = "beta_capped"</code> stays at the maximum instead).</p>
-<p>The biomass varies little between the plots while it is small, and
-more as it grows. A gaussian model has a constant residual variance, as
-large at sowing as at maturity, and data simulated from it are often
-negative early in the season. The lognormal family,
-<code>family = "lognormal"</code>, has a constant coefficient of
-variation instead:
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(y)</annotation></semantics></math>
-is normal with mean
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log f(t)</annotation></semantics></math>
-and standard deviation
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>,
-so that the curve
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
-is the median of the biomass, and the residuals are relative deviations
-from it. It needs positive responses, so the zero biomass at sowing is
-left out; the beta curve is zero at sowing,
+<p>The biomass of <code>SorghumMaize</code> (see
+<code><a href="../reference/SorghumMaize.html">?SorghumMaize</a></code>) is fitted with the beta growth function from
+sowing,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>=</mo><mn>141</mn></mrow><annotation encoding="application/x-tex">b_4 = 141</annotation></semantics></math>,
-anyway. The asymptote and the time of the fastest growth depend on the
-crop and the input level, and each plot has a random asymptote:</p>
+and the lognormal family, whose residuals are relative deviations from
+the curve; the zero biomass at sowing is left out. Each combination of
+crop, input level and block is a plot, with a random asymptote:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://emilskindersoe.github.io/gcTMB/">gcTMB</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
@@ -143,58 +108,23 @@ crop and the input level, and each plot has a random asymptote:</p>
 <h3 id="autocorrelation-of-the-residuals">Autocorrelation of the residuals<a class="anchor" aria-label="anchor" href="#autocorrelation-of-the-residuals"></a>
 </h3>
 <p>A plot that is above its curve at one sampling may stay above it at
-the next. The <code>correlation</code> argument models this
-autocorrelation of the residuals within a group over time, with the same
-correlation structures as the package nlme (Pinheiro and Bates, 2000;
-Zuur et al., 2009, Chapter 6). The residuals
+the next. With the <code>correlation</code> argument, the residuals
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math>
-of a group are normal with the residual variance
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>σ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\sigma^2</annotation></semantics></math>
-and</p>
+of a group have the correlation</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>ε</mi><mi>s</mi></msub><mo>,</mo><msub><mi>ε</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mi>ρ</mi><mrow><mo stretchy="false" form="prefix">|</mo><mi>t</mi><mo>−</mo><mi>s</mi><mo stretchy="false" form="prefix">|</mo></mrow></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">\mathrm{cor}(\varepsilon_s, \varepsilon_t) = \rho^{|t - s|},</annotation></semantics></math></p>
 <p>with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
-the correlation of residuals one unit of time apart.
-<code><a href="../reference/corStruct.html">corAR1()</a></code> is the autoregressive process of order 1 at
-integer times (or at the positions of the observations, with
-<code>form = ~ 1 | group</code>), with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mn>1</mn><mo>&lt;</mo><mi>ρ</mi><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1 &lt; \rho &lt; 1</annotation></semantics></math>;
-<code><a href="../reference/corStruct.html">corCAR1()</a></code> its continuous-time version, for unequally spaced
-times, with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>&lt;</mo><mi>ρ</mi><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0 &lt; \rho &lt; 1</annotation></semantics></math>.
-Residuals of different groups are independent, and the correlation is
-available for the gaussian and lognormal (on the log scale) families. As
-the process is Markov, each residual given the previous one of its
-group,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">dt</annotation></semantics></math>
-earlier, is normal with mean
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>ρ</mi><mrow><mi>d</mi><mi>t</mi></mrow></msup><msub><mi>ε</mi><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">v</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\rho^{dt} \varepsilon_{\mathrm{prev}}</annotation></semantics></math>
-and variance
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msup><mi>ρ</mi><mrow><mn>2</mn><mi>d</mi><mi>t</mi></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\sigma^2 (1 - \rho^{2 dt})</annotation></semantics></math>,
-so the likelihood is exact and its cost linear in the number of
-observations; with random effects, the Laplace approximation integrates
-them out as before.</p>
-<p>The parameter
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
-is estimated on an unconstrained scale, as in nlme. For
-<code><a href="../reference/corStruct.html">corCAR1()</a></code>, with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>&lt;</mo><mi>ρ</mi><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0 &lt; \rho &lt; 1</annotation></semantics></math>,
-this is the logit link,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(\rho/(1 - \rho))</annotation></semantics></math>.
-For <code><a href="../reference/corStruct.html">corAR1()</a></code>, with
+the correlation of residuals one unit of time apart:
+<code><a href="../reference/corStruct.html">corAR1()</a></code> for integer times, with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mn>1</mn><mo>&lt;</mo><mi>ρ</mi><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">-1 &lt; \rho &lt; 1</annotation></semantics></math>,
-it is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log((1 + \rho)/(1 - \rho))</annotation></semantics></math>,
-the logit of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">(1 + \rho)/2</annotation></semantics></math>,
-which maps the interval
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mn>1</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(-1, 1)</annotation></semantics></math>
-to the real line (twice Fisher’s
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>-transformation,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">h</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>ρ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">2\,\mathrm{atanh}(\rho)</annotation></semantics></math>).
-<code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code> reports the parameter on this scale, as
-<code>cor_par:CAR1</code> or <code>cor_par:AR1</code>, and
-<code><a href="../reference/gcTMB-extract.html">corpars()</a></code>, <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> and
+and <code><a href="../reference/corStruct.html">corCAR1()</a></code> for continuous, unequally spaced times, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>&lt;</mo><mi>ρ</mi><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0 &lt; \rho &lt; 1</annotation></semantics></math>.
+Residuals of different groups are independent. <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>
+reports
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+on an unconstrained scale, e.g. <code>cor_par:CAR1</code>, the logit of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>,
+and <code><a href="../reference/gcTMB-extract.html">corpars()</a></code>, <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> and
 <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> report
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 itself.</p>
@@ -203,7 +133,7 @@ itself.</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 the correlation per day. Its starting value is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>0.2</mn></mrow><annotation encoding="application/x-tex">\rho = 0.2</annotation></semantics></math>
-by default, as in nlme, which is a correlation of
+by default, which is a correlation of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>0.2</mn><mn>15</mn></msup><annotation encoding="application/x-tex">0.2^{15}</annotation></semantics></math>,
 practically zero, between consecutive samplings; there the likelihood
 hardly changes with
@@ -275,22 +205,11 @@ the relative deviations from the curve:</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 moves far down from its starting value, to a correlation of practically
 zero between consecutive samplings, and the likelihood ratio test finds
-no autocorrelation: the relative deviations of a plot from its curve are
-independent over the season. The random asymptotes of the plots are not
-needed either, as their standard deviation is close to zero once the
-crops and the input levels have their own curves. With the gaussian
-family, both appear to be needed; this is not a feature of the plots,
-but of the constant residual variance, which misfits the small
-deviations early in the season and the large ones late. The vignette
-<em>Simulation</em> shows, with simulations with a true autocorrelation,
-that the model finds it when it is there.</p>
-<p><code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> gives the profile likelihood interval of
+no autocorrelation. The Wald interval of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>,
-or with <code>method = "wald"</code> a Wald interval computed on the
-logit scale and transformed back. Here it spans the whole range from 0
-to 1: without autocorrelation in the data, the likelihood is flat in
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>,
-and the data say nothing about its value.</p>
+computed on the logit scale, spans the whole range from 0 to 1: the
+likelihood is flat in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fitrec</span>, parm <span class="op">=</span> <span class="st">"cor_par:CAR1"</span>, method <span class="op">=</span> <span class="st">"wald"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     2.5 % 97.5 %</span></span>
@@ -301,20 +220,17 @@ and the data say nothing about its value.</p>
 <h2 id="spatial-correlation">Spatial correlation<a class="anchor" aria-label="anchor" href="#spatial-correlation"></a>
 </h2>
 <div class="section level3">
-<h3 id="the-scots-pine-data">The Scots pine data<a class="anchor" aria-label="anchor" href="#the-scots-pine-data"></a>
+<h3 id="the-model-1">The model<a class="anchor" aria-label="anchor" href="#the-model-1"></a>
 </h3>
-<p>The data set <code>PineHeightDiameter</code> contains the heights (m)
-and the diameters at breast height (cm) of 1678 Scots pine trees on 56
-sample plots in eastern Finland, with the position of each tree within
-its plot, <code>X</code> and <code>Y</code> in metres (Pukkala, 1989;
-Mehtätalo and Lappi, 2020). The height grows with the diameter from the
-breast height of 1.3 m, as the Chapman-Richards curve with the intercept
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>=</mo><mn>1.3</mn></mrow><annotation encoding="application/x-tex">b_4 = 1.3</annotation></semantics></math>
-describes (see the vignette <em>Fixed and random effects</em>). Trees
-that grow close to each other share their light, water and soil, and
-compete with each other, so that a tree that is taller than the curve
-predicts for its diameter may have neighbours that are taller too
-(Pukkala, 1989).</p>
+<p>The heights of the pines of <code>PineHeightDiameter</code> (see
+<code><a href="../reference/PineHeightDiameter.html">?PineHeightDiameter</a></code>) grow with their diameter, as the
+Chapman-Richards curve from breast height describes (see the vignette
+<em>Fixed and random effects</em>), and the positions <code>X</code> and
+<code>Y</code> of the trees in their plots give the distances between
+them. Trees that grow close to each other share their light, water and
+soil, and compete with each other, so that a tree that is taller than
+the curve predicts for its diameter may have neighbours that are taller
+too (Pukkala, 1989).</p>
 <p>To keep the example quick, we use the 41 plots with up to 20 measured
 trees each, leaving out the 15 plots with 48 to 105. We first fit a
 single curve for all plots, without random effects, with the correlation
@@ -345,15 +261,14 @@ of two residuals of a group as a function of the distance
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
 between their positions, with a range
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">r &gt; 0</annotation></semantics></math>:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>ε</mi><mi>i</mi></msub><mo>,</mo><msub><mi>ε</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mi>d</mi><mi>/</mi><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mspace width="1.0em"></mspace><mtext mathvariant="normal">(exponential)</mtext><mo>,</mo><mspace width="2.0em"></mspace><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>ε</mi><mi>i</mi></msub><mo>,</mo><msub><mi>ε</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mo stretchy="false" form="prefix">(</mo><mi>d</mi><mi>/</mi><mi>r</mi><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo><mspace width="1.0em"></mspace><mtext mathvariant="normal">(Gaussian)</mtext><mo>,</mo></mrow><annotation encoding="application/x-tex">\mathrm{cor}(\varepsilon_i, \varepsilon_j) = (1 - n) \exp(-d/r) \quad \text{(exponential)}, \qquad \mathrm{cor}(\varepsilon_i, \varepsilon_j) = (1 - n) \exp(-(d/r)^2) \quad \text{(Gaussian)},</annotation></semantics></math></p>
-<p>as in nlme (Pinheiro and Bates, 2000, Section 5.3). The exponential
-correlation falls quickly at short distances and then levels off; the
-Gaussian correlation stays close to its maximum at short distances and
-then falls steeply, for residuals that change smoothly in space. The
-positions are given in the form, <code>~ X + Y | Plot</code>, and the
-distance is euclidean by default (<code>metric = "manhattan"</code> or
-<code>"maximum"</code> give the others). Residuals of different plots
-are independent.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>ε</mi><mi>i</mi></msub><mo>,</mo><msub><mi>ε</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mi>d</mi><mi>/</mi><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mspace width="1.0em"></mspace><mtext mathvariant="normal">(exponential)</mtext><mo>,</mo><mspace width="2.0em"></mspace><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>ε</mi><mi>i</mi></msub><mo>,</mo><msub><mi>ε</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mo stretchy="false" form="prefix">(</mo><mi>d</mi><mi>/</mi><mi>r</mi><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo><mspace width="1.0em"></mspace><mtext mathvariant="normal">(Gaussian)</mtext><mi>.</mi></mrow><annotation encoding="application/x-tex">\mathrm{cor}(\varepsilon_i, \varepsilon_j) = (1 - n) \exp(-d/r) \quad \text{(exponential)}, \qquad \mathrm{cor}(\varepsilon_i, \varepsilon_j) = (1 - n) \exp(-(d/r)^2) \quad \text{(Gaussian)}.</annotation></semantics></math></p>
+<p>The exponential correlation falls quickly at short distances and then
+levels off; the Gaussian correlation stays close to its maximum at short
+distances and then falls steeply, for residuals that change smoothly in
+space. The positions are given in the form, <code>~ X + Y | Plot</code>,
+and the distance is euclidean by default
+(<code>metric = "manhattan"</code> or <code>"maximum"</code> give the
+others). Residuals of different plots are independent.</p>
 <p>The nugget
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>&lt;</mo><mi>n</mi><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0 &lt; n &lt; 1</annotation></semantics></math>,
 with <code>nugget = TRUE</code>, is the share of the residual variance
@@ -368,19 +283,19 @@ range and the nugget are estimated on the scales
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(r)</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(n/(1 - n))</annotation></semantics></math>,
-as in nlme, and reported as <code>cor_par:range</code> and
+and reported as <code>cor_par:range</code> and
 <code>cor_par:nugget</code> by <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>;
 <code><a href="../reference/gcTMB-extract.html">corpars()</a></code> gives them on their natural scale. The residuals
 of a plot are multivariate normal with this correlation matrix, so the
 cost of a fit grows with the cube of the number of trees per plot.</p>
-<p>As in nlme, the range starts by default at 90% of the smallest
-distance between two trees of a plot, and the nugget at 0.1. The
-smallest distance here is 0.22 m, at which start the Gaussian
-correlation between trees a metre apart is practically zero: the
-likelihood hardly changes with the range there, and the optimiser stays
-at the starting value, as for <code><a href="../reference/corStruct.html">corCAR1()</a></code> above. A starting
-range of a few metres, <code>value = c(5, 0.2)</code> for the range and
-the nugget, avoids this:</p>
+<p>The range starts by default at 90% of the smallest distance between
+two trees of a plot, and the nugget at 0.1. The smallest distance here
+is 0.22 m, at which start the Gaussian correlation between trees a metre
+apart is practically zero: the likelihood hardly changes with the range
+there, and the optimiser stays at the starting value, as for
+<code><a href="../reference/corStruct.html">corCAR1()</a></code> above. A starting range of a few metres,
+<code>value = c(5, 0.2)</code> for the range and the nugget, avoids
+this:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit0</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corExp</a></span><span class="op">(</span><span class="fl">5</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">X</span> <span class="op">+</span> <span class="va">Y</span> <span class="op">|</span> <span class="va">Plot</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fitexpn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit0</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corExp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">0.2</span><span class="op">)</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">X</span> <span class="op">+</span> <span class="va">Y</span> <span class="op">|</span> <span class="va">Plot</span>, nugget <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
@@ -467,11 +382,8 @@ random effects of
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
 are uncorrelated (<code>||</code>): with a correlation between them, the
-optimiser stops with false convergence, as the likelihood is nearly flat
-in some directions. With random effects,
-<code>control = list(restart = TRUE)</code> optimises once more from the
-estimates where the first optimisation stops short of convergence (see
-the vignette <em>Simulation</em>):</p>
+optimiser stops with false convergence (on <code>restart = TRUE</code>,
+see the overview <code><a href="../articles/gcTMB.html">vignette("gcTMB")</a></code>):</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ctl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">fitre1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit0</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plot</span>, control <span class="op">=</span> <span class="va">ctl</span><span class="op">)</span></span>
@@ -510,29 +422,11 @@ share.</p>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<p>Danalatos, N.G., Archontoulis, S.V. and Tsiboukas, K. (2009).
-Comparative analysis of sorghum versus corn growing under optimum and
-under water/nitrogen limited conditions in central Greece. In:
-<em>Proceedings of the 17th European Biomass Conference</em>, Hamburg,
-538–544.</p>
 <p>Diggle, P.J. (1988). An approach to the analysis of repeated
 measurements. <em>Biometrics</em> 44, 959–971.</p>
-<p>Mehtätalo, L. and Lappi, J. (2020). <em>Biometry for Forestry and
-Environmental Data: with Examples in R</em>. Chapman and Hall/CRC, New
-York.</p>
-<p>Miguez, F. (2025). <em>nlraa: Nonlinear Regression for Agricultural
-Applications</em>. R package, <a href="https://CRAN.R-project.org/package=nlraa" class="external-link uri">https://CRAN.R-project.org/package=nlraa</a>.</p>
-<p>Pinheiro, J.C. and Bates, D.M. (2000). <em>Mixed-Effects Models in S
-and S-PLUS</em>. Springer, New York.</p>
 <p>Pukkala, T. (1989). Prediction of tree diameter and height in a Scots
 pine stand as a function of the spatial pattern of trees. <em>Silva
 Fennica</em> 23, 83–99.</p>
-<p>Yin, X., Goudriaan, J., Lantinga, E.A., Vos, J. and Spiertz, H.J.
-(2003). A flexible sigmoid function of determinate growth. <em>Annals of
-Botany</em> 91, 361–371.</p>
-<p>Zuur, A.F., Ieno, E.N., Walker, N.J., Saveliev, A.A. and Smith, G.M.
-(2009). <em>Mixed Effects Models and Extensions in Ecology with R</em>.
-Springer, New York.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

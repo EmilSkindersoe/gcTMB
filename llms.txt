@@ -182,11 +182,11 @@ have an asymmetry b5.
   Korf curve, as written by Kuželka and Marušák (2015), are
   height-diameter models of trees, with the diameter as t, in the
   parameters usual in forestry: the asymptote b1, the rate b2 and the
-  shape b3 of Chapman-Richards (model M8 of Ciceu et al. 2020), and the
-  asymptote b1, the coefficient b2 \> 0 and the shape b3 \> 1 of Korf.
-  Their intercept b4 is fixed at the breast height of 1.3 m unless given
-  in `start`, e.g. `start = c(b4 = 0)` for a curve from zero, or
-  estimated with `fix = c(b4 = FALSE)`.
+  shape b3 of Chapman-Richards, and the asymptote b1, the coefficient b2
+  \> 0 and the shape b3 \> 1 of Korf. Their intercept b4 is fixed at the
+  breast height of 1.3 m unless given in `start`,
+  e.g. `start = c(b4 = 0)` for a curve from zero, or estimated with
+  `fix = c(b4 = FALSE)`.
 - **Human growth**: model 1 of Preece and Baines (1978) describes the
   growth in height through childhood and puberty, with the adult height
   b1, the age b2 in the middle of puberty, the height b3 at b2, and the

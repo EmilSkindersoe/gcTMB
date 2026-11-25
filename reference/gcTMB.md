@@ -292,13 +292,12 @@ forestry, and the preecebaines model of human growth:
 
 - chapmanrichards: f(t) = b4 + b1 (1 - exp(-b2 t))^b3, the
   Chapman-Richards curve of Richards (1959) in its usual form for
-  height-diameter models (model M8 of Ciceu et al. 2020), zero above the
-  intercept b4 up to t = 0: b1 is the asymptote, b2 the rate, b3 the
-  shape and b4 the intercept, fixed by default at the breast height of
-  1.3 m (`start=c(b4=0)` for a curve from zero, `fix=c(b4=FALSE)` to
-  estimate it). For b3 \> 1 the inflection point is at log(b3)/b2, where
-  the curve reaches (1 - 1/b3)^b3 of its asymptote; for b3 \<= 1 it
-  grows fastest at t = 0;
+  height-diameter models, zero above the intercept b4 up to t = 0: b1 is
+  the asymptote, b2 the rate, b3 the shape and b4 the intercept, fixed
+  by default at the breast height of 1.3 m (`start=c(b4=0)` for a curve
+  from zero, `fix=c(b4=FALSE)` to estimate it). For b3 \> 1 the
+  inflection point is at log(b3)/b2, where the curve reaches (1 -
+  1/b3)^b3 of its asymptote; for b3 \<= 1 it grows fastest at t = 0;
 
 - beta: the beta growth function of Yin et al. (2003), eqn 8 (with b4 =
   0 there), f(t) = b1 (1 + (b3 - t)/(b3 - b2)) ((t - b4)/(b3 -
@@ -406,11 +405,6 @@ the rate anyway.
 
 Pinheiro, J.C. and Bates, D.M. (2000). Mixed-Effects Models in S and
 S-PLUS. Springer, New York.
-
-Ciceu, A., Garcia-Duro, J., Seceleanu, I. and Badea, O. (2020). A
-generalized nonlinear mixed-effects height-diameter model for Norway
-spruce in mixed-uneven aged stands. Forest Ecology and Management 477,
-118507.
 
 Preece, M.A. and Baines, M.J. (1978). A new family of mathematical
 models describing the human growth curve. Annals of Human Biology 5,

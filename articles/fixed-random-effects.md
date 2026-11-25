@@ -7,16 +7,14 @@ counts of pods of faba bean plants. The growth models and their
 parameters are introduced in the vignette *Growth models and their
 parameters*.
 
-## The pine data
+## The height-diameter model
 
-The data set `PineHeightDiameter` contains the heights (m) and the
-diameters at breast height (cm) of 1678 Scots pine trees on 56 sample
-plots in eastern Finland, with the mean diameter `dmean` of the trees of
-each plot (Pukkala, 1989; Mehtätalo and Lappi, 2020). The explanatory
-variable is the diameter, not time: the height grows with the diameter
-towards an asymptote, from the breast height of 1.3 m at which the
-diameter is measured. The Chapman-Richards curve with the intercept
-$`b_4 = 1.3`$ fixed describes this (model M8 of Ciceu et al., 2020):
+The heights of the pines of `PineHeightDiameter` (see
+[`?PineHeightDiameter`](https://emilskindersoe.github.io/gcTMB/reference/PineHeightDiameter.md))
+grow with their diameter towards an asymptote, from the breast height of
+1.3 m at which the diameter is measured. The Chapman-Richards curve with
+the intercept $`b_4 = 1.3`$ fixed describes this (Kuželka and Marušák,
+2015):
 
 ``` math
  h = 1.3 + b_1 \left(1 - \mathrm{e}^{-b_2 d}\right)^{b_3}, 
@@ -162,12 +160,9 @@ the test with the random effects is the one to use.
 
 The random effects are tested in the same way, by likelihood ratio tests
 of the models with and without them: here without random effects, with a
-random asymptote, and with random asymptotes and rates. The rate $`b_2`$
-is small, about 0.02 per cm, and some of these fits stop with a gradient
-just above the tolerance of
-[`converged()`](https://emilskindersoe.github.io/gcTMB/reference/converged.md);
-`control = list(restart = TRUE)` optimises once more from the estimates
-(see the vignette *Simulation*).
+random asymptote, and with random asymptotes and rates. Some of these
+fits need `control = list(restart = TRUE)` to converge (see the overview
+[`vignette("gcTMB")`](https://emilskindersoe.github.io/gcTMB/articles/gcTMB.md)).
 
 ``` r
 
@@ -198,15 +193,9 @@ each simulation and takes several minutes:
 anova(fitre1, fitre, test = "boot", nsim = 100, seed = 1)
 ```
 
-The random effects of `b1 + b2 ~ 1 | Plot` are correlated. With a double
-bar, `b1 + b2 ~ 1 || Plot`, they are independent, the same as
-`list(b1 ~ 1 | Plot, b2 ~ 1 | Plot)` and as
-`random = pdDiag(b1 + b2 ~ 1)` in nlme. A list of formulas mixes the
-two: `list(b1 + b2 ~ 1 | Plot, b3 ~ 1 | Plot)` gives correlated random
-effects of $`b_1`$ and $`b_2`$, and a random effect of $`b_3`$ that is
-independent of both, a block-diagonal covariance matrix as `pdBlocked`
-in nlme. The likelihood ratio test of the correlated and the independent
-random effects tests their correlation:
+The random effects of `b1 + b2 ~ 1 | Plot` are correlated, and those of
+`b1 + b2 ~ 1 || Plot` independent; the likelihood ratio test of the two
+tests their correlation:
 
 ``` r
 
@@ -261,16 +250,10 @@ AIC(fitre, fitk)
 ### Plotting the curves
 
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) with
-`type = "curves"` draws a plot directly: the data with the curve of each
-plot, and the population curve as a thick line. By default the curves
-are drawn over the observed diameters; `times` gives the values at which
-they are drawn, here from a diameter of zero, where the curves start at
-breast height. It returns the ggplot object in a list, for changing the
-graph. A single numeric covariate such as `dmean` is shown on a
-continuous colour scale, with the population curves at three of its
-values. Otherwise, the plot can be constructed manually using
-[`predict()`](https://rdrr.io/r/stats/predict.html); for the population
-curves of plots with small, medium and large trees:
+`type = "curves"` draws the curve of each plot and the population
+curves; [`predict()`](https://rdrr.io/r/stats/predict.html) gives the
+population curves with confidence intervals, here for plots with small,
+medium and large trees:
 
 ``` r
 
@@ -303,13 +286,12 @@ ggplot(PineHeightDiameter, aes(x = DBH, y = Height)) +
 
 The `family` argument gives the distribution of the response:
 “gaussian”, “lognormal”, “poisson”, “nbinom2”, “nbinom1”, “binomial”,
-“betabinomial” or “beta”. The data set `FabaCounts23` contains the
-numbers of pods of 22 faba bean plants of six genotypes, counted between
-61 and 79 days after sowing. The plants have no pods at the first
-counts, so the threshold $`b_4`$, the time of the first pods, is
-identified by the zero counts and estimated; the asymmetry is fixed at
-$`b_5 = 1`$. A Poisson model with an asymptote and a time of the maximum
-growth rate for each genotype, and a random asymptote for each plant:
+“betabinomial” or “beta”. The pods of `FabaCounts23` (see
+[`?FabaCounts23`](https://emilskindersoe.github.io/gcTMB/reference/FabaCounts23.md))
+are zero at the first counts, so the threshold $`b_4`$, the time of the
+first pods, is identified by the zero counts and estimated. A Poisson
+model with an asymptote and a time of the maximum growth rate for each
+genotype, and a random asymptote for each plant:
 
 ``` r
 
@@ -448,11 +430,6 @@ simulation. Note that `random` means the opposite in
 
 ## References
 
-Ciceu, A., Garcia-Duro, J., Seceleanu, I. and Badea, O. (2020). A
-generalized nonlinear mixed-effects height-diameter model for Norway
-spruce in mixed-uneven aged stands. *Forest Ecology and Management* 477,
-118507.
-
 Dunn, P.K. and Smyth, G.K. (1996). Randomized quantile residuals.
 *Journal of Computational and Graphical Statistics* 5, 236–244.
 <doi:10.1080/10618600.1996.10474708>.
@@ -464,13 +441,6 @@ Hartig, F. (2026). *DHARMa: Residual Diagnostics for Hierarchical
 Kuželka, K. and Marušák, R. (2015). KORFit: An efficient growth function
 fitting tool. *Computers and Electronics in Agriculture* 116, 187–190.
 <doi:10.1016/j.compag.2015.07.001>.
-
-Mehtätalo, L. and Lappi, J. (2020). *Biometry for Forestry and
-Environmental Data: with Examples in R*. Chapman and Hall/CRC, New York.
-
-Pukkala, T. (1989). Prediction of tree diameter and height in a Scots
-pine stand as a function of the spatial pattern of trees. *Silva
-Fennica* 23, 83–99. <doi:10.14214/sf.a15532>.
 
 Richards, F.J. (1959). A flexible growth function for empirical use.
 *Journal of Experimental Botany* 10, 290–300.

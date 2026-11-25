@@ -75,15 +75,13 @@ the Berkeley Child Guidance Study. The table of the inflection points
 and maximum growth rates of the growth models is in the vignette
 <em>Growth models and their parameters</em>.</p>
 <div class="section level2">
-<h2 id="the-berkeley-data">The Berkeley data<a class="anchor" aria-label="anchor" href="#the-berkeley-data"></a>
+<h2 id="the-preece-baines-model">The Preece-Baines model<a class="anchor" aria-label="anchor" href="#the-preece-baines-model"></a>
 </h2>
-<p>The data set <code>BerkeleyGrowth</code> contains the heights (cm) of
-66 boys and 70 girls born in Berkeley, California, in 1928-29, measured
-from birth to 21 years (Tuddenham and Snyder, 1954). Human growth in
-height is not a single sigmoid curve: it slows down through childhood,
-speeds up in the pubertal growth spurt, and stops at the adult height.
-Model 1 of Preece and Baines (1978) describes this with five
-parameters,</p>
+<p>The heights of the children of <code>BerkeleyGrowth</code> (see
+<code><a href="../reference/BerkeleyGrowth.html">?BerkeleyGrowth</a></code>) are not a single sigmoid curve: their
+growth slows down through childhood, speeds up in the pubertal growth
+spurt, and stops at the adult height. Model 1 of Preece and Baines
+(1978) describes this with five parameters,</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mo>−</mo><mfrac><mrow><mn>2</mn><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo>−</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>4</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>5</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex"> h(t) = b_1 - \frac{2 (b_1 - b_3)}{\exp(b_4 (t - b_2)) + \exp(b_5 (t - b_2))}, </annotation></semantics></math></p>
 <p>the adult height
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>,
@@ -292,13 +290,9 @@ coefficients of that parameter):</p>
 <span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.02</span></span>
 <span><span class="fu"><a href="../reference/converged.html">converged</a></span><span class="op">(</span><span class="va">fitre</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
-<p>With 17 parameters and strongly correlated random effects, the
-optimiser stops with a gradient above
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>3</mn></mrow></msup><annotation encoding="application/x-tex">10^{-3}</annotation></semantics></math>;
-<code>control = list(restart = TRUE)</code> optimises once more from the
-estimates, which no longer improves the log-likelihood, so that
-<code><a href="../reference/converged.html">converged()</a></code> accepts the fit (see the vignette
-<em>Simulation</em>).</p>
+<p>With 17 parameters and strongly correlated random effects, the fit
+needs <code>control = list(restart = TRUE)</code> to converge (see the
+overview <code><a href="../articles/gcTMB.html">vignette("gcTMB")</a></code>).</p>
 <p><code><a href="../reference/timeto.html">timeto()</a></code> and <code><a href="../reference/maxrate.html">maxrate()</a></code> with
 <code>newdata</code> give the times and rates of the curves of each row,
 here the population curves of the sexes
@@ -327,8 +321,7 @@ here the population curves of the sexes
 and their adult height about two years earlier than the boys.
 <code><a href="../reference/partest.html">partest()</a></code> compares a parameter between the rows of
 <code>newdata</code> by Wald tests, here the middle of puberty
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
-(see below for the details of <code><a href="../reference/partest.html">partest()</a></code>):</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/partest.html">partest</a></span><span class="op">(</span><span class="va">fitre</span>, newdata <span class="op">=</span> <span class="va">sexes</span>, parm <span class="op">=</span> <span class="st">"b2"</span>, adjust <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Differences to the reference of b2 (location in time):</span></span>
@@ -454,20 +447,11 @@ and
 <span><span class="co">#&gt; fitrr0   13 12623 12701 -6298.3    12597                    </span></span>
 <span><span class="co">#&gt; fitrr    14 12625 12709 -6298.3    12597 0.021342  1  0.8839</span></span></code></pre></div>
 <p><code><a href="../reference/partest.html">partest()</a></code> compares the maximum growth rates between the
-rows of <code>newdata</code> by Wald tests: by default each row against
-the first row (<code>contrasts = "dunnett"</code>; another reference
-with <code>ref</code>), or all the pairs of rows with
-<code>contrasts = "tukey"</code>. By default, the p-values and the
-confidence intervals are adjusted for the number of comparisons by the
-single-step method, Dunnett’s or Tukey’s method generalised to the
-correlated estimates of a model, so that the intervals cover all the
-differences simultaneously; <code>adjust = "holm"</code> and the other
-methods of <code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">p.adjust()</a></code> adjust the p-values only, and
-<code>adjust = "none"</code> gives the unadjusted tests. With two sexes
-there is a single difference, girls against boys, shown here without
-adjustment. With the log link, the differences are log ratios of the
-rates, and the ratios are given as well. The same works for the other
-parameters, e.g. <code>parm = "b2"</code> as above.</p>
+rows of <code>newdata</code> by Wald tests (see <code><a href="../reference/partest.html">?partest</a></code>
+for the contrasts and the adjustment for multiple comparisons). With two
+sexes there is a single difference, girls against boys, shown here
+without adjustment; with the log link, the differences are log ratios of
+the rates, and the ratios are given as well.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/partest.html">partest</a></span><span class="op">(</span><span class="va">fitrr</span>, newdata <span class="op">=</span> <span class="va">sexes</span>, adjust <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Differences to the reference of b1 (maximum growth rate) on the scale of its log link:</span></span>
@@ -504,9 +488,6 @@ of the Preece-Baines curves of the sexes above.</p>
 <p>Preece, M.A. and Baines, M.J. (1978). A new family of mathematical
 models describing the human growth curve. <em>Annals of Human
 Biology</em> 5, 1–24.</p>
-<p>Tuddenham, R.D. and Snyder, M.M. (1954). Physical growth of
-California boys and girls from birth to eighteen years. <em>University
-of California Publications in Child Development</em> 1, 183–364.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

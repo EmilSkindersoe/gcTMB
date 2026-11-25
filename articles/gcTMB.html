@@ -224,49 +224,22 @@ on</td>
 </tr>
 </tbody>
 </table>
-<p>Two further parameters complete the curves: the threshold
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>,
-before which a truncated curve is zero (by default fixed at 0, the time
-of sowing; <code>fix = c(b4 = FALSE)</code> estimates it), and the
-asymmetry
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>
-(by default fixed at 1, the curves above;
-<code>fix = c(b5 = FALSE)</code> estimates it, e.g. the Richards curve
-for the logistic model). The beta, Chapman-Richards and Korf curves are
-never truncated and have no asymmetry; the beta curve falls back to zero
-after its maximum at the end of growth
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
-while <code>"beta_capped"</code> stays at it:
+<p>The threshold
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
-is the start of growth of the beta curve, and the intercept of the other
-two (by default the breast height of 1.3 m of a height-diameter model;
-<code>start = c(b4 = 0)</code> for a curve from zero); the
-Chapman-Richards curve is the Richards curve with a negative asymmetry.
-The Preece-Baines curve of human growth in height has the rates
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>
-of growth before and during puberty, estimated by default. With
-<code>b1type = "rate"</code>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
-is the maximum growth rate instead of the asymptote. Each parameter can
-have a link, e.g. <code>link = c(b3 = "inverse")</code> for the rate
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">1/b_3</annotation></semantics></math>
-or <code>link = c(b1 = "log")</code> for effects as ratios. The vignette
-<em>Growth models and their parameters</em> gives all the formulas, the
-inflection points and maximum growth rates of each model, and the
-asymmetric curves.</p>
+and the asymmetry
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>,
+the links of the parameters, and the inflection points and maximum
+growth rates of the models are described in the vignette <em>Growth
+models and their parameters</em>.</p>
 </div>
 <div class="section level2">
 <h2 id="fitting-a-growth-curve">Fitting a growth curve<a class="anchor" aria-label="anchor" href="#fitting-a-growth-curve"></a>
 </h2>
-<p>The data set <code>FabaHeights26</code> contains the heights (cm) of
-320 faba bean plants in a field trial, five plants on each of 64 plots,
-with four genotypes on two soil types, irrigated or not, measured on 14
-days between 28 and 122 days after sowing (<code>DAS</code>).
-<code><a href="../reference/gcTMB.html">gcTMB()</a></code> takes the response and the time in the formula and
-the growth model in <code>model</code>; starting values are found
-automatically (<code><a href="../reference/gcTMBstart.html">gcTMBstart()</a></code>).</p>
+<p>The examples use the faba bean heights of <code>FabaHeights26</code>
+(see <code><a href="../reference/FabaHeights26.html">?FabaHeights26</a></code>). <code><a href="../reference/gcTMB.html">gcTMB()</a></code> takes the
+response and the time in the formula and the growth model in
+<code>model</code>; starting values are found automatically
+(<code><a href="../reference/gcTMBstart.html">gcTMBstart()</a></code>).</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://emilskindersoe.github.io/gcTMB/">gcTMB</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
@@ -346,23 +319,10 @@ fitted curves.</p>
 <span><span class="co">#&gt; sigma          11.473127 11.967608</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="other-data-sets">Other data sets<a class="anchor" aria-label="anchor" href="#other-data-sets"></a>
+<h2 id="other-explanatory-variables">Other explanatory variables<a class="anchor" aria-label="anchor" href="#other-explanatory-variables"></a>
 </h2>
-<p>The other faba bean data sets, <code>FabaHeights25</code> (heights of
-25 plants grown in tubes at five treatment levels) and
-<code>FabaCounts23</code> (counts of pods), are used in the vignettes
-<em>Growth models and their parameters</em> and <em>Fixed and random
-effects</em>, and for the counts below. Besides the faba bean data, the
-package has growth data from other fields: <code>BerkeleyGrowth</code>
-(heights and weights of children from birth to 21 years, used in the
-vignette <em>Timing and maximum growth rates</em> with the Preece-Baines
-curve), <code>SorghumMaize</code> (biomass of three crops at two input
-levels, used in the vignettes <em>Correlation structures</em> and
-<em>Simulation</em> with the beta curve) and
-<code>PineHeightDiameter</code> (heights and diameters of Scots pine
-trees with their positions, used in the vignettes <em>Fixed and random
-effects</em> and <em>Correlation structures</em>). The x-axis need not
-be time: in a height-diameter model the height grows with the diameter,
+<p>The x-axis need not be time: in a height-diameter model of
+<code>PineHeightDiameter</code>, the height grows with the diameter,
 from the breast height of 1.3 m, the intercept
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
 of the Chapman-Richards curve:</p>
@@ -382,9 +342,8 @@ of the Chapman-Richards curve:</p>
 <h2 id="fixed-and-random-effects">Fixed and random effects<a class="anchor" aria-label="anchor" href="#fixed-and-random-effects"></a>
 </h2>
 <p>Covariates on the parameters are formulas in <code>fform</code>, and
-random effects in <code>rform</code>, as in <code><a href="https://rdrr.io/pkg/nlme/man/nlme.html" class="external-link">nlme::nlme</a></code>.
-Here the soil type and the irrigation, and their interaction, act on the
-asymptote
+random effects in <code>rform</code>. Here the soil type and the
+irrigation, and their interaction, act on the asymptote
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
 and the time of the maximum growth rate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>,
@@ -452,10 +411,8 @@ and random effects</em>.</p>
 </h2>
 <p>The <code>family</code> argument gives the distribution of the
 response: “gaussian”, “lognormal”, “poisson”, “nbinom2”, “nbinom1”,
-“binomial”, “betabinomial” or “beta”. The data set
-<code>FabaCounts23</code> contains the numbers of pods of 22 plants of
-six genotypes; the plants have no pods at the first counts, so the
-threshold
+“binomial”, “betabinomial” or “beta”. The pods of
+<code>FabaCounts23</code> are zero at the first counts, so the threshold
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>,
 the time of the first pods, is estimated.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
@@ -563,9 +520,9 @@ Tukey’s method with simultaneous confidence intervals.</p>
 <h2 id="correlation-structures">Correlation structures<a class="anchor" aria-label="anchor" href="#correlation-structures"></a>
 </h2>
 <p>The residuals of the gaussian and lognormal families can be
-correlated within individuals, with the correlation structures of nlme.
-Over time, <code><a href="../reference/corStruct.html">corAR1()</a></code> for integer times and
-<code><a href="../reference/corStruct.html">corCAR1()</a></code> for continuous times have the correlation
+correlated within individuals. Over time, <code><a href="../reference/corStruct.html">corAR1()</a></code> for
+integer times and <code><a href="../reference/corStruct.html">corCAR1()</a></code> for continuous times have the
+correlation
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ρ</mi><mrow><mo stretchy="false" form="prefix">|</mo><mi>t</mi><mo>−</mo><mi>s</mi><mo stretchy="false" form="prefix">|</mo></mrow></msup><annotation encoding="application/x-tex">\rho^{|t - s|}</annotation></semantics></math>
 of residuals at times
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
@@ -623,11 +580,32 @@ autocorrelation:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>true <span class="op">=</span> <span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fitrec</span><span class="op">)</span>, estimate <span class="op">=</span> <span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fitsim</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     true.rho estimate.rho </span></span>
 <span><span class="co">#&gt;    0.8516009    0.8150597</span></span></code></pre></div>
-<p>The vignette <em>Simulation</em> repeats this for many data sets. In
-simulation studies,
-<code>control = list(sdreport = FALSE, restart = TRUE)</code> skips the
-standard errors and optimises a fit that does not converge once more
-from its estimates, and <code><a href="../reference/converged.html">converged()</a></code> checks the fits.</p>
+<p>The vignette <em>Simulation</em> repeats this for many data sets.</p>
+</div>
+<div class="section level2">
+<h2 id="convergence">Convergence<a class="anchor" aria-label="anchor" href="#convergence"></a>
+</h2>
+<p><code><a href="../reference/converged.html">converged()</a></code> checks that the log-likelihood is finite,
+that the optimiser reports convergence with a largest absolute gradient
+below
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>3</mn></mrow></msup><annotation encoding="application/x-tex">10^{-3}</annotation></semantics></math>,
+and that the Hessian is positive definite. With few groups and several
+correlated random effects, the likelihood is often so flat in some
+directions that <code>nlminb</code> reports “singular convergence” or
+“false convergence”, or stops with a gradient slightly above
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>3</mn></mrow></msup><annotation encoding="application/x-tex">10^{-3}</annotation></semantics></math>,
+although it is at the maximum. With
+<code>control = list(restart = TRUE)</code>, such a fit is optimised
+once more from its estimates; the fit keeps the better optimum, and
+<code>fit$restart$improvement</code> holds the improvement of the
+log-likelihood. <code><a href="../reference/converged.html">converged()</a></code> accepts a fit that the restart
+improved by less than <code>lltol</code>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>6</mn></mrow></msup><annotation encoding="application/x-tex">10^{-6}</annotation></semantics></math>
+by default), since its maximum is stable. In a simulation study that
+does not need standard errors, <code>sdreport = FALSE</code> saves about
+a quarter of the time of each fit, but then the Hessian is not checked.
+The other vignettes use <code>restart = TRUE</code> for the fits with
+several random effects.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -635,11 +613,6 @@ from its estimates, and <code><a href="../reference/converged.html">converged()<
 <p>Dunn, P.K. and Smyth, G.K. (1996). Randomized quantile residuals.
 <em>Journal of Computational and Graphical Statistics</em> 5, 236–244.
 <a href="doi:10.1080/10618600.1996.10474708" class="uri">doi:10.1080/10618600.1996.10474708</a>.</p>
-<p>Pinheiro, J.C. and Bates, D.M. (2000). <em>Mixed-Effects Models in S
-and S-PLUS</em>. Springer, New York.</p>
-<p>Zuur, A.F., Ieno, E.N., Walker, N.J., Saveliev, A.A. and Smith, G.M.
-(2009). <em>Mixed Effects Models and Extensions in Ecology with R</em>.
-Springer, New York.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

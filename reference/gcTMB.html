@@ -195,7 +195,7 @@ with the growth curves. It has no asymptote, does not use b3-b5 and is not trunc
 (<code>type="absolute"</code>), and <code><a href="maxrate.html">maxrate</a></code> its constant rate b1.</p></li>
 </ul><p>Five more curves are never truncated: the beta curves of determinate growth, the height-diameter
 models chapmanrichards and korf, common in forestry, and the preecebaines model of human growth:</p><ul><li><p>chapmanrichards: f(t) = b4 + b1 (1 - exp(-b2 t))^b3, the Chapman-Richards curve of
-Richards (1959) in its usual form for height-diameter models (model M8 of Ciceu et al. 2020),
+Richards (1959) in its usual form for height-diameter models,
 zero above the intercept b4 up to t = 0: b1 is the asymptote, b2 the rate, b3 the shape and b4
 the intercept, fixed by default at the breast height of 1.3 m (<code>start=c(b4=0)</code> for a curve
 from zero, <code>fix=c(b4=FALSE)</code> to estimate it).
@@ -262,9 +262,6 @@ anyway.</p>
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Pinheiro, J.C. and Bates, D.M. (2000). Mixed-Effects Models in S and S-PLUS.
 Springer, New York.</p>
-<p>Ciceu, A., Garcia-Duro, J., Seceleanu, I. and Badea, O. (2020). A generalized nonlinear
-mixed-effects height-diameter model for Norway spruce in mixed-uneven aged stands. Forest
-Ecology and Management 477, 118507.</p>
 <p>Preece, M.A. and Baines, M.J. (1978). A new family of mathematical models describing the human
 growth curve. Annals of Human Biology 5, 1-24.</p>
 <p>Richards, F.J. (1959). A flexible growth function for empirical use. Journal of Experimental

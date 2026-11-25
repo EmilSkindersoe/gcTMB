@@ -8,8 +8,8 @@ and the response can follow a range of distributions.
 This vignette introduces the growth models and the meaning of their
 parameters, fits them to the heights of faba bean plants with confidence
 intervals, and adds treatment effects. The other vignettes cover fixed
-and random effects, the timing and maximum growth rates, and
-autocorrelation and simulation; the guide
+and random effects, the timing and maximum growth rates, correlation
+structures, and simulation; the guide
 [`vignette("gcTMB")`](https://emilskindersoe.github.io/gcTMB/articles/gcTMB.md)
 gives a short overview of all the features.
 
@@ -47,34 +47,6 @@ growth of the beta curve, the intercept of the Chapman-Richards and Korf
 curves, or the rate of growth before puberty (Preece-Baines), and
 $`b_5`$ the asymmetry of the curve or the rate of growth during puberty
 (Preece-Baines) (all below).
-
-#### Scale, slope and shape
-
-The parameter $`b_3`$ sets how long the growth takes, but in three
-different ways:
-
-- A **scale** (logistic, Gompertz, normal) is in units of time. The
-  curve depends on time only through $`(t - b_2)/b_3`$, so $`b_3`$
-  stretches the curve along the time axis around $`b_2`$ without
-  changing its form: doubling $`b_3`$ doubles the duration of the growth
-  and halves the maximum growth rate. A larger scale means slower
-  growth. The time from 10% to 90% of the asymptote is a fixed multiple
-  of $`b_3`$.
-- A **slope** (Hill) has no units. The Hill curve is a logistic curve in
-  $`\log t`$ with the scale $`1/b_3`$ on the log time axis, so $`b_3`$
-  sets the *ratio* of the times at which the curve reaches given
-  fractions of its asymptote, not their difference. A larger slope means
-  steeper, faster growth, the opposite direction of a scale.
-- A **shape** (Weibull, gamma) has no units. It sets the form of the
-  curve: how wide the growth period is relative to its timing $`b_2`$,
-  and how asymmetric the curve is, e.g. the proportion of total growth
-  at inflection in the table below. With $`b_2`$ fixed, a larger shape
-  gives a shorter growth period, and the gamma curve tends to the normal
-  curve. The time scale of these curves is carried by $`b_2`$ together
-  with the shape.
-
-Changing the unit of time, e.g. from days to weeks, changes $`b_2`$ and
-a scale $`b_3`$, but not a slope or a shape.
 
 #### logistic
 
@@ -120,21 +92,23 @@ $`b_2`$ is the inflection point, the time of the maximum growth rate.
  f(t) = b_1 \left(1 + \frac{b_3 - t}{b_3 - b_2}\right) \left(\frac{t - b_4}{b_3 - b_4}\right)^{\frac{b_3 - b_4}{b_3 - b_2}} 
 ```
 
-for $`b_4 < t < 2 b_3 - b_2`$, and zero otherwise: the beta growth
-function of Yin et al. (2003), which reaches its maximum
-$`b_1 = w_{\max}`$ at the end of growth $`b_3 = t_e`$, with zero slope,
-and then falls back to zero at $`2 b_3 - b_2`$ (the dashed line of their
-Figure 1A), for responses that decline after their maximum, e.g. biomass
-lost after maturity. $`b_2 = t_m`$ is the time of the maximum growth
-rate and $`b_4 = t_b`$ the start of growth, with $`b_4 < b_2 < b_3`$.
-Yin et al. give the curve for $`t_b = 0`$ (their eqn 8); as their growth
-rate depends on time only through $`t - t_b`$ and $`t_e - t`$, its
-integral from $`t_b`$ is the same curve with the time measured from
-$`t_b`$, the curve above. The levels of
+for $`b_4 < t < 2 b_3 - b_2`$, and zero otherwise. This is the beta
+growth function of Yin et al. (2003), in their notation the maximum
+$`b_1 = w_{\max}`$, the time of the maximum growth rate $`b_2 = t_m`$,
+the end of growth $`b_3 = t_e`$ and the start of growth $`b_4 = t_b`$,
+with $`b_4 < b_2 < b_3`$. The curve rises from zero at $`b_4`$ to its
+maximum $`b_1`$ at $`b_3`$, where its slope is zero, and falls back to
+zero at $`2 b_3 - b_2`$ (the dashed line of their Figure 1A), e.g. for
+biomass that is lost after maturity.
+
+Yin et al. (2003, eqn 8) write the curve for growth that starts at
+$`t = 0`$. Starting it at $`t_b`$ shifts the time axis: the curve above
+is their eqn 8 with the times $`t`$, $`t_m`$ and $`t_e`$ measured from
+$`t_b`$, i.e. replaced by $`t - t_b`$, $`t_m - t_b`$ and $`t_e - t_b`$.
 [`timeto()`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md)
-and the maximum growth rate of
+and
 [`maxrate()`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md)
-are those of the rising part, up to $`b_3`$.
+use the rising part, up to $`b_3`$.
 
 #### beta_capped
 
@@ -174,8 +148,8 @@ and tends to the normal curve for a large shape.
 ```
 
 for $`t > 0`$, and $`b_4`$ up to $`t = 0`$: the Chapman-Richards curve
-of Richards (1959) in its usual form for height-diameter models, model
-M8 of Ciceu et al. (2020). It grows from the intercept $`b_4`$ at
+of Richards (1959), in the form used for height-diameter models by
+Kuželka and Marušák (2015). It grows from the intercept $`b_4`$ at
 $`t = 0`$, by default the breast height of 1.3 m in a height-diameter
 model of trees (`start = c(b4 = 0)` for a curve from zero);
 `fix = c(b4 = FALSE)` estimates it. $`b_1`$ is the asymptote above
@@ -301,25 +275,9 @@ slope of the curve at $`t_m`$, are:
 | preecebaines | $`b_2 + \dfrac{\log w}{b_5 - b_4}`$, the pubertal peak | $`f(t_m)/b_1`$ | $`2 (b_1 - b_3) \dfrac{b_4 + b_5 w}{(1 + w)^2} w^{-b_4/(b_5 - b_4)}`$ |
 | linear | none | none | $`b_1`$ at all times |
 
-for Chapman-Richards with $`b_3 > 1`$ (for $`b_3 \le 1`$ it grows
-fastest at $`t = 0`$, at the rate $`b_1 b_2`$ for $`b_3 = 1`$), and for
-Korf with $`b_3 > 1`$; for both the proportion and the rate are those of
-the growth above the intercept $`b_4`$. $`d = (b_3 - b_2)/(b_3 - b_4)`$
-for beta, and $`w`$ the larger root of
-$`b_5^2 w^2 - (b_4^2 - 4 b_4 b_5 + b_5^2) w + b_4^2 = 0`$ for
-Preece-Baines, which has a pubertal peak if
-$`b_5 / b_4 > 3 + 2 \sqrt{2} \approx 5.8`$ (the smaller root is the
-take-off, the minimum of the growth rate before the peak); for
-$`b_4 = 0`$, the maximum growth rate of the beta curve is
-$`c_m = b_1 \frac{2 b_3 - b_2}{b_3 (b_3 - b_2)} (b_2/b_3)^{b_2/(b_3 - b_2)}`$
-of Yin et al. (2003).
-
-The proportion of total growth at inflection tells how much of the
-growth has occurred when the growth is fastest. The Hill curve has an
-inflection point at a positive time only for $`b_3 > 1`$.
-[`maxrate()`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md)
-computes $`t_m`$, $`r_{\max}`$ and $`f(t_m)/b_1`$ for all curves, also
-truncated and asymmetric ones.
+with $`d = (b_3 - b_2)/(b_3 - b_4)`$ for beta, and $`w`$ the larger root
+of $`b_5^2 w^2 - (b_4^2 - 4 b_4 b_5 + b_5^2) w + b_4^2 = 0`$ for
+Preece-Baines.
 
 #### The maximum growth rate as a parameter
 
@@ -384,9 +342,8 @@ asymptote.
 
 ## The faba bean data
 
-The data set `FabaHeights25` contains the heights of 25 faba bean
-plants, five at each of five treatment levels, measured on eight days
-between 14 and 61 days after sowing (`DAS`).
+The heights of the faba bean plants of `FabaHeights25` (see
+[`?FabaHeights25`](https://emilskindersoe.github.io/gcTMB/reference/FabaHeights25.md)):
 
 ``` r
 
@@ -761,11 +718,6 @@ ggplot(FabaHeights25, aes(x = DAS, y = Height, colour = trt)) +
 ![](growth-models_files/figure-html/unnamed-chunk-13-1.png)
 
 ## References
-
-Ciceu, A., Garcia-Duro, J., Seceleanu, I. and Badea, O. (2020). A
-generalized nonlinear mixed-effects height-diameter model for Norway
-spruce in mixed-uneven aged stands. *Forest Ecology and Management* 477,
-118507.
 
 Dunn, P.K. and Smyth, G.K. (1996). Randomized quantile residuals.
 *Journal of Computational and Graphical Statistics* 5, 236–244.

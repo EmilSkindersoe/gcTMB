@@ -75,8 +75,8 @@ and the response can follow a range of distributions.</p>
 <p>This vignette introduces the growth models and the meaning of their
 parameters, fits them to the heights of faba bean plants with confidence
 intervals, and adds treatment effects. The other vignettes cover fixed
-and random effects, the timing and maximum growth rates, and
-autocorrelation and simulation; the guide <code><a href="../articles/gcTMB.html">vignette("gcTMB")</a></code>
+and random effects, the timing and maximum growth rates, correlation
+structures, and simulation; the guide <code><a href="../articles/gcTMB.html">vignette("gcTMB")</a></code>
 gives a short overview of all the features.</p>
 <div class="section level2">
 <h2 id="growth-models">Growth models<a class="anchor" aria-label="anchor" href="#growth-models"></a>
@@ -132,52 +132,6 @@ rate of growth before puberty (Preece-Baines), and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>5</mn></msub><annotation encoding="application/x-tex">b_5</annotation></semantics></math>
 the asymmetry of the curve or the rate of growth during puberty
 (Preece-Baines) (all below).</p>
-<div class="section level4">
-<h4 id="scale-slope-and-shape">Scale, slope and shape<a class="anchor" aria-label="anchor" href="#scale-slope-and-shape"></a>
-</h4>
-<p>The parameter
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
-sets how long the growth takes, but in three different ways:</p>
-<ul>
-<li>A <strong>scale</strong> (logistic, Gompertz, normal) is in units of
-time. The curve depends on time only through
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">(t - b_2)/b_3</annotation></semantics></math>,
-so
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
-stretches the curve along the time axis around
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
-without changing its form: doubling
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
-doubles the duration of the growth and halves the maximum growth rate. A
-larger scale means slower growth. The time from 10% to 90% of the
-asymptote is a fixed multiple of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>.</li>
-<li>A <strong>slope</strong> (Hill) has no units. The Hill curve is a
-logistic curve in
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">\log t</annotation></semantics></math>
-with the scale
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">1/b_3</annotation></semantics></math>
-on the log time axis, so
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
-sets the <em>ratio</em> of the times at which the curve reaches given
-fractions of its asymptote, not their difference. A larger slope means
-steeper, faster growth, the opposite direction of a scale.</li>
-<li>A <strong>shape</strong> (Weibull, gamma) has no units. It sets the
-form of the curve: how wide the growth period is relative to its timing
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>,
-and how asymmetric the curve is, e.g. the proportion of total growth at
-inflection in the table below. With
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
-fixed, a larger shape gives a shorter growth period, and the gamma curve
-tends to the normal curve. The time scale of these curves is carried by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
-together with the shape.</li>
-</ul>
-<p>Changing the unit of time, e.g. from days to weeks, changes
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
-and a scale
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
-but not a slope or a shape.</p>
 <!--
 Duration of growth from 10% to 90% of the asymptote (table removed from the vignette, kept as a note):
   logistic t90 - t10 = 2 log(9) b3 = 4.39 b3; gompertz 3.08 b3; normal 2 qnorm(0.9) b3 = 2.56 b3;
@@ -188,7 +142,6 @@ Checks of the durations: logistic 10% and 90% at (t - b2)/b3 = -log 9, log 9; go
 b3 log(t90/t10) = 2 log 9; weibull: the shift of z cancels, b3 log(t90/t10) = log(log 10 / log(10/9));
 gamma with shape k = b3: mean k theta, sd sqrt(k) theta.
 -->
-</div>
 <div class="section level4">
 <h4 id="logistic">logistic<a class="anchor" aria-label="anchor" href="#logistic"></a>
 </h4>
@@ -235,32 +188,44 @@ is the inflection point, the time of the maximum growth rate.</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><mfrac><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><mi>t</mi></mrow><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>t</mi><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub></mrow><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub></mrow><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow></mfrac></msup></mrow><annotation encoding="application/x-tex"> f(t) = b_1 \left(1 + \frac{b_3 - t}{b_3 - b_2}\right) \left(\frac{t - b_4}{b_3 - b_4}\right)^{\frac{b_3 - b_4}{b_3 - b_2}} </annotation></semantics></math></p>
 <p>for
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>&lt;</mo><mi>t</mi><mo>&lt;</mo><mn>2</mn><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">b_4 &lt; t &lt; 2 b_3 - b_2</annotation></semantics></math>,
-and zero otherwise: the beta growth function of Yin et al. (2003), which
-reaches its maximum
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><mo>=</mo><msub><mi>w</mi><mi mathvariant="normal">max</mi></msub></mrow><annotation encoding="application/x-tex">b_1 = w_{\max}</annotation></semantics></math>
-at the end of growth
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>=</mo><msub><mi>t</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">b_3 = t_e</annotation></semantics></math>,
-with zero slope, and then falls back to zero at
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">2 b_3 - b_2</annotation></semantics></math>
-(the dashed line of their Figure 1A), for responses that decline after
-their maximum, e.g. biomass lost after maturity.
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>2</mn></msub><mo>=</mo><msub><mi>t</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">b_2 = t_m</annotation></semantics></math>
-is the time of the maximum growth rate and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>=</mo><msub><mi>t</mi><mi>b</mi></msub></mrow><annotation encoding="application/x-tex">b_4 = t_b</annotation></semantics></math>
-the start of growth, with
+and zero otherwise. This is the beta growth function of Yin et
+al. (2003), in their notation the maximum
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><mo>=</mo><msub><mi>w</mi><mi mathvariant="normal">max</mi></msub></mrow><annotation encoding="application/x-tex">b_1 = w_{\max}</annotation></semantics></math>,
+the time of the maximum growth rate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>2</mn></msub><mo>=</mo><msub><mi>t</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">b_2 = t_m</annotation></semantics></math>,
+the end of growth
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>=</mo><msub><mi>t</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">b_3 = t_e</annotation></semantics></math>
+and the start of growth
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>=</mo><msub><mi>t</mi><mi>b</mi></msub></mrow><annotation encoding="application/x-tex">b_4 = t_b</annotation></semantics></math>,
+with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>&lt;</mo><msub><mi>b</mi><mn>2</mn></msub><mo>&lt;</mo><msub><mi>b</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">b_4 &lt; b_2 &lt; b_3</annotation></semantics></math>.
-Yin et al. give the curve for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mi>b</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t_b = 0</annotation></semantics></math>
-(their eqn 8); as their growth rate depends on time only through
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>−</mo><msub><mi>t</mi><mi>b</mi></msub></mrow><annotation encoding="application/x-tex">t - t_b</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mi>e</mi></msub><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">t_e - t</annotation></semantics></math>,
-its integral from
+The curve rises from zero at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
+to its maximum
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>1</mn></msub><annotation encoding="application/x-tex">b_1</annotation></semantics></math>
+at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>,
+where its slope is zero, and falls back to zero at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">2 b_3 - b_2</annotation></semantics></math>
+(the dashed line of their Figure 1A), e.g. for biomass that is lost
+after maturity.</p>
+<p>Yin et al. (2003, eqn 8) write the curve for growth that starts at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t = 0</annotation></semantics></math>.
+Starting it at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>b</mi></msub><annotation encoding="application/x-tex">t_b</annotation></semantics></math>
-is the same curve with the time measured from
+shifts the time axis: the curve above is their eqn 8 with the times
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>m</mi></msub><annotation encoding="application/x-tex">t_m</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>e</mi></msub><annotation encoding="application/x-tex">t_e</annotation></semantics></math>
+measured from
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>b</mi></msub><annotation encoding="application/x-tex">t_b</annotation></semantics></math>,
-the curve above. The levels of <code><a href="../reference/timeto.html">timeto()</a></code> and the maximum
-growth rate of <code><a href="../reference/maxrate.html">maxrate()</a></code> are those of the rising part, up
+i.e. replaced by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>−</mo><msub><mi>t</mi><mi>b</mi></msub></mrow><annotation encoding="application/x-tex">t - t_b</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mi>m</mi></msub><mo>−</mo><msub><mi>t</mi><mi>b</mi></msub></mrow><annotation encoding="application/x-tex">t_m - t_b</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mi>e</mi></msub><mo>−</mo><msub><mi>t</mi><mi>b</mi></msub></mrow><annotation encoding="application/x-tex">t_e - t_b</annotation></semantics></math>.
+<code><a href="../reference/timeto.html">timeto()</a></code> and <code><a href="../reference/maxrate.html">maxrate()</a></code> use the rising part, up
 to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>.</p>
 </div>
@@ -322,9 +287,9 @@ and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
 up to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t = 0</annotation></semantics></math>:
-the Chapman-Richards curve of Richards (1959) in its usual form for
-height-diameter models, model M8 of Ciceu et al. (2020). It grows from
-the intercept
+the Chapman-Richards curve of Richards (1959), in the form used for
+height-diameter models by Kuželka and Marušák (2015). It grows from the
+intercept
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
 at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t = 0</annotation></semantics></math>,
@@ -616,34 +581,13 @@ at all times</td>
 </tr>
 </tbody>
 </table>
-<p>for Chapman-Richards with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">b_3 &gt; 1</annotation></semantics></math>
-(for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>≤</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">b_3 \le 1</annotation></semantics></math>
-it grows fastest at
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t = 0</annotation></semantics></math>,
-at the rate
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><msub><mi>b</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">b_1 b_2</annotation></semantics></math>
-for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">b_3 = 1</annotation></semantics></math>),
-and for Korf with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">b_3 &gt; 1</annotation></semantics></math>;
-for both the proportion and the rate are those of the growth above the
-intercept
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>.
+<p>with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>4</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">d = (b_3 - b_2)/(b_3 - b_4)</annotation></semantics></math>
 for beta, and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
 the larger root of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>b</mi><mn>5</mn><mn>2</mn></msubsup><msup><mi>w</mi><mn>2</mn></msup><mo>−</mo><mo stretchy="false" form="prefix">(</mo><msubsup><mi>b</mi><mn>4</mn><mn>2</mn></msubsup><mo>−</mo><mn>4</mn><msub><mi>b</mi><mn>4</mn></msub><msub><mi>b</mi><mn>5</mn></msub><mo>+</mo><msubsup><mi>b</mi><mn>5</mn><mn>2</mn></msubsup><mo stretchy="false" form="postfix">)</mo><mi>w</mi><mo>+</mo><msubsup><mi>b</mi><mn>4</mn><mn>2</mn></msubsup><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b_5^2 w^2 - (b_4^2 - 4 b_4 b_5 + b_5^2) w + b_4^2 = 0</annotation></semantics></math>
-for Preece-Baines, which has a pubertal peak if
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>5</mn></msub><mi>/</mi><msub><mi>b</mi><mn>4</mn></msub><mo>&gt;</mo><mn>3</mn><mo>+</mo><mn>2</mn><msqrt><mn>2</mn></msqrt><mo>≈</mo><mn>5.8</mn></mrow><annotation encoding="application/x-tex">b_5 / b_4 &gt; 3 + 2 \sqrt{2} \approx 5.8</annotation></semantics></math>
-(the smaller root is the take-off, the minimum of the growth rate before
-the peak); for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>4</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b_4 = 0</annotation></semantics></math>,
-the maximum growth rate of the beta curve is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>c</mi><mi>m</mi></msub><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mfrac><mrow><mn>2</mn><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub></mrow><mrow><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>2</mn></msub><mi>/</mi><msub><mi>b</mi><mn>3</mn></msub><msup><mo stretchy="false" form="postfix">)</mo><mrow><msub><mi>b</mi><mn>2</mn></msub><mi>/</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">c_m = b_1 \frac{2 b_3 - b_2}{b_3 (b_3 - b_2)} (b_2/b_3)^{b_2/(b_3 - b_2)}</annotation></semantics></math>
-of Yin et al. (2003).</p>
+for Preece-Baines.</p>
 <!--
 Truncation at the default threshold b4 = 0 (kept as a note, not shown in the vignette):
 p0 = f(0)/b1 is the proportion of the asymptote the curve without truncation reaches at t = 0:
@@ -659,16 +603,6 @@ point stays at t_m, and, with G0 = f(t_m)/b1 and r0 = r_max of the curves withou
   f_b4(t_m)/b1 = (G0 - p0)/(1 - p0),   r_max = r0/(1 - p0)   (truncated curve f_b4, b4 = 0).
 For the Hill, Weibull and gamma curves p0 = 0 and nothing changes.
 -->
-<p>The proportion of total growth at inflection tells how much of the
-growth has occurred when the growth is fastest. The Hill curve has an
-inflection point at a positive time only for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">b_3 &gt; 1</annotation></semantics></math>.
-<code><a href="../reference/maxrate.html">maxrate()</a></code> computes
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>m</mi></msub><annotation encoding="application/x-tex">t_m</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mi mathvariant="normal">max</mi></msub><annotation encoding="application/x-tex">r_{\max}</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><msub><mi>b</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">f(t_m)/b_1</annotation></semantics></math>
-for all curves, also truncated and asymmetric ones.</p>
 </div>
 <div class="section level4">
 <h4 id="the-maximum-growth-rate-as-a-parameter">The maximum growth rate as a parameter<a class="anchor" aria-label="anchor" href="#the-maximum-growth-rate-as-a-parameter"></a>
@@ -761,9 +695,8 @@ time of half the asymptote.</p>
 <div class="section level2">
 <h2 id="the-faba-bean-data">The faba bean data<a class="anchor" aria-label="anchor" href="#the-faba-bean-data"></a>
 </h2>
-<p>The data set <code>FabaHeights25</code> contains the heights of 25
-faba bean plants, five at each of five treatment levels, measured on
-eight days between 14 and 61 days after sowing (<code>DAS</code>).</p>
+<p>The heights of the faba bean plants of <code>FabaHeights25</code>
+(see <code><a href="../reference/FabaHeights25.html">?FabaHeights25</a></code>):</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://emilskindersoe.github.io/gcTMB/">gcTMB</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
@@ -1135,10 +1068,6 @@ intervals:</p>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<p>Ciceu, A., Garcia-Duro, J., Seceleanu, I. and Badea, O. (2020). A
-generalized nonlinear mixed-effects height-diameter model for Norway
-spruce in mixed-uneven aged stands. <em>Forest Ecology and
-Management</em> 477, 118507.</p>
 <p>Dunn, P.K. and Smyth, G.K. (1996). Randomized quantile residuals.
 <em>Journal of Computational and Graphical Statistics</em> 5, 236–244.
 <a href="doi:10.1080/10618600.1996.10474708" class="uri">doi:10.1080/10618600.1996.10474708</a>.</p>
