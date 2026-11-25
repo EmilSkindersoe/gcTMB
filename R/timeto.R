@@ -8,7 +8,7 @@
 #' @param curves Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curve, with 5 rows (b1-b5) and one column for each model coefficient, or a list of such matrices. If curves and newdata are both NULL (default), the identity matrix, for models without covariates in fform. Each matrix is paired with an entry of level.
 #' @param newdata Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves; the time is not needed. NULL (default) to use curves. With grouping variables of the random effects, the curves of fitted groups, see Details. The times are computed at each entry of level for each row, named by the covariate and group values (or by the row names of newdata, if set).
 #' @param random Logical. If TRUE, the times of rows of newdata with fitted groups are conditional on their random effects, and for the other random effect terms, the variance-covariance matrix of the random effects is included in the standard error estimation. If FALSE, the times are for the population curves.
-#' @param residual Logical. If TRUE, the residual variance is included in the standard error estimation (gaussian family only)
+#' @param residual Logical. If TRUE, the residual variance is included in the standard error estimation (gaussian family only), with the variance function of the fit if it has one: the standard errors are those of the time at which a single observation reaches the level, see Details
 #' @param type Character string. "relative" (default) for levels relative to the asymptote, or "absolute" for the times at which the curves reach the responses in level, on the scale of the response (proportions for binomial, beta-binomial and beta). Responses outside the range of a curve, between zero and the asymptote, give NA, with a warning.
 #'
 #' @details Without random effects, or with \code{random=FALSE}, the times are those of the
@@ -24,6 +24,19 @@
 #' \code{\link[TMB]{sdreport}}. Random effect terms without a grouping variable in newdata, or with a
 #' level that is not in the fitted data, are treated as above. Profile intervals are not available
 #' for the times of fitted groups, see \code{\link{confint.timetoTMB}}.
+#'
+#' With \code{residual=TRUE} (gaussian family), the standard errors are those of the time at which a
+#' single observation, rather than the curve, reaches the level: the residual r of the observation shifts
+#' the response, and so the time by -r/f'(t), with the slope f'(t) of the curve at the estimated time t.
+#' The residual variance is sigma^2, or with a variance function (see \code{\link{varFunc}}) sigma^2 g^2,
+#' with g evaluated at the estimated time on the curve of the row: the fitted curve at t for
+#' \code{fitted(.)}, its growth rate at t for \code{rate(.)}, and t for a covariate that is the time
+#' variable. Other covariates of the variance function, and the strata of \code{varIdent}, are taken
+#' from \code{newdata}; a \code{varIdent} by the time itself gives an error, as it has no variance
+#' between the observed times. The uncertainty of sigma and of the parameters of the variance function
+#' is not included, and the residual is the same for all the times of the call, so that their
+#' covariances include it. Times reached where the curve is flat, near the asymptote, get large
+#' residual variances. Profile intervals are not available with \code{residual=TRUE}.
 #'
 #' @return A timetoTMB object: a list with the estimated times (\code{coef}), their covariance
 #'   matrix (\code{vcov}), and what \code{confint} and \code{profile} need. The times are named by
@@ -152,7 +165,10 @@ timeto <- function(x, level=50, curves=NULL, newdata=NULL, random=TRUE, residual
     tgrad <- tobj$gr()
     gu <- tgrad[6:10]
     gnew <- unlist(lapply(seq_along(terms), function(t) gu[terms[[t]]$pars] * loads[[t]][i, ] * newterm[i, t]))
-    grad[i, ] <- c((tgrad[1:5] %*% curves[[i]])[!x$fix], gu %*% W[[i]], gnew, tgrad[11])
+    # the residual at the time: its standard deviation sigma g(t), with the variance function g at the
+    # estimated time on this curve
+    gi <- if (residual && !is.null(x$variance)) timevarmult(x, tl[i], lpv + u, if (!is.null(newdata)) newdata[rows[i], , drop=FALSE]) else 1
+    grad[i, ] <- c((tgrad[1:5] %*% curves[[i]])[!x$fix], gu %*% W[[i]], gnew, tgrad[11]*gi)
   }
 
   # covariance of the free coefficients and the fitted random effects: jointly for times of fitted
@@ -174,6 +190,29 @@ timeto <- function(x, level=50, curves=NULL, newdata=NULL, random=TRUE, residual
               newvar=setNames(apply(newterm, 1, any) & length(terms) > 0, names(tl)))
   class(res) <- "timetoTMB"
   return(res)
+}
+
+# multiplier g of the variance function at time t on the curve with linear predictors eta (b1-b5, with
+# random effects), for the covariates in the row nd of newdata (or none); the time variable is set to t
+timevarmult <- function(x, t, eta, nd=NULL){
+  tv <- all.vars(x$formula[[3]])
+  nd <- if (is.null(nd)) data.frame(row.names=1) else as.data.frame(nd)
+  nd[[tv]] <- t
+  pd <- list(x=t, mod=modelindex(x$model), trunc=fittrunc(x), b1rate=fitrate(x), lnk=linkindex(x$link))
+  em <- matrix(eta, nrow=1)
+  rate <- function(){
+    h <- ratestep(t)
+    p1 <- p2 <- pd
+    p1$x <- t + h
+    p2$x <- t - h
+    (predmean(p1, em) - predmean(p2, em))/(2*h)
+  }
+  v <- x$obj$env$parList(x$opt$par)$var_par
+  g <- tryCatch(varmult(x$variance, v, x$varlevels, nd, predmean(pd, em), rate),
+                error=function(e) stop("residual=TRUE: the variance function cannot be evaluated at the time ", signif(t, 4),
+                                       ": ", conditionMessage(e), " A variance for each time point (varIdent) has no variance between them.", call.=FALSE))
+  if (!is.finite(g)) stop("residual=TRUE: the variance function is not finite at the time ", signif(t, 4), ".", call.=FALSE)
+  g
 }
 
 # fraction of the asymptote at a time with level q (absolute=FALSE) or response q (absolute=TRUE), for

@@ -66,7 +66,8 @@ as in \code{ranef}, with the standard deviations and the correlation matrix as a
 maximum likelihood estimate, while \code{nlme::gnls} reports it with n - p degrees of freedom),
 or the dispersion parameter of the other families as printed by \code{print.gcTMB} (precision,
 size or dispersion), and NA for poisson and binomial models. The residual variance is
-\code{sigma(object)^2}. For gaussian models without random effects and small-sample inference (see
+\code{sigma(object)^2}; with a variance function (see \code{\link{varFunc}}), it is
+\code{sigma(object)^2} times the square of the function g of each observation. For gaussian models without random effects and small-sample inference (see
 \code{\link{gcTMB}}), it is the unbiased estimate.
 
 \code{corpars} returns the parameter of the autocorrelation of the residuals within groups (see
@@ -74,8 +75,11 @@ size or dispersion), and NA for poisson and binomial models. The residual varian
 the nugget, for \code{\link{corExp}} and \code{\link{corGaus}}), and an empty vector
 for a model with independent residuals; it is \code{coef(fit$modelStruct$corStruct,
 unconstrained=FALSE)} of nlme. \code{varpars} returns the parameters of the variance
-function of the residuals, as a named vector; the current models have a constant residual variance,
-so it returns an empty vector, as the extractor for a variance function once it is added.
+function of the residuals (see \code{\link{varFunc}}) on their natural scale, as a named vector: the
+ratios of the standard deviations of the strata to the reference stratum for \code{varIdent}, the
+power for \code{varPower}, and the constant and the power for \code{varConstPower}, named by level
+with a grouping factor; an empty vector for a model with a constant residual variance. It is
+\code{coef(fit$modelStruct$varStruct, unconstrained=FALSE)} of nlme.
 }
 \description{
 gcTMB has its own generics fixef, ranef and VarCorr and does not need nlme or lme4. They have the

@@ -97,6 +97,7 @@ print.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...){
   printfixed(userfixed(x), digits)
   printre(recov(x), digits)
   printresid(x$family, residpar(x), digits)
+  printvar(x, digits)
   printcor(x, digits)
   if (isTRUE(x$modified)) cat("\nParameters set by update(): not estimates, without standard errors.\n")
   if (!is.null(x$fiterror)) cat("\nThe fit failed: ", paste(x$fiterror, collapse="; "), "\n", sep="")
@@ -163,7 +164,7 @@ summary.gcTMB <- function(object, ...){
               convergence=object$opt$convergence, message=object$opt$message,
               maxgrad=max(abs(gr)), fiterror=object$fiterror, pdHess=object$sdrl$pdHess, modified=isTRUE(object$modified),
               nosdreport=isFALSE(object$control$sdreport), correlation=object$correlation, corgroup=object$corgroup,
-              reterms=object$reterms, corrho=corpars(object))
+              reterms=object$reterms, corrho=corpars(object), variance=object$variance, varpars=varpars(object))
   class(res) <- "summary.gcTMB"
   res
 }
@@ -206,6 +207,7 @@ print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...
     cat("Standard deviations close to zero (singular fit): ", paste(x$singular, collapse=", "), "\n", sep="")
   }
   printresid(x$family, x$residpar, digits, x$rdf)
+  printvar(x, digits)
   printcor(x, digits)
 
   if (isTRUE(x$modified)){
@@ -263,6 +265,10 @@ residuals.gcTMB <- function(object, type=c("pearson", "response", "quantile", "n
   y <- if (object$family %in% c("binomial", "betabinomial")) cnt/n else cnt
 
   if (type == "response") return(y - mu)
+  # square roots of the precision weights, divided by the standard deviation multiplier of the
+  # variance function (gaussian and lognormal)
+  sw <- sqrt(as.vector(dat$w))
+  if (!is.null(object$variance)) sw <- sw/fitvarmult(object, random=TRUE)
 
   # normalized residuals: the standardised residuals of the gaussian and lognormal families, decorrelated
   # by the autocorrelation of the fit (Pinheiro and Bates, 2000); the pearson residuals otherwise
@@ -273,12 +279,12 @@ residuals.gcTMB <- function(object, type=c("pearson", "response", "quantile", "n
       type <- "pearson"
     } else {
       r <- if (object$family == "lognormal") (log(y) - log(mu))/phi else (y - mu)/phi
-      return(normalizeresid(object, r * sqrt(as.vector(dat$w))))
+      return(normalizeresid(object, r * sw))
     }
   }
 
   # lognormal: standardised residuals of log(y), for both pearson and quantile residuals
-  if (object$family == "lognormal") return((log(y) - log(mu))/phi * sqrt(as.vector(dat$w)))
+  if (object$family == "lognormal") return((log(y) - log(mu))/phi * sw)
 
   if (type == "pearson"){
     v <- switch(object$family,
@@ -289,7 +295,7 @@ residuals.gcTMB <- function(object, type=c("pearson", "response", "quantile", "n
                 beta=mu*(1 - mu)/(1 + phi),
                 nbinom2=mu*(1 + mu/phi),
                 nbinom1=mu*(1 + phi))
-    r <- (y - mu)/sqrt(v) * sqrt(as.vector(dat$w))
+    r <- (y - mu)/sqrt(v) * sw
     # a zero count at a mean of zero (a truncated curve before its threshold) has no variation
     r[mu == 0 & y == 0 & object$family != "gaussian"] <- 0
     return(r)
@@ -298,7 +304,7 @@ residuals.gcTMB <- function(object, type=c("pearson", "response", "quantile", "n
   # randomised quantile residuals: normal quantiles of the fitted distribution function at the
   # observations, drawn uniformly between its left and right limits for the discrete families
   # gaussian: weights as precision weights, with standard deviation phi/sqrt(w), as for pearson
-  if (object$family == "gaussian") return((y - mu)/phi * sqrt(as.vector(dat$w)))
+  if (object$family == "gaussian") return((y - mu)/phi * sw)
   if (object$family == "beta") return(qnorm(pbeta(y, mu*phi, (1 - mu)*phi)))
   if (object$family == "poisson"){
     lo <- ppois(cnt - 1, mu)
@@ -351,12 +357,12 @@ predict.gcTMB <- function(object, newdata=NULL, random=TRUE, se.fit=FALSE, inter
     if (object$family == "gaussian" && is.null(boot)){
       # new observation: uncertainty of the mean, residual variance, and the variance of the random
       # effects of the terms without a fitted level (new groups, or all terms for random=FALSE)
-      sdp <- sqrt(se^2 + residpar(object)^2 + newgroupvar(object, pd))
+      sdp <- sqrt(se^2 + (residpar(object)*fitvarmult(object, newdata, random, pd=pd, mu=fit))^2 + newgroupvar(object, pd))
       res$lwr <- fit - z*sdp
       res$upr <- fit + z*sdp
     } else if (object$family == "lognormal" && is.null(boot)){
       # the same on the log scale, with the standard errors of the log median by the delta method
-      sdp <- sqrt((se^2 + newgroupvar(object, pd))/fit^2 + residpar(object)^2)
+      sdp <- sqrt((se^2 + newgroupvar(object, pd))/fit^2 + (residpar(object)*fitvarmult(object, newdata, random, pd=pd, mu=fit))^2)
       res$lwr <- fit*exp(-z*sdp)
       res$upr <- fit*exp(z*sdp)
     } else {
@@ -364,7 +370,7 @@ predict.gcTMB <- function(object, newdata=NULL, random=TRUE, se.fit=FALSE, inter
       # approximation of the fixed and random effects
       trials <- predtrials(object, newdata)
       if (is.null(boot)) draws <- jointdraws(object, nsim)
-      res[c("lwr", "upr")] <- predsim(object, pd, draws, trials, probs, vardraws=!is.null(boot))
+      res[c("lwr", "upr")] <- predsim(object, pd, draws, trials, probs, vardraws=!is.null(boot), newdata=newdata)
     }
   }
   res
@@ -691,7 +697,7 @@ predtrials <- function(object, newdata){
 # rows without a fitted level; binomial observations as proportions. The variance parameters are taken
 # from the draws for vardraws=TRUE (bootstrap fits), and otherwise kept at their estimates: their
 # normal approximation is poor, e.g. for standard deviations close to zero
-predsim <- function(object, pd, draws, trials, probs, vardraws=FALSE){
+predsim <- function(object, pd, draws, trials, probs, vardraws=FALSE, newdata=NULL){
   env <- object$obj$env
   n <- length(pd$x)
   pest <- env$parList(object$opt$par)
@@ -714,6 +720,16 @@ predsim <- function(object, pd, draws, trials, probs, vardraws=FALSE){
     }
     mu <- predmean(pd, eta)
     phi <- exp(pest$log_sigma)
+    # the standard deviation multiplier of the variance function (gaussian, lognormal)
+    if (!is.null(object$variance) && object$family %in% c("gaussian", "lognormal")){
+      phi <- phi*varmult(object$variance, pest$var_par, object$varlevels, newdata, mu, function(){
+        h <- ratestep(pd$x)
+        p1 <- p2 <- pd
+        p1$x <- pd$x + h
+        p2$x <- pd$x - h
+        (predmean(p1, eta) - predmean(p2, eta))/(2*h)
+      })
+    }
     # draws outside the valid range of the parameters give NA
     suppressWarnings(switch(object$family,
                             gaussian=rnorm(n, mu, phi),
@@ -898,7 +914,7 @@ simnew <- function(object, newdata, nsim, random, seed=NULL){
     }
     mu <- predmean(pd, eta)
     # residuals with the autocorrelation of the fit within groups (independent without one)
-    if (object$family %in% c("gaussian", "lognormal")) z <- corsimresid(object, newdata)
+    if (object$family %in% c("gaussian", "lognormal")) z <- corsimresid(object, newdata) * fitvarmult(object, newdata, pd=pd, eta=eta, mu=mu)
     y <- suppressWarnings(switch(object$family,
                             gaussian=mu + phi*z,
                             lognormal=mu*exp(phi*z),
@@ -1073,9 +1089,14 @@ parnames <- function(object){
   cn <- if (ct > 0 && !isTRUE(attr(object$correlation, "fixed"))){
     if (ct >= 3) c("cor_par:range", if (corhasnugget(object$correlation)) "cor_par:nugget") else paste("cor_par:", c("AR1", "CAR1")[ct], sep="")
   }
+  # the free parameters of the variance function, between log_sigma and cor_par as in the template
+  vn <- if (!is.null(object$variance)){
+    vsu <- varsetup(object$variance, object$data)
+    vsu$names[!is.na(vsu$map)]
+  }
   c(object$coefnames[!object$fix], renames,
     switch(object$family, gaussian=, lognormal="log_sigma", beta="log_phi", nbinom2="log_theta", nbinom1="log_phi", betabinomial="log_phi"),
-    cn)
+    vn, cn)
 }
 
 # distribution function of the beta-binomial distribution with n trials, mean mu and precision phi

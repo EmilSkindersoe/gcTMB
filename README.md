@@ -4,6 +4,7 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/emilskindersoe/gcTMB/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/emilskindersoe/gcTMB/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/emilskindersoe/gcTMB/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/emilskindersoe/gcTMB/actions/workflows/pkgdown.yaml)
 [![Project Status: WIP – Initial development is in progress, but there
 has not yet been a stable, usable release suitable for the
 public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
@@ -103,9 +104,14 @@ data:
     temporal correlation of the residuals within individuals over time,
     and spatial correlation between neighbouring trees, with a nugget
     for measurement error.
-5.  [Simulation](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/simulation.pdf):
+5.  [Variance
+    functions](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/variance.pdf):
+    heteroscedastic residuals, with a variance for each stratum, or a
+    power of the fitted curve, its growth rate or a covariate, and how
+    they trade off against random effects and autocorrelation.
+6.  [Simulation](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/simulation.pdf):
     simulation studies, including the recovery of the autocorrelation
-    parameter.
+    parameter and of a variance function.
 
 [The
 overview](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/gcTMB.pdf)
@@ -207,8 +213,8 @@ and b3, profiled over the asymptote b1, or from a grid search
 
 | Purpose | Functions |
 |----|----|
-| Fitting | `gcTMB()`, `gcTMBstart()`, `gcTMBcontrol()`, `corAR1()`, `corCAR1()`, `corExp()`, `corGaus()`, `update()` |
-| Results | `summary()`, `coef()`, `vcov()`, `logLik()`, `converged()`, `fixef()`, `ranef()`, `VarCorr()`, `sigma()`, `corpars()` |
+| Fitting | `gcTMB()`, `gcTMBstart()`, `gcTMBcontrol()`, `corAR1()`, `corCAR1()`, `corExp()`, `corGaus()`, `varIdent()`, `varPower()`, `varConstPower()`, `update()` |
+| Results | `summary()`, `coef()`, `vcov()`, `logLik()`, `converged()`, `fixef()`, `ranef()`, `VarCorr()`, `sigma()`, `corpars()`, `varpars()` |
 | Confidence intervals | `confint()`, `profile()`, `bootstrap()` |
 | Tests and model choice | `anova()`, `criteria()`, `partest()` |
 | Derived quantities | `timeto()`, `maxrate()` |

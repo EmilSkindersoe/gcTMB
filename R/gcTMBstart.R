@@ -77,7 +77,7 @@ gcTMBstart <- function(form, fform=NULL, data, start=NULL, fix=NULL, weights=NUL
 
 
 # model data shared by gcTMB and gcTMBstart
-gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type="asymptote", correlation=NULL){
+gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type="asymptote", correlation=NULL, variance=NULL){
   if (!is.logical(truncated) || length(truncated) != 1 || is.na(truncated)) stop("truncated must be TRUE or FALSE.")
   fform <- fforms(fform)
   if (is.null(weights)) weights <- rep(1, nrow(data))
@@ -85,7 +85,7 @@ gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="
 
   # observations with missing values in the variables of the model or in the weights are left out
   rfl <- if (inherits(rform, "formula")) list(rform) else rform
-  vars <- c(all.vars(form), unlist(lapply(fform, all.vars)), unlist(lapply(rfl, function(f) all.vars(f[[3]]))), corvars(correlation))
+  vars <- c(all.vars(form), unlist(lapply(fform, all.vars)), unlist(lapply(rfl, function(f) all.vars(f[[3]]))), corvars(correlation), varvars(variance))
   keep <- complete.cases(data[, intersect(vars, names(data)), drop=FALSE]) & !is.na(weights)
   data <- data[keep, , drop=FALSE]
   weights <- weights[keep]
@@ -140,11 +140,14 @@ gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="
   ct <- cortypeindex(correlation)
   if (ct > 0 && !(family %in% c("gaussian", "lognormal"))) stop("correlation is only available for the gaussian and lognormal families.")
   cor <- corsetup(correlation, data, weights, re$terms, function(t, data) termgroups(re$terms[[t]], data))
+  # variance function of the residuals: gaussian and lognormal
+  if (vartypeindex(variance) > 0 && !(family %in% c("gaussian", "lognormal"))) stop("variance functions are only available for the gaussian and lognormal families.")
+  vs <- varsetup(variance, data)
 
   list(y=y, x=mf[,2], w=weights, bn=bn, fam=fam, mod=mod, trunc=truncated, lnk=lnk, re=re,
        Xs=Xs, fform=fform, fterms=fterms, npars=npars, npi=rep(1:5, npars),
        family=family, model=model, link=link, data=data, b1rate=identical(b1type, "rate"),
-       correlation=correlation, cor=cor)
+       correlation=correlation, cor=cor, variance=variance, var=vs)
 }
 
 # b1 as the maximum growth rate: the gompertz, weibull, normal and gamma curves only with the
@@ -569,8 +572,10 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
   cor <- if (is.null(dd$cor)) corsetup(NULL, data.frame(seq_along(dd$y))) else dd$cor
   # no predictions: see predictse
   Xp <- setNames(lapply(dd$Xs, function(X) X[0, , drop=FALSE]), paste("Xp", 1:5, sep=""))
+  vsu <- if (is.null(dd$var)) varsetup(NULL, data.frame(seq_along(dd$y))) else dd$var
   datalist <- c(dlist, dd$Xs, list(xp=numeric(0)), Xp, list(Zp=re$Z[0, , drop=FALSE]),
-                cor[c("cortype", "corprev", "cordt", "corlag", "corord", "corgsize", "cordist")])
+                cor[c("cortype", "corprev", "cordt", "corlag", "corord", "corgsize", "cordist")],
+                vsu[c("vartype", "varcovt", "varcov", "varstr", "varng")])
 
   # log_sigma: residual sd (gaussian, of log(y) for lognormal), precision (beta, betabinomial), size theta (nbinom2) or dispersion phi
   # (nbinom1); fixed for poisson and binomial
@@ -585,7 +590,7 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
   # logit(nugget) for the spatial structures
   scor <- if (cor$cortype >= 3) spatialstart(dd$correlation, cor$cormind) else if (cor$cortype > 0) as.numeric(dd$correlation) else 0
   parameters <- list(b1=sb[[1]], b2=sb[[2]], b3=sb[[3]], b4=sb[[4]], b5=sb[[5]], u=up, theta=as.numeric(stheta), log_sigma=slsigma,
-                     cor_par=scor)
+                     var_par=vsu$var_par, cor_par=scor)
 
   # fix parameters to starting values
   lmap <- list()
@@ -598,6 +603,7 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
   }
   if (dd$family %in% c("poisson", "binomial")) lmap$log_sigma <- factor(NA)
   if (cor$cortype == 0 || isTRUE(attr(dd$correlation, "fixed"))) lmap$cor_par <- factor(rep(NA, length(scor)))
+  if (length(vsu$var_par) > 0) lmap$var_par <- factor(vsu$map)
   if (!(dd$family %in% c("poisson", "binomial"))) parameters$log_sigma <- sigmastart(datalist, parameters, lmap, rform)
 
   MakeADFun(datalist, parameters, map=lmap, random=if (!is.null(rform)) "u", DLL="gcTMB_TMBExports", silent=TRUE)
@@ -617,6 +623,7 @@ sigmastart <- function(datalist, parameters, lmap, rform){
   }
   map1$theta <- factor(rep(NA, length(parameters$theta)))
   map1$cor_par <- factor(rep(NA, length(parameters$cor_par)))
+  map1$var_par <- factor(rep(NA, length(parameters$var_par)))
   if (is.null(rform)) map1$u <- factor(rep(NA, length(parameters$u)))
   res <- tryCatch({
     obj1 <- MakeADFun(datalist, parameters, map=map1, random=if (!is.null(rform)) "u", DLL="gcTMB_TMBExports", silent=TRUE)

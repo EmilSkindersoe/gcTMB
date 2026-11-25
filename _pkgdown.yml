@@ -25,6 +25,8 @@ navbar:
         href: articles/timing-rates.html
       - text: Correlation structures
         href: articles/correlation.html
+      - text: Variance functions
+        href: articles/variance.html
       - text: Simulation
         href: articles/simulation.html
 
@@ -35,6 +37,7 @@ reference:
   - gcTMBcontrol
   - gcTMBstart
   - corStruct
+  - varFunc
   - update.gcTMB
   - converged
 - title: Methods and extractors
@@ -81,4 +84,5 @@ articles:
   - fixed-random-effects
   - timing-rates
   - correlation
+  - variance
   - simulation

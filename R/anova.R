@@ -91,8 +91,8 @@ anova.gcTMB <- function(object, ..., test=c("LR", "F", "boot"), nsim=1000, seed=
 
   if (test == "F"){
     fam <- unique(vapply(fits, function(f) f$family, character(1)))
-    if (length(fam) != 1 || !(fam %in% c("gaussian", "lognormal")) || any(vapply(fits, function(f) length(f$reterms) > 0 || !is.null(f$correlation), logical(1)))){
-      stop("F-tests are only available for gaussian or lognormal models without random effects and without autocorrelation; use test=\"LR\".")
+    if (length(fam) != 1 || !(fam %in% c("gaussian", "lognormal")) || any(vapply(fits, function(f) length(f$reterms) > 0 || !is.null(f$correlation) || !is.null(f$variance), logical(1)))){
+      stop("F-tests are only available for gaussian or lognormal models without random effects, without autocorrelation and without a variance function; use test=\"LR\".")
     }
     # weighted residual sums of squares (of log(y) for lognormal), residual degrees of freedom without the residual sd
     rss <- vapply(fits[ord], function(f){

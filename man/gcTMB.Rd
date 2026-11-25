@@ -12,6 +12,7 @@ gcTMB(
   start = NULL,
   fix = NULL,
   correlation = NULL,
+  variance = NULL,
   lower = -Inf,
   upper = Inf,
   family = "gaussian",
@@ -45,6 +46,13 @@ groups over time, \code{\link{corAR1}}, \code{\link{corCAR1}}, \code{\link{corEx
 the package nlme), e.g. \code{corCAR1(form=~ time | ID)}, for the gaussian and lognormal (on the
 log scale) families. NULL (default) for independent residuals. See \code{\link{corStruct}}; with
 a correlation structure, the weights are precision weights, with residual variance sigma^2/w.}
+
+\item{variance}{A variance function or NULL. Heteroscedastic residuals with the standard deviation
+sigma g, \code{\link{varIdent}}, \code{\link{varPower}} or \code{\link{varConstPower}} (or the
+same functions of the package nlme), e.g. \code{varIdent(form=~ 1 | Treatment)} for a variance
+for each treatment, or \code{varConstPower(form=~ rate(.))} for a standard deviation that grows
+with the growth rate of the curve, for the gaussian and lognormal (on the log scale) families.
+NULL (default) for a constant variance. See \code{\link{varFunc}}.}
 
 \item{lower}{Numeric, a single value or a vector. Lower bounds for the model coefficients b1-b5, a single value or a vector with the same length as start. Bounds of fixed coefficients are ignored; variance parameters are unbounded.}
 
@@ -154,6 +162,10 @@ of lme4;
 and \code{\link{corGaus}} have the
 arguments and the parameterisation of nlme, whose objects are accepted as well, and
 \code{residuals(fit, type="normalized")} gives the normalized residuals of nlme;
+\item the variance functions \code{\link{varIdent}}, \code{\link{varPower}} and
+\code{\link{varConstPower}} go in the argument \code{variance} (the argument \code{weights} of
+nlme), with the arguments and parameterisation of nlme, plus the growth rate \code{rate(.)} as a
+covariate;
 \item \code{\link{fixef}}, \code{\link{ranef}} and \code{\link{VarCorr}} are generics with the names
 of those of nlme, and work for gcTMB, nlme and lme4 fits whichever package is attached last;
 \item \code{predict} and \code{fitted} with \code{random=FALSE} correspond to \code{level=0} of

@@ -44,7 +44,7 @@
 #' The data sets \code{\link{FabaHeights25}} and \code{\link{FabaCounts23}}. The vignettes:
 #' \code{vignette("gcTMB")}, an overview of most features; \code{vignette("growth-models")},
 #' \code{vignette("fixed-random-effects")}, \code{vignette("timing-rates")},
-#' \code{vignette("correlation")} and \code{vignette("simulation")}.
+#' \code{vignette("correlation")}, \code{vignette("variance")} and \code{vignette("simulation")}.
 #'
 #' @keywords internal
 "_PACKAGE"

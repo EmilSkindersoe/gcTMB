@@ -16,6 +16,12 @@
 #'   the package nlme), e.g. \code{corCAR1(form=~ time | ID)}, for the gaussian and lognormal (on the
 #'   log scale) families. NULL (default) for independent residuals. See \code{\link{corStruct}}; with
 #'   a correlation structure, the weights are precision weights, with residual variance sigma^2/w.
+#' @param variance A variance function or NULL. Heteroscedastic residuals with the standard deviation
+#'   sigma g, \code{\link{varIdent}}, \code{\link{varPower}} or \code{\link{varConstPower}} (or the
+#'   same functions of the package nlme), e.g. \code{varIdent(form=~ 1 | Treatment)} for a variance
+#'   for each treatment, or \code{varConstPower(form=~ rate(.))} for a standard deviation that grows
+#'   with the growth rate of the curve, for the gaussian and lognormal (on the log scale) families.
+#'   NULL (default) for a constant variance. See \code{\link{varFunc}}.
 #' @param lower Numeric, a single value or a vector. Lower bounds for the model coefficients b1-b5, a single value or a vector with the same length as start. Bounds of fixed coefficients are ignored; variance parameters are unbounded.
 #' @param upper Numeric, a single value or a vector. Upper bounds for the model coefficients b1-b5, a single value or a vector with the same length as start.
 #' @param family Character string. The distribution of the response, one of "gaussian", "lognormal", "binomial", "betabinomial", "beta", "poisson", "nbinom2", and "nbinom1". For the lognormal family, log(y) is normal with mean log f(t) and standard deviation sigma: the curve f is the median of a positive response, with a constant coefficient of variation; the mean is f(t) exp(sigma^2/2). The negative binomial families are for overdispersed counts, with variance mu (1 + mu/theta) for nbinom2 and mu (1 + phi) for nbinom1, and the beta-binomial family for overdispersed binomial counts, with variance n mu (1 - mu) (1 + (n - 1)/(phi + 1)) for n trials, as in glmmTMB.
@@ -103,6 +109,10 @@
 #'     and \code{\link{corGaus}} have the
 #'     arguments and the parameterisation of nlme, whose objects are accepted as well, and
 #'     \code{residuals(fit, type="normalized")} gives the normalized residuals of nlme;
+#'   \item the variance functions \code{\link{varIdent}}, \code{\link{varPower}} and
+#'     \code{\link{varConstPower}} go in the argument \code{variance} (the argument \code{weights} of
+#'     nlme), with the arguments and parameterisation of nlme, plus the growth rate \code{rate(.)} as a
+#'     covariate;
 #'   \item \code{\link{fixef}}, \code{\link{ranef}} and \code{\link{VarCorr}} are generics with the names
 #'     of those of nlme, and work for gcTMB, nlme and lme4 fits whichever package is attached last;
 #'   \item \code{predict} and \code{fitted} with \code{random=FALSE} correspond to \code{level=0} of
@@ -208,12 +218,12 @@
 #' coef(fitt)
 #' @export
 
-gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, correlation=NULL, lower=-Inf, upper=Inf, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type=c("asymptote", "rate"), weights=NULL, gsl=NULL, gsu=NULL, gsn=NULL, control=list()){
+gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, correlation=NULL, variance=NULL, lower=-Inf, upper=Inf, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type=c("asymptote", "rate"), weights=NULL, gsl=NULL, gsu=NULL, gsn=NULL, control=list()){
   b1type <- match.arg(b1type)
   # control list
   control <- do.call(gcTMBcontrol, control)
   dd <- gcTMBdata(form, fform=fform, rform=rform, data=data, weights=weights, family=family, model=model, truncated=truncated, link=link, b1type=b1type,
-                  correlation=correlation)
+                  correlation=correlation, variance=variance)
   fixnamed <- !is.null(names(fix))
   start <- defaultstart(parvector(start, dd$npi, NA, "start"), dd)
   fix <- defaultfix(fix, dd$npi, dd$mod)
@@ -325,6 +335,8 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, corr
   res$rform <- rform
   res$reterms <- dd$re$terms
   res$correlation <- correlation
+  res$variance <- variance
+  res$varlevels <- dd$var$levels
   # the grouping factor of the random effects that groups the residuals, for a form without a group
   if (!is.null(correlation) && is.null(corform(correlation)$group) && length(dd$re$terms) > 0){
     res$corgroup <- dd$re$terms[[which.max(vapply(dd$re$terms, function(tm) length(tm$levels), integer(1)))]]$group
@@ -351,7 +363,7 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, corr
   res$ssdrl <- if (inherits(res$sdrl, "nosdreport")) nosdrsummary(res$sdrl) else suppressWarnings(summary(res$sdrl))
   # residual degrees of freedom for small-sample inference of gaussian and lognormal models without
   # random effects (lognormal: gaussian for log(y)): observations with positive weights minus free coefficients
-  if (isTRUE(control$smallsample) && family %in% c("gaussian", "lognormal") && length(dd$re$terms) == 0 && is.null(correlation)){
+  if (isTRUE(control$smallsample) && family %in% c("gaussian", "lognormal") && length(dd$re$terms) == 0 && is.null(correlation) && is.null(variance)){
     rdf <- sum(dd$w > 0) - sum(!fix)
     if (rdf > 0) res$rdf <- rdf else warning("no residual degrees of freedom; the standard errors use the maximum likelihood estimate of the residual variance.", call.=FALSE)
   }

@@ -25,7 +25,7 @@ timeto(
 
 \item{random}{Logical. If TRUE, the times of rows of newdata with fitted groups are conditional on their random effects, and for the other random effect terms, the variance-covariance matrix of the random effects is included in the standard error estimation. If FALSE, the times are for the population curves.}
 
-\item{residual}{Logical. If TRUE, the residual variance is included in the standard error estimation (gaussian family only)}
+\item{residual}{Logical. If TRUE, the residual variance is included in the standard error estimation (gaussian family only), with the variance function of the fit if it has one: the standard errors are those of the time at which a single observation reaches the level, see Details}
 
 \item{type}{Character string. "relative" (default) for levels relative to the asymptote, or "absolute" for the times at which the curves reach the responses in level, on the scale of the response (proportions for binomial, beta-binomial and beta). Responses outside the range of a curve, between zero and the asymptote, give NA, with a warning.}
 }
@@ -54,6 +54,19 @@ effects and the prediction error of the random effects, from the joint precision
 \code{\link[TMB]{sdreport}}. Random effect terms without a grouping variable in newdata, or with a
 level that is not in the fitted data, are treated as above. Profile intervals are not available
 for the times of fitted groups, see \code{\link{confint.timetoTMB}}.
+
+With \code{residual=TRUE} (gaussian family), the standard errors are those of the time at which a
+single observation, rather than the curve, reaches the level: the residual r of the observation shifts
+the response, and so the time by -r/f'(t), with the slope f'(t) of the curve at the estimated time t.
+The residual variance is sigma^2, or with a variance function (see \code{\link{varFunc}}) sigma^2 g^2,
+with g evaluated at the estimated time on the curve of the row: the fitted curve at t for
+\code{fitted(.)}, its growth rate at t for \code{rate(.)}, and t for a covariate that is the time
+variable. Other covariates of the variance function, and the strata of \code{varIdent}, are taken
+from \code{newdata}; a \code{varIdent} by the time itself gives an error, as it has no variance
+between the observed times. The uncertainty of sigma and of the parameters of the variance function
+is not included, and the residual is the same for all the times of the call, so that their
+covariances include it. Times reached where the curve is flat, near the asymptote, get large
+residual variances. Profile intervals are not available with \code{residual=TRUE}.
 }
 \examples{
 fit <- gcTMB(Height ~ DAS, data=FabaHeights25, model="logistic")

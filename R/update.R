@@ -1,13 +1,14 @@
 #' Update a gcTMB fit, or set its parameters
 #'
-#' With \code{fixef}, \code{VarCorr}, \code{sigma} or \code{rho}, \code{update} returns the model with some of
+#' With \code{fixef}, \code{VarCorr}, \code{sigma}, \code{rho} or \code{varpar}, \code{update} returns the model with some of
 #' its parameters set to new values, e.g. as the true model of a simulation study (see
 #' \code{\link{simulate.gcTMB}}); the model is not refitted. Without them, it refits the model with
 #' the arguments in \code{...} changed, as \code{\link[stats]{update}}.
 #'
 #' Every parameter of the model can be set: the coefficients of b1-b5 (\code{fixef}, including
 #' coefficients fixed in the fit), the covariance matrices of the random effects (\code{VarCorr}), the
-#' residual standard deviation or dispersion (\code{sigma}) and the autocorrelation (\code{rho}),
+#' residual standard deviation or dispersion (\code{sigma}), the autocorrelation (\code{rho}) and the
+#' parameters of the variance function (\code{varpar}),
 #' i.e. all the entries of \code{coef}. The parameters that are not given keep their values, and the random effects are the conditional
 #' modes at the new parameters. The new values are not estimates: the standard errors, the covariance
 #' matrix of \code{vcov} and the confidence intervals are NA, and \code{\link{converged}} returns NA.
@@ -35,7 +36,11 @@
 #'   \code{\link{corCAR1}}, between -1 and 1 for \code{\link{corAR1}}. For \code{\link{corExp}} and
 #'   \code{\link{corGaus}}, a named vector with the new range and/or nugget, e.g.
 #'   \code{c(range=10, nugget=0.2)}. NULL (default) keeps it.
-#' @param ... Without fixef, VarCorr, sigma and rho: the arguments of \code{\link{gcTMB}} to change, as in
+#' @param varpar Named numeric vector or NULL. New parameters of the variance function (see
+#'   \code{\link{varFunc}}) on their natural scale, named as returned by \code{\link{varpars}}, e.g.
+#'   \code{c(power=1)} or \code{c(const=2, power=0.5)} for \code{varConstPower}, or the ratio of a
+#'   stratum for \code{varIdent}; the parameters not given keep their values. NULL (default) keeps them.
+#' @param ... Without fixef, VarCorr, sigma, rho and varpar: the arguments of \code{\link{gcTMB}} to change, as in
 #'   \code{\link[stats]{update}}.
 #'
 #' @return A gcTMB object.
@@ -54,12 +59,15 @@
 #' fitc <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25,
 #'               correlation=corCAR1(form=~ DAS | Plant_ID))
 #' corpars(update(fitc, rho=0.7))
+#' # a residual standard deviation proportional to the fitted curve
+#' fitv <- gcTMB(Height ~ DAS, data=FabaHeights25, variance=varPower())
+#' varpars(update(fitv, varpar=c(power=1)))
 #'
 #' @importFrom stats update
 #' @export
-update.gcTMB <- function(object, ..., fixef=NULL, VarCorr=NULL, sigma=NULL, rho=NULL){
-  if (is.null(fixef) && is.null(VarCorr) && is.null(sigma) && is.null(rho)) return(NextMethod())
-  if (length(list(...)) > 0) stop("give either new parameter values (fixef, VarCorr, sigma, rho) or arguments to refit the model, not both.")
+update.gcTMB <- function(object, ..., fixef=NULL, VarCorr=NULL, sigma=NULL, rho=NULL, varpar=NULL){
+  if (is.null(fixef) && is.null(VarCorr) && is.null(sigma) && is.null(rho) && is.null(varpar)) return(NextMethod())
+  if (length(list(...)) > 0) stop("give either new parameter values (fixef, VarCorr, sigma, rho, varpar) or arguments to refit the model, not both.")
   env <- object$obj$env
   pl <- env$parList(object$opt$par)
   start <- object$start
@@ -121,6 +129,30 @@ update.gcTMB <- function(object, ..., fixef=NULL, VarCorr=NULL, sigma=NULL, rho=
       if (length(rho) != 1 || !is.finite(rho) || rho <= lo || rho >= 1) stop("rho must be a single number between ", lo, " and 1 for ", class(object$correlation)[1], ".")
       # on the unconstrained scale of nlme
       pl$cor_par <- if (ct == 1) log((1 + rho)/(1 - rho)) else stats::qlogis(rho)
+    }
+  }
+
+  if (!is.null(varpar)){
+    vt <- vartypeindex(object$variance)
+    if (vt == 0) stop("the model has no variance function; fit it with one, e.g. variance=varPower().")
+    vn <- names(varpars(object))
+    if (!is.numeric(varpar) || is.null(names(varpar)) || any(!(names(varpar) %in% vn)) || any(!is.finite(varpar))){
+      stop("varpar must be a named vector with some of ", paste(vn, collapse=", "), ", as returned by varpars().")
+    }
+    G <- env$data$varng
+    for (nm in names(varpar)){
+      k <- match(nm, vn)
+      v <- varpar[[nm]]
+      if (vt == 1){
+        if (k == 1) stop("the reference stratum ", nm, " of varIdent has the ratio 1.")
+        if (v <= 0) stop("the ratios of varIdent must be positive.")
+        pl$var_par[k - 1] <- log(v)
+      } else if (vt == 3 && k <= G){
+        if (v <= 0) stop("the constant of varConstPower must be positive.")
+        pl$var_par[k] <- log(v)
+      } else {
+        pl$var_par[k] <- v
+      }
     }
   }
 

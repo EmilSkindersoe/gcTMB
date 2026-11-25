@@ -4,12 +4,20 @@
 \alias{update.gcTMB}
 \title{Update a gcTMB fit, or set its parameters}
 \usage{
-\method{update}{gcTMB}(object, ..., fixef = NULL, VarCorr = NULL, sigma = NULL, rho = NULL)
+\method{update}{gcTMB}(
+  object,
+  ...,
+  fixef = NULL,
+  VarCorr = NULL,
+  sigma = NULL,
+  rho = NULL,
+  varpar = NULL
+)
 }
 \arguments{
 \item{object}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
-\item{...}{Without fixef, VarCorr, sigma and rho: the arguments of \code{\link{gcTMB}} to change, as in
+\item{...}{Without fixef, VarCorr, sigma, rho and varpar: the arguments of \code{\link{gcTMB}} to change, as in
 \code{\link[stats]{update}}.}
 
 \item{fixef}{Named numeric vector or NULL. New values of coefficients of b1-b5, named as in
@@ -30,12 +38,17 @@ lognormal), or the dispersion parameter of the other families, as returned by
 \code{\link{corCAR1}}, between -1 and 1 for \code{\link{corAR1}}. For \code{\link{corExp}} and
 \code{\link{corGaus}}, a named vector with the new range and/or nugget, e.g.
 \code{c(range=10, nugget=0.2)}. NULL (default) keeps it.}
+
+\item{varpar}{Named numeric vector or NULL. New parameters of the variance function (see
+\code{\link{varFunc}}) on their natural scale, named as returned by \code{\link{varpars}}, e.g.
+\code{c(power=1)} or \code{c(const=2, power=0.5)} for \code{varConstPower}, or the ratio of a
+stratum for \code{varIdent}; the parameters not given keep their values. NULL (default) keeps them.}
 }
 \value{
 A gcTMB object.
 }
 \description{
-With \code{fixef}, \code{VarCorr}, \code{sigma} or \code{rho}, \code{update} returns the model with some of
+With \code{fixef}, \code{VarCorr}, \code{sigma}, \code{rho} or \code{varpar}, \code{update} returns the model with some of
 its parameters set to new values, e.g. as the true model of a simulation study (see
 \code{\link{simulate.gcTMB}}); the model is not refitted. Without them, it refits the model with
 the arguments in \code{...} changed, as \code{\link[stats]{update}}.
@@ -43,7 +56,8 @@ the arguments in \code{...} changed, as \code{\link[stats]{update}}.
 \details{
 Every parameter of the model can be set: the coefficients of b1-b5 (\code{fixef}, including
 coefficients fixed in the fit), the covariance matrices of the random effects (\code{VarCorr}), the
-residual standard deviation or dispersion (\code{sigma}) and the autocorrelation (\code{rho}),
+residual standard deviation or dispersion (\code{sigma}), the autocorrelation (\code{rho}) and the
+parameters of the variance function (\code{varpar}),
 i.e. all the entries of \code{coef}. The parameters that are not given keep their values, and the random effects are the conditional
 modes at the new parameters. The new values are not estimates: the standard errors, the covariance
 matrix of \code{vcov} and the confidence intervals are NA, and \code{\link{converged}} returns NA.
@@ -69,5 +83,8 @@ fitg <- update(fit, model="gompertz")
 fitc <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25,
               correlation=corCAR1(form=~ DAS | Plant_ID))
 corpars(update(fitc, rho=0.7))
+# a residual standard deviation proportional to the fitted curve
+fitv <- gcTMB(Height ~ DAS, data=FabaHeights25, variance=varPower())
+varpars(update(fitv, varpar=c(power=1)))
 
 }

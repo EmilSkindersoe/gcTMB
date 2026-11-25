@@ -144,6 +144,13 @@ natscale <- function(ci, rn, corr2, level){
   ci[rg, ] <- exp(ci[rg, ])
   ci[ng, ] <- stats::plogis(ci[ng, ])
   rn[rg | ng] <- sub("^cor_par:", "", rn[rg | ng])
+  # the variance function: the ratios of varIdent and the constants of varConstPower from their logs
+  vpw <- grepl("^var_par:power(:|$)", rn)
+  vc <- grepl("^var_par:const(:|$)", rn)
+  vid <- grepl("^var_par:", rn) & !vpw & !vc
+  ci[vc | vid, ] <- exp(ci[vc | vid, ])
+  rn[vpw | vc] <- sub("^var_par:", "", rn[vpw | vc])
+  rn[vid] <- sub("^var_par:", "ratio:", rn[vid])
   two <- rn %in% corr2
   ci[two, ] <- ci[two, ] / sqrt(1 + ci[two, ]^2)
   rn[two] <- sub("^corr_par:", "corr:", rn[two])

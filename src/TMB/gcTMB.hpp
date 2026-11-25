@@ -52,6 +52,12 @@ Type gcTMB(objective_function<Type>* obj) {
   DATA_IVECTOR(corgsize);  // spatial structures (3 = exponential, 4 = Gaussian): number of observations per
                            // group, in the order of corord; length zero otherwise
   DATA_VECTOR(cordist);    // spatial structures: distance matrix of each group, by column, concatenated
+  DATA_INTEGER(vartype);   // variance function (gaussian, lognormal): 0 = none, 1 = varIdent, 2 = varPower,
+                           // 3 = varConstPower; the sd of an observation is sigma g / sqrt(w)
+  DATA_INTEGER(varcovt);   // covariate of varPower and varConstPower: 0 = varcov, 1 = fitted curve, 2 = growth rate
+  DATA_VECTOR(varcov);     // covariate of the data; length n
+  DATA_IVECTOR(varstr);    // stratum (varIdent, 0 the reference) or level of the grouping factor; length n
+  DATA_INTEGER(varng);     // number of strata or levels
   PARAMETER_VECTOR(b1);
   PARAMETER_VECTOR(b2);
   PARAMETER_VECTOR(b3);
@@ -61,13 +67,16 @@ Type gcTMB(objective_function<Type>* obj) {
   PARAMETER_VECTOR(theta); // length zero without random effects
   PARAMETER(log_sigma);    // log sd (gaussian; of log(y) for lognormal), precision (beta, betabinomial), size (nbinom2) or dispersion (nbinom1);
                            // mapped (fixed) for poisson and binomial
+  PARAMETER_VECTOR(var_par); // variance function, unconstrained as in nlme: varIdent log ratios of the strata
+                           // 1, ..., varng - 1; varPower the power of each level; varConstPower the log
+                           // constant of each level, then the power of each level; length zero without
   PARAMETER_VECTOR(cor_par); // autocorrelation on the unconstrained scale of nlme: log((1 + rho)/(1 - rho)) for AR(1),
                            // log(rho/(1 - rho)) for CAR(1), log(range) and logit(nugget) for the spatial
                            // structures (without nugget: length 1); mapped (fixed) without autocorrelation
 
   Type phi = exp(log_sigma);
   // correlated residuals (gaussian, and log(y) for lognormal): stationary, with the marginal standard
-  // deviation sigma/sqrt(w) and the correlation rho^dt between observations dt apart in time within a group
+  // deviation sigma g/sqrt(w) (g of the variance function) and the correlation rho^dt between observations dt apart in time within a group
   // (AR(1), CAR(1)), or (1 - nugget) exp(-d/range) (exponential) or (1 - nugget) exp(-(d/range)^2)
   // (Gaussian) between observations a distance d apart
   bool correlated = (cortype > 0) && (fam == 1 || fam == 8);
@@ -162,6 +171,12 @@ Type gcTMB(objective_function<Type>* obj) {
   vector<Type> Xb4 = X4 * b4;
   vector<Type> Xb5 = X5 * b5;
 
+  // variance function: g = ratio of the stratum (varIdent), |v|^power (varPower) or const + |v|^power
+  // (varConstPower), v a covariate, the fitted curve or its growth rate (central difference)
+  bool hasvar = (vartype > 0) && (fam == 1 || fam == 8);
+  vector<Type> gv(n);
+  gv.fill(Type(1));
+
   Type f;
   vector<Type> fv(n);
   for (int i = 0; i < n; i++){
@@ -172,10 +187,25 @@ Type gcTMB(objective_function<Type>* obj) {
     Type f1 = gcasym(b1rate, mod, trunc, linkinv(lnk(0), Type(Xb1(i) + Zu(i, 0))), f2, f3, f4, f5);
     f = gcmean(mod, trunc, x(i), f1, f2, f3, f4, f5);
     fv(i) = f;
+    if (hasvar){
+      int k = varstr(i);
+      if (vartype == 1){
+        if (k > 0) gv(i) = exp(var_par(k - 1));
+      } else {
+        Type v = varcov(i);
+        if (varcovt == 1) v = f;
+        if (varcovt == 2){
+          Type h = Type(1e-5) * (Type(1) + fabs(x(i)));
+          v = (gcmean(mod, trunc, Type(x(i) + h), f1, f2, f3, f4, f5) - gcmean(mod, trunc, Type(x(i) - h), f1, f2, f3, f4, f5)) / (Type(2) * h);
+        }
+        Type pw = exp(var_par((vartype == 3) ? (varng + k) : k) * log(fabs(v)));
+        gv(i) = (vartype == 3) ? Type(exp(var_par(k)) + pw) : pw;
+      }
+    }
     if (!correlated){
-      nll += -w(i) * loglik(fam, y(i), f, bn(i), phi);
+      nll += -w(i) * loglik(fam, y(i), f, bn(i), Type(phi * gv(i)));
       SIMULATE {
-        y(i) = simobs(fam, f, bn(i), phi);
+        y(i) = simobs(fam, f, bn(i), Type(phi * gv(i)));
       }
     }
     SIMULATE {
@@ -192,9 +222,9 @@ Type gcTMB(objective_function<Type>* obj) {
         r(i) = 0;
       } else {
         Type e = (fam == 8) ? Type(log(y(i)) - log(fv(i))) : Type(y(i) - fv(i));
-        r(i) = e * sqrt(w(i)) / phi;
+        r(i) = e * sqrt(w(i)) / (phi * gv(i));
         // the Jacobian of the standardisation, and of the log for lognormal
-        nll -= Type(0.5) * log(w(i)) - log(phi);
+        nll -= Type(0.5) * log(w(i)) - log(phi * gv(i));
         if (fam == 8) nll += log(y(i));
       }
     }
@@ -205,6 +235,14 @@ Type gcTMB(objective_function<Type>* obj) {
     int off = 0, doff = 0;
     for (int g = 0; g < corgsize.size(); g++){
       int m = corgsize(g);
+      if (m == 1){
+        // a single observation: standard normal, without a 1 x 1 correlation matrix (its residual
+        // was drawn above for simulation)
+        nll -= dnorm(r(corord(off)), Type(0), Type(1), true);
+        off += 1;
+        doff += 1;
+        continue;
+      }
       matrix<Type> R(m, m);
       vector<Type> rg(m);
       for (int a = 0; a < m; a++){
@@ -231,7 +269,7 @@ Type gcTMB(objective_function<Type>* obj) {
     SIMULATE {
       for (int i = 0; i < n; i++){
         Type wi = (w(i) > 0) ? w(i) : Type(1);
-        Type e = rs(i) * phi / sqrt(wi);
+        Type e = rs(i) * phi * gv(i) / sqrt(wi);
         y(i) = (fam == 8) ? Type(fv(i) * exp(e)) : Type(fv(i) + e);
       }
     }
@@ -249,7 +287,7 @@ Type gcTMB(objective_function<Type>* obj) {
         r(i) = 0;
       } else {
         Type e = (fam == 8) ? Type(log(y(i)) - log(fv(i))) : Type(y(i) - fv(i));
-        r(i) = e * sqrt(w(i)) / phi;
+        r(i) = e * sqrt(w(i)) / (phi * gv(i));
       }
     }
     for (int i = 0; i < n; i++){
@@ -263,7 +301,7 @@ Type gcTMB(objective_function<Type>* obj) {
         ld = dnorm(r(i), cr * r(p), sqrt(Type(1) - cr*cr), true);
       }
       // density of y: the Jacobian of the standardisation, and of the log for lognormal
-      ld += Type(0.5) * log(w(i)) - log(phi);
+      ld += Type(0.5) * log(w(i)) - log(phi * gv(i));
       if (fam == 8) ld -= log(y(i));
       nll -= ld;
     }
@@ -280,11 +318,12 @@ Type gcTMB(objective_function<Type>* obj) {
           rs(i) = cr * rs(p) + sqrt(Type(1) - cr*cr) * rnorm(Type(0), Type(1));
         }
         Type wi = (w(i) > 0) ? w(i) : Type(1);
-        Type e = rs(i) * phi / sqrt(wi);
+        Type e = rs(i) * phi * gv(i) / sqrt(wi);
         y(i) = (fam == 8) ? Type(fv(i) * exp(e)) : Type(fv(i) + e);
       }
     }
   }
+  REPORT(gv);
   SIMULATE {
     REPORT(y);
     REPORT(usim);

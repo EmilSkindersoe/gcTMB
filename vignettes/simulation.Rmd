@@ -5,7 +5,7 @@ output:
   rmarkdown::pdf_document:
     fig_crop: false
 vignette: >
-  %\VignetteIndexEntry{5. Simulation}
+  %\VignetteIndexEntry{6. Simulation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -17,11 +17,12 @@ knitr::opts_chunk$set(
   dpi = 150,
   fig.retina = 2,
   fig.align = "center",
-  out.width = "100%"
+  out.width = "100%",
+  dev = "cairo_pdf"
 )
 ```
 
-This vignette covers simulation studies: simulating data from a fitted model, refitting it, and comparing the estimates with the true parameters, including the autocorrelation parameter of the residuals. The correlation structures themselves, temporal and spatial, are described in the vignette *Correlation structures*.
+This vignette covers simulation studies: simulating data from a fitted model, refitting it, and comparing the estimates with the true parameters, including the autocorrelation parameter and the variance function of the residuals. The correlation structures themselves, temporal and spatial, are described in the vignette *Correlation structures*.
 
 ## The sorghum and maize data
 
@@ -136,7 +137,7 @@ In a full simulation study, these steps are repeated for many simulated data set
 
 ### Recovering the autocorrelation
 
-With a correlation structure, `simulate()` draws the residuals of each group with the autocorrelation of the fit: within a plot in `newdata`, ordered in time, each residual given the previous one, $dt$ earlier, is normal with mean $\rho^{dt}$ times the previous residual and variance $\sigma^2 (1 - \rho^{2 dt})$. `update()` is designed for simulation studies like this one: it sets some of the parameters of a fitted model to chosen values and keeps the others, without refitting, so that the result can serve as the true model of the simulation. Its arguments are `fixef` for the coefficients, `VarCorr` for the covariance matrices of the random effects, `sigma` for the residual standard deviation, and `rho` for the autocorrelation.
+With a correlation structure, `simulate()` draws the residuals of each group with the autocorrelation of the fit: within a plot in `newdata`, ordered in time, each residual given the previous one, $dt$ earlier, is normal with mean $\rho^{dt}$ times the previous residual and variance $\sigma^2 (1 - \rho^{2 dt})$. `update()` is designed for simulation studies like this one: it sets some of the parameters of a fitted model to chosen values and keeps the others, without refitting, so that the result can serve as the true model of the simulation. Its arguments are `fixef` for the coefficients, `VarCorr` for the covariance matrices of the random effects, `sigma` for the residual standard deviation, `rho` for the autocorrelation, and `varpar` for the parameters of a variance function.
 
 Here the true model is the lognormal fit `fitrec` from above, with crop and input effects, random asymptotes of the plots and continuous-time AR(1) residuals of $\log(y)$. Its autocorrelation, $\rho = `r round(corpars(fitrec), 2)`$ per day, is set to $\rho = 0.8$ with `update()`, a correlation of $0.8^{10} \approx 0.11$ between samplings 10 days apart, and all other parameters keep their estimates:
 
@@ -185,5 +186,55 @@ ggplot(carsim, aes(x = rho)) +
   geom_histogram(bins = 10, fill = "grey70", colour = "grey30") +
   geom_vline(xintercept = rho0, colour = "red") +
   labs(x = expression(paste("Estimate of ", rho)), y = "Simulations") +
+  theme_minimal()
+```
+
+### Recovering a variance function
+
+A variance function (see `?varFunc` and the vignette *Variance functions*) makes the residual standard deviation depend on a covariate, here on the fitted curve: with `variance = varPower()`, the standard deviation of $\log(y)$ is $\sigma f(t)^\delta$. A negative power $\delta$ makes the small plants relatively more variable than the large ones. We fit it to the biomass:
+
+```{r sim-varfit}
+fitvar <- gcTMB(Biomass ~ DOY, fform = b1 + b2 ~ Crop, rform = b1 ~ 1 | plot, data = sm,
+                model = "beta", start = c(b4 = 141), family = "lognormal", variance = varPower())
+varpars(fitvar)
+AIC(fitsim, fitvar)
+```
+
+The power is negative because it acts on the scale of $\log(y)$, where the standard deviation is about the coefficient of variation: the relative deviations of the biomass from the curve are larger for small plants than for large ones. On the original scale, the standard deviation still grows with the biomass, about as $f(t)^{1 + \delta}$; the same model with the gaussian family estimates a power of about 0.8.
+
+`simulate()` draws the residuals with the standard deviation of the variance function at each simulated curve. The true model sets the power to $\delta = -0.3$ with `update()` and keeps the other estimates:
+
+```{r sim-vartrue}
+delta0 <- -0.3
+fitvartrue <- update(fitvar, varpar = c(power = delta0))
+```
+
+We simulate 50 data sets of 10 new plots of each crop, each sampled every 10 days from day 150 to day 300, and fit the model to each, with the power estimated:
+
+```{r sim-varrun, warning = FALSE}
+design <- expand.grid(DOY = seq(150, 300, by = 10), rep = 1:10, Crop = levels(SorghumMaize$Crop))
+design$plot <- interaction(design$rep, design$Crop, drop = TRUE)
+sims <- simulate(fitvartrue, nsim = 50, seed = 1, newdata = design)
+varsim <- do.call(rbind, lapply(sims, function(y){
+  dat <- cbind(design, Biomass = y)
+  f1 <- gcTMB(Biomass ~ DOY, fform = b1 + b2 ~ Crop, rform = b1 ~ 1 | plot, data = dat,
+              model = "beta", start = c(b4 = 141), family = "lognormal", variance = varPower())
+  ci <- confint(f1, parm = "var_par:power", method = "wald")
+  data.frame(power = varpars(f1)[["power"]], lower = ci[1], upper = ci[2],
+             covered = ci[1] <= delta0 & delta0 <= ci[2])
+}))
+```
+
+The means of the estimates of $\delta$ and of the bounds of their 95% Wald intervals, and the coverage of the intervals, against the true value $-0.3$:
+
+```{r sim-vartab}
+colMeans(varsim[, c("power", "lower", "upper", "covered")])
+```
+
+```{r sim-varplot, fig.width = 5, fig.height = 3}
+ggplot(varsim, aes(x = power)) +
+  geom_histogram(bins = 10, fill = "grey70", colour = "grey30") +
+  geom_vline(xintercept = delta0, colour = "red") +
+  labs(x = expression(paste("Estimate of ", delta)), y = "Simulations") +
   theme_minimal()
 ```

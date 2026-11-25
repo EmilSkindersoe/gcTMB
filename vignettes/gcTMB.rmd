@@ -21,13 +21,14 @@ knitr::opts_chunk$set(
 )
 ```
 
-The package gcTMB fits growth curves over time by maximum likelihood with the Template Model Builder (TMB). The curves can depend on covariates, have random effects for repeated measurements of the same individuals, and have autocorrelated residuals, and the response can follow a range of distributions. This overview shows most of the features in one document, with short examples; five vignettes go into each topic in depth:
+The package gcTMB fits growth curves over time by maximum likelihood with the Template Model Builder (TMB). The curves can depend on covariates, have random effects for repeated measurements of the same individuals, and have autocorrelated or heteroscedastic residuals, and the response can follow a range of distributions. This overview shows most of the features in one document, with short examples; six vignettes go into each topic in depth:
 
 1. *Growth models and their parameters* (`vignette("growth-models")`): the formulas of the growth models, the meaning of their parameters, inflection points and maximum growth rates, fitting and comparing the models, confidence intervals and simple treatment effects;
 2. *Fixed and random effects* (`vignette("fixed-random-effects")`): covariates and random effects of the parameters, likelihood ratio and F-tests of their inclusion, and count data;
 3. *Timing and maximum growth rates* (`vignette("timing-rates")`): `timeto()` and `maxrate()` with treatment and genotype effects, the maximum growth rate as a parameter, and pairwise comparisons;
 4. *Correlation structures* (`vignette("correlation")`): temporal correlation of the residuals within individuals over time, and spatial correlation between neighbouring trees, with a nugget for measurement error;
-5. *Simulation* (`vignette("simulation")`): simulation studies, including the recovery of the autocorrelation parameter.
+5. *Variance functions* (`vignette("variance")`): a variance for each stratum, or a power of the fitted curve, its growth rate or a covariate, and how variance functions trade off against random effects and autocorrelation;
+6. *Simulation* (`vignette("simulation")`): simulation studies, including the recovery of the autocorrelation parameter and of a variance function.
 
 ## Growth models
 
@@ -177,6 +178,18 @@ anova(fitre, fitrec)
 ```
 
 In space, `corExp()` and `corGaus()` have the correlation $(1 - n) \exp(-d/r)$ and $(1 - n) \exp(-(d/r)^2)$ of residuals a distance $d$ apart, with a range $r$ and, with `nugget = TRUE`, a nugget $n$: the share of the residual variance that is independent between observations, such as measurement error. With the positions of trees in their plots, e.g. `corExp(form = ~ X + Y | Plot, nugget = TRUE)`, the residuals of neighbouring trees are correlated. `residuals(type = "normalized")` gives residuals that are independent under the model. The vignette *Correlation structures* describes the models and their likelihood, with an example of spatial correlation.
+
+## Variance functions
+
+The residual variance of the gaussian and lognormal families can change over the course of growth, with a variance function in the argument `variance`: `varIdent()` gives each stratum its own variance, `varPower()` and `varConstPower()` a power of a covariate, the fitted curve `fitted(.)` (the default), its growth rate `rate(.)`, largest at the inflection point, or a variable of the data. Here each day of measurement has its own residual variance, besides the random effects of the plants:
+
+```{r}
+fitrev <- update(fitre, variance = varIdent(form = ~ 1 | DAS))
+round(varpars(fitrev), 2)
+anova(fitre, fitrev)
+```
+
+`varpars()` gives the standard deviation of each day relative to the first. The vignette *Variance functions* shows how variance functions change the confidence intervals of a curve, and how they trade off against random effects and autocorrelation.
 
 ## Simulation
 
