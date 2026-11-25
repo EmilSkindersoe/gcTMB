@@ -116,7 +116,7 @@ Five more curves are never truncated: the beta curves of determinate growth, the
 models chapmanrichards and korf, common in forestry, and the preecebaines model of human growth:
 \itemize{
 \item chapmanrichards: f(t) = b4 + b1 (1 - exp(-b2 t))^b3, the Chapman-Richards curve of
-Richards (1959) in its usual form for height-diameter models (model M8 of Ciceu et al. 2020),
+Richards (1959) in its usual form for height-diameter models,
 zero above the intercept b4 up to t = 0: b1 is the asymptote, b2 the rate, b3 the shape and b4
 the intercept, fixed by default at the breast height of 1.3 m (\code{start=c(b4=0)} for a curve
 from zero, \code{fix=c(b4=FALSE)} to estimate it).
@@ -245,10 +245,6 @@ coef(fitt)
 \references{
 Pinheiro, J.C. and Bates, D.M. (2000). Mixed-Effects Models in S and S-PLUS.
 Springer, New York.
-
-Ciceu, A., Garcia-Duro, J., Seceleanu, I. and Badea, O. (2020). A generalized nonlinear
-mixed-effects height-diameter model for Norway spruce in mixed-uneven aged stands. Forest
-Ecology and Management 477, 118507.
 
 Preece, M.A. and Baines, M.J. (1978). A new family of mathematical models describing the human
 growth curve. Annals of Human Biology 5, 1-24.

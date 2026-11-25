@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 
 The package gcTMB fits growth curves over time using the Template Model Builder (TMB) framework. The curves can depend on covariates, have random effects (e.g. for repeated measurements of the same individuals), and the response can follow a range of distributions.
 
-This vignette introduces the growth models and the meaning of their parameters, fits them to the heights of faba bean plants with confidence intervals, and adds treatment effects. The other vignettes cover fixed and random effects, the timing and maximum growth rates, and autocorrelation and simulation; the guide `vignette("gcTMB")` gives a short overview of all the features.
+This vignette introduces the growth models and the meaning of their parameters, fits them to the heights of faba bean plants with confidence intervals, and adds treatment effects. The other vignettes cover fixed and random effects, the timing and maximum growth rates, correlation structures, and simulation; the guide `vignette("gcTMB")` gives a short overview of all the features.
 
 ## Growth models
 
@@ -36,16 +36,6 @@ The logistic, Gompertz, Hill, Weibull, beta, normal and gamma curves are sigmoid
 The height-diameter models of forestry keep the parameters usual there: the Chapman-Richards curve has the rate $b_2$ and the shape $b_3$, and the Korf curve a coefficient $b_2$ and a shape $b_3$ (see below).
 
 The parameter $b_4$ is the threshold of truncated curves, the start of growth of the beta curve, the intercept of the Chapman-Richards and Korf curves, or the rate of growth before puberty (Preece-Baines), and $b_5$ the asymmetry of the curve or the rate of growth during puberty (Preece-Baines) (all below).
-
-#### Scale, slope and shape
-
-The parameter $b_3$ sets how long the growth takes, but in three different ways:
-
-* A **scale** (logistic, Gompertz, normal) is in units of time. The curve depends on time only through $(t - b_2)/b_3$, so $b_3$ stretches the curve along the time axis around $b_2$ without changing its form: doubling $b_3$ doubles the duration of the growth and halves the maximum growth rate. A larger scale means slower growth. The time from 10% to 90% of the asymptote is a fixed multiple of $b_3$.
-* A **slope** (Hill) has no units. The Hill curve is a logistic curve in $\log t$ with the scale $1/b_3$ on the log time axis, so $b_3$ sets the *ratio* of the times at which the curve reaches given fractions of its asymptote, not their difference. A larger slope means steeper, faster growth, the opposite direction of a scale.
-* A **shape** (Weibull, gamma) has no units. It sets the form of the curve: how wide the growth period is relative to its timing $b_2$, and how asymmetric the curve is, e.g. the proportion of total growth at inflection in the table below. With $b_2$ fixed, a larger shape gives a shorter growth period, and the gamma curve tends to the normal curve. The time scale of these curves is carried by $b_2$ together with the shape.
-
-Changing the unit of time, e.g. from days to weeks, changes $b_2$ and a scale $b_3$, but not a slope or a shape.
 
 <!--
 Duration of growth from 10% to 90% of the asymptote (table removed from the vignette, kept as a note):
@@ -86,7 +76,9 @@ For positive times, with the shape $b_3 > 1$; parameterised so that $b_2$ is the
 
 $$ f(t) = b_1 \left(1 + \frac{b_3 - t}{b_3 - b_2}\right) \left(\frac{t - b_4}{b_3 - b_4}\right)^{\frac{b_3 - b_4}{b_3 - b_2}} $$
 
-for $b_4 < t < 2 b_3 - b_2$, and zero otherwise: the beta growth function of Yin et al. (2003), which reaches its maximum $b_1 = w_{\max}$ at the end of growth $b_3 = t_e$, with zero slope, and then falls back to zero at $2 b_3 - b_2$ (the dashed line of their Figure 1A), for responses that decline after their maximum, e.g. biomass lost after maturity. $b_2 = t_m$ is the time of the maximum growth rate and $b_4 = t_b$ the start of growth, with $b_4 < b_2 < b_3$. Yin et al. give the curve for $t_b = 0$ (their eqn 8); as their growth rate depends on time only through $t - t_b$ and $t_e - t$, its integral from $t_b$ is the same curve with the time measured from $t_b$, the curve above. The levels of `timeto()` and the maximum growth rate of `maxrate()` are those of the rising part, up to $b_3$.
+for $b_4 < t < 2 b_3 - b_2$, and zero otherwise. This is the beta growth function of Yin et al. (2003), in their notation the maximum $b_1 = w_{\max}$, the time of the maximum growth rate $b_2 = t_m$, the end of growth $b_3 = t_e$ and the start of growth $b_4 = t_b$, with $b_4 < b_2 < b_3$. The curve rises from zero at $b_4$ to its maximum $b_1$ at $b_3$, where its slope is zero, and falls back to zero at $2 b_3 - b_2$ (the dashed line of their Figure 1A), e.g. for biomass that is lost after maturity.
+
+Yin et al. (2003, eqn 8) write the curve for growth that starts at $t = 0$. Starting it at $t_b$ shifts the time axis: the curve above is their eqn 8 with the times $t$, $t_m$ and $t_e$ measured from $t_b$, i.e. replaced by $t - t_b$, $t_m - t_b$ and $t_e - t_b$. `timeto()` and `maxrate()` use the rising part, up to $b_3$.
 
 #### beta_capped
 
@@ -108,7 +100,7 @@ where $F_\Gamma(t;\ k, \theta)$ is the cumulative distribution function (CDF) of
 
 $$ f(t) = b_4 + b_1 \left(1 - \mathrm{e}^{-b_2 t}\right)^{b_3} $$
 
-for $t > 0$, and $b_4$ up to $t = 0$: the Chapman-Richards curve of Richards (1959) in its usual form for height-diameter models, model M8 of Ciceu et al. (2020). It grows from the intercept $b_4$ at $t = 0$, by default the breast height of 1.3 m in a height-diameter model of trees (`start = c(b4 = 0)` for a curve from zero); `fix = c(b4 = FALSE)` estimates it. $b_1$ is the asymptote above $b_4$, $b_2 > 0$ the rate, in units of 1/time (1/cm of diameter), and $b_3 > 0$ the shape. For $b_3 > 1$ the curve has its inflection point at $\log(b_3)/b_2$, so that a larger rate brings the growth earlier and a larger shape later; for $b_3 \le 1$ it grows fastest at $t = 0$, without an inflection point. The curve approaches the asymptote more slowly than it leaves zero.
+for $t > 0$, and $b_4$ up to $t = 0$: the Chapman-Richards curve of Richards (1959), in the form used for height-diameter models by Kuželka and Marušák (2015). It grows from the intercept $b_4$ at $t = 0$, by default the breast height of 1.3 m in a height-diameter model of trees (`start = c(b4 = 0)` for a curve from zero); `fix = c(b4 = FALSE)` estimates it. $b_1$ is the asymptote above $b_4$, $b_2 > 0$ the rate, in units of 1/time (1/cm of diameter), and $b_3 > 0$ the shape. For $b_3 > 1$ the curve has its inflection point at $\log(b_3)/b_2$, so that a larger rate brings the growth earlier and a larger shape later; for $b_3 \le 1$ it grows fastest at $t = 0$, without an inflection point. The curve approaches the asymptote more slowly than it leaves zero.
 
 It is the Richards curve below (the logistic model with an asymmetry $b_5$) with a negative asymmetry $-1/b_3$ and the inflection point $\log(b_3)/b_2$: $\left(1 - \frac{1}{b_3} \exp\left(-b_2 \left(t - \frac{\log b_3}{b_2}\right)\right)\right)^{b_3} = \left(1 - \mathrm{e}^{-b_2 t}\right)^{b_3}$. The Richards curve with $b_5 > 0$ approaches zero only as $t \to -\infty$, whereas the Chapman-Richards curve reaches zero at $t = 0$; between the two, as the shape $b_3$ grows, lies the Gompertz curve.
 
@@ -158,7 +150,7 @@ For the curves without truncation and without asymmetry ($b_5 = 1$), the inflect
 | preecebaines | $b_2 + \dfrac{\log w}{b_5 - b_4}$, the pubertal peak | $f(t_m)/b_1$ | $2 (b_1 - b_3) \dfrac{b_4 + b_5 w}{(1 + w)^2} w^{-b_4/(b_5 - b_4)}$ |
 | linear | none | none | $b_1$ at all times |
 
-for Chapman-Richards with $b_3 > 1$ (for $b_3 \le 1$ it grows fastest at $t = 0$, at the rate $b_1 b_2$ for $b_3 = 1$), and for Korf with $b_3 > 1$; for both the proportion and the rate are those of the growth above the intercept $b_4$. $d = (b_3 - b_2)/(b_3 - b_4)$ for beta, and $w$ the larger root of $b_5^2 w^2 - (b_4^2 - 4 b_4 b_5 + b_5^2) w + b_4^2 = 0$ for Preece-Baines, which has a pubertal peak if $b_5 / b_4 > 3 + 2 \sqrt{2} \approx 5.8$ (the smaller root is the take-off, the minimum of the growth rate before the peak); for $b_4 = 0$, the maximum growth rate of the beta curve is $c_m = b_1 \frac{2 b_3 - b_2}{b_3 (b_3 - b_2)} (b_2/b_3)^{b_2/(b_3 - b_2)}$ of Yin et al. (2003).
+with $d = (b_3 - b_2)/(b_3 - b_4)$ for beta, and $w$ the larger root of $b_5^2 w^2 - (b_4^2 - 4 b_4 b_5 + b_5^2) w + b_4^2 = 0$ for Preece-Baines.
 
 <!--
 Truncation at the default threshold b4 = 0 (kept as a note, not shown in the vignette):
@@ -175,8 +167,6 @@ point stays at t_m, and, with G0 = f(t_m)/b1 and r0 = r_max of the curves withou
   f_b4(t_m)/b1 = (G0 - p0)/(1 - p0),   r_max = r0/(1 - p0)   (truncated curve f_b4, b4 = 0).
 For the Hill, Weibull and gamma curves p0 = 0 and nothing changes.
 -->
-
-The proportion of total growth at inflection tells how much of the growth has occurred when the growth is fastest. The Hill curve has an inflection point at a positive time only for $b_3 > 1$. `maxrate()` computes $t_m$, $r_{\max}$ and $f(t_m)/b_1$ for all curves, also truncated and asymmetric ones.
 
 #### The maximum growth rate as a parameter
 
@@ -196,7 +186,7 @@ For the Richards curve, $b_2$ remains the inflection point for all $b_5$: $t_m =
 
 ## The faba bean data
 
-The data set `FabaHeights25` contains the heights of 25 faba bean plants, five at each of five treatment levels, measured on eight days between 14 and 61 days after sowing (`DAS`).
+The heights of the faba bean plants of `FabaHeights25` (see `?FabaHeights25`):
 
 ```{r, fig.width = 6, fig.height = 4}
 library(gcTMB)
@@ -297,7 +287,6 @@ ggplot(FabaHeights25, aes(x = DAS, y = Height)) +
 #### Bootstrap confidence intervals
 
 The delta method relies on the curve being close to linear in its parameters near the estimates. A parametric bootstrap avoids this: `bootstrap()` simulates new responses from the fitted model and fits the model again to each of them. Passed to `predict()` by the `boot` argument, the confidence intervals are the percentile intervals of the bootstrap curves, and `se.fit` is their standard deviation. The same bootstrap sample can be reused for the confidence intervals of the coefficients and of `timeto()`, without fitting the models again.
-
 ```{r, fig.width = 6, fig.height = 4}
 bt <- bootstrap(fit, nsim = 500, seed = 1, progress = FALSE)
 cib <- predict(fit, newdata = nd, interval = "confidence", boot = bt)
@@ -369,10 +358,7 @@ ggplot(FabaHeights25, aes(x = DAS, y = Height, colour = trt)) +
   theme_minimal()
 ```
 
-
 ## References
-
-Ciceu, A., Garcia-Duro, J., Seceleanu, I. and Badea, O. (2020). A generalized nonlinear mixed-effects height-diameter model for Norway spruce in mixed-uneven aged stands. *Forest Ecology and Management* 477, 118507.
 
 Dunn, P.K. and Smyth, G.K. (1996). Randomized quantile residuals. *Journal of Computational and Graphical Statistics* 5, 236--244. doi:10.1080/10618600.1996.10474708.
 
