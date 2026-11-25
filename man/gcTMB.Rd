@@ -40,7 +40,8 @@ gcTMB(
 \item{fix}{Logical vector or NULL. One entry for each model coefficient. If TRUE, a model coefficient is fixed to its value in start. Alternatively, a vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of the named parameters; their values must then be given in start, e.g. start=c(b1=10). NULL (default) fixes only the parameters that are fixed by default. The threshold (start of growth) b4 and the asymmetry b5 are fixed by default, at b4 = 0 (the curve starts at zero at t = 0) and b5 = 1 (the symmetric curve) unless given in start; so is the intercept b4 of the chapmanrichards and korf models, at the breast height of 1.3, while the rates b4 and b5 of the preecebaines model are estimated; fix=c(b4=FALSE) or fix=c(b5=FALSE), or an unnamed fix vector, estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.}
 
 \item{correlation}{A correlation structure or NULL. The autocorrelation of the residuals within
-groups over time, \code{\link{corAR1}} or \code{\link{corCAR1}} (or the same structures of
+groups over time, \code{\link{corAR1}}, \code{\link{corCAR1}}, \code{\link{corExp}} or
+\code{\link{corGaus}} (or the same structures of
 the package nlme), e.g. \code{corCAR1(form=~ time | ID)}, for the gaussian and lognormal (on the
 log scale) families. NULL (default) for independent residuals. See \code{\link{corStruct}}; with
 a correlation structure, the weights are precision weights, with residual variance sigma^2/w.}
@@ -149,7 +150,8 @@ formula have an unstructured covariance matrix, as \code{pdSymm}; uncorrelated r
 as \code{pdDiag}, are separate terms, e.g. \code{rform=list(b1 ~ 1 | ID, b2 ~ 1 | ID)} or
 \code{b1 ~ x || ID}. Nested factors (\code{1 | site/ID}) and the double bar use the syntax
 of lme4;
-\item the correlation structures \code{\link{corAR1}} and \code{\link{corCAR1}} have the
+\item the correlation structures \code{\link{corAR1}}, \code{\link{corCAR1}}, \code{\link{corExp}}
+and \code{\link{corGaus}} have the
 arguments and the parameterisation of nlme, whose objects are accepted as well, and
 \code{residuals(fit, type="normalized")} gives the normalized residuals of nlme;
 \item \code{\link{fixef}}, \code{\link{ranef}} and \code{\link{VarCorr}} are generics with the names

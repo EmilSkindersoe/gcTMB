@@ -60,7 +60,7 @@ coefficients and variance parameters of a gcTMB model, or for the times estimate
 \details{
 The counterpart of \code{intervals} of nlme, with profile likelihood and parametric bootstrap
 intervals in addition to the Wald intervals; the autocorrelation cor_par:AR1 or cor_par:CAR1 is
-reported as rho.
+reported as rho, and cor_par:range and cor_par:nugget as the range and nugget.
 
 Standard deviations of the random effects, the residual standard deviation and the precision are
 reported on their natural scale; Wald intervals for them are computed on the log scale. The

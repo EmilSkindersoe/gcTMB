@@ -1,11 +1,11 @@
 ---
-title: "Autocorrelation and simulation"
+title: "Simulation"
 date: "`r Sys.Date()`"
 output:
   rmarkdown::pdf_document:
     fig_crop: false
 vignette: >
-  %\VignetteIndexEntry{4. Autocorrelation and simulation}
+  %\VignetteIndexEntry{5. Simulation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -21,21 +21,19 @@ knitr::opts_chunk$set(
 )
 ```
 
-This vignette covers the autocorrelation of the residuals of a plot over time, and simulation studies: simulating data from a fitted model, refitting it, and comparing the estimates with the true parameters, including the autocorrelation parameter.
+This vignette covers simulation studies: simulating data from a fitted model, refitting it, and comparing the estimates with the true parameters, including the autocorrelation parameter of the residuals. The correlation structures themselves, temporal and spatial, are described in the vignette *Correlation structures*.
 
 ## The sorghum and maize data
 
 The data set `SorghumMaize` contains the above-ground biomass (Mg/ha) of fiber sorghum, sweet sorghum and maize at two input levels of water and nitrogen, in four blocks, sampled on 11 days of the year from sowing, day 141, to day 303 (Danalatos et al., 2009; Miguez, 2025). Each combination of crop, input level and block is a plot, sampled repeatedly over the season. The growth of a crop over a season is determinate: it stops at maturity, after which the biomass may decline as leaves are lost. The beta growth function of Yin et al. (2003), `model = "beta"`, describes this, from the start of growth $b_4$, here fixed at sowing, to the maximum $b_1$ at the end of growth $b_3$, with the time of the fastest growth $b_2$, and back towards zero after $b_3$, reaching it at $2 b_3 - b_2$ (see the vignette *Growth models and their parameters*; `model = "beta_capped"` stays at the maximum instead).
 
-The biomass varies little between the plots while it is small, and more as it grows. A gaussian model has a constant residual variance, as large at sowing as at maturity, and data simulated from it are often negative early in the season. The lognormal family, `family = "lognormal"`, has a constant coefficient of variation instead: $\log(y)$ is normal with mean $\log f(t)$ and standard deviation $\sigma$, so that the curve $f$ is the median of the biomass, and the residuals are relative deviations from it. It needs positive responses, so the zero biomass at sowing is left out; the beta curve is zero at sowing, $b_4 = 141$, anyway. The asymptote and the time of the fastest growth depend on the crop and the input level, and each plot has a random asymptote:
+The biomass varies little between the plots while it is small, and more as it grows. A gaussian model has a constant residual variance, as large at sowing as at maturity, and data simulated from it are often negative early in the season. The lognormal family, `family = "lognormal"`, has a constant coefficient of variation instead: $\log(y)$ is normal with mean $\log f(t)$ and standard deviation $\sigma$, so that the curve $f$ is the median of the biomass, and the residuals are relative deviations from it. It needs positive responses, so the zero biomass at sowing is left out; the beta curve is zero at sowing, $b_4 = 141$, anyway. The asymptote and the time of the fastest growth depend on the crop and the input level, and each plot has a random asymptote (see the vignette *Correlation structures*). The data:
 
 ```{r, fig.width = 7, fig.height = 4}
 library(gcTMB)
 library(ggplot2)
 SorghumMaize$plot <- interaction(SorghumMaize$Crop, SorghumMaize$Input, SorghumMaize$Block, drop = TRUE)
 sm <- subset(SorghumMaize, Biomass > 0)
-fitre <- gcTMB(Biomass ~ DOY, fform = b1 + b2 ~ Crop * Input, rform = b1 ~ 1 | plot, data = sm,
-               model = "beta", start = c(b4 = 141), family = "lognormal")
 ggplot(SorghumMaize, aes(x = DOY, y = Biomass, group = plot, colour = Input)) +
   geom_line() +
   geom_point() +
@@ -44,34 +42,18 @@ ggplot(SorghumMaize, aes(x = DOY, y = Biomass, group = plot, colour = Input)) +
   theme_minimal()
 ```
 
-## Autocorrelation of the residuals
+## The model with autocorrelation
 
-A plot that is above its curve at one sampling may stay above it at the next. The `correlation` argument models this autocorrelation of the residuals within a group over time, with the same correlation structures as the package nlme (Pinheiro and Bates, 2000; Zuur et al., 2009, Chapter 6). The residuals $\varepsilon$ of a group are normal with the residual variance $\sigma^2$ and
-
-$$\mathrm{cor}(\varepsilon_s, \varepsilon_t) = \rho^{|t - s|},$$
-
-with $\rho$ the correlation of residuals one unit of time apart. `corAR1()` is the autoregressive process of order 1 at integer times (or at the positions of the observations, with `form = ~ 1 | group`), with $-1 < \rho < 1$; `corCAR1()` its continuous-time version, for unequally spaced times, with $0 < \rho < 1$. Residuals of different groups are independent, and the correlation is available for the gaussian and lognormal (on the log scale) families. As the process is Markov, each residual given the previous one of its group, $dt$ earlier, is normal with mean $\rho^{dt} \varepsilon_{\mathrm{prev}}$ and variance $\sigma^2 (1 - \rho^{2 dt})$, so the likelihood is exact and its cost linear in the number of observations; with random effects, the Laplace approximation integrates them out as before.
-
-The parameter $\rho$ is estimated on an unconstrained scale, as in nlme. For `corCAR1()`, with $0 < \rho < 1$, this is the logit link, $\log(\rho/(1 - \rho))$. For `corAR1()`, with $-1 < \rho < 1$, it is $\log((1 + \rho)/(1 - \rho))$, the logit of $(1 + \rho)/2$, which maps the interval $(-1, 1)$ to the real line (twice Fisher's $z$-transformation, $2\,\mathrm{atanh}(\rho)$). `coef()` reports the parameter on this scale, as `cor_par:CAR1` or `cor_par:AR1`, and `corpars()`, `summary()` and `confint()` report $\rho$ itself.
-
-The plots are sampled about every 15 days, at unequal intervals, so `corCAR1(form = ~ DOY | plot)` is the structure to use, with $\rho$ the correlation per day. Its starting value is $\rho = 0.2$ by default, as in nlme, which is a correlation of $0.2^{15}$, practically zero, between consecutive samplings; there the likelihood hardly changes with $\rho$, and the optimiser stays near the starting value. A starting value close to 1, `value = 0.9`, starts from a correlation of $0.9^{15} \approx 0.2$ between samplings. For the lognormal family, the correlation is that of the residuals of $\log(y)$, the relative deviations from the curve:
+The autocorrelation of the residuals of a plot over time is modelled with `corCAR1(form = ~ DOY | plot)`, the continuous-time AR(1) process of the package nlme, for the unequally spaced samplings: residuals $dt$ days apart have the correlation $\rho^{dt}$ (Pinheiro and Bates, 2000; Zuur et al., 2009, Chapter 6). The vignette *Correlation structures* describes it in detail. The starting value $\rho = 0.9$ gives a correlation of $0.9^{15} \approx 0.2$ between samplings about 15 days apart; for the lognormal family, the correlation is that of the residuals of $\log(y)$:
 
 ```{r}
 fitrec <- gcTMB(Biomass ~ DOY, fform = b1 + b2 ~ Crop * Input, rform = b1 ~ 1 | plot, data = sm,
                 model = "beta", start = c(b4 = 141), family = "lognormal",
                 correlation = corCAR1(value = 0.9, form = ~ DOY | plot))
-summary(fitrec)
-corpars(fitrec)^15
-anova(fitre, fitrec)
+corpars(fitrec)
 ```
 
-The estimate of $\rho$ moves far down from its starting value, to a correlation of practically zero between consecutive samplings, and the likelihood ratio test finds no autocorrelation: the relative deviations of a plot from its curve are independent over the season. The random asymptotes of the plots are not needed either, as their standard deviation is close to zero once the crops and the input levels have their own curves. With the gaussian family, both appear to be needed; this is not a feature of the plots, but of the constant residual variance, which misfits the small deviations early in the season and the large ones late. Below, simulations with a true autocorrelation show that the model finds it when it is there.
-
-`confint()` gives the profile likelihood interval of $\rho$, or with `method = "wald"` a Wald interval computed on the logit scale and transformed back. Here it spans the whole range from 0 to 1: without autocorrelation in the data, the likelihood is flat in $\rho$, and the data say nothing about its value.
-
-```{r}
-confint(fitrec, parm = "cor_par:CAR1", method = "wald")
-```
+The estimate of $\rho$ is a correlation of practically zero between consecutive samplings: the relative deviations of a plot from its curve are independent over the season. Below, simulations with a true autocorrelation show that the model finds it when it is there.
 
 ## Simulation
 

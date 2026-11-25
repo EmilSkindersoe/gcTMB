@@ -11,7 +11,8 @@
 #' Fixed effects of covariates on the parameters (\code{fform}) and random effects (\code{rform}),
 #' correlated across parameters, with several terms, nested or crossed factors and random slopes; the
 #' families gaussian, lognormal, poisson, binomial, betabinomial, beta, nbinom1 and nbinom2; and
-#' autocorrelated residuals within individuals, \code{\link{corAR1}} and \code{\link{corCAR1}}.
+#' autocorrelated residuals within individuals, \code{\link{corAR1}}, \code{\link{corCAR1}},
+#' \code{\link{corExp}} and \code{\link{corGaus}} (with a nugget for measurement error).
 #'
 #' @section Inference:
 #' \itemize{
@@ -42,8 +43,8 @@
 #' @section Data and vignettes:
 #' The data sets \code{\link{FabaHeights25}} and \code{\link{FabaCounts23}}. The vignettes:
 #' \code{vignette("gcTMB")}, an overview of most features; \code{vignette("growth-models")},
-#' \code{vignette("fixed-random-effects")}, \code{vignette("timing-rates")} and
-#' \code{vignette("autocorrelation-simulation")}.
+#' \code{vignette("fixed-random-effects")}, \code{vignette("timing-rates")},
+#' \code{vignette("correlation")} and \code{vignette("simulation")}.
 #'
 #' @keywords internal
 "_PACKAGE"

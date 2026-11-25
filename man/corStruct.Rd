@@ -4,38 +4,68 @@
 \alias{corStruct}
 \alias{corAR1}
 \alias{corCAR1}
+\alias{corExp}
+\alias{corGaus}
 \title{Autocorrelation of the residuals within groups}
 \usage{
 corAR1(value = 0, form = ~1, fixed = FALSE)
 
 corCAR1(value = 0.2, form = ~1, fixed = FALSE)
+
+corExp(
+  value = numeric(0),
+  form = ~1,
+  nugget = FALSE,
+  metric = c("euclidean", "maximum", "manhattan"),
+  fixed = FALSE
+)
+
+corGaus(
+  value = numeric(0),
+  form = ~1,
+  nugget = FALSE,
+  metric = c("euclidean", "maximum", "manhattan"),
+  fixed = FALSE
+)
 }
 \arguments{
-\item{value}{Numeric. The starting value of rho, or its value with \code{fixed=TRUE}: between -1
-and 1 (default 0) for \code{corAR1}, between 0 and 1 (default 0.2) for \code{corCAR1}}
+\item{value}{Numeric. The starting value of the parameters, or their values with \code{fixed=TRUE}:
+rho, between -1 and 1 (default 0) for \code{corAR1} and between 0 and 1 (default 0.2) for
+\code{corCAR1}; for \code{corExp} and \code{corGaus} the range, or with a nugget the range and the
+nugget (default: see Details)}
 
-\item{form}{One-sided formula. The time covariate and the grouping factor, \code{~ time | group}.
+\item{form}{One-sided formula. The time covariate (or the position variables, \code{~ x + y | group}, for
+\code{corExp} and \code{corGaus}) and the grouping factor, \code{~ time | group}.
 Without a grouping factor, the residuals of all observations form a single series when the model has
 no random effects, and are grouped by the innermost grouping factor of the random effects (the one
 with most levels) otherwise, as in \code{nlme::lme}. Without a time covariate (\code{~ 1} or
 \code{~ 1 | group}), the times are the positions of the observations within their group.}
 
-\item{fixed}{Logical. If TRUE, rho is fixed at \code{value} and not estimated}
+\item{fixed}{Logical. If TRUE, the parameters are fixed at \code{value} and not estimated}
+
+\item{nugget}{Logical. If TRUE, the spatial structure has a nugget}
+
+\item{metric}{Character. The distance between positions of several variables: "euclidean" (default),
+"maximum" or "manhattan", as in \code{\link[stats]{dist}}; all give |t - s| for a single time covariate}
 }
 \value{
 An object of class \code{c("corAR1", "corStruct")} or \code{c("corCAR1", "corStruct")}:
 \code{value} on the unconstrained scale of nlme, log((1 + rho)/(1 - rho)) for AR(1) and
-log(rho/(1 - rho)) for CAR(1), with the attributes \code{formula} and \code{fixed}.
+log(rho/(1 - rho)) for CAR(1), with the attributes \code{formula} and \code{fixed}; or of class
+\code{c("corExp", "corSpatial", "corStruct")} or \code{c("corGaus", "corSpatial", "corStruct")}:
+\code{value} on the natural scale, as in nlme, with the attributes \code{formula}, \code{nugget},
+\code{metric} and \code{fixed}.
 }
 \description{
-Correlation structures for the residuals of the observations of a curve over time, for the
-\code{correlation} argument of \code{\link{gcTMB}}, with the same arguments and the same
-parameterisation as \code{corAR1} and \code{corCAR1} of the package nlme (whose objects
-\code{\link{gcTMB}} also accepts).
+Correlation structures for the residuals of the observations of a curve over time (or in space), for
+the \code{correlation} argument of \code{\link{gcTMB}}, with the same arguments and the same
+parameterisation as \code{corAR1}, \code{corCAR1}, \code{corExp} and \code{corGaus} of the package
+nlme (whose objects \code{\link{gcTMB}} also accepts).
 }
 \details{
 The residuals of different groups are independent. Within a group, the residuals e are stationary,
-with the residual variance sigma^2 of the model (sigma^2/w for weights w) and the correlation
+with the residual variance sigma^2 of the model (sigma^2/w for weights w). For \code{corAR1} and
+\code{corCAR1}, the correlation is
 \deqn{cor(e_s, e_t) = rho^{|t - s|},}{cor(e_s, e_t) = rho^|t - s|,}
 with rho the correlation of residuals one unit of time apart (Zuur et al., 2009, Section 6.1;
 Pinheiro and Bates, 2000, Section 5.3):
@@ -53,12 +83,29 @@ the density of the first residual of each group and the conditional densities of
 the previous one, normal with mean rho^dt e_prev and variance sigma^2 (1 - rho^(2 dt)) for the time
 dt between them, which is exact and linear in the number of observations.
 
-The estimated parameter is in \code{coef(fit)} as \code{cor_par:AR1} or \code{cor_par:CAR1}, on
+The spatial structures \code{corExp} and \code{corGaus} give the correlation as a function of the
+distance d between the positions of two observations of a group, with a range r > 0 and, with
+\code{nugget=TRUE}, a nugget 0 < n < 1 (n = 0 otherwise):
+\itemize{
+\item \code{corExp}: \eqn{cor = (1 - n) \exp(-d/r)}{cor = (1 - n) exp(-d/r)};
+\item \code{corGaus}: \eqn{cor = (1 - n) \exp(-(d/r)^2)}{cor = (1 - n) exp(-(d/r)^2)}.
+}
+The position is the time covariate (\code{~ time | group}), with d the time between the observations,
+or several covariates (\code{~ x + y | group}), with d the distance of \code{metric}. Without a nugget,
+\code{corExp} in time is \code{corCAR1} with rho = exp(-1/r). The nugget is the part of the residual
+variance that is independent between observations, such as measurement error, besides the correlated
+deviations of the process (Diggle, 1988); with it, observations at the same position are allowed. The
+residuals of a group are multivariate normal with this correlation matrix, so the time of a fit grows
+with the cube of the number of observations per group. As in nlme, the default starting value of the
+range is 90\\% of the smallest positive distance between observations of a group, and of the nugget 0.1.
+
+The estimated parameters are in \code{coef(fit)} as \code{cor_par:AR1} or \code{cor_par:CAR1},
+or \code{cor_par:range} and \code{cor_par:nugget}, on
 the unconstrained scale of nlme (\code{coef} of an nlme \code{corStruct}): the logit link
 log(rho/(1 - rho)) for CAR(1), and log((1 + rho)/(1 - rho)), the logit of (1 + rho)/2, for AR(1),
-whose rho lies between -1 and 1. Wald intervals are computed on this scale and transformed back.
-\code{\link{corpars}} gives
-rho, and \code{confint(fit, parm="cor_par:CAR1")} an interval for rho. If nlme is attached after
+whose rho lies between -1 and 1; log(r) for the range and log(n/(1 - n)) for the nugget. Wald
+intervals are computed on this scale and transformed back. \code{\link{corpars}} gives
+rho (or the range and nugget), and \code{confint(fit, parm="cor_par:CAR1")} an interval for rho. If nlme is attached after
 gcTMB, its constructors mask these; gcTMB accepts their objects, and gcTMB's correlation structures can
 be passed to \code{nlme::gls}, \code{nlme::gnls}, \code{nlme::lme} and \code{nlme::nlme}.
 }
@@ -67,8 +114,17 @@ FabaHeights25$trt <- factor(FabaHeights25$Treatment)
 fit <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25,
              correlation=corCAR1(form=~ DAS | Plant_ID))
 corpars(fit)
+# spatial correlation between neighbouring trees of a plot, with a nugget (independent
+# measurement error), on five of the plots
+pines <- droplevels(subset(PineHeightDiameter, Plot \%in\% 1:5))
+fitn <- gcTMB(Height ~ DBH, rform=b1 ~ 1 | Plot, data=pines, model="chapmanrichards",
+              correlation=corExp(form=~ X + Y | Plot, nugget=TRUE))
+corpars(fitn)
 }
 \references{
+Diggle, P.J. (1988). An approach to the analysis of repeated measurements. Biometrics
+44, 959-971.
+
 Pinheiro, J.C. and Bates, D.M. (2000). Mixed-Effects Models in S and S-PLUS.
 Springer, New York.
 

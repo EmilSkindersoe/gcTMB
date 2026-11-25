@@ -8,8 +8,11 @@ test_that("the data sets from other packages have the documented structure", {
   expect_equal(levels(BerkeleyGrowth$Sex), c("male", "female"))
   expect_equal(range(BerkeleyGrowth$Age), c(0, 21))
 
-  expect_equal(dim(PineHeightDiameter), c(1678, 6))
-  expect_equal(names(PineHeightDiameter), c("Plot", "DBH", "Height", "Ntrees", "Dmean", "Dvar"))
+  expect_equal(dim(PineHeightDiameter), c(1678, 8))
+  expect_equal(names(PineHeightDiameter), c("Plot", "DBH", "Height", "Ntrees", "Dmean", "Dvar", "X", "Y"))
+  # positions in metres, within plots of up to about 60 x 55 m, and distinct within each plot
+  expect_true(all(PineHeightDiameter$X >= 0 & PineHeightDiameter$X <= 60 & PineHeightDiameter$Y >= 0 & PineHeightDiameter$Y <= 55))
+  expect_false(any(duplicated(PineHeightDiameter[, c("Plot", "X", "Y")])))
   expect_equal(nlevels(PineHeightDiameter$Plot), 56)
   expect_false(anyNA(PineHeightDiameter))
   expect_true(all(PineHeightDiameter$Height > 1.3))

@@ -28,7 +28,7 @@
 #' (corr_par:b2,b1|group, unconstrained elements of the lower triangle of its Cholesky factor, by row);
 #' and the log residual standard deviation (log_sigma, gaussian; of log(y) for lognormal), log precision (log_phi, beta), log size
 #' (log_theta, nbinom2), log dispersion (log_phi, nbinom1) or log precision (log_phi, betabinomial); and
-#' for an estimated autocorrelation the parameter cor_par:AR1 or cor_par:CAR1 on the unconstrained scale of
+#' for an estimated autocorrelation the parameter cor_par:AR1 or cor_par:CAR1, or cor_par:range and cor_par:nugget, on the unconstrained scale of
 #' nlme (\code{coef} of an nlme corStruct), see \code{\link{corStruct}}.
 #' summary returns a summary.gcTMB object with the coefficient table (Estimate, Std. Error, and the
 #' Wald test of a coefficient of zero: the z value and its p-value, or the t value with small-sample
@@ -1067,9 +1067,12 @@ parnames <- function(object){
     c(paste("log_sd:", pn, "|", tm$group, sep=""),
       if (np > 1) paste("corr_par:", pairs, "|", tm$group, sep=""))
   }))
-  # the autocorrelation, unless fixed: cor_par:AR1 or cor_par:CAR1 on the unconstrained scale of nlme
+  # the autocorrelation, unless fixed: cor_par:AR1 or cor_par:CAR1, or cor_par:range (and cor_par:nugget)
+  # of a spatial structure, on the unconstrained scale of nlme
   ct <- cortypeindex(object$correlation)
-  cn <- if (ct > 0 && !isTRUE(attr(object$correlation, "fixed"))) paste("cor_par:", c("AR1", "CAR1")[ct], sep="")
+  cn <- if (ct > 0 && !isTRUE(attr(object$correlation, "fixed"))){
+    if (ct >= 3) c("cor_par:range", if (corhasnugget(object$correlation)) "cor_par:nugget") else paste("cor_par:", c("AR1", "CAR1")[ct], sep="")
+  }
   c(object$coefnames[!object$fix], renames,
     switch(object$family, gaussian=, lognormal="log_sigma", beta="log_phi", nbinom2="log_theta", nbinom1="log_phi", betabinomial="log_phi"),
     cn)

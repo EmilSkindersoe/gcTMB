@@ -1,6 +1,6 @@
 Package: gcTMB
 Title: Fitting Growth Curves Using the Template Model Builder
-Version: 0.1.0.9019
+Version: 0.1.0.9020
 Authors@R: 
     person("Emil", "Skindersoe", , "e.skindersoe@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0000-2172-1614"))
@@ -26,8 +26,9 @@ Description: Fits non-linear growth curves over time by maximum likelihood
     across the parameters, with several terms, nested or crossed grouping
     factors and random slopes. The Gaussian and lognormal residuals can be
     autocorrelated within individuals, with the first-order autoregressive
-    structures corAR1() and continuous-time corCAR1() of 'nlme', whose
-    objects are accepted as well. Starting values are found by a
+    structures corAR1() and continuous-time corCAR1() of 'nlme', or the
+    exponential corExp() and Gaussian corGaus() with an optional nugget,
+    whose objects are accepted as well. Starting values are found by a
     linearisation of the curves or a grid search (gcTMBstart()), and the
     optimisation is controlled by gcTMBcontrol(). Inference covers Wald,
     profile likelihood and parametric bootstrap confidence intervals

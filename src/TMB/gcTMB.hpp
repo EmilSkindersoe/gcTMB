@@ -47,7 +47,11 @@ Type gcTMB(objective_function<Type>* obj) {
   DATA_IVECTOR(corprev);   // previous observation (zero-based) of the same group in time, -1 for the first; length n
   DATA_VECTOR(cordt);      // CAR(1): time since the previous observation of the group; length n
   DATA_IVECTOR(corlag);    // AR(1): lag (in positions) since the previous observation of the group; length n
-  DATA_IVECTOR(corord);    // observations in an order with each after its previous one, for simulation
+  DATA_IVECTOR(corord);    // observations in an order with each after its previous one, for simulation;
+                           // spatial structures: the observations of each group consecutive
+  DATA_IVECTOR(corgsize);  // spatial structures (3 = exponential, 4 = Gaussian): number of observations per
+                           // group, in the order of corord; length zero otherwise
+  DATA_VECTOR(cordist);    // spatial structures: distance matrix of each group, by column, concatenated
   PARAMETER_VECTOR(b1);
   PARAMETER_VECTOR(b2);
   PARAMETER_VECTOR(b3);
@@ -57,17 +61,25 @@ Type gcTMB(objective_function<Type>* obj) {
   PARAMETER_VECTOR(theta); // length zero without random effects
   PARAMETER(log_sigma);    // log sd (gaussian; of log(y) for lognormal), precision (beta, betabinomial), size (nbinom2) or dispersion (nbinom1);
                            // mapped (fixed) for poisson and binomial
-  PARAMETER(cor_par);      // autocorrelation on the unconstrained scale of nlme: log((1 + rho)/(1 - rho)) for AR(1),
-                           // log(rho/(1 - rho)) for CAR(1); mapped (fixed) without autocorrelation
+  PARAMETER_VECTOR(cor_par); // autocorrelation on the unconstrained scale of nlme: log((1 + rho)/(1 - rho)) for AR(1),
+                           // log(rho/(1 - rho)) for CAR(1), log(range) and logit(nugget) for the spatial
+                           // structures (without nugget: length 1); mapped (fixed) without autocorrelation
 
   Type phi = exp(log_sigma);
   // correlated residuals (gaussian, and log(y) for lognormal): stationary, with the marginal standard
   // deviation sigma/sqrt(w) and the correlation rho^dt between observations dt apart in time within a group
+  // (AR(1), CAR(1)), or (1 - nugget) exp(-d/range) (exponential) or (1 - nugget) exp(-(d/range)^2)
+  // (Gaussian) between observations a distance d apart
   bool correlated = (cortype > 0) && (fam == 1 || fam == 8);
-  Type rho = 0;
-  if (cortype == 1) rho = (exp(cor_par) - Type(1)) / (exp(cor_par) + Type(1));
-  if (cortype == 2) rho = Type(1) / (Type(1) + exp(-cor_par));
-  if (correlated) ADREPORT(rho);
+  bool spatial = (cortype >= 3);
+  Type rho = 0, range = 1, nugget = 0;
+  if (cortype == 1) rho = (exp(cor_par(0)) - Type(1)) / (exp(cor_par(0)) + Type(1));
+  if (cortype == 2) rho = Type(1) / (Type(1) + exp(-cor_par(0)));
+  if (spatial){
+    range = exp(cor_par(0));
+    if (cor_par.size() > 1) nugget = Type(1) / (Type(1) + exp(-cor_par(1)));
+  }
+  if (correlated && !spatial) ADREPORT(rho);
   if (fam == 1 || fam == 8){
     Type sigma = phi;
     ADREPORT(sigma);
@@ -171,7 +183,61 @@ Type gcTMB(objective_function<Type>* obj) {
     }
   }
 
-  if (correlated){
+  if (correlated && spatial){
+    // standardised residuals r as below, multivariate normal within each group with the correlation
+    // matrix of the distances between its observations; observations with weight zero are left out
+    vector<Type> r(n);
+    for (int i = 0; i < n; i++){
+      if (w(i) <= 0){
+        r(i) = 0;
+      } else {
+        Type e = (fam == 8) ? Type(log(y(i)) - log(fv(i))) : Type(y(i) - fv(i));
+        r(i) = e * sqrt(w(i)) / phi;
+        // the Jacobian of the standardisation, and of the log for lognormal
+        nll -= Type(0.5) * log(w(i)) - log(phi);
+        if (fam == 8) nll += log(y(i));
+      }
+    }
+    vector<Type> rs(n);
+    SIMULATE {
+      for (int i = 0; i < n; i++) rs(i) = rnorm(Type(0), Type(1));
+    }
+    int off = 0, doff = 0;
+    for (int g = 0; g < corgsize.size(); g++){
+      int m = corgsize(g);
+      matrix<Type> R(m, m);
+      vector<Type> rg(m);
+      for (int a = 0; a < m; a++){
+        rg(a) = r(corord(off + a));
+        for (int b = 0; b < m; b++){
+          if (a == b){
+            R(a, b) = 1;
+          } else {
+            Type d = cordist(doff + a + b*m) / range;
+            Type k = (cortype == 3) ? Type(exp(-d)) : Type(exp(-d*d));
+            R(a, b) = (Type(1) - nugget) * k;
+          }
+        }
+      }
+      density::MVNORM_t<Type> mvn(R);
+      nll += mvn(rg);
+      SIMULATE {
+        vector<Type> sg = mvn.simulate();
+        for (int a = 0; a < m; a++) rs(corord(off + a)) = sg(a);
+      }
+      off += m;
+      doff += m*m;
+    }
+    SIMULATE {
+      for (int i = 0; i < n; i++){
+        Type wi = (w(i) > 0) ? w(i) : Type(1);
+        Type e = rs(i) * phi / sqrt(wi);
+        y(i) = (fam == 8) ? Type(fv(i) * exp(e)) : Type(fv(i) + e);
+      }
+    }
+  }
+
+  if (correlated && !spatial){
     // standardised residuals r = (g(y) - g(f)) sqrt(w)/sigma, g the identity (gaussian) or log
     // (lognormal), with precision weights w; within a group in time, r given the previous residual is
     // normal with mean cr r_prev and variance 1 - cr^2, cr = rho^dt (the Markov property of AR(1)).

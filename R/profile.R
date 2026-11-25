@@ -138,6 +138,12 @@ natscale <- function(ci, rn, corr2, level){
   ci[ar, ] <- (exp(ci[ar, ]) - 1)/(exp(ci[ar, ]) + 1)
   ci[car, ] <- stats::plogis(ci[car, ])
   rn[ar | car] <- "rho"
+  # the range and nugget of a spatial structure from log(range) and logit(nugget)
+  rg <- rn == "cor_par:range"
+  ng <- rn == "cor_par:nugget"
+  ci[rg, ] <- exp(ci[rg, ])
+  ci[ng, ] <- stats::plogis(ci[ng, ])
+  rn[rg | ng] <- sub("^cor_par:", "", rn[rg | ng])
   two <- rn %in% corr2
   ci[two, ] <- ci[two, ] / sqrt(1 + ci[two, ]^2)
   rn[two] <- sub("^corr_par:", "corr:", rn[two])
@@ -404,7 +410,7 @@ timevalue <- function(object, i, lpv){
 #'
 #' The counterpart of \code{intervals} of nlme, with profile likelihood and parametric bootstrap
 #' intervals in addition to the Wald intervals; the autocorrelation cor_par:AR1 or cor_par:CAR1 is
-#' reported as rho.
+#' reported as rho, and cor_par:range and cor_par:nugget as the range and nugget.
 #'
 #' Standard deviations of the random effects, the residual standard deviation and the precision are
 #' reported on their natural scale; Wald intervals for them are computed on the log scale. The

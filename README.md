@@ -44,8 +44,12 @@ automatic differentiation.
   as in `nlme::nlme`; random effects correlated across parameters, with
   several terms, nested or crossed grouping factors and random slopes,
   integrated out by the Laplace approximation.
-- **Autocorrelation**: AR(1) and continuous-time AR(1) residuals within
-  individuals, `correlation = corCAR1(form = ~ day | plant)`, with the
+- **Correlation structures**: temporal AR(1) and continuous-time AR(1)
+  residuals within individuals,
+  `correlation = corCAR1(form = ~ day | plant)`, and spatial exponential
+  and Gaussian correlation between neighbouring observations, with a
+  nugget for measurement error,
+  `correlation = corExp(form = ~ x + y | plot, nugget = TRUE)`, with the
   correlation structures of nlme.
 - **Inference**: profile likelihood, Wald and parametric bootstrap
   confidence intervals; likelihood ratio tests with chi-square, F or
@@ -94,10 +98,14 @@ data:
     `timeto()` and `maxrate()` with treatment and genotype effects, the
     maximum growth rate as a parameter, and pairwise comparisons, for
     normal and count data.
-4.  [Autocorrelation and
-    simulation](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/autocorrelation-simulation.pdf):
-    autocorrelated residuals within individuals, and simulation studies,
-    including the recovery of the autocorrelation parameter.
+4.  [Correlation
+    structures](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/correlation.pdf):
+    temporal correlation of the residuals within individuals over time,
+    and spatial correlation between neighbouring trees, with a nugget
+    for measurement error.
+5.  [Simulation](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/simulation.pdf):
+    simulation studies, including the recovery of the autocorrelation
+    parameter.
 
 [The
 overview](https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/gcTMB.pdf)
@@ -194,6 +202,24 @@ y)) = (t - b2)/b3 for the logistic curve, a straight line in t (or in
 log t for the Hill and Weibull curves) whose intercept and slope give b2
 and b3, profiled over the asymptote b1, or from a grid search
 (`gcTMBstart()`).
+
+## Functions and methods
+
+| Purpose | Functions |
+|----|----|
+| Fitting | `gcTMB()`, `gcTMBstart()`, `gcTMBcontrol()`, `corAR1()`, `corCAR1()`, `corExp()`, `corGaus()`, `update()` |
+| Results | `summary()`, `coef()`, `vcov()`, `logLik()`, `converged()`, `fixef()`, `ranef()`, `VarCorr()`, `sigma()`, `corpars()` |
+| Confidence intervals | `confint()`, `profile()`, `bootstrap()` |
+| Tests and model choice | `anova()`, `criteria()`, `partest()` |
+| Derived quantities | `timeto()`, `maxrate()` |
+| Prediction and diagnostics | `predict()`, `fitted()`, `residuals()`, `plot()` |
+| Simulation | `simulate()`, `update()` |
+
+The extractors `fixef()`, `ranef()` and `VarCorr()` work for gcTMB, nlme
+and lme4 fits alike, and the formulas of the effects and the correlation
+structures follow nlme; gcTMB fits by maximum likelihood, so its
+likelihoods compare with nlme fits with `method = "ML"`. See `?gcTMB`,
+*Relation to nlme*.
 
 ## Examples
 
@@ -384,29 +410,11 @@ e.g. `?FabaHeights26`, and used in the vignettes:
 | `FabaHeights25` | Heights of 25 faba bean plants, five at each of five treatment levels, eight days between 14 and 61 days after sowing (2025) | Height | `vignette("growth-models")`, the examples above |
 | `FabaCounts23` | Counts of flowers and pods of 22 faba bean plants of six genotypes, twelve days between 61 and 79 days after sowing (2023) | Counts | `vignette("fixed-random-effects")`, the example above |
 | `BerkeleyGrowth` | Heights and weights of 66 boys and 70 girls of the Berkeley Child Guidance Study, from birth to 21 years (from the package sitar) | Height, weight | `vignette("timing-rates")`, with the Preece-Baines curve |
-| `PineHeightDiameter` | Heights and diameters at breast height of 1678 Scots pine trees on 56 sample plots in eastern Finland (from the package lmfor) | Height against diameter | `vignette("fixed-random-effects")`, with the Chapman-Richards curve |
-| `SorghumMaize` | Above-ground biomass of fiber sorghum, sweet sorghum and maize at two input levels in four blocks, central Greece (from the package nlraa) | Biomass | `vignette("autocorrelation-simulation")`, with the beta curve |
+| `PineHeightDiameter` | Heights and diameters at breast height of 1678 Scots pine trees on 56 sample plots in eastern Finland, with their positions (from the package lmfor) | Height against diameter | `vignette("fixed-random-effects")`, with the Chapman-Richards curve; `vignette("correlation")`, with spatial correlation between the trees |
+| `SorghumMaize` | Above-ground biomass of fiber sorghum, sweet sorghum and maize at two input levels in four blocks, central Greece (from the package nlraa) | Biomass | `vignette("correlation")` and `vignette("simulation")`, with the beta curve |
 
 The raw faba bean data and the scripts that prepare all eight data sets
 are in the directory `data-raw` of the source package.
-
-## Functions and methods
-
-| Purpose | Functions |
-|----|----|
-| Fitting | `gcTMB()`, `gcTMBstart()`, `gcTMBcontrol()`, `corAR1()`, `corCAR1()`, `update()` |
-| Results | `summary()`, `coef()`, `vcov()`, `logLik()`, `converged()`, `fixef()`, `ranef()`, `VarCorr()`, `sigma()`, `corpars()` |
-| Confidence intervals | `confint()`, `profile()`, `bootstrap()` |
-| Tests and model choice | `anova()`, `criteria()`, `partest()` |
-| Derived quantities | `timeto()`, `maxrate()` |
-| Prediction and diagnostics | `predict()`, `fitted()`, `residuals()`, `plot()` |
-| Simulation | `simulate()`, `update()` |
-
-The extractors `fixef()`, `ranef()` and `VarCorr()` work for gcTMB, nlme
-and lme4 fits alike, and the formulas of the effects and the correlation
-structures follow nlme; gcTMB fits by maximum likelihood, so its
-likelihoods compare with nlme fits with `method = "ML"`. See `?gcTMB`,
-*Relation to nlme*.
 
 ## Acknowledgements
 

@@ -100,7 +100,7 @@ coef and vcov include the variance parameters (unlike \code{coef} of nlme and lm
 (corr_par:b2,b1|group, unconstrained elements of the lower triangle of its Cholesky factor, by row);
 and the log residual standard deviation (log_sigma, gaussian; of log(y) for lognormal), log precision (log_phi, beta), log size
 (log_theta, nbinom2), log dispersion (log_phi, nbinom1) or log precision (log_phi, betabinomial); and
-for an estimated autocorrelation the parameter cor_par:AR1 or cor_par:CAR1 on the unconstrained scale of
+for an estimated autocorrelation the parameter cor_par:AR1 or cor_par:CAR1, or cor_par:range and cor_par:nugget, on the unconstrained scale of
 nlme (\code{coef} of an nlme corStruct), see \code{\link{corStruct}}.
 summary returns a summary.gcTMB object with the coefficient table (Estimate, Std. Error, and the
 Wald test of a coefficient of zero: the z value and its p-value, or the t value with small-sample

@@ -112,7 +112,7 @@ test_that("checks of the correlation structures", {
   expect_error(gcTMB(Height ~ DAS, data=d, family="poisson", correlation=corAR1(form=~ 1 | Plant_ID)), "gaussian and lognormal")
   d$t <- d$DAS + 0.5*(d$Plant_ID == "6")
   expect_error(gcTMB(Height ~ DAS, data=d, correlation=corAR1(form=~ t/7 | Plant_ID)), "integer valued")
-  expect_error(gcTMB(Height ~ DAS, data=d, correlation=list(1)), "corAR1\\(\\) or corCAR1\\(\\)")
+  expect_error(gcTMB(Height ~ DAS, data=d, correlation=list(1)), "corExp() or corGaus()", fixed=TRUE)
   expect_error(gcTMB(Height ~ DAS, data=d, correlation=corAR1(form=~ DAS | nope)), "nope")
   # F-tests need independent residuals
   f0 <- gcTMB(Height ~ DAS, data=d, correlation=corCAR1(form=~ DAS | Plant_ID))
@@ -244,4 +244,120 @@ test_that("update sets rho, keeping the other parameters", {
   expect_error(update(fa, rho=1), "between -1 and 1")
   expect_error(update(gcTMB(Height ~ DAS, data=d), rho=0.5), "no autocorrelation")
   expect_error(update(fit, rho=0.5, model="gompertz"), "not both")
+})
+
+# spatial structures: corExp and corGaus, with and without nugget
+
+test_that("corExp and corGaus match the constructors of nlme", {
+  e <- corExp(c(5, 0.2), form=~ DAS | Plant_ID, nugget=TRUE)
+  expect_s3_class(e, c("corExp", "corSpatial", "corStruct"))
+  expect_equal(as.numeric(e), c(5, 0.2))
+  expect_true(attr(e, "nugget"))
+  expect_equal(attr(e, "metric"), "euclidean")
+  expect_error(corExp(-1), "must be > 0")
+  expect_error(corGaus(c(5, 1.2), nugget=TRUE), "between 0 and 1")
+  expect_error(corGaus(c(5, 0.2)), "wrong dimension")
+  skip_if_not_installed("nlme")
+  expect_equal(unclass(corGaus(3, form=~ DAS | Plant_ID, metric="manhattan")),
+               unclass(nlme::corGaus(3, form=~ DAS | Plant_ID, metric="manhattan")), ignore_attr="formula")
+  expect_equal(unclass(corExp(form=~ DAS | Plant_ID, nugget=TRUE)), unclass(nlme::corExp(form=~ DAS | Plant_ID, nugget=TRUE)),
+               ignore_attr="formula")
+})
+
+test_that("corExp without nugget is corCAR1 with rho = exp(-1/range)", {
+  f1 <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, correlation=corCAR1(form=~ DAS | Plant_ID))
+  f2 <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, correlation=corExp(form=~ DAS | Plant_ID))
+  expect_equal(as.numeric(logLik(f2)), as.numeric(logLik(f1)), tolerance=1e-6)
+  expect_equal(exp(-1/corpars(f2)[["range"]]), corpars(f1)[["rho"]], tolerance=1e-4)
+  expect_equal(names(corpars(f2)), "range")
+})
+
+test_that("the spatial likelihood is the multivariate normal density of each group", {
+  # unequally spaced, unsorted times, a repeated time (allowed with a nugget) and a single observation
+  set.seed(4)
+  dd <- data.frame(t=c(5, 1, 2, 4.5, 9, 3, 1, 2, 2, 7), g=c(1, 1, 1, 1, 1, 2, 3, 3, 3, 3))
+  dd$y <- 50/(1 + exp(-(dd$t - 4)/1.5)) + rnorm(10, 0, 2)
+  for (cs in list(corExp(c(2, 0.3), form=~ t | g, nugget=TRUE), corGaus(c(2, 0.3), form=~ t | g, nugget=TRUE))){
+    fit <- gcTMB(y ~ t, data=dd, truncated=FALSE, correlation=cs, start=c(b1=50, b2=4, b3=1.5))
+    mu <- predict(fit)
+    s <- sigma(fit)
+    cp <- corpars(fit)
+    ll <- sum(sapply(split(seq_len(nrow(dd)), dd$g), function(i){
+      dm <- abs(outer(dd$t[i], dd$t[i], "-"))/cp[["range"]]
+      R <- (1 - cp[["nugget"]])*(if (inherits(cs, "corExp")) exp(-dm) else exp(-dm^2))
+      diag(R) <- 1
+      e <- dd$y[i] - mu[i]
+      -0.5*(length(e)*log(2*pi) + determinant(s^2*R)$modulus + sum(e*solve(s^2*R, e)))
+    }))
+    expect_equal(as.numeric(logLik(fit)), ll, tolerance=1e-8)
+  }
+  expect_error(gcTMB(y ~ t, data=dd, correlation=corExp(form=~ t | g)), "zero distances")
+})
+
+test_that("corExp and corGaus with a nugget agree with nlme::gnls", {
+  skip_if_not_installed("nlme")
+  ds <- d[order(d$Plant_ID, d$DAS), ]
+  for (k in 1:2){
+    mk <- function(v) if (k == 1) corExp(v, form=~ DAS | Plant_ID, nugget=TRUE) else corGaus(v, form=~ DAS | Plant_ID, nugget=TRUE)
+    fit <- gcTMB(Height ~ DAS, data=ds, truncated=FALSE, correlation=mk(c(20, 0.2)), control=list(smallsample=FALSE))
+    expect_equal(fit$opt$convergence, 0)
+    cf <- coef(fit)
+    cp <- pmax(corpars(fit), 1e-3)
+    g <- suppressWarnings(nlme::gnls(Height ~ b1/(1 + exp(-(DAS - b2)/b3)), data=ds, start=c(b1=cf[[1]], b2=cf[[2]], b3=cf[[3]]),
+                                     correlation=mk(cp), control=nlme::gnlsControl(returnObject=TRUE)))
+    expect_equal(as.numeric(logLik(fit)), as.numeric(logLik(g)), tolerance=1e-6)
+    expect_equal(unname(cf[1:3]), unname(coef(g)), tolerance=1e-4)
+    # normalized residuals of nlme, with sigma on n - p degrees of freedom
+    expect_equal(as.numeric(residuals(fit, type="normalized")),
+                 as.numeric(residuals(g, type="normalized")) * sqrt(nobs(fit)/(nobs(fit) - 3)), tolerance=1e-4)
+  }
+})
+
+test_that("the spatial parameters in coef, confint, print, update and simulate", {
+  fit <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, correlation=corGaus(form=~ DAS | Plant_ID, nugget=TRUE))
+  expect_true(all(c("cor_par:range", "cor_par:nugget") %in% names(coef(fit))))
+  expect_equal(names(corpars(fit)), c("range", "nugget"))
+  ci <- confint(fit, parm=c("cor_par:range", "cor_par:nugget"), method="wald")
+  expect_equal(rownames(ci), c("range", "nugget"))
+  expect_true(ci["range", 1] < corpars(fit)[["range"]] && corpars(fit)[["range"]] < ci["range", 2])
+  expect_output(print(fit), "Gaussian in DAS within Plant_ID, with nugget")
+  fu <- update(fit, rho=c(range=8, nugget=0.3))
+  expect_equal(unname(corpars(fu)), c(8, 0.3))
+  expect_error(update(fit, rho=0.5), "named vector")
+  # simulated residuals: variance sigma^2, correlation (1 - nugget) exp(-(7/8)^2) at 7 days
+  dat <- fu$obj$env$data
+  sims <- simulate(fu, nsim=300, seed=2, random=FALSE)
+  R <- (as.matrix(sims) - predict(fu))/sigma(fu)
+  expect_equal(mean(R^2), 1, tolerance=0.05)
+  ds <- d[order(d$Plant_ID, d$DAS), ]
+  i <- as.integer(rownames(ds))
+  nxt <- c(i[-1], NA)
+  same <- c(ds$Plant_ID[-1] == ds$Plant_ID[-nrow(ds)], FALSE) & c(diff(ds$DAS), NA) == 7
+  r7 <- mean(R[i[same], ] * R[nxt[same], ])
+  expect_equal(r7, 0.7*exp(-(7/8)^2), tolerance=0.07)
+  # simulate with newdata, and fixed parameters
+  nd <- data.frame(Plant_ID=rep(c("a", "b"), each=4), DAS=rep(c(10, 20, 30, 40), 2))
+  expect_equal(nrow(simulate(fit, nsim=2, seed=1, newdata=nd)), 8)
+  fx <- gcTMB(Height ~ DAS, data=d, correlation=corExp(c(10, 0.2), form=~ DAS | Plant_ID, nugget=TRUE, fixed=TRUE))
+  expect_equal(unname(corpars(fx)), c(10, 0.2))
+  expect_false(any(grepl("cor_par", names(coef(fx)))))
+})
+
+test_that("positions with several variables", {
+  dd <- d
+  dd$x <- as.numeric(dd$Plant_ID) %% 5
+  dd$z <- as.numeric(dd$Plant_ID) %/% 5
+  fit <- gcTMB(Height ~ DAS, data=dd, correlation=corExp(form=~ x + z, metric="manhattan", nugget=TRUE))
+  expect_equal(fit$opt$convergence, 0)
+  expect_output(print(fit), "exponential in x + z (manhattan distance), with nugget", fixed=TRUE)
+})
+
+test_that("the profile interval for rho is the same from corCAR1 and from corExp, with rho = exp(-1/range)", {
+  f1 <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, correlation=corCAR1(form=~ DAS | Plant_ID))
+  f2 <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, correlation=corExp(form=~ DAS | Plant_ID))
+  ci1 <- confint(f1, parm="cor_par:CAR1", progress=FALSE)
+  ci2 <- confint(f2, parm="cor_par:range", progress=FALSE)
+  # the profile likelihood does not depend on the parameterisation, and exp(-1/range) is increasing
+  expect_equal(as.numeric(ci1), exp(-1/as.numeric(ci2)), tolerance=1e-3)
+  # (Wald intervals are computed on different scales, logit(rho) and log(range), so they differ slightly)
 })

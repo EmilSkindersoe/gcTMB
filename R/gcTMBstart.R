@@ -570,7 +570,7 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
   # no predictions: see predictse
   Xp <- setNames(lapply(dd$Xs, function(X) X[0, , drop=FALSE]), paste("Xp", 1:5, sep=""))
   datalist <- c(dlist, dd$Xs, list(xp=numeric(0)), Xp, list(Zp=re$Z[0, , drop=FALSE]),
-                cor[c("cortype", "corprev", "cordt", "corlag", "corord")])
+                cor[c("cortype", "corprev", "cordt", "corlag", "corord", "corgsize", "cordist")])
 
   # log_sigma: residual sd (gaussian, of log(y) for lognormal), precision (beta, betabinomial), size theta (nbinom2) or dispersion phi
   # (nbinom1); fixed for poisson and binomial
@@ -581,8 +581,9 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
   if (dd$family %in% c("nbinom2", "nbinom1")) slsigma <- 0
   if (dd$family == "betabinomial") slsigma <- 2
   if (dd$family %in% c("poisson", "binomial")) slsigma <- 0
-  # autocorrelation: its starting value (or fixed value), on the unconstrained scale
-  scor <- if (cor$cortype > 0) as.numeric(dd$correlation) else 0
+  # autocorrelation: its starting value (or fixed value), on the unconstrained scale; log(range) and
+  # logit(nugget) for the spatial structures
+  scor <- if (cor$cortype >= 3) spatialstart(dd$correlation, cor$cormind) else if (cor$cortype > 0) as.numeric(dd$correlation) else 0
   parameters <- list(b1=sb[[1]], b2=sb[[2]], b3=sb[[3]], b4=sb[[4]], b5=sb[[5]], u=up, theta=as.numeric(stheta), log_sigma=slsigma,
                      cor_par=scor)
 
@@ -596,7 +597,7 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
     }
   }
   if (dd$family %in% c("poisson", "binomial")) lmap$log_sigma <- factor(NA)
-  if (cor$cortype == 0 || isTRUE(attr(dd$correlation, "fixed"))) lmap$cor_par <- factor(NA)
+  if (cor$cortype == 0 || isTRUE(attr(dd$correlation, "fixed"))) lmap$cor_par <- factor(rep(NA, length(scor)))
   if (!(dd$family %in% c("poisson", "binomial"))) parameters$log_sigma <- sigmastart(datalist, parameters, lmap, rform)
 
   MakeADFun(datalist, parameters, map=lmap, random=if (!is.null(rform)) "u", DLL="gcTMB_TMBExports", silent=TRUE)
@@ -615,7 +616,7 @@ sigmastart <- function(datalist, parameters, lmap, rform){
     map1[[b]] <- factor(rep(NA, length(parameters[[b]])))
   }
   map1$theta <- factor(rep(NA, length(parameters$theta)))
-  map1$cor_par <- factor(NA)
+  map1$cor_par <- factor(rep(NA, length(parameters$cor_par)))
   if (is.null(rform)) map1$u <- factor(rep(NA, length(parameters$u)))
   res <- tryCatch({
     obj1 <- MakeADFun(datalist, parameters, map=map1, random=if (!is.null(rform)) "u", DLL="gcTMB_TMBExports", silent=TRUE)

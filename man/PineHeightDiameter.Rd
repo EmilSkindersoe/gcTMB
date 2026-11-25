@@ -5,7 +5,7 @@
 \alias{PineHeightDiameter}
 \title{Heights and diameters of Scots pine trees}
 \format{
-A data frame with 1678 rows and 6 variables:
+A data frame with 1678 rows and 8 variables:
 \describe{
 \item{Plot}{identifier of the sample plot, a factor}
 \item{DBH}{diameter at breast height in cm}
@@ -13,12 +13,14 @@ A data frame with 1678 rows and 6 variables:
 \item{Ntrees}{number of trees on the plot}
 \item{Dmean}{mean diameter of the trees on the plot, in cm}
 \item{Dvar}{variance of the diameters of the trees on the plot}
+\item{X, Y}{position of the tree within its plot, in m}
 }
 }
 \source{
 The data set \code{spati2} of the package lmfor (version 1.7, licence GPL-2), with the
-variables renamed. The script that converts it is in the directory data-raw of the source
-package.
+variables renamed, and the positions of the same trees from the data set \code{spati} of lmfor,
+converted from decimetres to metres. The script that converts them is in the directory data-raw
+of the source package.
 }
 \usage{
 PineHeightDiameter
@@ -27,7 +29,8 @@ PineHeightDiameter
 Heights and diameters at breast height (1.3 m above the ground) of 1678 Scots pine trees on 56
 fixed-area sample plots in Ilomantsi, eastern Finland, collected by Timo Pukkala, for
 height-diameter models: the height grows with the diameter towards an asymptote, from the breast
-height of 1.3 m.
+height of 1.3 m. The positions of the trees within their plots allow spatial correlation of the
+residuals between neighbouring trees, e.g. \code{corExp(form=~ X + Y | Plot)}.
 }
 \examples{
 # a Chapman-Richards curve from the breast height, the intercept b4 = 1.3, with a random asymptote

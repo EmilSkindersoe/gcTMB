@@ -23,8 +23,10 @@ navbar:
         href: articles/fixed-random-effects.html
       - text: Timing and maximum growth rates
         href: articles/timing-rates.html
-      - text: Autocorrelation and simulation
-        href: articles/autocorrelation-simulation.html
+      - text: Correlation structures
+        href: articles/correlation.html
+      - text: Simulation
+        href: articles/simulation.html
 
 reference:
 - title: Fitting growth curves
@@ -78,4 +80,5 @@ articles:
   - growth-models
   - fixed-random-effects
   - timing-rates
-  - autocorrelation-simulation
+  - correlation
+  - simulation

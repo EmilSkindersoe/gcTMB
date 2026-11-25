@@ -15,14 +15,21 @@ BerkeleyGrowth <- BerkeleyGrowth[order(BerkeleyGrowth$ID, BerkeleyGrowth$Age), ]
 rownames(BerkeleyGrowth) <- NULL
 
 # Scots pine heights and diameters in Ilomantsi, Finland (lmfor::spati2, GPL-2): 1678 trees on 56
-# plots, with the number of trees and the mean and variance of the diameters of each plot
+# plots, with the number of trees and the mean and variance of the diameters of each plot, and the
+# position of each tree within its plot from lmfor::spati (the same trees: those with a height, in
+# the same order), whose coordinates are in decimetres (up to the plot size of about 40 x 30 m)
 data("spati2", package="lmfor", envir=environment())
+data("spati", package="lmfor", envir=environment())
+spatih <- spati[!is.na(spati$h), ]
+stopifnot(nrow(spatih) == nrow(spati2), all(spatih$plot == spati2$plot), all(spatih$d == spati2$d), all(spatih$h == spati2$h))
 PineHeightDiameter <- data.frame(Plot=factor(spati2$plot),
                                  DBH=spati2$d,
                                  Height=spati2$h,
                                  Ntrees=spati2$n,
                                  Dmean=spati2$dmean,
-                                 Dvar=spati2$dvar)
+                                 Dvar=spati2$dvar,
+                                 X=spatih$xk/10,
+                                 Y=spatih$yk/10)
 rownames(PineHeightDiameter) <- NULL
 
 # biomass of fiber sorghum, sweet sorghum and maize in Greece (nlraa::sm, GPL-3): 3 crops at 2 input

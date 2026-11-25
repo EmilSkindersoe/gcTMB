@@ -76,7 +76,7 @@ The model without random effects treats the 1678 trees as independent, while the
 
 ### Testing the random effects
 
-The random effects are tested in the same way, by likelihood ratio tests of the models with and without them: here without random effects, with a random asymptote, and with random asymptotes and rates. The rate $b_2$ is small, about 0.02 per cm, and some of these fits stop with a gradient just above the tolerance of `converged()`; `control = list(restart = TRUE)` optimises once more from the estimates (see the vignette *Autocorrelation and simulation*).
+The random effects are tested in the same way, by likelihood ratio tests of the models with and without them: here without random effects, with a random asymptote, and with random asymptotes and rates. The rate $b_2$ is small, about 0.02 per cm, and some of these fits stop with a gradient just above the tolerance of `converged()`; `control = list(restart = TRUE)` optimises once more from the estimates (see the vignette *Simulation*).
 
 ```{r}
 fitre1 <- gcTMB(Height ~ DBH, fform = b1 ~ Dmean, rform = b1 ~ 1 | Plot, data = PineHeightDiameter,

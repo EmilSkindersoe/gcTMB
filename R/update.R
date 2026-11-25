@@ -32,7 +32,9 @@
 #'   \code{\link{sigma.gcTMB}}. NULL (default) keeps it.
 #' @param rho Numeric or NULL. The new autocorrelation rho of the residuals, as returned by
 #'   \code{\link{corpars}}, for a model fitted with a \code{correlation} structure: between 0 and 1 for
-#'   \code{\link{corCAR1}}, between -1 and 1 for \code{\link{corAR1}}. NULL (default) keeps it.
+#'   \code{\link{corCAR1}}, between -1 and 1 for \code{\link{corAR1}}. For \code{\link{corExp}} and
+#'   \code{\link{corGaus}}, a named vector with the new range and/or nugget, e.g.
+#'   \code{c(range=10, nugget=0.2)}. NULL (default) keeps it.
 #' @param ... Without fixef, VarCorr, sigma and rho: the arguments of \code{\link{gcTMB}} to change, as in
 #'   \code{\link[stats]{update}}.
 #'
@@ -100,10 +102,26 @@ update.gcTMB <- function(object, ..., fixef=NULL, VarCorr=NULL, sigma=NULL, rho=
   if (!is.null(rho)){
     ct <- cortypeindex(object$correlation)
     if (ct == 0) stop("the model has no autocorrelation; fit it with a correlation structure, e.g. correlation=corCAR1(form=~ time | group).")
-    lo <- if (ct == 1) -1 else 0
-    if (length(rho) != 1 || !is.finite(rho) || rho <= lo || rho >= 1) stop("rho must be a single number between ", lo, " and 1 for ", class(object$correlation)[1], ".")
-    # on the unconstrained scale of nlme
-    pl$cor_par <- if (ct == 1) log((1 + rho)/(1 - rho)) else stats::qlogis(rho)
+    if (ct >= 3){
+      # spatial structures: the range and nugget, as named by corpars
+      pn <- names(corpars(object))
+      if (!is.numeric(rho) || is.null(names(rho)) || any(!(names(rho) %in% pn)) || any(!is.finite(rho))){
+        stop("for ", class(object$correlation)[1], ", rho must be a named vector with ", paste(pn, collapse=" and/or "), ", as returned by corpars().")
+      }
+      if ("range" %in% names(rho)){
+        if (rho[["range"]] <= 0) stop("the range must be positive.")
+        pl$cor_par[1] <- log(rho[["range"]])
+      }
+      if ("nugget" %in% names(rho)){
+        if (rho[["nugget"]] <= 0 || rho[["nugget"]] >= 1) stop("the nugget must be between 0 and 1.")
+        pl$cor_par[2] <- stats::qlogis(rho[["nugget"]])
+      }
+    } else {
+      lo <- if (ct == 1) -1 else 0
+      if (length(rho) != 1 || !is.finite(rho) || rho <= lo || rho >= 1) stop("rho must be a single number between ", lo, " and 1 for ", class(object$correlation)[1], ".")
+      # on the unconstrained scale of nlme
+      pl$cor_par <- if (ct == 1) log((1 + rho)/(1 - rho)) else stats::qlogis(rho)
+    }
   }
 
   # a new objective function: the one of the fit is shared with the original object

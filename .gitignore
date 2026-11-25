@@ -25,7 +25,8 @@
 !vignettes/growth-models.pdf
 !vignettes/fixed-random-effects.pdf
 !vignettes/timing-rates.pdf
-!vignettes/autocorrelation-simulation.pdf
+!vignettes/correlation.pdf
+!vignettes/simulation.pdf
 
 # OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
 .httr-oauth

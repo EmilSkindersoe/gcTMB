@@ -103,7 +103,7 @@ summary(fitre)
 converged(fitre)
 ```
 
-With 17 parameters and strongly correlated random effects, the optimiser stops with a gradient above $10^{-3}$; `control = list(restart = TRUE)` optimises once more from the estimates, which no longer improves the log-likelihood, so that `converged()` accepts the fit (see the vignette *Autocorrelation and simulation*).
+With 17 parameters and strongly correlated random effects, the optimiser stops with a gradient above $10^{-3}$; `control = list(restart = TRUE)` optimises once more from the estimates, which no longer improves the log-likelihood, so that `converged()` accepts the fit (see the vignette *Simulation*).
 
 `timeto()` and `maxrate()` with `newdata` give the times and rates of the curves of each row, here the population curves of the sexes (`random = FALSE`):
 

@@ -27,7 +27,9 @@ lognormal), or the dispersion parameter of the other families, as returned by
 
 \item{rho}{Numeric or NULL. The new autocorrelation rho of the residuals, as returned by
 \code{\link{corpars}}, for a model fitted with a \code{correlation} structure: between 0 and 1 for
-\code{\link{corCAR1}}, between -1 and 1 for \code{\link{corAR1}}. NULL (default) keeps it.}
+\code{\link{corCAR1}}, between -1 and 1 for \code{\link{corAR1}}. For \code{\link{corExp}} and
+\code{\link{corGaus}}, a named vector with the new range and/or nugget, e.g.
+\code{c(range=10, nugget=0.2)}. NULL (default) keeps it.}
 }
 \value{
 A gcTMB object.
