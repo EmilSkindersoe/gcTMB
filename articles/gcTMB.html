@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9019</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9020</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,7 +36,8 @@
 <li><a class="dropdown-item" href="../articles/growth-models.html">Growth models and their parameters</a></li>
     <li><a class="dropdown-item" href="../articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="../articles/timing-rates.html">Timing and maximum growth rates</a></li>
-    <li><a class="dropdown-item" href="../articles/autocorrelation-simulation.html">Autocorrelation and simulation</a></li>
+    <li><a class="dropdown-item" href="../articles/correlation.html">Correlation structures</a></li>
+    <li><a class="dropdown-item" href="../articles/simulation.html">Simulation</a></li>
   </ul>
 </li>
       </ul>
@@ -59,7 +60,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>gcTMB: an overview</h1>
             
-            <h4 data-toc-skip class="date">2026-11-24</h4>
+            <h4 data-toc-skip class="date">2026-11-25</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/gcTMB.rmd" class="external-link"><code>vignettes/gcTMB.rmd</code></a></small>
       <div class="d-none name"><code>gcTMB.rmd</code></div>
@@ -72,7 +73,7 @@ with the Template Model Builder (TMB). The curves can depend on
 covariates, have random effects for repeated measurements of the same
 individuals, and have autocorrelated residuals, and the response can
 follow a range of distributions. This overview shows most of the
-features in one document, with short examples; four vignettes go into
+features in one document, with short examples; five vignettes go into
 each topic in depth:</p>
 <ol style="list-style-type: decimal">
 <li>
@@ -92,10 +93,14 @@ inclusion, and count data;</li>
 <code><a href="../reference/maxrate.html">maxrate()</a></code> with treatment and genotype effects, the maximum
 growth rate as a parameter, and pairwise comparisons;</li>
 <li>
-<em>Autocorrelation and simulation</em>
-(<code><a href="../articles/autocorrelation-simulation.html">vignette("autocorrelation-simulation")</a></code>): autocorrelated
-residuals within individuals, and simulation studies, including the
-recovery of the autocorrelation parameter.</li>
+<em>Correlation structures</em>
+(<code><a href="../articles/correlation.html">vignette("correlation")</a></code>): temporal correlation of the
+residuals within individuals over time, and spatial correlation between
+neighbouring trees, with a nugget for measurement error;</li>
+<li>
+<em>Simulation</em> (<code><a href="../articles/simulation.html">vignette("simulation")</a></code>):
+simulation studies, including the recovery of the autocorrelation
+parameter.</li>
 </ol>
 <div class="section level2">
 <h2 id="growth-models">Growth models<a class="anchor" aria-label="anchor" href="#growth-models"></a>
@@ -352,12 +357,13 @@ package has growth data from other fields: <code>BerkeleyGrowth</code>
 (heights and weights of children from birth to 21 years, used in the
 vignette <em>Timing and maximum growth rates</em> with the Preece-Baines
 curve), <code>SorghumMaize</code> (biomass of three crops at two input
-levels, used in the vignette <em>Autocorrelation and simulation</em>
-with the beta curve) and <code>PineHeightDiameter</code> (heights and
-diameters of Scots pine trees, used in the vignette <em>Fixed and random
-effects</em>). The x-axis need not be time: in a height-diameter model
-the height grows with the diameter, from the breast height of 1.3 m, the
-intercept
+levels, used in the vignettes <em>Correlation structures</em> and
+<em>Simulation</em> with the beta curve) and
+<code>PineHeightDiameter</code> (heights and diameters of Scots pine
+trees with their positions, used in the vignettes <em>Fixed and random
+effects</em> and <em>Correlation structures</em>). The x-axis need not
+be time: in a height-diameter model the height grows with the diameter,
+from the breast height of 1.3 m, the intercept
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>4</mn></msub><annotation encoding="application/x-tex">b_4</annotation></semantics></math>
 of the Chapman-Richards curve:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -554,12 +560,12 @@ Tukey’s method with simultaneous confidence intervals.</p>
 <span><span class="co">#&gt; Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits, and ratios.</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="autocorrelation">Autocorrelation<a class="anchor" aria-label="anchor" href="#autocorrelation"></a>
+<h2 id="correlation-structures">Correlation structures<a class="anchor" aria-label="anchor" href="#correlation-structures"></a>
 </h2>
 <p>The residuals of the gaussian and lognormal families can be
-autocorrelated within individuals over time, with the correlation
-structures of nlme: <code><a href="../reference/corStruct.html">corAR1()</a></code> for integer times and
-<code><a href="../reference/corStruct.html">corCAR1()</a></code> for continuous times, with the correlation
+correlated within individuals, with the correlation structures of nlme.
+Over time, <code><a href="../reference/corStruct.html">corAR1()</a></code> for integer times and
+<code><a href="../reference/corStruct.html">corCAR1()</a></code> for continuous times have the correlation
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ρ</mi><mrow><mo stretchy="false" form="prefix">|</mo><mi>t</mi><mo>−</mo><mi>s</mi><mo stretchy="false" form="prefix">|</mo></mrow></msup><annotation encoding="application/x-tex">\rho^{|t - s|}</annotation></semantics></math>
 of residuals at times
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
@@ -578,9 +584,26 @@ and
 <span><span class="co">#&gt; fitrec   14 25098 25188 -12535    25070 216.78  1 &lt; 2.2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
-<p><code>residuals(type = "normalized")</code> gives residuals that are
-independent under the model. The vignette <em>Autocorrelation and
-simulation</em> describes the model and its likelihood.</p>
+<p>In space, <code><a href="../reference/corStruct.html">corExp()</a></code> and <code><a href="../reference/corStruct.html">corGaus()</a></code> have the
+correlation
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mi>d</mi><mi>/</mi><mi>r</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1 - n) \exp(-d/r)</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mo stretchy="false" form="prefix">(</mo><mi>d</mi><mi>/</mi><mi>r</mi><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1 - n) \exp(-(d/r)^2)</annotation></semantics></math>
+of residuals a distance
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+apart, with a range
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+and, with <code>nugget = TRUE</code>, a nugget
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>:
+the share of the residual variance that is independent between
+observations, such as measurement error. With the positions of trees in
+their plots,
+e.g. <code>corExp(form = ~ X + Y | Plot, nugget = TRUE)</code>, the
+residuals of neighbouring trees are correlated.
+<code>residuals(type = "normalized")</code> gives residuals that are
+independent under the model. The vignette <em>Correlation
+structures</em> describes the models and their likelihood, with an
+example of spatial correlation.</p>
 </div>
 <div class="section level2">
 <h2 id="simulation">Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
@@ -600,8 +623,8 @@ autocorrelation:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>true <span class="op">=</span> <span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fitrec</span><span class="op">)</span>, estimate <span class="op">=</span> <span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fitsim</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     true.rho estimate.rho </span></span>
 <span><span class="co">#&gt;    0.8516009    0.8150597</span></span></code></pre></div>
-<p>The vignette <em>Autocorrelation and simulation</em> repeats this for
-many data sets. In simulation studies,
+<p>The vignette <em>Simulation</em> repeats this for many data sets. In
+simulation studies,
 <code>control = list(sdreport = FALSE, restart = TRUE)</code> skips the
 standard errors and optimises a fit that does not converge once more
 from its estimates, and <code><a href="../reference/converged.html">converged()</a></code> checks the fits.</p>

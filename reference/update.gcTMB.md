@@ -65,7 +65,12 @@ update(object, ..., fixef = NULL, VarCorr = NULL, sigma = NULL, rho = NULL)
   [`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md),
   between -1 and 1 for
   [`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md).
-  NULL (default) keeps it.
+  For
+  [`corExp`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  and
+  [`corGaus`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md),
+  a named vector with the new range and/or nugget, e.g.
+  `c(range=10, nugget=0.2)`. NULL (default) keeps it.
 
 ## Value
 

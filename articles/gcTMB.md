@@ -5,7 +5,7 @@ with the Template Model Builder (TMB). The curves can depend on
 covariates, have random effects for repeated measurements of the same
 individuals, and have autocorrelated residuals, and the response can
 follow a range of distributions. This overview shows most of the
-features in one document, with short examples; four vignettes go into
+features in one document, with short examples; five vignettes go into
 each topic in depth:
 
 1.  *Growth models and their parameters*
@@ -24,10 +24,15 @@ each topic in depth:
     [`maxrate()`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md)
     with treatment and genotype effects, the maximum growth rate as a
     parameter, and pairwise comparisons;
-4.  *Autocorrelation and simulation*
-    ([`vignette("autocorrelation-simulation")`](https://emilskindersoe.github.io/gcTMB/articles/autocorrelation-simulation.md)):
-    autocorrelated residuals within individuals, and simulation studies,
-    including the recovery of the autocorrelation parameter.
+4.  *Correlation structures*
+    ([`vignette("correlation")`](https://emilskindersoe.github.io/gcTMB/articles/correlation.md)):
+    temporal correlation of the residuals within individuals over time,
+    and spatial correlation between neighbouring trees, with a nugget
+    for measurement error;
+5.  *Simulation*
+    ([`vignette("simulation")`](https://emilskindersoe.github.io/gcTMB/articles/simulation.md)):
+    simulation studies, including the recovery of the autocorrelation
+    parameter.
 
 ## Growth models
 
@@ -193,12 +198,13 @@ faba bean data, the package has growth data from other fields:
 `BerkeleyGrowth` (heights and weights of children from birth to 21
 years, used in the vignette *Timing and maximum growth rates* with the
 Preece-Baines curve), `SorghumMaize` (biomass of three crops at two
-input levels, used in the vignette *Autocorrelation and simulation* with
-the beta curve) and `PineHeightDiameter` (heights and diameters of Scots
-pine trees, used in the vignette *Fixed and random effects*). The x-axis
-need not be time: in a height-diameter model the height grows with the
-diameter, from the breast height of 1.3 m, the intercept $`b_4`$ of the
-Chapman-Richards curve:
+input levels, used in the vignettes *Correlation structures* and
+*Simulation* with the beta curve) and `PineHeightDiameter` (heights and
+diameters of Scots pine trees with their positions, used in the
+vignettes *Fixed and random effects* and *Correlation structures*). The
+x-axis need not be time: in a height-diameter model the height grows
+with the diameter, from the breast height of 1.3 m, the intercept
+$`b_4`$ of the Chapman-Richards curve:
 
 ``` r
 
@@ -418,15 +424,14 @@ partest(fitpr, newdata = genotypes, contrasts = "tukey")
 #> Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits, and ratios.
 ```
 
-## Autocorrelation
+## Correlation structures
 
-The residuals of the gaussian and lognormal families can be
-autocorrelated within individuals over time, with the correlation
-structures of nlme:
+The residuals of the gaussian and lognormal families can be correlated
+within individuals, with the correlation structures of nlme. Over time,
 [`corAR1()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
 for integer times and
 [`corCAR1()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
-for continuous times, with the correlation $`\rho^{|t - s|}`$ of
+for continuous times have the correlation $`\rho^{|t - s|}`$ of
 residuals at times $`s`$ and $`t`$.
 
 ``` r
@@ -445,9 +450,20 @@ anova(fitre, fitrec)
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
-`residuals(type = "normalized")` gives residuals that are independent
-under the model. The vignette *Autocorrelation and simulation* describes
-the model and its likelihood.
+In space,
+[`corExp()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+and
+[`corGaus()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+have the correlation $`(1 - n) \exp(-d/r)`$ and
+$`(1 - n) \exp(-(d/r)^2)`$ of residuals a distance $`d`$ apart, with a
+range $`r`$ and, with `nugget = TRUE`, a nugget $`n`$: the share of the
+residual variance that is independent between observations, such as
+measurement error. With the positions of trees in their plots,
+e.g. `corExp(form = ~ X + Y | Plot, nugget = TRUE)`, the residuals of
+neighbouring trees are correlated. `residuals(type = "normalized")`
+gives residuals that are independent under the model. The vignette
+*Correlation structures* describes the models and their likelihood, with
+an example of spatial correlation.
 
 ## Simulation
 
@@ -470,11 +486,10 @@ c(true = corpars(fitrec), estimate = corpars(fitsim))
 #>    0.8516009    0.8150597
 ```
 
-The vignette *Autocorrelation and simulation* repeats this for many data
-sets. In simulation studies,
-`control = list(sdreport = FALSE, restart = TRUE)` skips the standard
-errors and optimises a fit that does not converge once more from its
-estimates, and
+The vignette *Simulation* repeats this for many data sets. In simulation
+studies, `control = list(sdreport = FALSE, restart = TRUE)` skips the
+standard errors and optimises a fit that does not converge once more
+from its estimates, and
 [`converged()`](https://emilskindersoe.github.io/gcTMB/reference/converged.md)
 checks the fits.
 

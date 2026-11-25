@@ -2,12 +2,13 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
-  autocorrelation-simulation: autocorrelation-simulation.html
+  correlation: correlation.html
   fixed-random-effects: fixed-random-effects.html
   gcTMB: gcTMB.html
   growth-models: growth-models.html
+  simulation: simulation.html
   timing-rates: timing-rates.html
-last_built: 2026-11-24T21:44Z
+last_built: 2026-11-25T01:13Z
 urls:
   reference: https://emilskindersoe.github.io/gcTMB/reference
   article: https://emilskindersoe.github.io/gcTMB/articles

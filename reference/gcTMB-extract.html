@@ -19,7 +19,7 @@ list of covariance matrices (nlme returns a character table)."><meta property="o
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9019</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9020</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,8 @@ list of covariance matrices (nlme returns a character table)."><meta property="o
   <ul class="dropdown-menu" aria-labelledby="dropdown-examples"><li><a class="dropdown-item" href="../articles/growth-models.html">Growth models and their parameters</a></li>
     <li><a class="dropdown-item" href="../articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="../articles/timing-rates.html">Timing and maximum growth rates</a></li>
-    <li><a class="dropdown-item" href="../articles/autocorrelation-simulation.html">Autocorrelation and simulation</a></li>
+    <li><a class="dropdown-item" href="../articles/correlation.html">Correlation structures</a></li>
+    <li><a class="dropdown-item" href="../articles/simulation.html">Simulation</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -131,7 +132,8 @@ size or dispersion), and NA for poisson and binomial models. The residual varian
 <code>sigma(object)^2</code>. For gaussian models without random effects and small-sample inference (see
 <code><a href="gcTMB.html">gcTMB</a></code>), it is the unbiased estimate.</p>
 <p><code>corpars</code> returns the parameter of the autocorrelation of the residuals within groups (see
-<code><a href="corStruct.html">corStruct</a></code>), rho, the correlation of residuals one unit of time apart, and an empty vector
+<code><a href="corStruct.html">corStruct</a></code>), rho, the correlation of residuals one unit of time apart (the range, and
+the nugget, for <code><a href="corStruct.html">corExp</a></code> and <code><a href="corStruct.html">corGaus</a></code>), and an empty vector
 for a model with independent residuals; it is <code>coef(fit$modelStruct$corStruct,
 unconstrained=FALSE)</code> of nlme. <code>varpars</code> returns the parameters of the variance
 function of the residuals, as a named vector; the current models have a constant residual variance,

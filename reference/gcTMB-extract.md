@@ -95,8 +95,12 @@ it is the unbiased estimate.
 `corpars` returns the parameter of the autocorrelation of the residuals
 within groups (see
 [`corStruct`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)),
-rho, the correlation of residuals one unit of time apart, and an empty
-vector for a model with independent residuals; it is
+rho, the correlation of residuals one unit of time apart (the range, and
+the nugget, for
+[`corExp`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+and
+[`corGaus`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)),
+and an empty vector for a model with independent residuals; it is
 `coef(fit$modelStruct$corStruct, unconstrained=FALSE)` of nlme.
 `varpars` returns the parameters of the variance function of the
 residuals, as a named vector; the current models have a constant

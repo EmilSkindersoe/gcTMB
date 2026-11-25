@@ -8,5 +8,6 @@
   effects](https://emilskindersoe.github.io/gcTMB/articles/fixed-random-effects.md):
 - [Timing and maximum growth
   rates](https://emilskindersoe.github.io/gcTMB/articles/timing-rates.md):
-- [Autocorrelation and
-  simulation](https://emilskindersoe.github.io/gcTMB/articles/autocorrelation-simulation.md):
+- [Correlation
+  structures](https://emilskindersoe.github.io/gcTMB/articles/correlation.md):
+- [Simulation](https://emilskindersoe.github.io/gcTMB/articles/simulation.md):

@@ -22,8 +22,9 @@ in 'nlme', e.g. b1 + b2 ~ 1 \| individual: they can be correlated across
 the parameters, with several terms, nested or crossed grouping factors
 and random slopes. The Gaussian and lognormal residuals can be
 autocorrelated within individuals, with the first-order autoregressive
-structures corAR1() and continuous-time corCAR1() of 'nlme', whose
-objects are accepted as well. Starting values are found by a
+structures corAR1() and continuous-time corCAR1() of 'nlme', or the
+exponential corExp() and Gaussian corGaus() with an optional nugget,
+whose objects are accepted as well. Starting values are found by a
 linearisation of the curves or a grid search (gcTMBstart()), and the
 optimisation is controlled by gcTMBcontrol(). Inference covers Wald,
 profile likelihood and parametric bootstrap confidence intervals
@@ -78,9 +79,12 @@ effects (`rform`), correlated across parameters, with several terms,
 nested or crossed factors and random slopes; the families gaussian,
 lognormal, poisson, binomial, betabinomial, beta, nbinom1 and nbinom2;
 and autocorrelated residuals within individuals,
-[`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+[`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md),
+[`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md),
+[`corExp`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
 and
-[`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md).
+[`corGaus`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+(with a nugget for measurement error).
 
 ## Inference
 
@@ -150,9 +154,10 @@ The vignettes:
 an overview of most features;
 [`vignette("growth-models")`](https://emilskindersoe.github.io/gcTMB/articles/growth-models.md),
 [`vignette("fixed-random-effects")`](https://emilskindersoe.github.io/gcTMB/articles/fixed-random-effects.md),
-[`vignette("timing-rates")`](https://emilskindersoe.github.io/gcTMB/articles/timing-rates.md)
+[`vignette("timing-rates")`](https://emilskindersoe.github.io/gcTMB/articles/timing-rates.md),
+[`vignette("correlation")`](https://emilskindersoe.github.io/gcTMB/articles/correlation.md)
 and
-[`vignette("autocorrelation-simulation")`](https://emilskindersoe.github.io/gcTMB/articles/autocorrelation-simulation.md).
+[`vignette("simulation")`](https://emilskindersoe.github.io/gcTMB/articles/simulation.md).
 
 ## See also
 

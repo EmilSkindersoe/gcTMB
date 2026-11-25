@@ -10,6 +10,8 @@
   : Starting values for a gcTMB model
 - [`corAR1()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
   [`corCAR1()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  [`corExp()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  [`corGaus()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
   : Autocorrelation of the residuals within groups
 - [`update(`*`<gcTMB>`*`)`](https://emilskindersoe.github.io/gcTMB/reference/update.gcTMB.md)
   : Update a gcTMB fit, or set its parameters

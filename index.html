@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9019</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9020</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,7 +41,8 @@
 <li><a class="dropdown-item" href="articles/growth-models.html">Growth models and their parameters</a></li>
     <li><a class="dropdown-item" href="articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="articles/timing-rates.html">Timing and maximum growth rates</a></li>
-    <li><a class="dropdown-item" href="articles/autocorrelation-simulation.html">Autocorrelation and simulation</a></li>
+    <li><a class="dropdown-item" href="articles/correlation.html">Correlation structures</a></li>
+    <li><a class="dropdown-item" href="articles/simulation.html">Simulation</a></li>
   </ul>
 </li>
       </ul>
@@ -78,7 +79,7 @@
 <li>
 <strong>Fixed and random effects</strong>: formulas for each parameter, e.g. <code>fform = b1 + b2 ~ treatment</code> and <code>rform = b1 + b2 ~ 1 | plant</code>, as in <code><a href="https://rdrr.io/pkg/nlme/man/nlme.html" class="external-link">nlme::nlme</a></code>; random effects correlated across parameters, with several terms, nested or crossed grouping factors and random slopes, integrated out by the Laplace approximation.</li>
 <li>
-<strong>Autocorrelation</strong>: AR(1) and continuous-time AR(1) residuals within individuals, <code>correlation = corCAR1(form = ~ day | plant)</code>, with the correlation structures of nlme.</li>
+<strong>Correlation structures</strong>: temporal AR(1) and continuous-time AR(1) residuals within individuals, <code>correlation = corCAR1(form = ~ day | plant)</code>, and spatial exponential and Gaussian correlation between neighbouring observations, with a nugget for measurement error, <code>correlation = corExp(form = ~ x + y | plot, nugget = TRUE)</code>, with the correlation structures of nlme.</li>
 <li>
 <strong>Inference</strong>: profile likelihood, Wald and parametric bootstrap confidence intervals; likelihood ratio tests with chi-square, F or parametric bootstrap p-values; information criteria; tests of the differences between curves (<code><a href="reference/partest.html">partest()</a></code>), against a reference or between all pairs, with simultaneous confidence intervals; small-sample t and F inference for gaussian models without random effects.</li>
 <li>
@@ -107,7 +108,9 @@
 <li>
 <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/timing-rates.pdf" class="external-link">Timing and maximum growth rates</a>: <code><a href="reference/timeto.html">timeto()</a></code> and <code><a href="reference/maxrate.html">maxrate()</a></code> with treatment and genotype effects, the maximum growth rate as a parameter, and pairwise comparisons, for normal and count data.</li>
 <li>
-<a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/autocorrelation-simulation.pdf" class="external-link">Autocorrelation and simulation</a>: autocorrelated residuals within individuals, and simulation studies, including the recovery of the autocorrelation parameter.</li>
+<a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/correlation.pdf" class="external-link">Correlation structures</a>: temporal correlation of the residuals within individuals over time, and spatial correlation between neighbouring trees, with a nugget for measurement error.</li>
+<li>
+<a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/simulation.pdf" class="external-link">Simulation</a>: simulation studies, including the recovery of the autocorrelation parameter.</li>
 </ol>
 <p><a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/gcTMB.pdf" class="external-link">The overview</a> shows most of the features in one document. Each function has a help page, and <code><a href="reference/gcTMB.html">?gcTMB</a></code> describes the models in detail.</p>
 </div>
@@ -231,6 +234,65 @@
 </ul>
 <p>With <code>b1type = "rate"</code>, b1 is the maximum growth rate of the curve instead of its asymptote, so that covariates and random effects on b1 act on the maximum growth rate.</p>
 <p>Starting values come from a linearisation of the curve, e.g. log(y/(b1 - y)) = (t - b2)/b3 for the logistic curve, a straight line in t (or in log t for the Hill and Weibull curves) whose intercept and slope give b2 and b3, profiled over the asymptote b1, or from a grid search (<code><a href="reference/gcTMBstart.html">gcTMBstart()</a></code>).</p>
+</div>
+<div class="section level2">
+<h2 id="functions-and-methods">Functions and methods<a class="anchor" aria-label="anchor" href="#functions-and-methods"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th>Purpose</th>
+<th>Functions</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Fitting</td>
+<td>
+<code><a href="reference/gcTMB.html">gcTMB()</a></code>, <code><a href="reference/gcTMBstart.html">gcTMBstart()</a></code>, <code><a href="reference/gcTMBcontrol.html">gcTMBcontrol()</a></code>, <code><a href="reference/corStruct.html">corAR1()</a></code>, <code><a href="reference/corStruct.html">corCAR1()</a></code>, <code><a href="reference/corStruct.html">corExp()</a></code>, <code><a href="reference/corStruct.html">corGaus()</a></code>, <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code>
+</td>
+</tr>
+<tr>
+<td>Results</td>
+<td>
+<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>, <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>, <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code>, <code><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik()</a></code>, <code><a href="reference/converged.html">converged()</a></code>, <code><a href="reference/gcTMB-extract.html">fixef()</a></code>, <code><a href="reference/gcTMB-extract.html">ranef()</a></code>, <code><a href="reference/gcTMB-extract.html">VarCorr()</a></code>, <code><a href="https://rdrr.io/r/stats/sigma.html" class="external-link">sigma()</a></code>, <code><a href="reference/gcTMB-extract.html">corpars()</a></code>
+</td>
+</tr>
+<tr>
+<td>Confidence intervals</td>
+<td>
+<code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code>, <code><a href="https://rdrr.io/r/stats/profile.html" class="external-link">profile()</a></code>, <code><a href="reference/bootstrap.html">bootstrap()</a></code>
+</td>
+</tr>
+<tr>
+<td>Tests and model choice</td>
+<td>
+<code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova()</a></code>, <code><a href="reference/criteria.html">criteria()</a></code>, <code><a href="reference/partest.html">partest()</a></code>
+</td>
+</tr>
+<tr>
+<td>Derived quantities</td>
+<td>
+<code><a href="reference/timeto.html">timeto()</a></code>, <code><a href="reference/maxrate.html">maxrate()</a></code>
+</td>
+</tr>
+<tr>
+<td>Prediction and diagnostics</td>
+<td>
+<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>, <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code>, <code><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals()</a></code>, <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>
+</td>
+</tr>
+<tr>
+<td>Simulation</td>
+<td>
+<code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code>, <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The extractors <code><a href="reference/gcTMB-extract.html">fixef()</a></code>, <code><a href="reference/gcTMB-extract.html">ranef()</a></code> and <code><a href="reference/gcTMB-extract.html">VarCorr()</a></code> work for gcTMB, nlme and lme4 fits alike, and the formulas of the effects and the correlation structures follow nlme; gcTMB fits by maximum likelihood, so its likelihoods compare with nlme fits with <code>method = "ML"</code>. See <code><a href="reference/gcTMB.html">?gcTMB</a></code>, <em>Relation to nlme</em>.</p>
 </div>
 <div class="section level2">
 <h2 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
@@ -445,80 +507,21 @@
 </tr>
 <tr>
 <td><code>PineHeightDiameter</code></td>
-<td>Heights and diameters at breast height of 1678 Scots pine trees on 56 sample plots in eastern Finland (from the package lmfor)</td>
+<td>Heights and diameters at breast height of 1678 Scots pine trees on 56 sample plots in eastern Finland, with their positions (from the package lmfor)</td>
 <td>Height against diameter</td>
 <td>
-<code><a href="articles/fixed-random-effects.html">vignette("fixed-random-effects")</a></code>, with the Chapman-Richards curve</td>
+<code><a href="articles/fixed-random-effects.html">vignette("fixed-random-effects")</a></code>, with the Chapman-Richards curve; <code><a href="articles/correlation.html">vignette("correlation")</a></code>, with spatial correlation between the trees</td>
 </tr>
 <tr>
 <td><code>SorghumMaize</code></td>
 <td>Above-ground biomass of fiber sorghum, sweet sorghum and maize at two input levels in four blocks, central Greece (from the package nlraa)</td>
 <td>Biomass</td>
 <td>
-<code><a href="articles/autocorrelation-simulation.html">vignette("autocorrelation-simulation")</a></code>, with the beta curve</td>
+<code><a href="articles/correlation.html">vignette("correlation")</a></code> and <code><a href="articles/simulation.html">vignette("simulation")</a></code>, with the beta curve</td>
 </tr>
 </tbody>
 </table>
 <p>The raw faba bean data and the scripts that prepare all eight data sets are in the directory <code>data-raw</code> of the source package.</p>
-</div>
-<div class="section level2">
-<h2 id="functions-and-methods">Functions and methods<a class="anchor" aria-label="anchor" href="#functions-and-methods"></a>
-</h2>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th>Purpose</th>
-<th>Functions</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Fitting</td>
-<td>
-<code><a href="reference/gcTMB.html">gcTMB()</a></code>, <code><a href="reference/gcTMBstart.html">gcTMBstart()</a></code>, <code><a href="reference/gcTMBcontrol.html">gcTMBcontrol()</a></code>, <code><a href="reference/corStruct.html">corAR1()</a></code>, <code><a href="reference/corStruct.html">corCAR1()</a></code>, <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code>
-</td>
-</tr>
-<tr>
-<td>Results</td>
-<td>
-<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>, <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>, <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code>, <code><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik()</a></code>, <code><a href="reference/converged.html">converged()</a></code>, <code><a href="reference/gcTMB-extract.html">fixef()</a></code>, <code><a href="reference/gcTMB-extract.html">ranef()</a></code>, <code><a href="reference/gcTMB-extract.html">VarCorr()</a></code>, <code><a href="https://rdrr.io/r/stats/sigma.html" class="external-link">sigma()</a></code>, <code><a href="reference/gcTMB-extract.html">corpars()</a></code>
-</td>
-</tr>
-<tr>
-<td>Confidence intervals</td>
-<td>
-<code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code>, <code><a href="https://rdrr.io/r/stats/profile.html" class="external-link">profile()</a></code>, <code><a href="reference/bootstrap.html">bootstrap()</a></code>
-</td>
-</tr>
-<tr>
-<td>Tests and model choice</td>
-<td>
-<code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova()</a></code>, <code><a href="reference/criteria.html">criteria()</a></code>, <code><a href="reference/partest.html">partest()</a></code>
-</td>
-</tr>
-<tr>
-<td>Derived quantities</td>
-<td>
-<code><a href="reference/timeto.html">timeto()</a></code>, <code><a href="reference/maxrate.html">maxrate()</a></code>
-</td>
-</tr>
-<tr>
-<td>Prediction and diagnostics</td>
-<td>
-<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>, <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code>, <code><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals()</a></code>, <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>
-</td>
-</tr>
-<tr>
-<td>Simulation</td>
-<td>
-<code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code>, <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code>
-</td>
-</tr>
-</tbody>
-</table>
-<p>The extractors <code><a href="reference/gcTMB-extract.html">fixef()</a></code>, <code><a href="reference/gcTMB-extract.html">ranef()</a></code> and <code><a href="reference/gcTMB-extract.html">VarCorr()</a></code> work for gcTMB, nlme and lme4 fits alike, and the formulas of the effects and the correlation structures follow nlme; gcTMB fits by maximum likelihood, so its likelihoods compare with nlme fits with <code>method = "ML"</code>. See <code><a href="reference/gcTMB.html">?gcTMB</a></code>, <em>Relation to nlme</em>.</p>
 </div>
 <div class="section level2">
 <h2 id="acknowledgements">Acknowledgements<a class="anchor" aria-label="anchor" href="#acknowledgements"></a>

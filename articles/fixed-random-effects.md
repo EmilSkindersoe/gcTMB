@@ -167,7 +167,7 @@ is small, about 0.02 per cm, and some of these fits stop with a gradient
 just above the tolerance of
 [`converged()`](https://emilskindersoe.github.io/gcTMB/reference/converged.md);
 `control = list(restart = TRUE)` optimises once more from the estimates
-(see the vignette *Autocorrelation and simulation*).
+(see the vignette *Simulation*).
 
 ``` r
 

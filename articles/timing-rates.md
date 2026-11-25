@@ -249,7 +249,7 @@ stops with a gradient above $`10^{-3}`$;
 `control = list(restart = TRUE)` optimises once more from the estimates,
 which no longer improves the log-likelihood, so that
 [`converged()`](https://emilskindersoe.github.io/gcTMB/reference/converged.md)
-accepts the fit (see the vignette *Autocorrelation and simulation*).
+accepts the fit (see the vignette *Simulation*).
 
 [`timeto()`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md)
 and

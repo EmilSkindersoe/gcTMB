@@ -104,9 +104,11 @@ gcTMB(
 
   A correlation structure or NULL. The autocorrelation of the residuals
   within groups over time,
-  [`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  [`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md),
+  [`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md),
+  [`corExp`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
   or
-  [`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  [`corGaus`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
   (or the same structures of the package nlme), e.g.
   `corCAR1(form=~ time | ID)`, for the gaussian and lognormal (on the
   log scale) families. NULL (default) for independent residuals. See
@@ -342,9 +344,11 @@ and gcTMB:
   factors (`1 | site/ID`) and the double bar use the syntax of lme4;
 
 - the correlation structures
-  [`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  [`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md),
+  [`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md),
+  [`corExp`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
   and
-  [`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  [`corGaus`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
   have the arguments and the parameterisation of nlme, whose objects are
   accepted as well, and `residuals(fit, type="normalized")` gives the
   normalized residuals of nlme;

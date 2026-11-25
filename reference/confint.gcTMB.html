@@ -11,7 +11,7 @@ timeto."><meta property="og:image" content="https://emilskindersoe.github.io/gcT
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9019</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9020</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,7 +26,8 @@ timeto."><meta property="og:image" content="https://emilskindersoe.github.io/gcT
   <ul class="dropdown-menu" aria-labelledby="dropdown-examples"><li><a class="dropdown-item" href="../articles/growth-models.html">Growth models and their parameters</a></li>
     <li><a class="dropdown-item" href="../articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="../articles/timing-rates.html">Timing and maximum growth rates</a></li>
-    <li><a class="dropdown-item" href="../articles/autocorrelation-simulation.html">Autocorrelation and simulation</a></li>
+    <li><a class="dropdown-item" href="../articles/correlation.html">Correlation structures</a></li>
+    <li><a class="dropdown-item" href="../articles/simulation.html">Simulation</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -125,7 +126,7 @@ simulations; implies <code>method="boot"</code>. With NULL (default), method="bo
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The counterpart of <code>intervals</code> of nlme, with profile likelihood and parametric bootstrap
 intervals in addition to the Wald intervals; the autocorrelation cor_par:AR1 or cor_par:CAR1 is
-reported as rho.</p>
+reported as rho, and cor_par:range and cor_par:nugget as the range and nugget.</p>
 <p>Standard deviations of the random effects, the residual standard deviation and the precision are
 reported on their natural scale; Wald intervals for them are computed on the log scale. The
 correlation of a term with two random effects is reported as a correlation; the parameters of

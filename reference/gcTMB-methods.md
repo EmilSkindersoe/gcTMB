@@ -222,8 +222,9 @@ its Cholesky factor, by row); and the log residual standard deviation
 (log_sigma, gaussian; of log(y) for lognormal), log precision (log_phi,
 beta), log size (log_theta, nbinom2), log dispersion (log_phi, nbinom1)
 or log precision (log_phi, betabinomial); and for an estimated
-autocorrelation the parameter cor_par:AR1 or cor_par:CAR1 on the
-unconstrained scale of nlme (`coef` of an nlme corStruct), see
+autocorrelation the parameter cor_par:AR1 or cor_par:CAR1, or
+cor_par:range and cor_par:nugget, on the unconstrained scale of nlme
+(`coef` of an nlme corStruct), see
 [`corStruct`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md).
 summary returns a summary.gcTMB object with the coefficient table
 (Estimate, Std. Error, and the Wald test of a coefficient of zero: the z

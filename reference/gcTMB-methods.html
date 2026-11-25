@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9019</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9020</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,7 +22,8 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-examples"><li><a class="dropdown-item" href="../articles/growth-models.html">Growth models and their parameters</a></li>
     <li><a class="dropdown-item" href="../articles/fixed-random-effects.html">Fixed and random effects</a></li>
     <li><a class="dropdown-item" href="../articles/timing-rates.html">Timing and maximum growth rates</a></li>
-    <li><a class="dropdown-item" href="../articles/autocorrelation-simulation.html">Autocorrelation and simulation</a></li>
+    <li><a class="dropdown-item" href="../articles/correlation.html">Correlation structures</a></li>
+    <li><a class="dropdown-item" href="../articles/simulation.html">Simulation</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -172,7 +173,7 @@ coef and vcov include the variance parameters (unlike <code>coef</code> of nlme 
 (corr_par:b2,b1|group, unconstrained elements of the lower triangle of its Cholesky factor, by row);
 and the log residual standard deviation (log_sigma, gaussian; of log(y) for lognormal), log precision (log_phi, beta), log size
 (log_theta, nbinom2), log dispersion (log_phi, nbinom1) or log precision (log_phi, betabinomial); and
-for an estimated autocorrelation the parameter cor_par:AR1 or cor_par:CAR1 on the unconstrained scale of
+for an estimated autocorrelation the parameter cor_par:AR1 or cor_par:CAR1, or cor_par:range and cor_par:nugget, on the unconstrained scale of
 nlme (<code>coef</code> of an nlme corStruct), see <code><a href="corStruct.html">corStruct</a></code>.
 summary returns a summary.gcTMB object with the coefficient table (Estimate, Std. Error, and the
 Wald test of a coefficient of zero: the z value and its p-value, or the t value with small-sample
