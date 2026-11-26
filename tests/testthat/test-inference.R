@@ -108,6 +108,15 @@ test_that("plot gives diagnostic ggplots", {
     expect_setequal(Filter(istext, p3[[g]]$layers)[[1]]$data$label, as.character(f$data$id[i3]))
   }
   expect_setequal(Filter(istext, p3$time$layers)[[1]]$data$y, r[i3])
+  # the labelled points are redrawn in red, and so are their labels
+  isred <- function(l) inherits(l$geom, "GeomPoint") && identical(l$aes_params$colour, "red")
+  for (g in c("fitted", "time", "qq", "curves")){
+    rp <- Filter(isred, p3[[g]]$layers)
+    expect_length(rp, 1)
+    expect_equal(nrow(rp[[1]]$data), 3)
+    expect_equal(Filter(istext, p3[[g]]$layers)[[1]]$aes_params$colour, "red")
+  }
+  expect_setequal(Filter(isred, p3$time$layers)[[1]]$data$y, r[i3])
   p00 <- plot(f, outliers=0, draw=FALSE)
   for (g in names(p00)) expect_length(Filter(istext, p00[[g]]$layers), 0)
   expect_error(plot(f, outliers=-1), "non-negative integer")

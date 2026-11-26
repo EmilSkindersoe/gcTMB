@@ -32,7 +32,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::pkgdown, local::.
+          extra-packages: any::pkgdown, any::shinylive, local::.
           needs: website
 
       # pkgdown makes a web page of every .md file in the package folder; these are notes for
@@ -43,6 +43,11 @@ jobs:
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
+
+      # the viewcurves() app of the article "Exploring observed curves", run in the browser by
+      # Shinylive; the exported files go only into the website, not into the repository
+      - name: Export the Shinylive app
+        run: Rscript vignettes/articles/viewcurves-app/export.R docs
 
       - name: Deploy to GitHub pages
         uses: JamesIves/github-pages-deploy-action@v4.5.0

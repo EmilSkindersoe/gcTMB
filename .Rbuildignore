@@ -8,6 +8,7 @@
 ^CLAUDE\.md$
 ^vignettes/.*\.html$
 ^vignettes/.*\.pdf$
+^vignettes/articles$
 ^TODO\.md$
 ^nlme-project$
 ^nlme-project-gcTMB$

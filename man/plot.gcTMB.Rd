@@ -77,7 +77,7 @@ ggplot2 graphs.
 }
 \details{
 In models with random effects, the \code{outliers} observations with the largest absolute
-residuals, the ones closest to being outliers, are labelled in the graphs of
+residuals, the ones closest to being outliers, are drawn in red and labelled in the graphs of
 \code{type="validation1"} by their individual: their level of the finest grouping factor of the
 random effects (the one with the most levels, e.g. the plant of plants nested in plots). Models
 without random effects have no labels.

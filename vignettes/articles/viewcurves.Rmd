@@ -1,0 +1,63 @@
+---
+title: "Exploring observed curves"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+`viewcurves()` opens an app to step through the observed curves of the individuals of a data set:
+
+```{r, eval = FALSE}
+library(gcTMB)
+viewcurves(FabaHeights26, x = "DAS", y = "Height", id = "Plant_ID", covariates = c("Genotype", "Soil"),
+           output = "html")
+```
+
+The app below is that call, running in your browser. It can take half a minute to start the first time.
+
+```{=html}
+<iframe src="../viewcurves-app/index.html" title="viewcurves() app" width="100%" height="1050"
+        style="border: 1px solid #ccc; border-radius: 4px;" loading="lazy"></iframe>
+```
+
+## Outliers in the data
+
+With `output = "jpeg"`, `viewcurves()` draws the curves and growth rates of all plants. The plants with
+the steepest increases and the plants with the steepest decreases between two measurements, `outliers`
+of each, are drawn in red and reported:
+
+```{r, fig.width = 12, fig.height = 5, message = TRUE}
+library(gcTMB)
+vc <- viewcurves(FabaHeights26, x = "DAS", y = "Height", id = "Plant_ID", covariates = c("Genotype", "Soil"),
+                 output = "jpeg", outliers = 3)
+```
+
+## Outliers in the residuals
+
+The validation plots of a fitted model draw the `outliers` observations with the largest absolute
+residuals in red, labelled by their plant, here for a logistic curve with random effects of the plants on the asymptote
+b1 and the inflection point b2:
+
+```{r, fig.width = 9, fig.height = 7}
+fit <- gcTMB(Height ~ DAS, rform = b1 + b2 ~ 1 | Plant_ID, truncated = FALSE, data = FabaHeights26)
+plot(fit, outliers = 3)
+```
+
+```{r, include = FALSE}
+r <- residuals(fit, type = "normalized")
+resid_ids <- unique(as.character(fit$data$Plant_ID[order(abs(r), decreasing = TRUE)[1:3]]))
+data_ids <- unique(vc$outliers$id)
+both <- intersect(data_ids, resid_ids)
+only_data <- setdiff(data_ids, resid_ids)
+only_resid <- setdiff(resid_ids, data_ids)
+words <- function(x) if (length(x) == 1) x else paste(paste(x[-length(x)], collapse = ", "), "and", x[length(x)])
+found <- c(
+  if (length(both) > 0) paste0("Both methods flag ", words(both), "."),
+  if (length(only_data) > 0) paste0("Only the data flag ", words(only_data), "."),
+  if (length(only_resid) > 0) paste0("Only the residuals flag ", words(only_resid), "."))
+```
+
+The two kinds of outliers are not the same. A steep rise or fall in the data is not unusual for a
+plant whose own fitted curve rises or falls steeply there, while a residual measures how far an
+observation is from the curve of its plant. `r paste(found, collapse = " ")`

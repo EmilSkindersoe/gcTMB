@@ -29,6 +29,8 @@ navbar:
         href: articles/variance.html
       - text: Simulation
         href: articles/simulation.html
+      - text: Exploring observed curves
+        href: articles/viewcurves.html
 
 reference:
 - title: Fitting growth curves
@@ -89,3 +91,6 @@ articles:
   - correlation
   - variance
   - simulation
+- title: Exploring data
+  contents:
+  - articles/viewcurves

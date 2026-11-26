@@ -12,7 +12,7 @@
 #' ggplot2 graphs.
 #'
 #' In models with random effects, the \code{outliers} observations with the largest absolute
-#' residuals, the ones closest to being outliers, are labelled in the graphs of
+#' residuals, the ones closest to being outliers, are drawn in red and labelled in the graphs of
 #' \code{type="validation1"} by their individual: their level of the finest grouping factor of the
 #' random effects (the one with the most levels, e.g. the plant of plants nested in plots). Models
 #' without random effects have no labels.
@@ -303,16 +303,17 @@ qqplot <- function(d, identity=TRUE){
   p + ggplot2::geom_point(alpha=0.7) + labeltext(d, "theo", "res") + ggplot2::theme_bw()
 }
 
-# the text of d$label next to its point (none if d has no label): on the side of the point towards
-# the middle of the x range, so that it stays inside the panel
+# the labelled points of d$label (none if d has no label) redrawn in red, with their text in red next
+# to them, on the side of the point towards the middle of the x range, so that it stays inside the panel
 labeltext <- function(d, xvar, yvar){
   if (is.null(d$label) || all(is.na(d$label))) return(NULL)
   i <- !is.na(d$label)
   ld <- data.frame(x=d[[xvar]][i], y=d[[yvar]][i], label=d$label[i])
   if (!is.null(d$panel)) ld$panel <- d$panel[i]
   right <- ld$x < mean(range(d[[xvar]], na.rm=TRUE))
-  ggplot2::geom_text(data=ld, ggplot2::aes(x=x, y=y, label=label), inherit.aes=FALSE,
-                     hjust=ifelse(right, -0.25, 1.25), size=3.5)
+  list(ggplot2::geom_point(data=ld, ggplot2::aes(x=x, y=y), inherit.aes=FALSE, colour="red", size=2.2),
+       ggplot2::geom_text(data=ld, ggplot2::aes(x=x, y=y, label=label), inherit.aes=FALSE, colour="red",
+                          hjust=ifelse(right, -0.25, 1.25), size=3.5))
 }
 
 # predicted random effects, one panel for each parameter (and covariate of random slopes) and term
