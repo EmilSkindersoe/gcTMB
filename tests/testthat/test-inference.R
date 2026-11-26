@@ -100,7 +100,10 @@ test_that("the QQ plot of non-normal residuals warns", {
   expect_warning(plot(fp, residuals="response", which=3, draw=FALSE), "not normally distributed")
   expect_no_warning(plot(fp, draw=FALSE, seed=1))
   expect_no_warning(plot(fp, residuals="pearson", which=1:2, draw=FALSE))
+  # default residuals: quantile for the count families, normalized for the gaussian family
+  expect_equal(plot(fp, which=1, draw=FALSE, seed=1)$fitted$labels$y, "Quantile residuals")
   f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
+  expect_equal(plot(f, which=1, draw=FALSE)$fitted$labels$y, "Normalized residuals")
   expect_no_warning(plot(f, residuals="pearson", draw=FALSE))
 })
 

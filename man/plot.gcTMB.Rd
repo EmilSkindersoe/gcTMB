@@ -8,7 +8,7 @@
   x,
   type = c("validation", "curves"),
   which = 1:3,
-  residuals = c("quantile", "pearson", "response", "normalized"),
+  residuals = NULL,
   random = TRUE,
   times = NULL,
   ncol = NULL,
@@ -29,8 +29,12 @@ individuals and the population curves in two panels with one legend.
 fitted values, 2 residuals against x, 3 normal QQ plot of the residuals, 4 normal QQ plots of
 the predicted random effects (models with random effects only)}
 
-\item{residuals}{Character string. Residual type of the validation plots, see
-\code{\link{residuals.gcTMB}}: "quantile" (default), "pearson", "response" or "normalized" (decorrelated by the autocorrelation of the fit, see \code{\link{corStruct}})}
+\item{residuals}{Character string or NULL. Residual type of the validation plots, see
+\code{\link{residuals.gcTMB}}: "quantile", "pearson", "response" or "normalized" (decorrelated by the
+correlation structure of the fit, see \code{\link{corStruct}}). NULL (default) for "normalized" with the
+gaussian and lognormal families and "quantile" with the other families. For the lognormal family the
+quantile and pearson residuals are both the standardised residuals of log(y), so the normalized
+residuals differ from them only by the decorrelation and suit the scatter plots and the QQ plot alike}
 
 \item{random}{Logical. If TRUE, residuals and fitted values of the validation plots include the
 predicted random effects}
@@ -64,7 +68,9 @@ for models without random effects, a single graph of the data with the fitted cu
 ggplot2 graphs.
 }
 \details{
-The default randomised quantile residuals are standard normal under the model for all families,
+By default the gaussian and lognormal families show the normalized residuals, which are independent
+standard normal under the model also with a correlation structure, and the other families show the
+randomised quantile residuals. The randomised quantile residuals are standard normal under the model for all families,
 so the QQ plot is compared with the identity line; for the discrete families they are drawn
 uniformly within the jump of the distribution function at each observation, and \code{seed}
 makes the plots reproducible. For \code{residuals="response"}, the QQ plot line goes through the
