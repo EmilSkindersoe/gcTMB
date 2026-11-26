@@ -327,7 +327,7 @@ The shapes $b_3$ of the Weibull, gamma and Korf curves must be larger than 1. Th
 
 ### Diagnostics
 
-`plot()` draws validation plots: residuals against the fitted values and against time, and a normal QQ plot of the randomised quantile residuals (Dunn and Smyth, 1996). The data with the fitted curve are added as the last graph; `type = "curves"` draws the curves alone. The repeated measurements of the same plants are not independent; the random effects of the plants (vignette *Fixed and random effects*) account for that.
+`plot()` draws validation plots: residuals against the fitted values and against time, and a normal QQ plot of the residuals. For the gaussian and lognormal families these are the normalized residuals, which are independent standard normal under the model, also with a correlation structure; for the other families they are the randomised quantile residuals (Dunn and Smyth, 1996). The data with the fitted curve are added as the last graph; `type = "curves"` draws the curves alone. The repeated measurements of the same plants are not independent; the random effects of the plants (vignette *Fixed and random effects*) account for that.
 
 ```{r, fig.width = 7, fig.height = 5}
 plot(fit)

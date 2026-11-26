@@ -1,13 +1,21 @@
 #' Plots of gcTMB models: validation and fitted curves
 #'
-#' Validation plots (\code{type="validation"}, the default): residuals against the fitted values,
-#' residuals against x (e.g. time), a normal QQ plot of the residuals, and normal QQ plots of the predicted
-#' random effects, with the data and the fitted curves drawn last on the same page, without a legend.
-#' Fitted curves (\code{type="curves"}): for models with random effects, two panels with one legend,
-#' the data with the curves of the individuals, and the population curves of the fixed effects alone;
-#' for models without random effects, a single graph of the data with the fitted curves.
-#' \code{type=c("validation", "curves")} is the same as \code{type="validation"}. The graphs are
+#' Validation plots of the residuals (\code{type="validation1"}, the default): residuals against the
+#' fitted values, residuals against x (e.g. time) and a normal QQ plot of the residuals, with the data
+#' and the fitted curves drawn last on the same page, without a legend. Validation plots of the random
+#' effects (\code{type="validation2"}, models with random effects only): normal QQ plots of the
+#' predicted random effects. Fitted curves (\code{type="curves"}): for models with random effects, two
+#' panels with one legend, the data with the curves of the individuals, and the population curves of
+#' the fixed effects alone; for models without random effects, a single graph of the data with the
+#' fitted curves. Several types are drawn on one page, e.g. \code{type=c("validation1", "validation2")};
+#' with "validation1", "curves" adds nothing, as the curves already end the page. The graphs are
 #' ggplot2 graphs.
+#'
+#' In models with random effects, the \code{outliers} observations with the largest absolute
+#' residuals, the ones closest to being outliers, are labelled in the graphs of
+#' \code{type="validation1"} by their individual: their level of the finest grouping factor of the
+#' random effects (the one with the most levels, e.g. the plant of plants nested in plots). Models
+#' without random effects have no labels.
 #'
 #' By default the gaussian and lognormal families show the normalized residuals, which are independent
 #' standard normal under the model also with a correlation structure, and the other families show the
@@ -23,7 +31,7 @@
 #' e.g. with \code{createDHARMa()} of the package DHARMa; with \code{random=FALSE}, the simulations
 #' are conditional on the predicted random effects, as the residuals of these plots.
 #'
-#' The QQ plots of the random effects (\code{which=4}) show the predicted random effects of each
+#' The QQ plots of the random effects (\code{type="validation2"}) show the predicted random effects of each
 #' parameter and grouping factor. They are shrunk towards zero, so their spread is smaller than the
 #' estimated standard deviation, and with few groups they say little about the normality of the
 #' random effects.
@@ -40,13 +48,16 @@
 #' first observation.
 #'
 #' @param x A gcTMB object, the result of \code{\link{gcTMB}}.
-#' @param type Character vector. "validation" (default) for the validation plots with the data and
-#'   the fitted curves last, without a legend; "curves" for the data with the curves of the
-#'   individuals and the population curves in two panels with one legend.
-#'   \code{c("validation", "curves")} is the same as "validation"
-#' @param which Integer vector, a subset of 1:4. The validation plots to draw: 1 residuals against
-#'   fitted values, 2 residuals against x, 3 normal QQ plot of the residuals, 4 normal QQ plots of
-#'   the predicted random effects (models with random effects only)
+#' @param type Character vector, one or more of "validation1" (default) for the validation plots of
+#'   the residuals with the data and the fitted curves last, without a legend; "validation2" for the
+#'   normal QQ plots of the predicted random effects; "curves" for the data with the curves of the
+#'   individuals and the population curves in two panels with one legend
+#' @param which Integer vector, a subset of 1:3. The validation plots of \code{type="validation1"}
+#'   to draw before the curves: 1 residuals against fitted values, 2 residuals against x, 3 normal QQ
+#'   plot of the residuals
+#' @param outliers Non-negative integer. The number of observations with the largest absolute
+#'   residuals labelled by their individual in the graphs of \code{type="validation1"} (models with
+#'   random effects only); 0 for none. Default 1.
 #' @param residuals Character string or NULL. Residual type of the validation plots, see
 #'   \code{\link{residuals.gcTMB}}: "quantile", "pearson", "response" or "normalized" (decorrelated by the
 #'   correlation structure of the fit, see \code{\link{corStruct}}). NULL (default) for "normalized" with the
@@ -66,8 +77,10 @@
 #'
 #' @examples
 #' fit <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25)
-#' # validation plots with the curves last
-#' plot(fit, which=1:4)
+#' # validation plots of the residuals, with the curves last
+#' plot(fit)
+#' # QQ plots of the predicted random effects
+#' plot(fit, type="validation2")
 #' # the data with the curves of the plants, and the population curve, from sowing
 #' plot(fit, type="curves", times=seq(0, 61, by=0.1))
 #' # by treatment
@@ -77,31 +90,47 @@
 #' # a single graph, changed
 #' p <- plot(fit, which=2, draw=FALSE)
 #' p$time + ggplot2::labs(x="Days after sowing")
+#' # the three plants with the largest residuals labelled
+#' plot(fit, outliers=3)
 #' # counts: the randomised quantile residuals are reproducible with a seed
 #' fitp <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
 #' plot(fitp, seed=1)
 #'
 #' @return a list of ggplot objects, invisibly, for changing or drawing single graphs: fitted, time,
-#'   qq and ranef for the validation plots, and curves for the curves plot (with
+#'   and qq for "validation1", ranef for "validation2", and curves for the curves plot (with
 #'   \code{type="curves"} and random effects, one graph with the two panels as facets)
 #' @export
-plot.gcTMB <- function(x, type=c("validation", "curves"), which=1:3, residuals=NULL, random=TRUE,
+plot.gcTMB <- function(x, type=c("validation1", "validation2", "curves"), which=1:3, outliers=1, residuals=NULL, random=TRUE,
                        times=NULL, ncol=NULL, seed=NULL, draw=TRUE, ...){
-  type <- if (missing(type)) "validation" else unique(match.arg(type, several.ok=TRUE))
+  type <- if (missing(type)) "validation1" else unique(match.arg(type, several.ok=TRUE))
+  if (!is.numeric(outliers) || length(outliers) != 1 || is.na(outliers) || outliers < 0 || outliers != round(outliers)){
+    stop("outliers must be a non-negative integer.")
+  }
   # default: normalized residuals for the gaussian and lognormal families, quantile residuals otherwise
   if (is.null(residuals)) residuals <- if (x$family %in% c("gaussian", "lognormal")) "normalized" else "quantile"
   rtype <- match.arg(residuals, c("quantile", "pearson", "response", "normalized"))
+  hasre <- length(x$reterms) > 0
+  if ("validation2" %in% type && !hasre){
+    if (length(type) == 1) stop("the model has no random effects.")
+    type <- setdiff(type, "validation2")
+  }
   plots <- list()
-  if ("validation" %in% type){
-    if (!all(which %in% 1:4)) stop("which must be a subset of 1:4.")
-    if (4 %in% which && length(x$reterms) == 0){
-      if (length(which) == 1 && !("curves" %in% type)) stop("the model has no random effects.")
-      which <- setdiff(which, 4)
-    }
+  d <- NULL
+  if ("validation1" %in% type){
+    if (!all(which %in% 1:3)) stop("which must be a subset of 1:3; the QQ plots of the random effects are type=\"validation2\".")
     if (!is.null(seed)) set.seed(seed)
 
     res <- stats::residuals(x, type=rtype, random=random)
     d <- data.frame(fitted=fitted(x, random=random), time=as.vector(x$obj$env$data$x), res=res)
+    # the outliers observations with the largest absolute residuals, labelled in every graph by their
+    # individual: their level of the finest grouping factor of the random effects (models with random
+    # effects only)
+    d$label <- NA_character_
+    if (hasre && outliers > 0){
+      fine <- which.max(vapply(x$reterms, function(tm) length(tm$levels), numeric(1)))
+      top <- utils::head(order(abs(res), decreasing=TRUE, na.last=NA), outliers)
+      d$label[top] <- obsgroups(x, fine)[top]
+    }
     ylab <- switch(rtype, quantile="Quantile residuals", pearson="Pearson residuals", normalized="Normalized residuals", response="Residuals")
 
     if (1 %in% which){
@@ -118,20 +147,20 @@ plot.gcTMB <- function(x, type=c("validation", "curves"), which=1:3, residuals=N
         warning("the ", rtype, " residuals of the ", x$family, " family are not normally distributed under the model, ",
                 "so the normal QQ plot can depart from the line even for a correct model; use residuals=\"quantile\".", call.=FALSE)
       }
-      plots$qq <-qqplot(data.frame(res=res), identity=rtype != "response") +
+      plots$qq <- qqplot(d[, c("res", "label")], identity=rtype != "response") +
         ggplot2::labs(x="Theoretical quantiles", y=ylab, title="Normal QQ plot")
     }
-    if (4 %in% which){
-      plots$ranef <- qqplot(ranefdata(x), identity=FALSE) +
-        ggplot2::facet_wrap(~ term, scales="free_y") +
-        ggplot2::labs(x="Theoretical quantiles", y="Predicted random effects", title="Random effects")
-    }
+  }
+  if ("validation2" %in% type){
+    plots$ranef <- qqplot(ranefdata(x), identity=FALSE) +
+      ggplot2::facet_wrap(~ term, scales="free_y") +
+      ggplot2::labs(x="Theoretical quantiles", y="Predicted random effects", title="Random effects")
   }
   # the curves last: with the validation plots a single graph without a legend; alone, the individuals
-  # with the data and the population curves side by side, with one legend
-  if ("validation" %in% type){
-    plots$curves <- curveplot(x, times) + ggplot2::theme(legend.position="none")
-  } else plots$curves <- curveplot(x, times, split=TRUE)
+  # with the data and the population curves side by side, with one legend; none with validation2 alone
+  if ("validation1" %in% type){
+    plots$curves <- curveplot(x, times, label=d$label) + ggplot2::theme(legend.position="none")
+  } else if ("curves" %in% type) plots$curves <- curveplot(x, times, split=TRUE)
   if (draw){
     if (length(plots) == 1) print(plots[[1]]) else drawplots(plots, ncol)
   }
@@ -144,7 +173,8 @@ plot.gcTMB <- function(x, type=c("validation", "curves"), which=1:3, residuals=N
 # default over the range of the observed times. Points and curves are coloured by the covariates of the fixed effects.
 # split=TRUE (models with random effects): two panels with one legend and colour scale, the data with the
 # curves of the individuals, and the population curves alone.
-curveplot <- function(x, times=NULL, ngrid=200, split=FALSE){
+# label: NULL, or a character vector over the observations, NA except for the one labelled in the graph
+curveplot <- function(x, times=NULL, ngrid=200, split=FALSE, label=NULL){
   tvar <- all.vars(x$formula[[3]])
   if (length(tvar) != 1) stop("the time of the model must be a single variable for fit=TRUE.")
   mf <- model.frame(x$formula, data=x$data, na.action=na.omit)
@@ -153,6 +183,7 @@ curveplot <- function(x, times=NULL, ngrid=200, split=FALSE){
   if (is.matrix(y)) y <- y[, 1]/rowSums(y)
   obs <- x$data[rownames(mf), , drop=FALSE]
   d <- data.frame(time=obs[[tvar]], y=as.vector(y))
+  d$label <- if (!is.null(label) && length(label) == nrow(d)) label else NA_character_
   if (is.null(times)) times <- seq(min(d$time), max(d$time), length.out=ngrid)
   if (!is.numeric(times) || length(times) < 2 || anyNA(times)) stop("times must be a numeric vector of at least two times without missing values.")
   grid <- data.frame(sort(unique(times)))
@@ -226,6 +257,8 @@ curveplot <- function(x, times=NULL, ngrid=200, split=FALSE){
     if (!is.null(ig)) p <- p + ggplot2::geom_line(data=ig, ggplot2::aes(group=curve), colour="grey50", alpha=0.49)
     p <- p + ggplot2::geom_line(data=pg, ggplot2::aes(group=curve), colour="blue", linewidth=1.2)
   }
+  # the label of the observation with the largest residual, on top of the curves
+  p <- p + labeltext(d, "time", "y")
   if (split) p <- p + ggplot2::facet_wrap(~ panel)
   p + ggplot2::labs(x=tvar, y=yname,
                     title=if (!is.null(ig)) "Fitted curves: individuals and population" else if (nrow(pc) == 1) "Fitted curve" else "Fitted curves") +
@@ -237,7 +270,8 @@ residplot <- function(d, var, ylab){
   d$xv <- d[[var]]
   p <- ggplot2::ggplot(d, ggplot2::aes(x=xv, y=res)) +
     ggplot2::geom_hline(yintercept=0, colour="grey50") +
-    ggplot2::geom_point(alpha=0.7)
+    ggplot2::geom_point(alpha=0.7) +
+    labeltext(d, "xv", "res")
   if (length(unique(d$xv)) >= 3){
     lw <- as.data.frame(lowess(d$xv, d$res))
     p <- p + ggplot2::geom_line(data=lw, ggplot2::aes(x=x, y=y), colour="red")
@@ -265,7 +299,19 @@ qqplot <- function(d, identity=TRUE){
     if (is.null(d$term)) ql$term <- NULL
     p <- p + ggplot2::geom_abline(data=ql, ggplot2::aes(intercept=intercept, slope=slope), colour="red")
   }
-  p + ggplot2::geom_point(alpha=0.7) + ggplot2::theme_bw()
+  p + ggplot2::geom_point(alpha=0.7) + labeltext(d, "theo", "res") + ggplot2::theme_bw()
+}
+
+# the text of d$label next to its point (none if d has no label): on the side of the point towards
+# the middle of the x range, so that it stays inside the panel
+labeltext <- function(d, xvar, yvar){
+  if (is.null(d$label) || all(is.na(d$label))) return(NULL)
+  i <- !is.na(d$label)
+  ld <- data.frame(x=d[[xvar]][i], y=d[[yvar]][i], label=d$label[i])
+  if (!is.null(d$panel)) ld$panel <- d$panel[i]
+  right <- ld$x < mean(range(d[[xvar]], na.rm=TRUE))
+  ggplot2::geom_text(data=ld, ggplot2::aes(x=x, y=y, label=label), inherit.aes=FALSE,
+                     hjust=ifelse(right, -0.25, 1.25), size=3.5)
 }
 
 # predicted random effects, one panel for each parameter (and covariate of random slopes) and term

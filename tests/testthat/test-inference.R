@@ -83,15 +83,54 @@ test_that("fixed effects and variance components are recovered", {
 
 test_that("plot gives diagnostic ggplots", {
   f <- gcTMB(y ~ day, truncated=FALSE, rform=b1 ~ 1 | id, data=simre())
-  p <- plot(f, which=1:4, draw=FALSE, seed=1)
+  p <- plot(f, type=c("validation1", "validation2"), draw=FALSE, seed=1)
   expect_equal(names(p), c("fitted", "time", "qq", "ranef", "curves"))
+  expect_equal(names(plot(f, draw=FALSE)), c("fitted", "time", "qq", "curves"))
+  expect_equal(names(plot(f, type="validation2", draw=FALSE)), "ranef")
   expect_true(all(vapply(p, inherits, logical(1), "ggplot")))
   expect_equal(p$time$labels$x, "day")
   expect_equal(p$time$labels$title, "Residuals vs day")
+  # the largest absolute residual is labelled by its individual in the residual graphs and the curves graph
+  r <- residuals(f, type="normalized")
+  imax <- which.max(abs(r))
+  istext <- function(l) inherits(l$geom, "GeomText")
+  for (g in c("fitted", "time", "qq", "curves")){
+    tl <- Filter(istext, p[[g]]$layers)
+    expect_length(tl, 1)
+    expect_equal(tl[[1]]$data$label, as.character(f$data$id[imax]))
+  }
+  expect_equal(Filter(istext, p$time$layers)[[1]]$data$y, r[[imax]])
+  expect_length(Filter(istext, p$ranef$layers), 0)
+  # outliers: the three largest absolute residuals labelled, in each graph; none with outliers=0
+  i3 <- order(abs(r), decreasing=TRUE)[1:3]
+  p3 <- plot(f, outliers=3, draw=FALSE)
+  for (g in c("fitted", "time", "qq", "curves")){
+    expect_setequal(Filter(istext, p3[[g]]$layers)[[1]]$data$label, as.character(f$data$id[i3]))
+  }
+  expect_setequal(Filter(istext, p3$time$layers)[[1]]$data$y, r[i3])
+  p00 <- plot(f, outliers=0, draw=FALSE)
+  for (g in names(p00)) expect_length(Filter(istext, p00[[g]]$layers), 0)
+  expect_error(plot(f, outliers=-1), "non-negative integer")
+  expect_error(plot(f, outliers=1.5), "non-negative integer")
+  # nested random effects: the label is the level of the finest grouping factor
+  dn <- simre()
+  dn$plot <- factor(as.integer(factor(dn$id)) %% 4)
+  fn <- gcTMB(y ~ day, truncated=FALSE, rform=b1 ~ 1 | plot/id, data=dn)
+  rn <- residuals(fn, type="normalized")
+  ln <- Filter(istext, plot(fn, which=1, draw=FALSE)$fitted$layers)[[1]]$data$label
+  fine <- which.max(vapply(fn$reterms, function(tm) length(tm$levels), numeric(1)))
+  expect_equal(ln, gcTMB:::obsgroups(fn, fine)[which.max(abs(rn))])
+  expect_true(grepl(as.character(dn$id[which.max(abs(rn))]), ln, fixed=TRUE))
+  # without random effects: no label
+  f0 <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
+  p0 <- plot(f0, draw=FALSE)
+  for (g in names(p0)) expect_length(Filter(istext, p0[[g]]$layers), 0)
   pdf(NULL)
   on.exit(dev.off())
   expect_silent(plot(f))
-  expect_error(plot(gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic")), which=4), "no random effects")
+  expect_error(plot(f0, type="validation2"), "no random effects")
+  expect_equal(names(plot(f0, type=c("validation1", "validation2"), draw=FALSE)), c("fitted", "time", "qq", "curves"))
+  expect_error(plot(f, which=4), "type=\"validation2\"")
 })
 
 test_that("the QQ plot of non-normal residuals warns", {
@@ -151,10 +190,12 @@ test_that("plot with type='curves' draws the curves of the individuals and the p
   on.exit(dev.off())
   expect_silent(plot(f, type="curves"))
   # validation plots with the curves last
-  pb <- plot(f, type=c("validation", "curves"), which=1:4, draw=FALSE, seed=1)
+  pb <- plot(f, type=c("validation1", "validation2", "curves"), draw=FALSE, seed=1)
   expect_equal(names(pb), c("fitted", "time", "qq", "ranef", "curves"))
-  expect_silent(plot(f, type=c("curves", "validation")))
-  expect_equal(names(plot(f, type=c("curves", "validation"), draw=FALSE)), c("fitted", "time", "qq", "curves"))
+  expect_silent(plot(f, type=c("curves", "validation1")))
+  expect_equal(names(plot(f, type=c("curves", "validation1"), draw=FALSE)), c("fitted", "time", "qq", "curves"))
+  # curves alone carry no label
+  expect_length(Filter(function(l) inherits(l$geom, "GeomText"), p$layers), 0)
   # validation: the curves are added last, as a single graph without a legend
   pv <- plot(fg, draw=FALSE)
   expect_equal(names(pv), c("fitted", "time", "qq", "curves"))

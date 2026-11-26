@@ -6,8 +6,9 @@
 \usage{
 \method{plot}{gcTMB}(
   x,
-  type = c("validation", "curves"),
+  type = c("validation1", "validation2", "curves"),
   which = 1:3,
+  outliers = 1,
   residuals = NULL,
   random = TRUE,
   times = NULL,
@@ -20,14 +21,18 @@
 \arguments{
 \item{x}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
-\item{type}{Character vector. "validation" (default) for the validation plots with the data and
-the fitted curves last, without a legend; "curves" for the data with the curves of the
-individuals and the population curves in two panels with one legend.
-\code{c("validation", "curves")} is the same as "validation"}
+\item{type}{Character vector, one or more of "validation1" (default) for the validation plots of
+the residuals with the data and the fitted curves last, without a legend; "validation2" for the
+normal QQ plots of the predicted random effects; "curves" for the data with the curves of the
+individuals and the population curves in two panels with one legend}
 
-\item{which}{Integer vector, a subset of 1:4. The validation plots to draw: 1 residuals against
-fitted values, 2 residuals against x, 3 normal QQ plot of the residuals, 4 normal QQ plots of
-the predicted random effects (models with random effects only)}
+\item{which}{Integer vector, a subset of 1:3. The validation plots of \code{type="validation1"}
+to draw before the curves: 1 residuals against fitted values, 2 residuals against x, 3 normal QQ
+plot of the residuals}
+
+\item{outliers}{Non-negative integer. The number of observations with the largest absolute
+residuals labelled by their individual in the graphs of \code{type="validation1"} (models with
+random effects only); 0 for none. Default 1.}
 
 \item{residuals}{Character string or NULL. Residual type of the validation plots, see
 \code{\link{residuals.gcTMB}}: "quantile", "pearson", "response" or "normalized" (decorrelated by the
@@ -54,20 +59,28 @@ families are random; it has no effect for the continuous families. NULL (default
 }
 \value{
 a list of ggplot objects, invisibly, for changing or drawing single graphs: fitted, time,
-qq and ranef for the validation plots, and curves for the curves plot (with
+and qq for "validation1", ranef for "validation2", and curves for the curves plot (with
 \code{type="curves"} and random effects, one graph with the two panels as facets)
 }
 \description{
-Validation plots (\code{type="validation"}, the default): residuals against the fitted values,
-residuals against x (e.g. time), a normal QQ plot of the residuals, and normal QQ plots of the predicted
-random effects, with the data and the fitted curves drawn last on the same page, without a legend.
-Fitted curves (\code{type="curves"}): for models with random effects, two panels with one legend,
-the data with the curves of the individuals, and the population curves of the fixed effects alone;
-for models without random effects, a single graph of the data with the fitted curves.
-\code{type=c("validation", "curves")} is the same as \code{type="validation"}. The graphs are
+Validation plots of the residuals (\code{type="validation1"}, the default): residuals against the
+fitted values, residuals against x (e.g. time) and a normal QQ plot of the residuals, with the data
+and the fitted curves drawn last on the same page, without a legend. Validation plots of the random
+effects (\code{type="validation2"}, models with random effects only): normal QQ plots of the
+predicted random effects. Fitted curves (\code{type="curves"}): for models with random effects, two
+panels with one legend, the data with the curves of the individuals, and the population curves of
+the fixed effects alone; for models without random effects, a single graph of the data with the
+fitted curves. Several types are drawn on one page, e.g. \code{type=c("validation1", "validation2")};
+with "validation1", "curves" adds nothing, as the curves already end the page. The graphs are
 ggplot2 graphs.
 }
 \details{
+In models with random effects, the \code{outliers} observations with the largest absolute
+residuals, the ones closest to being outliers, are labelled in the graphs of
+\code{type="validation1"} by their individual: their level of the finest grouping factor of the
+random effects (the one with the most levels, e.g. the plant of plants nested in plots). Models
+without random effects have no labels.
+
 By default the gaussian and lognormal families show the normalized residuals, which are independent
 standard normal under the model also with a correlation structure, and the other families show the
 randomised quantile residuals. The randomised quantile residuals are standard normal under the model for all families,
@@ -82,7 +95,7 @@ The simulations of \code{\link{simulate.gcTMB}} can also be used for simulation-
 e.g. with \code{createDHARMa()} of the package DHARMa; with \code{random=FALSE}, the simulations
 are conditional on the predicted random effects, as the residuals of these plots.
 
-The QQ plots of the random effects (\code{which=4}) show the predicted random effects of each
+The QQ plots of the random effects (\code{type="validation2"}) show the predicted random effects of each
 parameter and grouping factor. They are shrunk towards zero, so their spread is smaller than the
 estimated standard deviation, and with few groups they say little about the normality of the
 random effects.
@@ -100,8 +113,10 @@ first observation.
 }
 \examples{
 fit <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25)
-# validation plots with the curves last
-plot(fit, which=1:4)
+# validation plots of the residuals, with the curves last
+plot(fit)
+# QQ plots of the predicted random effects
+plot(fit, type="validation2")
 # the data with the curves of the plants, and the population curve, from sowing
 plot(fit, type="curves", times=seq(0, 61, by=0.1))
 # by treatment
@@ -111,6 +126,8 @@ plot(fitt, type="curves")
 # a single graph, changed
 p <- plot(fit, which=2, draw=FALSE)
 p$time + ggplot2::labs(x="Days after sowing")
+# the three plants with the largest residuals labelled
+plot(fit, outliers=3)
 # counts: the randomised quantile residuals are reproducible with a seed
 fitp <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
 plot(fitp, seed=1)

@@ -1,6 +1,6 @@
 Package: gcTMB
 Title: Fitting Growth Curves Using the Template Model Builder
-Version: 0.1.0.9021
+Version: 0.1.0.9022
 Authors@R: 
     person("Emil", "Skindersoe", , "e.skindersoe@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0000-2172-1614"))
@@ -48,7 +48,8 @@ Description: Fits non-linear growth curves over time by maximum likelihood
     fits include summary(), predict() with confidence and prediction
     intervals of the curves or their parameters, fitted() and residuals()
     (Pearson, randomised quantile and normalized), plot() of validation
-    plots and fitted curves, simulate() at the observed or new times and
+    plots and fitted curves, viewcurves() to step through the observed
+    curves of the individuals of any data set in a 'shiny' app, simulate() at the observed or new times and
     individuals, update() to refit the model or set its parameters as the
     true model of a simulation study, logLik(), coef(), vcov(), converged(),
     and the extractors fixef(), ranef(), VarCorr(), sigma() and corpars(),
@@ -72,13 +73,15 @@ Suggests:
     numDeriv,
     nlme,
     lme4,
-    glmmTMB
+    glmmTMB,
+    shiny
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Imports: 
     ggplot2,
     graphics,
+    grDevices,
     grid,
     Matrix,
     methods,

@@ -23,6 +23,12 @@ automatic differentiation.
 
 ## Features
 
+- **Exploring data**: `viewcurves()` steps through the observed curves
+  of the individuals of any data set in a Shiny app, with filters,
+  colour and line type by covariates and their growth rates, or draws
+  all the curves and growth rates, with the steepest increase and
+  decrease between two observations in red, e.g. to find wrong
+  measurements.
 - **Growth models**: general growth curves (logistic or Richards,
   Gompertz, Hill, Weibull, normal and gamma), each with an asymmetry
   parameter and optionally truncated at the start of growth, before
@@ -213,6 +219,7 @@ and b3, profiled over the asymptote b1, or from a grid search
 
 | Purpose | Functions |
 |----|----|
+| Exploring data | `viewcurves()` |
 | Fitting | `gcTMB()`, `gcTMBstart()`, `gcTMBcontrol()`, `corAR1()`, `corCAR1()`, `corExp()`, `corGaus()`, `varIdent()`, `varPower()`, `varConstPower()`, `update()` |
 | Results | `summary()`, `coef()`, `vcov()`, `logLik()`, `converged()`, `fixef()`, `ranef()`, `VarCorr()`, `sigma()`, `corpars()`, `varpars()` |
 | Confidence intervals | `confint()`, `profile()`, `bootstrap()` |

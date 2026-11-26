@@ -32,7 +32,8 @@
 #' @section Predictions, diagnostics and simulation:
 #' \code{\link{predict.gcTMB}} (curves and parameters, with confidence and prediction intervals),
 #' \code{fitted}, \code{\link{residuals.gcTMB}} (Pearson, randomised quantile, normalized),
-#' \code{\link{plot.gcTMB}} (validation plots and curves), \code{\link{simulate.gcTMB}} (at the observed
+#' \code{\link{plot.gcTMB}} (validation plots and curves), \code{\link{viewcurves}} (a shiny app to
+#' step through the observed curves of the individuals of any data set), \code{\link{simulate.gcTMB}} (at the observed
 #' or new times and individuals), and \code{\link{update.gcTMB}} (refit, or set the parameters of a true
 #' model for simulation).
 #'

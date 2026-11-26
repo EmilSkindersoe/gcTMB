@@ -46,6 +46,9 @@ reference:
   - gcTMB-extract
   - plot.gcTMB
   - criteria
+- title: Exploring data
+  contents:
+  - viewcurves
 - title: Inference
   contents:
   - anova.gcTMB
