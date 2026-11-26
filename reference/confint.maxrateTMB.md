@@ -12,7 +12,7 @@ confint(
   object,
   parm = NULL,
   level = 0.95,
-  method = c("profile", "wald", "boot"),
+  method = c("wald", "profile", "boot"),
   nsim = 500,
   seed = NULL,
   boot = NULL,
@@ -38,9 +38,9 @@ confint(
 
 - method:
 
-  Character string. "profile" for profile likelihood intervals
-  (default), "wald" for Wald intervals, or "boot" for parametric
-  bootstrap percentile intervals
+  Character string. "wald" for Wald intervals (default), "profile" for
+  profile likelihood intervals, or "boot" for parametric bootstrap
+  percentile intervals
 
 - nsim:
 
@@ -86,12 +86,12 @@ bootstrap intervals.
 ``` r
 fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 mr <- maxrate(fit)
-confint(mr, method="wald")
+confint(mr)
 #>               2.5 %     97.5 %
 #> tmax     29.3846302 32.0753316
 #> rate      2.3743556  2.7456798
 #> fraction  0.4386425  0.4693352
-confint(mr, parm=c("tmax", "rate"))
+confint(mr, parm=c("tmax", "rate"), method="profile")
 #> Computing profile confidence intervals ...
 #>         2.5 %    97.5 %
 #> tmax 29.43846 32.182525

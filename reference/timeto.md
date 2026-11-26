@@ -153,11 +153,10 @@ tt
 #> 50%     32.9     0.911
 #> 90%     60.3     2.743
 confint(tt)
-#> Computing profile confidence intervals ...
-#>        2.5 %   97.5 %
-#> 10% 10.02726 11.69745
-#> 50% 31.32441 35.05932
-#> 90% 55.61967 66.81695
+#>         2.5 %   97.5 %
+#> 10%  9.997343 11.66661
+#> 50% 31.109239 34.70278
+#> 90% 54.875711 65.69606
 # the day at which they reach a height of 50
 timeto(fit, level=50, type="absolute")
 #> Times to reach the responses:

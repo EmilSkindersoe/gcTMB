@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9024</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,7 +62,8 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="gctmb-">gcTMB <a class="anchor" aria-label="anchor" href="#gctmb-"></a>
+<img src="logo.png" class="logo" alt=""><h1 id="gctmb-">gcTMB 
+<a class="anchor" aria-label="anchor" href="#gctmb-"></a>
 </h1>
 </div>
 <!-- badges: start -->
@@ -328,10 +329,10 @@
 <span><span class="co">#&gt;         50.099           9.770           2.647  </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation: 1.426</span></span></code></pre></div>
-<p><code><a href="reference/timeto.html">timeto()</a></code> gives the times at which the curve reaches a percentage of its asymptote, with standard errors from automatic differentiation and profile likelihood intervals by <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code>, and <code><a href="reference/maxrate.html">maxrate()</a></code> the maximum growth rate and its timing:</p>
+<p><code><a href="reference/timeto.html">timeto()</a></code> gives the times at which the curve reaches a percentage of its asymptote, with standard errors from automatic differentiation and Wald, profile likelihood (here) or bootstrap intervals by <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code>, and <code><a href="reference/maxrate.html">maxrate()</a></code> the maximum growth rate and its timing:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tt</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/timeto.html">timeto</a></span><span class="op">(</span><span class="va">fit</span>, level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">50</span>, <span class="fl">90</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">tt</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">tt</span>, method <span class="op">=</span> <span class="st">"profile"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;         2.5 %    97.5 %</span></span>
 <span><span class="co">#&gt; 10%  4.192012  4.902495</span></span>
 <span><span class="co">#&gt; 50%  9.664311 10.137903</span></span>
@@ -578,7 +579,7 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/emilskindersoe/gcTMB/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/emilskindersoe/gcTMB/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
-<li><a href="https://github.com/emilskindersoe/gcTMB/actions/workflows/pkgdown.yaml" class="external-link"><img src="https://github.com/emilskindersoe/gcTMB/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></li>
+<li><a href="https://emilskindersoe.github.io/gcTMB/"><img src="https://github.com/emilskindersoe/gcTMB/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></li>
 <li><a href="https://www.repostatus.org/#wip" class="external-link"><img src="https://www.repostatus.org/badges/latest/wip.svg" alt="Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public."></a></li>
 <li><a href="https://cran.r-project.org/" class="external-link"><img src="https://img.shields.io/badge/R-%3E%3D%204.2.0-276DC3?logo=r" alt="R version"></a></li>
 </ul>

@@ -269,8 +269,8 @@ fit
 
 [`timeto()`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md)
 gives the times at which the curve reaches a percentage of its
-asymptote, with standard errors from automatic differentiation and
-profile likelihood intervals by
+asymptote, with standard errors from automatic differentiation and Wald,
+profile likelihood (here) or bootstrap intervals by
 [`confint()`](https://rdrr.io/r/stats/confint.html), and
 [`maxrate()`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md)
 the maximum growth rate and its timing:
@@ -278,7 +278,7 @@ the maximum growth rate and its timing:
 ``` r
 
 tt <- timeto(fit, level = c(10, 50, 90))
-confint(tt)
+confint(tt, method = "profile")
 #>         2.5 %    97.5 %
 #> 10%  4.192012  4.902495
 #> 50%  9.664311 10.137903

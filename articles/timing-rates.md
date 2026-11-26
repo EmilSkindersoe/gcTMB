@@ -93,22 +93,22 @@ timeto(fitg, level = 150, type = "absolute")
 #> y=150     11.3    0.0439
 ```
 
-[`confint()`](https://rdrr.io/r/stats/confint.html) gives profile
-likelihood intervals by default, `method = "wald"` Wald intervals and
+[`confint()`](https://rdrr.io/r/stats/confint.html) gives Wald intervals
+by default, `method = "profile"` profile likelihood intervals and
 `method = "boot"` parametric bootstrap intervals.
 
 ``` r
 
 confint(tt)
 #>        2.5 %   97.5 %
-#> 90% 11.15086 11.39731
-#> 95% 12.46196 12.85775
-#> 99% 14.47672 15.33976
-confint(tt, method = "wald")
-#>        2.5 %   97.5 %
 #> 90% 11.14867 11.39441
 #> 95% 12.45152 12.84439
 #> 99% 14.44944 15.30572
+confint(tt, method = "profile")
+#>        2.5 %   97.5 %
+#> 90% 11.15086 11.39731
+#> 95% 12.46196 12.85775
+#> 99% 14.47672 15.33976
 ```
 
 ## Maximum growth rate
@@ -117,9 +117,10 @@ confint(tt, method = "wald")
 gives the time of the maximum growth rate (`tmax`), the maximum growth
 rate there (`rate`), and the proportion of total growth at that time,
 $`f(t_m)/b_1`$ (`fraction`). The standard errors are by the delta
-method. [`confint()`](https://rdrr.io/r/stats/confint.html) gives
-profile likelihood intervals for `tmax` and `rate` by default, and Wald
-intervals for `fraction`; `method = "wald"` and `method = "boot"` as for
+method. [`confint()`](https://rdrr.io/r/stats/confint.html) gives Wald
+intervals by default; `method = "profile"` gives profile likelihood
+intervals for `tmax` and `rate`, and Wald intervals for `fraction`, and
+`method = "boot"` bootstrap intervals as for
 [`timeto()`](https://emilskindersoe.github.io/gcTMB/reference/timeto.md).
 The growth rate of the Preece-Baines curve is highest in early childhood
 and falls until the take-off of the pubertal growth spurt;
@@ -138,7 +139,7 @@ mr
 #> tmax       10.866   0.19993
 #> rate        6.830   0.18381
 #> fraction    0.883   0.00762
-confint(mr)
+confint(mr, method = "profile")
 #>               2.5 %     97.5 %
 #> tmax     10.4171679 11.2174743
 #> rate      6.4965849  7.2257125
@@ -203,6 +204,7 @@ parameter):
 fitre <- gcTMB(Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, rform = b1 + b2 + b5 ~ 1 | ID,
                data = berkeley, model = "preecebaines", start = unname(custom),
                control = list(restart = TRUE))
+#> Warning: the optimiser did not converge: false convergence (8)
 summary(fitre)
 #> Call:
 #> gcTMB(form = Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, 
@@ -221,7 +223,7 @@ summary(fitre)
 #> b1:Sexfemale   -1.548e+01  4.962e-01 -31.186  < 2e-16 ***
 #> b2:(Intercept)  1.480e+01  2.108e-01  70.203  < 2e-16 ***
 #> b2:Sexfemale   -2.268e+00  2.958e-01  -7.666 1.77e-14 ***
-#> b3:(Intercept)  1.688e+02  2.262e-01 746.168  < 2e-16 ***
+#> b3:(Intercept)  1.688e+02  2.262e-01 746.169  < 2e-16 ***
 #> b3:Sexfemale   -1.368e+01  3.335e-01 -41.014  < 2e-16 ***
 #> b4:(Intercept)  8.631e-02  9.322e-04  92.585  < 2e-16 ***
 #> b4:Sexfemale    1.575e-02  1.584e-03   9.940  < 2e-16 ***
@@ -239,7 +241,8 @@ summary(fitre)
 #> 
 #> Residual standard deviation: 2.087
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.02
+#> Optimiser: false convergence (8), maximum absolute gradient 0.0065
+#> Warning: the optimiser did not converge: false convergence (8)
 converged(fitre)
 #> [1] TRUE
 ```
@@ -353,13 +356,13 @@ summary(fitrr)
 #> 
 #> Coefficients:
 #>                  Estimate Std. Error z value Pr(>|z|)    
-#> b1:(Intercept)   2.007187   0.014296 140.404   <2e-16 ***
-#> b1:Sexfemale    -0.002928   0.020022  -0.146    0.884    
+#> b1:(Intercept)   2.007188   0.014296 140.404   <2e-16 ***
+#> b1:Sexfemale    -0.002929   0.020022  -0.146    0.884    
 #> b2:(Intercept)   0.381010   0.005656  67.360   <2e-16 ***
 #> b2:Sexfemale     0.072460   0.005456  13.281   <2e-16 ***
-#> b3:(Intercept)   4.477683   0.052745  84.893   <2e-16 ***
-#> b4:(Intercept) 131.815373   0.598137 220.377   <2e-16 ***
-#> b4:Sexfemale    -7.368561   0.835740  -8.817   <2e-16 ***
+#> b3:(Intercept)   4.477682   0.052745  84.893   <2e-16 ***
+#> b4:(Intercept) 131.815382   0.598139 220.376   <2e-16 ***
+#> b4:Sexfemale    -7.368548   0.835743  -8.817   <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
@@ -373,7 +376,7 @@ summary(fitrr)
 #> 
 #> Residual standard deviation: 1.57
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.0024
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.0087
 maxrate(fitrr, newdata = sexes)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
@@ -438,8 +441,8 @@ pars <- predict(fitrr, newdata = sexes, type = "parameters", random = FALSE)
 data.frame(Sex = sexes$Sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
            growth_in_spurt = pars[, "asymptote"], adult_height = pars[, "b4"] + pars[, "asymptote"])
 #>      Sex peak_rate height_before_spurt growth_in_spurt adult_height
-#> 1   male  7.442353            131.8154        52.79488     184.6102
-#> 2 female  7.420597            124.4468        44.22909     168.6759
+#> 1   male  7.442358            131.8154        52.79491     184.6103
+#> 2 female  7.420593            124.4468        44.22908     168.6759
 ```
 
 The adult heights agree with the asymptotes $`b_1`$ of the Preece-Baines

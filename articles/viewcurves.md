@@ -12,7 +12,10 @@ viewcurves(FabaHeights26, x = "DAS", y = "Height", id = "Plant_ID", covariates =
 ```
 
 The app below is that call, running in your browser. It can take half a
-minute to start the first time.
+minute to start the first time, and it responds more slowly than the app
+does when
+[`viewcurves()`](https://emilskindersoe.github.io/gcTMB/reference/viewcurves.md)
+is run in R on your own computer.
 
 ## Outliers in the data
 

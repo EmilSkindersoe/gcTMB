@@ -13,7 +13,7 @@ bootstrap intervals."><meta property="og:image" content="https://emilskindersoe.
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9024</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,7 +57,7 @@ bootstrap intervals.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">maxrate</span><span class="op">(</span><span class="va">x</span>, curves <span class="op">=</span> <span class="cn">NULL</span>, newdata <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">maxrate</span><span class="op">(</span><span class="va">x</span>, curves <span class="op">=</span> <span class="cn">NULL</span>, newdata <span class="op">=</span> <span class="cn">NULL</span>, random <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -73,7 +73,13 @@ bootstrap intervals.</p>
 
 
 <dt id="arg-newdata">newdata<a class="anchor" aria-label="anchor" href="#arg-newdata"></a></dt>
-<dd><p>Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves; NULL (default) to use curves.</p></dd>
+<dd><p>Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves; NULL (default) to use curves. With grouping variables of the random effects, the curves of fitted groups, see Details. The estimates are named by the covariate and group values (or by the row names of newdata, if set).</p></dd>
+
+
+<dt id="arg-random">random<a class="anchor" aria-label="anchor" href="#arg-random"></a></dt>
+<dd><p>Logical. If TRUE (default), the curves of rows of newdata with a level of a grouping
+variable in the fitted data include the predicted random effects of that group. If FALSE, all the
+curves are population curves, and the grouping variables in newdata are not used.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -86,8 +92,18 @@ are numbered.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The curves are the population curves, with all random effects at zero; the standard
-errors include the uncertainty of the fixed effects. For each curve, <code>maxrate</code> gives</p><ul><li><p><code>tmax</code>: the time of the maximum growth rate, the inflection point of the curve;</p></li>
+    <p>The curves are the population curves, with all random effects at zero, and the standard
+errors include the uncertainty of the fixed effects, unless <code>newdata</code> names fitted groups.</p>
+<p>If a row of newdata gives a level of a grouping factor that is in the fitted data, e.g.
+<code>newdata=data.frame(Plant_ID="46_5")</code>, its curve is the curve of that group, with its
+predicted random effects (the conditional modes), as in <code><a href="gcTMB-methods.html">predict.gcTMB</a></code> and
+<code><a href="timeto.html">timeto</a></code>. These are shrunken towards the population curve, more so for groups with few
+observations. The standard errors then include the uncertainty of the fixed effects and the
+prediction error of the random effects, from the joint precision matrix of
+<code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">sdreport</a></code>. A level that is not in the fitted data gives the population curve for
+that term, with a warning. Profile intervals are not available for the curves of fitted groups;
+<code>confint</code> returns Wald intervals for them, and bootstrap intervals with <code>method="boot"</code>.</p>
+<p>For each curve, <code>maxrate</code> gives</p><ul><li><p><code>tmax</code>: the time of the maximum growth rate, the inflection point of the curve;</p></li>
 <li><p><code>rate</code>: the maximum growth rate, the slope of the curve at <code>tmax</code>, in units of the
 response per unit of time;</p></li>
 <li><p><code>fraction</code>: the fraction of the asymptote b1 reached at <code>tmax</code>, how much of the
@@ -102,7 +118,13 @@ rate b1, without an inflection point: its <code>tmax</code> and <code>fraction</
 f(t), shifted down to zero at its threshold b4 and rescaled, b1 (f(t) - f(b4))/(b1 - f(b4)) beyond b4. It has its maximum growth rate at the
 inflection point of the curve without truncation if that is after the threshold, and otherwise
 just after the threshold, where the slope jumps from zero: then <code>tmax</code> is b4 and
-<code>fraction</code> zero.</p>
+<code>fraction</code> zero.
+For the logistic curve, truncated by default, the inflection point is still at b2 (when b2 &gt; b4),
+but the maximum growth rate is b1/(4 b3) divided by 1 - f(b4)/b1, larger than that of the curve
+without truncation, and the fraction of the asymptote reached then is below one half. The closed
+forms of the logistic curve without truncation, <code>rate</code> = b1/(4 b3) and <code>fraction</code> = 1/2,
+hold only with <code>truncated=FALSE</code>. The same holds for the curves of fitted groups, with their
+own b1-b4.</p>
 <p>The standard errors are by the delta method, with numerical derivatives of the quantities with
 respect to the parameters of the curves. Profile intervals are available for <code>tmax</code> (by b2,
 unless the curve is at its threshold) and <code>rate</code> (by b1); for <code>fraction</code>, which depends
@@ -163,6 +185,28 @@ on the shape of the curve only, <code>confint</code> returns Wald intervals with
 <span class="r-out co"><span class="r-pr">#&gt;</span> tmax:trt=0.8       31.732   1.41979</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> rate:trt=0.8        2.604   0.10688</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> fraction:trt=0.8    0.457   0.00813</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># the curves of two fitted plants, with their predicted random effects</span></span></span>
+<span class="r-in"><span><span class="va">fitre</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, rform<span class="op">=</span><span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plant_ID</span>, data<span class="op">=</span><span class="va">FabaHeights25</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">mrp</span> <span class="op">&lt;-</span> <span class="fu">maxrate</span><span class="op">(</span><span class="va">fitre</span>, newdata<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Plant_ID<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">7</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">mrp</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                     Estimate Std.Error</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tmax:Plant_ID=6       30.612   0.26353</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rate:Plant_ID=6        2.715   0.05320</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> fraction:Plant_ID=6    0.453   0.00305</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tmax:Plant_ID=7       30.612   0.26353</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rate:Plant_ID=7        2.495   0.05099</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> fraction:Plant_ID=7    0.453   0.00305</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">mrp</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                          2.5 %     97.5 %</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tmax:Plant_ID=6     30.0957231 31.1287388</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rate:Plant_ID=6      2.6103240  2.8188725</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> fraction:Plant_ID=6  0.4474963  0.4594599</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tmax:Plant_ID=7     30.0957231 31.1287388</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rate:Plant_ID=7      2.3949056  2.5947733</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> fraction:Plant_ID=7  0.4474963  0.4594599</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

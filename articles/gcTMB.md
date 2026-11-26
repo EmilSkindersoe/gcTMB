@@ -141,8 +141,8 @@ criteria(fits, which = c("AIC", "BIC"))
 [`predict()`](https://rdrr.io/r/stats/predict.html) gives confidence
 intervals of the mean by the delta method and prediction intervals of
 new observations; [`confint()`](https://rdrr.io/r/stats/confint.html)
-gives profile likelihood (default), Wald or parametric bootstrap
-intervals of the parameters, and
+gives Wald (default), profile likelihood (`method = "profile"`) or
+parametric bootstrap intervals of the parameters, and
 [`bootstrap()`](https://emilskindersoe.github.io/gcTMB/reference/bootstrap.md)
 a bootstrap sample to reuse.
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws
@@ -151,15 +151,10 @@ validation plots of the residuals and the fitted curves.
 ``` r
 
 nd <- data.frame(DAS = seq(0, 125, by = 0.5))
-ci <- cbind(nd, predict(fit, newdata = nd, interval = "confidence"))
-pi <- cbind(nd, predict(fit, newdata = nd, interval = "prediction"))
 ggplot(FabaHeights26, aes(x = DAS, y = Height)) +
-  geom_ribbon(data = pi, aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "red", alpha = 0.1) +
   geom_point(colour = "grey60", size = 0.6, position = position_jitter(width = 0.5, height = 0)) +
-  geom_ribbon(data = ci, aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "red", alpha = 0.35) +
-  geom_line(data = ci, aes(y = fit), colour = "red") +
-  labs(x = "Days after sowing", y = "Height (cm)",
-       title = "Logistic curve with 95% confidence (dark) and prediction (light) intervals") +
+  geom_line(data = cbind(nd, Height = predict(fit, newdata = nd)), colour = "black") +
+  labs(x = "Days after sowing", y = "Height (cm)") +
   theme_minimal()
 ```
 
@@ -167,7 +162,7 @@ ggplot(FabaHeights26, aes(x = DAS, y = Height)) +
 
 ``` r
 
-confint(fit, method = "wald")
+confint(fit)
 #>                    2.5 %    97.5 %
 #> b1:(Intercept) 68.609783 69.784886
 #> b2:(Intercept) 58.066586 58.870628
@@ -231,7 +226,7 @@ fitre
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr
-#>  Plant_ID b1   9.484        
+#>  Plant_ID b1   9.483        
 #>           b2   2.194    0.35
 #> 
 #> Residual standard deviation: 3.709
@@ -257,8 +252,9 @@ anova(fitre0, fitre)
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
-`plot(type = "curves")` draws the curves of the plants and the
-population curves of the treatments:
+`plot(type = "curves")` draws the curves of the plants and, next to
+them, the population curves of the treatments with their 95% confidence
+intervals:
 
 ``` r
 
@@ -293,12 +289,12 @@ fitp <- gcTMB(Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, 
 genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
 cbind(genotypes, predict(fitp, newdata = genotypes, type = "parameters", random = FALSE))
 #>   Genotype        b1       b2       b3 b4
-#> 1   Aurora 14.599604 70.05332 1.338929 65
-#> 2    Capri 11.197692 69.20293 1.338929 65
-#> 3   ILB938  9.120942 69.04494 1.338929 65
-#> 4     Lynx 19.581598 72.79717 1.338929 65
-#> 5  Melodie 25.297229 73.29756 1.338929 65
-#> 6   Navara 17.779349 72.65386 1.338929 65
+#> 1   Aurora 14.599634 70.05332 1.338935 65
+#> 2    Capri 11.197618 69.20292 1.338935 65
+#> 3   ILB938  9.120981 69.04494 1.338935 65
+#> 4     Lynx 19.581583 72.79718 1.338935 65
+#> 5  Melodie 25.297268 73.29758 1.338935 65
+#> 6   Navara 17.779358 72.65387 1.338935 65
 ```
 
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) checks a count
@@ -336,7 +332,7 @@ maxrate(fitre, newdata = trts)
 #> tmax:Soil=Loamy,Treatment=Irrigated          60.917  2.68e-01
 #> rate:Soil=Loamy,Treatment=Irrigated           2.612  3.75e-02
 #> fraction:Soil=Loamy,Treatment=Irrigated       0.500  1.43e-05
-#> tmax:Soil=Sandy,Treatment=Irrigated          59.763  2.75e-01
+#> tmax:Soil=Sandy,Treatment=Irrigated          59.764  2.75e-01
 #> rate:Soil=Sandy,Treatment=Irrigated           2.261  3.65e-02
 #> fraction:Soil=Sandy,Treatment=Irrigated       0.500  1.66e-05
 #> tmax:Soil=Loamy,Treatment=NotIrrigated       58.025  2.71e-01
@@ -363,27 +359,27 @@ partest(fitpr, newdata = genotypes, contrasts = "tukey")
 #> Pairwise differences of b1 (maximum growth rate) on the scale of its log link:
 #> 
 #>                                    Estimate Std.Error z value p.value  lower
-#> Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78767 -0.360
+#> Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78771 -0.360
 #> Genotype=Aurora - Genotype=ILB938    0.4572     0.231   1.976 0.35585 -0.202
 #> Genotype=Aurora - Genotype=Lynx     -0.2753     0.231  -1.192 0.84196 -0.933
 #> Genotype=Aurora - Genotype=Melodie  -0.5368     0.245  -2.191 0.24139 -1.235
 #> Genotype=Aurora - Genotype=Navara   -0.1767     0.232  -0.762 0.97484 -0.838
 #> Genotype=Capri - Genotype=ILB938     0.1570     0.218   0.722 0.98021 -0.463
-#> Genotype=Capri - Genotype=Lynx      -0.5755     0.217  -2.650 0.08513 -1.194
-#> Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00444 -1.498
-#> Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24384 -1.099
+#> Genotype=Capri - Genotype=Lynx      -0.5754     0.217  -2.649 0.08514 -1.194
+#> Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00443 -1.498
+#> Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24385 -1.099
 #> Genotype=ILB938 - Genotype=Lynx     -0.7324     0.217  -3.376 0.00970 -1.351
 #> Genotype=ILB938 - Genotype=Melodie  -0.9940     0.232  -4.288 0.00032 -1.655
-#> Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04185 -1.255
-#> Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87005 -0.921
+#> Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04186 -1.255
+#> Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87004 -0.921
 #> Genotype=Lynx - Genotype=Navara      0.0985     0.218   0.453 0.99757 -0.521
-#> Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63191 -0.302
+#> Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63192 -0.302
 #>                                      upper ratio ratio.lower ratio.upper
 #> Genotype=Aurora - Genotype=Capri    0.9600 1.350       0.698       2.612
-#> Genotype=Aurora - Genotype=ILB938   1.1164 1.580       0.817       3.054
+#> Genotype=Aurora - Genotype=ILB938   1.1165 1.580       0.817       3.054
 #> Genotype=Aurora - Genotype=Lynx     0.3828 0.759       0.393       1.466
 #> Genotype=Aurora - Genotype=Melodie  0.1613 0.585       0.291       1.175
-#> Genotype=Aurora - Genotype=Navara   0.4841 0.838       0.433       1.623
+#> Genotype=Aurora - Genotype=Navara   0.4842 0.838       0.433       1.623
 #> Genotype=Capri - Genotype=ILB938    0.7769 1.170       0.629       2.175
 #> Genotype=Capri - Genotype=Lynx      0.0434 0.562       0.303       1.044
 #> Genotype=Capri - Genotype=Melodie  -0.1763 0.433       0.224       0.838
@@ -451,30 +447,49 @@ and
 [`varConstPower()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
 a power of a covariate, the fitted curve `fitted(.)` (the default), its
 growth rate `rate(.)`, largest at the inflection point, or a variable of
-the data. Here each day of measurement has its own residual variance,
-besides the random effects of the plants:
+the data. Here the residual standard deviation is a constant plus a
+power of the fitted curve, $`\sigma (c + |\hat y|^{\delta})`$, besides
+the random effects of the plants; `restart = TRUE` optimises once more
+from the estimates, as the first optimisation stops just short of
+convergence:
 
 ``` r
 
-fitrev <- update(fitre, variance = varIdent(form = ~ 1 | DAS))
-round(varpars(fitrev), 2)
-#>   28   35   42   49   56   63   69   77   83   90   98  106  114  122 
-#> 1.00 0.71 1.16 1.89 1.86 3.36 4.33 4.66 8.90 3.19 3.49 2.83 2.57 2.97
+fitrev <- update(fitre, variance = varConstPower(), control = gcTMBcontrol(restart = TRUE))
+varpars(fitrev)
+#>     const     power 
+#> 20.334380  1.095398
 anova(fitre, fitrev)
 #> Likelihood ratio tests of gcTMB models
 #> 
-#>        npar   AIC   BIC logLik deviance     LR Df   Pr(>LR)    
-#> fitre    13 25313 25396 -12644    25287                        
-#> fitrev   26 22715 22880 -11331    22663 2624.4 13 < 2.2e-16 ***
+#>        npar   AIC   BIC logLik deviance   LR Df   Pr(>LR)    
+#> fitre    13 25313 25396 -12644    25287                      
+#> fitrev   15 23471 23567 -11721    23441 1846  2 < 2.2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
-[`varpars()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md)
-gives the standard deviation of each day relative to the first. The
-vignette *Variance functions* shows how variance functions change the
-confidence intervals of a curve, and how they trade off against random
-effects and autocorrelation.
+[`predict()`](https://rdrr.io/r/stats/predict.html) gives confidence
+intervals of the population curves by the delta method, here of the
+treatments:
+
+``` r
+
+nd <- merge(trts, data.frame(DAS = seq(0, 125, by = 0.5)))
+ci <- cbind(nd, predict(fitrev, newdata = nd, random = FALSE, interval = "confidence"))
+ci$trt <- paste(ci$Soil, ci$Treatment, sep = ", ")
+ggplot(ci, aes(x = DAS, y = fit, colour = trt, fill = trt)) +
+  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
+  geom_line() +
+  labs(x = "Days after sowing", y = "Height (cm)", colour = "Soil, irrigation", fill = "Soil, irrigation") +
+  theme_minimal()
+```
+
+![](gcTMB_files/figure-html/unnamed-chunk-13-1.png)
+
+The vignette *Variance functions* shows how variance functions change
+the confidence intervals of a curve, and how they trade off against
+random effects and autocorrelation.
 
 ## Simulation
 

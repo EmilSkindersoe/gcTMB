@@ -11,7 +11,7 @@ timeto."><meta property="og:image" content="https://emilskindersoe.github.io/gcT
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9024</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,7 +59,7 @@ coefficients and variance parameters of a gcTMB model, or for the times estimate
 <span>  <span class="va">object</span>,</span>
 <span>  parm <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"profile"</span>, <span class="st">"wald"</span>, <span class="st">"boot"</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wald"</span>, <span class="st">"profile"</span>, <span class="st">"boot"</span><span class="op">)</span>,</span>
 <span>  nsim <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  boot <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -71,7 +71,7 @@ coefficients and variance parameters of a gcTMB model, or for the times estimate
 <span>  <span class="va">object</span>,</span>
 <span>  parm <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"profile"</span>, <span class="st">"wald"</span>, <span class="st">"boot"</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wald"</span>, <span class="st">"profile"</span>, <span class="st">"boot"</span><span class="op">)</span>,</span>
 <span>  nsim <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  boot <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -96,8 +96,8 @@ coefficients and variance parameters of a gcTMB model, or for the times estimate
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
-<dd><p>Character string. "profile" for profile likelihood intervals, "wald" for Wald intervals, or "boot" for
-percentile intervals of a parametric bootstrap: responses are simulated from the fitted model
+<dd><p>Character string. "wald" (default) for Wald intervals, "profile" for profile likelihood
+intervals, or "boot" for percentile intervals of a parametric bootstrap: responses are simulated from the fitted model
 (with new random effects, see <code><a href="gcTMB-methods.html">simulate.gcTMB</a></code>) and the model is fitted again to each,
 starting at the estimates. Fits that do not converge are left out, with a message.</p></dd>
 
@@ -141,6 +141,9 @@ computed with <code>random=TRUE</code> for random effect terms without a fitted 
 <code>residual=TRUE</code>, include further variation in their standard errors; for these, Wald intervals
 are returned with a message.
 Bootstrap intervals need many fits of the model; with random effects this can take several minutes.
+Wald intervals are the default, as they need no further fits; profile likelihood intervals
+(<code>method="profile"</code>) follow the shape of the likelihood, e.g. for skewed estimates or small
+samples, but each needs a series of fits.
 Computing profiles can take a while for models with random effects; see <code><a href="profile.gcTMB.html">profile.gcTMB</a></code>
 and <code><a href="profile.timetoTMB.html">profile.timetoTMB</a></code>, whose results can be reused with <code>confint</code>.</p>
     </div>
@@ -149,19 +152,19 @@ and <code><a href="profile.timetoTMB.html">profile.timetoTMB</a></code>, whose r
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaHeights25</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                    2.5 %     97.5 %</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept) 113.58225 127.987982</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b2:(Intercept)  29.38463  32.075332</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> b3:(Intercept)  10.95416  14.807390</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sigma            7.23722   8.804241</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span>, method<span class="op">=</span><span class="st">"profile"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Computing profile confidence intervals ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                     2.5 %    97.5 %</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept) 114.545439 129.48091</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> b2:(Intercept)  29.438468  32.18230</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> b3:(Intercept)  11.212413  15.18937</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> sigma            7.259687   8.83342</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span>, method<span class="op">=</span><span class="st">"wald"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                    2.5 %     97.5 %</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b1:(Intercept) 113.58225 127.987982</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b2:(Intercept)  29.38463  32.075332</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> b3:(Intercept)  10.95416  14.807390</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> sigma            7.23722   8.804241</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="fu"><a href="timeto.html">timeto</a></span><span class="op">(</span><span class="va">fit</span>, level<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">50</span>, <span class="fl">90</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="fu"><a href="timeto.html">timeto</a></span><span class="op">(</span><span class="va">fit</span>, level<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">50</span>, <span class="fl">90</span><span class="op">)</span><span class="op">)</span>, method<span class="op">=</span><span class="st">"profile"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Computing profile confidence intervals ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        2.5 %   97.5 %</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 10% 10.02726 11.69745</span>

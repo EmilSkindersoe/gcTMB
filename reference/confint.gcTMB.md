@@ -13,7 +13,7 @@ confint(
   object,
   parm = NULL,
   level = 0.95,
-  method = c("profile", "wald", "boot"),
+  method = c("wald", "profile", "boot"),
   nsim = 500,
   seed = NULL,
   boot = NULL,
@@ -25,7 +25,7 @@ confint(
   object,
   parm = NULL,
   level = 0.95,
-  method = c("profile", "wald", "boot"),
+  method = c("wald", "profile", "boot"),
   nsim = 500,
   seed = NULL,
   boot = NULL,
@@ -53,10 +53,10 @@ confint(
 
 - method:
 
-  Character string. "profile" for profile likelihood intervals, "wald"
-  for Wald intervals, or "boot" for percentile intervals of a parametric
-  bootstrap: responses are simulated from the fitted model (with new
-  random effects, see
+  Character string. "wald" (default) for Wald intervals, "profile" for
+  profile likelihood intervals, or "boot" for percentile intervals of a
+  parametric bootstrap: responses are simulated from the fitted model
+  (with new random effects, see
   [`simulate.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-methods.md))
   and the model is fitted again to each, starting at the estimates. Fits
   that do not converge are left out, with a message.
@@ -116,8 +116,11 @@ with `random=TRUE` for random effect terms without a fitted group, or
 with `residual=TRUE`, include further variation in their standard
 errors; for these, Wald intervals are returned with a message. Bootstrap
 intervals need many fits of the model; with random effects this can take
-several minutes. Computing profiles can take a while for models with
-random effects; see
+several minutes. Wald intervals are the default, as they need no further
+fits; profile likelihood intervals (`method="profile"`) follow the shape
+of the likelihood, e.g. for skewed estimates or small samples, but each
+needs a series of fits. Computing profiles can take a while for models
+with random effects; see
 [`profile.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/profile.gcTMB.md)
 and
 [`profile.timetoTMB`](https://emilskindersoe.github.io/gcTMB/reference/profile.timetoTMB.md),
@@ -128,19 +131,19 @@ whose results can be reused with `confint`.
 ``` r
 fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 confint(fit)
+#>                    2.5 %     97.5 %
+#> b1:(Intercept) 113.58225 127.987982
+#> b2:(Intercept)  29.38463  32.075332
+#> b3:(Intercept)  10.95416  14.807390
+#> sigma            7.23722   8.804241
+confint(fit, method="profile")
 #> Computing profile confidence intervals ...
 #>                     2.5 %    97.5 %
 #> b1:(Intercept) 114.545439 129.48091
 #> b2:(Intercept)  29.438468  32.18230
 #> b3:(Intercept)  11.212413  15.18937
 #> sigma            7.259687   8.83342
-confint(fit, method="wald")
-#>                    2.5 %     97.5 %
-#> b1:(Intercept) 113.58225 127.987982
-#> b2:(Intercept)  29.38463  32.075332
-#> b3:(Intercept)  10.95416  14.807390
-#> sigma            7.23722   8.804241
-confint(timeto(fit, level=c(10, 50, 90)))
+confint(timeto(fit, level=c(10, 50, 90)), method="profile")
 #> Computing profile confidence intervals ...
 #>        2.5 %   97.5 %
 #> 10% 10.02726 11.69745

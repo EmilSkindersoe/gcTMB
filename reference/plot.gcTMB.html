@@ -25,7 +25,7 @@ ggplot2 graphs."><meta property="og:image" content="https://emilskindersoe.githu
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9024</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -190,7 +190,8 @@ of the observed times: for models with random effects, the curve of each individ
 combination of the grouping variables of the random effects) with its predicted random effects,
 and the population curves, with the random effects at zero, as thick lines for each combination
 of the covariates of the fixed effects (<code>fform</code>). With <code>type="curves"</code>, the population
-curves are in a panel of their own, next to the data and the curves of the individuals, and both
+curves are in a panel of their own, with their 95\<!-- % pointwise confidence intervals (by the delta -->
+method, see <code><a href="gcTMB-methods.html">predict.gcTMB</a></code>), next to the data and the curves of the individuals, and both
 panels share the colours and the legend. Points and curves are coloured by these
 covariates. A single numeric covariate is shown on a continuous colour scale, with the population
 curves at its 10\<!-- %, 50\\% and 90\\% quantiles. The covariates of an individual are taken from its -->
@@ -209,14 +210,15 @@ first observation.</p>
 <span class="r-in"><span><span class="co"># the data with the curves of the plants, and the population curve, from sowing</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type<span class="op">=</span><span class="st">"curves"</span>, times<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">61</span>, by<span class="op">=</span><span class="fl">0.1</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot.gcTMB-3.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="co"># by treatment</span></span></span>
-<span class="r-in"><span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">trt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">Treatment</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">fitt</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, fform<span class="op">=</span><span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">trt</span>, rform<span class="op">=</span><span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plant_ID</span>, data<span class="op">=</span><span class="va">FabaHeights25</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fitt</span>, type<span class="op">=</span><span class="st">"curves"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plot.gcTMB-4.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># a single graph, changed</span></span></span>
 <span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which<span class="op">=</span><span class="fl">2</span>, draw<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">p</span><span class="op">$</span><span class="va">time</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x<span class="op">=</span><span class="st">"Days after sowing"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot.gcTMB-4.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="co"># by treatment, with the confidence intervals of the population curves</span></span></span>
+<span class="r-in"><span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">trt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">FabaHeights25</span><span class="op">$</span><span class="va">Treatment</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fitt</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, fform<span class="op">=</span><span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">trt</span>, rform<span class="op">=</span><span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plant_ID</span>, data<span class="op">=</span><span class="va">FabaHeights25</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fitt</span>, type<span class="op">=</span><span class="st">"curves"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot.gcTMB-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># the three plants with the largest residuals labelled</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, outliers<span class="op">=</span><span class="fl">3</span><span class="op">)</span></span></span>
@@ -225,6 +227,7 @@ first observation.</p>
 <span class="r-in"><span><span class="va">fitp</span> <span class="op">&lt;-</span> <span class="fu"><a href="gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Pods</span> <span class="op">~</span> <span class="va">DAS</span>, data<span class="op">=</span><span class="va">FabaCounts23</span>, family<span class="op">=</span><span class="st">"poisson"</span>, fix<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fitp</span>, seed<span class="op">=</span><span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot.gcTMB-7.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

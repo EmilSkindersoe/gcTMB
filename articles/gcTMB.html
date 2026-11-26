@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9024</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -299,26 +299,21 @@ the criteria of <code><a href="../reference/criteria.html">criteria()</a></code>
 <span><span class="co">#&gt; linear          35753.14 35772.25</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> gives confidence intervals of the mean by the
 delta method and prediction intervals of new observations;
-<code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> gives profile likelihood (default), Wald or
-parametric bootstrap intervals of the parameters, and
-<code><a href="../reference/bootstrap.html">bootstrap()</a></code> a bootstrap sample to reuse.
-<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws validation plots of the residuals and the
-fitted curves.</p>
+<code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> gives Wald (default), profile likelihood
+(<code>method = "profile"</code>) or parametric bootstrap intervals of
+the parameters, and <code><a href="../reference/bootstrap.html">bootstrap()</a></code> a bootstrap sample to
+reuse. <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws validation plots of the residuals and
+the fitted curves.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>DAS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">125</span>, by <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">ci</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">nd</span>, <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="va">nd</span>, interval <span class="op">=</span> <span class="st">"confidence"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">pi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">nd</span>, <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="va">nd</span>, interval <span class="op">=</span> <span class="st">"prediction"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">FabaHeights26</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">DAS</span>, y <span class="op">=</span> <span class="va">Height</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">pi</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">DAS</span>, ymin <span class="op">=</span> <span class="va">lwr</span>, ymax <span class="op">=</span> <span class="va">upr</span><span class="op">)</span>, inherit.aes <span class="op">=</span> <span class="cn">FALSE</span>, fill <span class="op">=</span> <span class="st">"red"</span>, alpha <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="st">"grey60"</span>, size <span class="op">=</span> <span class="fl">0.6</span>, position <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_jitter.html" class="external-link">position_jitter</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">0.5</span>, height <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ci</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">DAS</span>, ymin <span class="op">=</span> <span class="va">lwr</span>, ymax <span class="op">=</span> <span class="va">upr</span><span class="op">)</span>, inherit.aes <span class="op">=</span> <span class="cn">FALSE</span>, fill <span class="op">=</span> <span class="st">"red"</span>, alpha <span class="op">=</span> <span class="fl">0.35</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ci</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">fit</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Days after sowing"</span>, y <span class="op">=</span> <span class="st">"Height (cm)"</span>,</span>
-<span>       title <span class="op">=</span> <span class="st">"Logistic curve with 95% confidence (dark) and prediction (light) intervals"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">nd</span>, Height <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="va">nd</span><span class="op">)</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Days after sowing"</span>, y <span class="op">=</span> <span class="st">"Height (cm)"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="gcTMB_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span>, method <span class="op">=</span> <span class="st">"wald"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                    2.5 %    97.5 %</span></span>
 <span><span class="co">#&gt; b1:(Intercept) 68.609783 69.784886</span></span>
 <span><span class="co">#&gt; b2:(Intercept) 58.066586 58.870628</span></span>
@@ -380,7 +375,7 @@ and each plant has correlated random effects on both:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;  Groups   Name Std.Dev. Corr</span></span>
-<span><span class="co">#&gt;  Plant_ID b1   9.484        </span></span>
+<span><span class="co">#&gt;  Plant_ID b1   9.483        </span></span>
 <span><span class="co">#&gt;           b2   2.194    0.35</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation: 3.709</span></span>
@@ -400,8 +395,9 @@ for the fixed effects and for the random effects;
 <span><span class="co">#&gt; fitre    13 25313 25396 -12644    25287 57.771  2 2.852e-13 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
-<p><code>plot(type = "curves")</code> draws the curves of the plants and
-the population curves of the treatments:</p>
+<p><code>plot(type = "curves")</code> draws the curves of the plants
+and, next to them, the population curves of the treatments with their
+95% confidence intervals:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fitre</span>, type <span class="op">=</span> <span class="st">"curves"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">125</span>, by <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>, draw <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">p</span><span class="op">$</span><span class="va">curves</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Days after sowing"</span>, y <span class="op">=</span> <span class="st">"Height (cm)"</span>, colour <span class="op">=</span> <span class="st">"Soil, irrigation"</span>,</span>
@@ -428,12 +424,12 @@ the time of the first pods, is estimated.</p>
 <span><span class="va">genotypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Genotype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">FabaCounts23</span><span class="op">$</span><span class="va">Genotype</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">genotypes</span>, <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitp</span>, newdata <span class="op">=</span> <span class="va">genotypes</span>, type <span class="op">=</span> <span class="st">"parameters"</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Genotype        b1       b2       b3 b4</span></span>
-<span><span class="co">#&gt; 1   Aurora 14.599604 70.05332 1.338929 65</span></span>
-<span><span class="co">#&gt; 2    Capri 11.197692 69.20293 1.338929 65</span></span>
-<span><span class="co">#&gt; 3   ILB938  9.120942 69.04494 1.338929 65</span></span>
-<span><span class="co">#&gt; 4     Lynx 19.581598 72.79717 1.338929 65</span></span>
-<span><span class="co">#&gt; 5  Melodie 25.297229 73.29756 1.338929 65</span></span>
-<span><span class="co">#&gt; 6   Navara 17.779349 72.65386 1.338929 65</span></span></code></pre></div>
+<span><span class="co">#&gt; 1   Aurora 14.599634 70.05332 1.338935 65</span></span>
+<span><span class="co">#&gt; 2    Capri 11.197618 69.20292 1.338935 65</span></span>
+<span><span class="co">#&gt; 3   ILB938  9.120981 69.04494 1.338935 65</span></span>
+<span><span class="co">#&gt; 4     Lynx 19.581583 72.79718 1.338935 65</span></span>
+<span><span class="co">#&gt; 5  Melodie 25.297268 73.29758 1.338935 65</span></span>
+<span><span class="co">#&gt; 6   Navara 17.779358 72.65387 1.338935 65</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> checks a count model with randomised quantile
 residuals (Dunn and Smyth, 1996), which are standard normal under the
 model. The simulations of <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> can also be used for
@@ -465,7 +461,7 @@ and confidence intervals by <code><a href="https://rdrr.io/r/stats/confint.html"
 <span><span class="co">#&gt; tmax:Soil=Loamy,Treatment=Irrigated          60.917  2.68e-01</span></span>
 <span><span class="co">#&gt; rate:Soil=Loamy,Treatment=Irrigated           2.612  3.75e-02</span></span>
 <span><span class="co">#&gt; fraction:Soil=Loamy,Treatment=Irrigated       0.500  1.43e-05</span></span>
-<span><span class="co">#&gt; tmax:Soil=Sandy,Treatment=Irrigated          59.763  2.75e-01</span></span>
+<span><span class="co">#&gt; tmax:Soil=Sandy,Treatment=Irrigated          59.764  2.75e-01</span></span>
 <span><span class="co">#&gt; rate:Soil=Sandy,Treatment=Irrigated           2.261  3.65e-02</span></span>
 <span><span class="co">#&gt; fraction:Soil=Sandy,Treatment=Irrigated       0.500  1.66e-05</span></span>
 <span><span class="co">#&gt; tmax:Soil=Loamy,Treatment=NotIrrigated       58.025  2.71e-01</span></span>
@@ -489,27 +485,27 @@ Tukey’s method with simultaneous confidence intervals.</p>
 <span><span class="co">#&gt; Pairwise differences of b1 (maximum growth rate) on the scale of its log link:</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;                                    Estimate Std.Error z value p.value  lower</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78767 -0.360</span></span>
+<span><span class="co">#&gt; Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78771 -0.360</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=ILB938    0.4572     0.231   1.976 0.35585 -0.202</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=Lynx     -0.2753     0.231  -1.192 0.84196 -0.933</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=Melodie  -0.5368     0.245  -2.191 0.24139 -1.235</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=Navara   -0.1767     0.232  -0.762 0.97484 -0.838</span></span>
 <span><span class="co">#&gt; Genotype=Capri - Genotype=ILB938     0.1570     0.218   0.722 0.98021 -0.463</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Lynx      -0.5755     0.217  -2.650 0.08513 -1.194</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00444 -1.498</span></span>
-<span><span class="co">#&gt; Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24384 -1.099</span></span>
+<span><span class="co">#&gt; Genotype=Capri - Genotype=Lynx      -0.5754     0.217  -2.649 0.08514 -1.194</span></span>
+<span><span class="co">#&gt; Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00443 -1.498</span></span>
+<span><span class="co">#&gt; Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24385 -1.099</span></span>
 <span><span class="co">#&gt; Genotype=ILB938 - Genotype=Lynx     -0.7324     0.217  -3.376 0.00970 -1.351</span></span>
 <span><span class="co">#&gt; Genotype=ILB938 - Genotype=Melodie  -0.9940     0.232  -4.288 0.00032 -1.655</span></span>
-<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04185 -1.255</span></span>
-<span><span class="co">#&gt; Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87005 -0.921</span></span>
+<span><span class="co">#&gt; Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04186 -1.255</span></span>
+<span><span class="co">#&gt; Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87004 -0.921</span></span>
 <span><span class="co">#&gt; Genotype=Lynx - Genotype=Navara      0.0985     0.218   0.453 0.99757 -0.521</span></span>
-<span><span class="co">#&gt; Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63191 -0.302</span></span>
+<span><span class="co">#&gt; Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63192 -0.302</span></span>
 <span><span class="co">#&gt;                                      upper ratio ratio.lower ratio.upper</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=Capri    0.9600 1.350       0.698       2.612</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=ILB938   1.1164 1.580       0.817       3.054</span></span>
+<span><span class="co">#&gt; Genotype=Aurora - Genotype=ILB938   1.1165 1.580       0.817       3.054</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=Lynx     0.3828 0.759       0.393       1.466</span></span>
 <span><span class="co">#&gt; Genotype=Aurora - Genotype=Melodie  0.1613 0.585       0.291       1.175</span></span>
-<span><span class="co">#&gt; Genotype=Aurora - Genotype=Navara   0.4841 0.838       0.433       1.623</span></span>
+<span><span class="co">#&gt; Genotype=Aurora - Genotype=Navara   0.4842 0.838       0.433       1.623</span></span>
 <span><span class="co">#&gt; Genotype=Capri - Genotype=ILB938    0.7769 1.170       0.629       2.175</span></span>
 <span><span class="co">#&gt; Genotype=Capri - Genotype=Lynx      0.0434 0.562       0.303       1.044</span></span>
 <span><span class="co">#&gt; Genotype=Capri - Genotype=Melodie  -0.1763 0.433       0.224       0.838</span></span>
@@ -579,25 +575,40 @@ stratum its own variance, <code><a href="../reference/varFunc.html">varPower()</
 <code><a href="../reference/varFunc.html">varConstPower()</a></code> a power of a covariate, the fitted curve
 <code>fitted(.)</code> (the default), its growth rate
 <code>rate(.)</code>, largest at the inflection point, or a variable of
-the data. Here each day of measurement has its own residual variance,
-besides the random effects of the plants:</p>
+the data. Here the residual standard deviation is a constant plus a
+power of the fitted curve,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo stretchy="false" form="prefix">(</mo><mi>c</mi><mo>+</mo><mo stretchy="false" form="prefix">|</mo><mover><mi>y</mi><mo accent="true">̂</mo></mover><msup><mo stretchy="false" form="prefix">|</mo><mi>δ</mi></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\sigma (c + |\hat y|^{\delta})</annotation></semantics></math>,
+besides the random effects of the plants; <code>restart = TRUE</code>
+optimises once more from the estimates, as the first optimisation stops
+just short of convergence:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fitrev</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fitre</span>, variance <span class="op">=</span> <span class="fu"><a href="../reference/varFunc.html">varIdent</a></span><span class="op">(</span>form <span class="op">=</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">DAS</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="../reference/gcTMB-extract.html">varpars</a></span><span class="op">(</span><span class="va">fitrev</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   28   35   42   49   56   63   69   77   83   90   98  106  114  122 </span></span>
-<span><span class="co">#&gt; 1.00 0.71 1.16 1.89 1.86 3.36 4.33 4.66 8.90 3.19 3.49 2.83 2.57 2.97</span></span>
+<code class="sourceCode R"><span><span class="va">fitrev</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fitre</span>, variance <span class="op">=</span> <span class="fu"><a href="../reference/varFunc.html">varConstPower</a></span><span class="op">(</span><span class="op">)</span>, control <span class="op">=</span> <span class="fu"><a href="../reference/gcTMBcontrol.html">gcTMBcontrol</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/gcTMB-extract.html">varpars</a></span><span class="op">(</span><span class="va">fitrev</span><span class="op">)</span></span>
+<span><span class="co">#&gt;     const     power </span></span>
+<span><span class="co">#&gt; 20.334380  1.095398</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">fitre</span>, <span class="va">fitrev</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Likelihood ratio tests of gcTMB models</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;        npar   AIC   BIC logLik deviance     LR Df   Pr(&gt;LR)    </span></span>
-<span><span class="co">#&gt; fitre    13 25313 25396 -12644    25287                        </span></span>
-<span><span class="co">#&gt; fitrev   26 22715 22880 -11331    22663 2624.4 13 &lt; 2.2e-16 ***</span></span>
+<span><span class="co">#&gt;        npar   AIC   BIC logLik deviance   LR Df   Pr(&gt;LR)    </span></span>
+<span><span class="co">#&gt; fitre    13 25313 25396 -12644    25287                      </span></span>
+<span><span class="co">#&gt; fitrev   15 23471 23567 -11721    23441 1846  2 &lt; 2.2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
-<p><code><a href="../reference/gcTMB-extract.html">varpars()</a></code> gives the standard deviation of each day
-relative to the first. The vignette <em>Variance functions</em> shows
-how variance functions change the confidence intervals of a curve, and
-how they trade off against random effects and autocorrelation.</p>
+<p><code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> gives confidence intervals of the population
+curves by the delta method, here of the treatments:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">nd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">trts</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>DAS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">125</span>, by <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">ci</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">nd</span>, <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitrev</span>, newdata <span class="op">=</span> <span class="va">nd</span>, random <span class="op">=</span> <span class="cn">FALSE</span>, interval <span class="op">=</span> <span class="st">"confidence"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">ci</span><span class="op">$</span><span class="va">trt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">ci</span><span class="op">$</span><span class="va">Soil</span>, <span class="va">ci</span><span class="op">$</span><span class="va">Treatment</span>, sep <span class="op">=</span> <span class="st">", "</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">ci</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">DAS</span>, y <span class="op">=</span> <span class="va">fit</span>, colour <span class="op">=</span> <span class="va">trt</span>, fill <span class="op">=</span> <span class="va">trt</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">lwr</span>, ymax <span class="op">=</span> <span class="va">upr</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.2</span>, colour <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Days after sowing"</span>, y <span class="op">=</span> <span class="st">"Height (cm)"</span>, colour <span class="op">=</span> <span class="st">"Soil, irrigation"</span>, fill <span class="op">=</span> <span class="st">"Soil, irrigation"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="gcTMB_files/figure-html/unnamed-chunk-13-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p>The vignette <em>Variance functions</em> shows how variance functions
+change the confidence intervals of a curve, and how they trade off
+against random effects and autocorrelation.</p>
 </div>
 <div class="section level2">
 <h2 id="simulation">Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
@@ -608,7 +619,7 @@ the observed times or for new times and individuals in
 residuals; <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> sets the parameters of a true model.
 Refitting the model to simulated data recovers its parameters, e.g. the
 autocorrelation:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>DAS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">28</span>, <span class="fl">122</span>, by <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>, Plant_ID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"p"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span>, Soil <span class="op">=</span> <span class="st">"Loamy"</span>,</span>
 <span>                      Treatment <span class="op">=</span> <span class="st">"Irrigated"</span><span class="op">)</span></span>
 <span><span class="va">design</span><span class="op">$</span><span class="va">Height</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">fitrec</span>, nsim <span class="op">=</span> <span class="fl">1</span>, seed <span class="op">=</span> <span class="fl">1</span>, newdata <span class="op">=</span> <span class="va">design</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>

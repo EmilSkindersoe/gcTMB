@@ -160,6 +160,8 @@ variables of the random effects) with its predicted random effects, and
 the population curves, with the random effects at zero, as thick lines
 for each combination of the covariates of the fixed effects (`fform`).
 With `type="curves"`, the population curves are in a panel of their own,
+with their 95\\ method, see
+[`predict.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-methods.md)),
 next to the data and the curves of the individuals, and both panels
 share the colours and the legend. Points and curves are coloured by
 these covariates. A single numeric covariate is shown on a continuous
@@ -178,14 +180,15 @@ plot(fit, type="validation2")
 # the data with the curves of the plants, and the population curve, from sowing
 plot(fit, type="curves", times=seq(0, 61, by=0.1))
 
-# by treatment
-FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-fitt <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
-plot(fitt, type="curves")
-
 # a single graph, changed
 p <- plot(fit, which=2, draw=FALSE)
 p$time + ggplot2::labs(x="Days after sowing")
+
+# \donttest{
+# by treatment, with the confidence intervals of the population curves
+FabaHeights25$trt <- factor(FabaHeights25$Treatment)
+fitt <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
+plot(fitt, type="curves")
 
 # the three plants with the largest residuals labelled
 plot(fit, outliers=3)
@@ -194,4 +197,5 @@ plot(fit, outliers=3)
 fitp <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
 plot(fitp, seed=1)
 
+# }
 ```
