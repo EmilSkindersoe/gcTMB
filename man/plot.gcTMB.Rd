@@ -32,7 +32,8 @@ plot of the residuals}
 
 \item{outliers}{Non-negative integer. The number of observations with the largest absolute
 residuals labelled by their individual in the graphs of \code{type="validation1"} (models with
-random effects only); 0 for none. Default 1.}
+random effects only); 0 for none. Default 1. The same argument of \code{\link{viewcurves}} counts
+the individuals with the steepest increase and decrease between successive observations.}
 
 \item{residuals}{Character string or NULL. Residual type of the validation plots, see
 \code{\link{residuals.gcTMB}}: "quantile", "pearson", "response" or "normalized" (decorrelated by the

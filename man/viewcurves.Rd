@@ -13,7 +13,7 @@ viewcurves(
   colour = NULL,
   linetype = NULL,
   output = c("html", "jpeg"),
-  highlight = 1,
+  outliers = 1,
   file = NULL
 )
 }
@@ -37,17 +37,18 @@ two covariates with \code{output="jpeg"}.}
 \item{output}{Character string. "html" (default) for the Shiny app; "jpeg" for the two graphs of
 all the individuals.}
 
-\item{highlight}{Non-negative integer. With \code{output="jpeg"}, the number of individuals drawn in
+\item{outliers}{Non-negative integer. With \code{output="jpeg"}, the number of individuals drawn in
 red for each direction, the largest increase and the largest decrease between successive
-observations; 0 for none. Default 1.}
+observations, so up to twice as many individuals in all; 0 for none. Default 1. The same
+argument of \code{\link{plot.gcTMB}} counts the observations with the largest absolute residuals.}
 
 \item{file}{Character string or NULL. With \code{output="jpeg"}, the JPEG file to write the two
 graphs to (12 by 5 inches at 150 dpi); NULL (default) draws them.}
 }
 \value{
 With \code{output="html"}, a \code{shiny.appobj}. With \code{output="jpeg"}, invisibly, a
-list of the two ggplot graphs, \code{curves} and \code{rate}, and \code{highlighted}, a data frame
-of the highlighted individuals: \code{id}, \code{direction} ("increase" or "decrease"),
+list of the two ggplot graphs, \code{curves} and \code{rate}, and \code{outliers}, a data frame
+of the individuals drawn in red: \code{id}, \code{direction} ("increase" or "decrease"),
 \code{rate} (the growth rate) and \code{from} and \code{to} (the interval of \code{x}).
 }
 \description{
@@ -86,9 +87,9 @@ printed, e.g. by calling \code{viewcurves()} at the console, or with \code{shiny
 With \code{output="jpeg"}, the two graphs are drawn side by side, or written to the JPEG file
 \code{file}. Without \code{colour} and \code{linetype}, the first two covariates set them: the one
 with more distinct values the colour, the other the line type (if it has at most 6 values; the
-first of them on a tie). A single covariate sets the colour. The \code{highlight} individuals
+first of them on a tie). A single covariate sets the colour. The \code{outliers} individuals
 with the largest positive growth rate (the steepest increase between two successive observations)
-and the \code{highlight} individuals with the most negative growth rate (the steepest decrease),
+and the \code{outliers} individuals with the most negative growth rate (the steepest decrease),
 each individual counted at its own steepest interval, are drawn in red in the graph of the curves
 and labelled at their last observation, the others fainter; they are reported by a message and
 returned. A single wrong measurement shows up as an increase followed by a decrease, or the reverse.
@@ -102,5 +103,5 @@ if (interactive() && requireNamespace("shiny", quietly=TRUE)) {
 # the plants of the steepest increase and decrease between two measurements in red
 vc <- viewcurves(FabaHeights26, x="DAS", y="Height", id="Plant_ID",
                  covariates=c("Genotype", "Treatment"), output="jpeg")
-vc$highlighted
+vc$outliers
 }

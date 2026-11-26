@@ -68,11 +68,11 @@ test_that("output='jpeg' maps the first two covariates and highlights the steepe
   on.exit(dev.off())
   expect_message(vc <- viewcurves(d, x="t", y="h", id="id", covariates=c("trt", "g"), output="jpeg"),
                  "Largest increase between successive observations: id b .growth rate 7 from t 3 to 4.")
-  expect_equal(vc$highlighted$id, c("b", "c"))
-  expect_equal(vc$highlighted$direction, c("increase", "decrease"))
-  expect_equal(vc$highlighted$rate, c(7, -3))
-  expect_equal(vc$highlighted$from, c(3, 3))
-  expect_equal(vc$highlighted$to, c(4, 4))
+  expect_equal(vc$outliers$id, c("b", "c"))
+  expect_equal(vc$outliers$direction, c("increase", "decrease"))
+  expect_equal(vc$outliers$rate, c(7, -3))
+  expect_equal(vc$outliers$from, c(3, 3))
+  expect_equal(vc$outliers$to, c(4, 4))
   expect_true(all(vapply(vc[c("curves", "rate")], inherits, logical(1), "ggplot")))
   # colour by g (three values), line type by trt (two values)
   expect_equal(vc$curves$labels$colour, "g")
@@ -85,16 +85,16 @@ test_that("output='jpeg' maps the first two covariates and highlights the steepe
   # reported in the console, not in the graph
   expect_null(vc$curves$labels$subtitle)
   # two of each direction, where there are growth rates of that sign (b and d increase most, only c decreases); none
-  expect_equal(suppressMessages(viewcurves(d, "t", "h", "id", output="jpeg", highlight=2))$highlighted$id, c("b", "d", "c"))
-  v0 <- viewcurves(d, "t", "h", "id", output="jpeg", highlight=0)
-  expect_equal(nrow(v0$highlighted), 0)
+  expect_equal(suppressMessages(viewcurves(d, "t", "h", "id", output="jpeg", outliers=2))$outliers$id, c("b", "d", "c"))
+  v0 <- viewcurves(d, "t", "h", "id", output="jpeg", outliers=0)
+  expect_equal(nrow(v0$outliers), 0)
   expect_length(Filter(function(l) identical(l$aes_params$colour, "red"), v0$curves$layers), 0)
   expect_null(v0$curves$labels$colour)
   # explicit colour and line type are kept
   vx <- suppressMessages(viewcurves(d, "t", "h", "id", covariates=c("trt", "g"), colour="trt", output="jpeg"))
   expect_equal(vx$curves$labels$colour, "trt")
   expect_null(vx$curves$labels$linetype)
-  expect_error(viewcurves(d, "t", "h", "id", output="jpeg", highlight=-1), "non-negative integer")
+  expect_error(viewcurves(d, "t", "h", "id", output="jpeg", outliers=-1), "non-negative integer")
   # written to a JPEG file
   f <- tempfile(fileext=".jpg")
   suppressMessages(viewcurves(d, "t", "h", "id", covariates="g", output="jpeg", file=f))
@@ -105,10 +105,10 @@ test_that("in FabaHeights26 the steepest increase is plant 39_4 and the steepest
   pdf(NULL)
   on.exit(dev.off())
   vc <- suppressMessages(viewcurves(FabaHeights26, "DAS", "Height", "Plant_ID", output="jpeg"))
-  expect_equal(vc$highlighted$id, c("39_4", "46_5"))
+  expect_equal(vc$outliers$id, c("39_4", "46_5"))
   # 46_5: 132 cm at DAS 83, 77 cm at DAS 90
-  expect_equal(vc$highlighted$rate[2], (77 - 132)/7)
-  expect_equal(unlist(vc$highlighted[2, c("from", "to")], use.names=FALSE), c(83, 90))
+  expect_equal(vc$outliers$rate[2], (77 - 132)/7)
+  expect_equal(unlist(vc$outliers[2, c("from", "to")], use.names=FALSE), c(83, 90))
 })
 
 test_that("the tooltips show the individual, x and y, or the interval and the growth rate", {
