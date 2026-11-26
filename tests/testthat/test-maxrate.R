@@ -55,7 +55,7 @@ test_that("maxrate has standard errors of the delta method and Wald, profile and
   expect_equal(unname(vcov(mr)), unname(J %*% vcov(f)[1:4, 1:4] %*% t(J)), tolerance=1e-5)
   w <- confint(mr, method="wald")
   expect_equal(unname(w[, 2] - w[, 1]), unname(2*qt(0.975, f$rdf)*sqrt(diag(vcov(mr)))))
-  p <- suppressMessages(confint(mr, parm=c("tmax", "rate")))
+  p <- suppressMessages(confint(mr, parm=c("tmax", "rate"), method="profile"))
   expect_equal(p, w[1:2, ], tolerance=0.05)
   # the profile is the likelihood with the quantity fixed: refit with b2 or b1 at a limit
   lim <- p[1, 1]
@@ -81,4 +81,55 @@ test_that("maxrate for curves of newdata and for truncated fits", {
   fh <- gcTMB(Height ~ DAS, truncated=FALSE, data=FabaHeights25, model="hill")
   expect_warning(mh <- maxrate(fh, curves=diag(c(1, 1, 1, 1, 0.01))), "no inflection point")
   expect_true(all(is.na(coef(mh))))
+})
+
+test_that("maxrate gives the curves of fitted groups, with their predicted random effects", {
+  d <- FabaHeights25
+  # without truncation: tmax = b2, rate = b1/(4 b3), fraction 1/2 of the plant's own curve
+  f <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, truncated=FALSE, data=d)
+  nd <- data.frame(Plant_ID=c(6, 7))
+  mr <- maxrate(f, newdata=nd)
+  expect_equal(names(coef(mr))[1:3], c("tmax:Plant_ID=6", "rate:Plant_ID=6", "fraction:Plant_ID=6"))
+  p <- predict(f, newdata=nd, type="parameters")
+  expect_equal(unname(coef(mr)[c(1, 4)]), unname(p[, "b2"]), tolerance=1e-6)
+  expect_equal(unname(coef(mr)[c(2, 5)]), unname(p[, "b1"]/(4*p[, "b3"])), tolerance=1e-6)
+  expect_equal(unname(coef(mr)[c(3, 6)]), c(0.5, 0.5))
+  # the plants differ from the population curve; random=FALSE gives the population curve
+  pop <- coef(maxrate(f))
+  expect_false(isTRUE(all.equal(unname(coef(mr)[1:3]), unname(pop))))
+  expect_equal(unname(coef(maxrate(f, newdata=nd[1, , drop=FALSE], random=FALSE))), unname(pop))
+  # the standard error of tmax is that of the time to 50% of the plant's curve, its inflection point
+  tt <- timeto(f, 50, newdata=nd)
+  expect_equal(unname(sqrt(diag(vcov(mr)))[c(1, 4)]), unname(sqrt(diag(vcov(tt)))), tolerance=1e-4)
+  # profile intervals are not available for fitted groups: Wald intervals, with a message
+  expect_message(ci <- confint(mr, method="profile"), "population curves only")
+  expect_equal(ci, confint(mr))
+  expect_error(profile(mr, parm="rate:Plant_ID=6"), "population curves")
+  # a level that is not in the fitted data: the population curve, with a warning
+  expect_warning(mu <- maxrate(f, newdata=data.frame(Plant_ID=999)), "not in the fitted data")
+  expect_equal(unname(coef(mu)), unname(pop))
+})
+
+test_that("maxrate of a fitted group of a truncated logistic curve is rescaled by the truncation", {
+  f <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25)
+  nd <- data.frame(Plant_ID=6)
+  mr <- maxrate(f, newdata=nd)
+  p <- predict(f, newdata=nd, type="parameters")
+  b1 <- p[, "b1"]; b2 <- p[, "b2"]; b3 <- p[, "b3"]; b4 <- 0
+  f4 <- b1/(1 + exp(-(b4 - b2)/b3))
+  # the inflection point stays at b2; the rate is b1/(4 b3) divided by 1 - f(b4)/b1
+  expect_equal(unname(coef(mr)[1]), unname(b2), tolerance=1e-6)
+  expect_equal(unname(coef(mr)[2]), unname(b1/(4*b3)/(1 - f4/b1)), tolerance=1e-6)
+  expect_equal(unname(coef(mr)[3]), unname(1 - 0.5/(1 - f4/b1)), tolerance=1e-6)
+  expect_lt(coef(mr)[[3]], 0.5)
+})
+
+test_that("bootstrap intervals of fitted groups draw their random effects at each bootstrap fit", {
+  skip_on_cran()
+  f <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, truncated=FALSE, data=FabaHeights25)
+  mr <- maxrate(f, newdata=data.frame(Plant_ID=6))
+  bt <- bootstrap(f, nsim=20, seed=1, progress=FALSE)
+  ci <- suppressMessages(confint(mr, boot=bt, parm=c("tmax:Plant_ID=6", "rate:Plant_ID=6")))
+  expect_true(all(is.finite(ci)) && all(ci[, 1] < ci[, 2]))
+  expect_true(all(ci[, 1] <= coef(mr)[1:2] + 1 & ci[, 2] >= coef(mr)[1:2] - 1))
 })

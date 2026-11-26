@@ -119,3 +119,27 @@ test_that("the tooltips show the individual, x and y, or the interval and the gr
   # names are escaped for the HTML of the tooltip
   expect_equal(gcTMB:::obstext(data.frame(x=1, y=2, id="a<b"), "id", "x", "y & z")[c(1, 3)], c("<b>id a&lt;b</b>", "y &amp; z: 2"))
 })
+
+test_that("numbers are shown with the decimals of the whole data, the same for every individual", {
+  expect_equal(gcTMB:::decimals(c(3, 2.5, 4)), 1L)
+  expect_equal(gcTMB:::decimals(c(28, 35, 42)), 0L)
+  expect_equal(gcTMB:::decimals(c(1, 0.125, NA)), 3L)
+  expect_equal(gcTMB:::fmtdec(c(3, 4.5, 15), 1), c("3.0", "4.5", "15.0"))
+  expect_equal(gcTMB:::fmtdec(c(28, 35), 0), c("28", "35"))
+  expect_equal(gcTMB:::obstext(data.frame(x=83, y=82, id="1_1"), "Plant_ID", "DAS", "Height", 0, 1)[2:3],
+               c("DAS: 83", "Height: 82.0"))
+  # a plant whose heights are all whole numbers still gets the one decimal of the data
+  skip_if_not_installed("shiny")
+  h <- FabaHeights26[!is.na(FabaHeights26$Height), ]
+  whole <- tapply(h$Height, h$Plant_ID, function(v) all(v == round(v)))
+  pid <- names(whole)[which(whole)[1]]
+  skip_if(is.na(pid), "no plant with whole heights only")
+  app <- viewcurves(FabaHeights26, x="DAS", y="Height", id="Plant_ID")
+  shiny::testServer(app, {
+    session$setInputs(ind=pid, others=TRUE, rate=FALSE, fixy=TRUE)
+    cells <- regmatches(output$obs, gregexpr("<td>[^<]*</td>", output$obs))[[1]]
+    vals <- gsub("<td>|</td>|[[:space:]]", "", cells)
+    heights <- vals[(which(vals == "Height") + 1):length(vals)]
+    expect_true(length(heights) > 0 && all(grepl("^[0-9]+[.][0-9]$", heights)))
+  })
+})

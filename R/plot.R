@@ -41,7 +41,8 @@
 #' combination of the grouping variables of the random effects) with its predicted random effects,
 #' and the population curves, with the random effects at zero, as thick lines for each combination
 #' of the covariates of the fixed effects (\code{fform}). With \code{type="curves"}, the population
-#' curves are in a panel of their own, next to the data and the curves of the individuals, and both
+#' curves are in a panel of their own, with their 95\% pointwise confidence intervals (by the delta
+#' method, see \code{\link{predict.gcTMB}}), next to the data and the curves of the individuals, and both
 #' panels share the colours and the legend. Points and curves are coloured by these
 #' covariates. A single numeric covariate is shown on a continuous colour scale, with the population
 #' curves at its 10\%, 50\% and 90\% quantiles. The covariates of an individual are taken from its
@@ -84,18 +85,20 @@
 #' plot(fit, type="validation2")
 #' # the data with the curves of the plants, and the population curve, from sowing
 #' plot(fit, type="curves", times=seq(0, 61, by=0.1))
-#' # by treatment
-#' FabaHeights25$trt <- factor(FabaHeights25$Treatment)
-#' fitt <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
-#' plot(fitt, type="curves")
 #' # a single graph, changed
 #' p <- plot(fit, which=2, draw=FALSE)
 #' p$time + ggplot2::labs(x="Days after sowing")
+#' \donttest{
+#' # by treatment, with the confidence intervals of the population curves
+#' FabaHeights25$trt <- factor(FabaHeights25$Treatment)
+#' fitt <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
+#' plot(fitt, type="curves")
 #' # the three plants with the largest residuals labelled
 #' plot(fit, outliers=3)
 #' # counts: the randomised quantile residuals are reproducible with a seed
 #' fitp <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", fix=c(b4=FALSE))
 #' plot(fitp, seed=1)
+#' }
 #'
 #' @return a list of ggplot objects, invisibly, for changing or drawing single graphs: fitted, time,
 #'   and qq for "validation1", ranef for "validation2", and curves for the curves plot (with
@@ -239,24 +242,36 @@ curveplot <- function(x, times=NULL, ngrid=200, split=FALSE, label=NULL){
 
   yname <- deparse(x$formula[[2]])
   split <- split && !is.null(ig)
+  band <- NULL
   if (split){
     panels <- c("Individuals and data", "Population")
     d$panel <- factor(panels[1], levels=panels)
     ig$panel <- factor(panels[1], levels=panels)
     pg$panel <- factor(panels[2], levels=panels)
+    # 95% pointwise confidence intervals of the population curves, by the delta method
+    ci <- predict(x, newdata=pg, random=FALSE, interval="confidence")
+    pg$lwr <- ci$lwr
+    pg$upr <- ci$upr
+    band <- if (length(covvars) > 0){
+      ggplot2::geom_ribbon(data=pg, ggplot2::aes(x=time, ymin=lwr, ymax=upr, group=curve, fill=cov), inherit.aes=FALSE,
+                           alpha=0.2, colour=NA, show.legend=FALSE)
+    } else {
+      ggplot2::geom_ribbon(data=pg, ggplot2::aes(x=time, ymin=lwr, ymax=upr, group=curve), inherit.aes=FALSE,
+                           fill="blue", alpha=0.2, colour=NA)
+    }
   }
   if (length(covvars) > 0){
     p <- ggplot2::ggplot(d, ggplot2::aes(x=time, y=y, colour=cov)) +
       ggplot2::geom_point(alpha=0.6)
     if (!is.null(ig)) p <- p + ggplot2::geom_line(data=ig, ggplot2::aes(group=curve), alpha=0.35)
-    p <- p + ggplot2::geom_line(data=pg, ggplot2::aes(group=curve), linewidth=1.2) +
+    p <- p + band + ggplot2::geom_line(data=pg, ggplot2::aes(group=curve), linewidth=1.2) +
       ggplot2::labs(colour=paste(covvars, collapse=", "))
-    if (numcov) p <- p + ggplot2::scale_colour_viridis_c(end=0.9)
+    if (numcov) p <- p + ggplot2::scale_colour_viridis_c(end=0.9) + if (split) ggplot2::scale_fill_viridis_c(end=0.9)
   } else {
     p <- ggplot2::ggplot(d, ggplot2::aes(x=time, y=y)) +
       ggplot2::geom_point(alpha=0.6, colour="grey40")
     if (!is.null(ig)) p <- p + ggplot2::geom_line(data=ig, ggplot2::aes(group=curve), colour="grey50", alpha=0.49)
-    p <- p + ggplot2::geom_line(data=pg, ggplot2::aes(group=curve), colour="blue", linewidth=1.2)
+    p <- p + band + ggplot2::geom_line(data=pg, ggplot2::aes(group=curve), colour="blue", linewidth=1.2)
   }
   # the label of the observation with the largest residual, on top of the curves
   p <- p + labeltext(d, "time", "y")
@@ -344,4 +359,4 @@ drawplots <- function(plots, ncol=NULL){
 }
 
 # columns of the plot data used in the aesthetics
-utils::globalVariables(c("xv", "res", "x", "y", "theo", "intercept", "slope", "time", "cov", "curve", "panel"))
+utils::globalVariables(c("xv", "res", "x", "y", "theo", "intercept", "slope", "time", "cov", "curve", "panel", "lwr", "upr"))

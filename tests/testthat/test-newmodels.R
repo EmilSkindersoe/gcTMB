@@ -59,7 +59,7 @@ test_that("normal and gamma fits agree with nls", {
   b <- bcoef(f)
   tt <- timeto(f, level=50)
   expect_equal(unname(coef(tt)), qgamma(0.5, b[[3]], scale=b[[2]]/(b[[3]] - 1)), tolerance=1e-8)
-  ci <- suppressMessages(confint(tt))
+  ci <- suppressMessages(confint(tt, method="profile"))
   expect_true(ci[1] < coef(tt) && ci[2] > coef(tt))
 })
 
@@ -74,7 +74,7 @@ test_that("the linear model is least squares, without truncation and without an 
   tt <- timeto(f, level=50, type="absolute")
   expect_equal(unname(coef(tt)), (50 - coef(l)[[1]])/coef(l)[[2]], tolerance=1e-6)
   expect_error(timeto(f, level=50), "no asymptote")
-  expect_message(confint(tt), "not available for the linear model")
+  expect_message(confint(tt, method="profile"), "not available for the linear model")
   mr <- maxrate(f)
   expect_equal(coef(mr)[["rate"]], bcoef(f)[[1]])
   expect_equal(confint(mr, parm="rate", method="wald"), confint(f, parm=1, method="wald"), ignore_attr=TRUE)

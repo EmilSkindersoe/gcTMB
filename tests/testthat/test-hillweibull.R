@@ -70,7 +70,7 @@ test_that("times of the hill and weibull curves, with standard errors and profil
     # delta method, by numerical derivatives
     g <- numDeriv::jacobian(function(x) gcTMB:::gctimeR(match(m, allmodels), p/100, x[2], x[3]), b)
     expect_equal(unname(vcov(tt)), unname(g %*% vcov(f)[1:3, 1:3] %*% t(g)), tolerance=1e-5, label=m)
-    ci <- confint(tt)
+    ci <- confint(tt, method="profile")
     expect_true(all(is.finite(ci)))
     expect_true(all(ci[, 1] < coef(tt) & coef(tt) < ci[, 2]))
   }
@@ -92,7 +92,7 @@ test_that("truncated hill and weibull curves recover the threshold", {
     tt <- timeto(f, level=c(10, 50))
     expect_equal(unname(predict(f, newdata=data.frame(day=coef(tt)))), coef(f)[["b1:(Intercept)"]]*c(0.1, 0.5), tolerance=1e-8)
     # profiles of the times: b2 found numerically on the log scale
-    ci <- confint(tt)
+    ci <- confint(tt, method="profile")
     expect_true(all(is.finite(ci)))
     expect_true(all(ci[, 1] < coef(tt) & coef(tt) < ci[, 2]))
   }

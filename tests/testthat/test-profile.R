@@ -6,17 +6,24 @@ test_that("profile intervals of gaussian models are the profile intervals of nls
   for (m in models){
     f <- gcTMB(Height ~ DAS, truncated=FALSE, data=FabaHeights25, model=m)
     n <- fabanls(m)
-    ci <- suppressMessages(confint(f, parm=1:3))
+    ci <- suppressMessages(confint(f, parm=1:3, method="profile"))
     cn <- suppressMessages(confint(n))
     expect_equal(unname(ci), unname(cn), tolerance=1e-3, label=m)
   }
 })
 
-test_that("confint gives profile intervals by default and Wald intervals on request", {
+test_that("confint gives Wald intervals by default and profile intervals on request", {
   f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
-  expect_message(ci <- confint(f), "profile")
+  expect_message(ci <- confint(f, method="profile"), "profile")
   expect_equal(rownames(ci), c("b1:(Intercept)", "b2:(Intercept)", "b3:(Intercept)", "sigma"))
   cw <- confint(f, method="wald")
+  # the default is Wald, without profiling, for the fit, the times and the maximum growth rate
+  expect_silent(cd <- confint(f))
+  expect_equal(cd, cw)
+  tt <- timeto(f, c(10, 50))
+  expect_silent(expect_equal(confint(tt), confint(tt, method="wald")))
+  mr <- maxrate(f)
+  expect_silent(expect_equal(confint(mr), confint(mr, method="wald")))
   se <- sqrt(diag(vcov(f)))
   expect_equal(unname(cw[1:3, 2]), unname(bcoef(f) + qt(0.975, df.residual(f))*se[1:3]))
   expect_true(all(ci[, 1] < c(bcoef(f), exp(coef(f)[["log_sigma"]])) & ci[, 2] > ci[, 1]))
@@ -24,8 +31,8 @@ test_that("confint gives profile intervals by default and Wald intervals on requ
 
 test_that("the profile of the logistic t50 is the profile of b2", {
   f <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
-  ct <- suppressMessages(confint(timeto(f, 50)))
-  cb <- suppressMessages(confint(f, parm=2))
+  ct <- suppressMessages(confint(timeto(f, 50), method="profile"))
+  cb <- suppressMessages(confint(f, parm=2, method="profile"))
   expect_equal(unname(ct), unname(cb), tolerance=1e-4)
 })
 
@@ -34,7 +41,7 @@ test_that("profile intervals of times are likelihood ratio intervals", {
     d <- simgauss(m)
     f <- gcTMB(y ~ day, truncated=FALSE, data=d, model=m)
     q <- 0.9
-    ci <- suppressMessages(confint(timeto(f, 100*q)))
+    ci <- suppressMessages(confint(timeto(f, 100*q), method="profile"))
     n0 <- nlsfit(m, d)
     rss0 <- deviance(n0)
     cutoff <- nrow(d)*log(1 + qf(0.95, 1, df.residual(f))/df.residual(f))
@@ -53,7 +60,7 @@ test_that("profiles of absolute times and of times with covariates", {
   d$trt <- factor(d$trt)
   f <- gcTMB(y ~ day, truncated=FALSE, fform=b1 + b2 ~ trt, data=d)
   tt <- timeto(f, 30, newdata=data.frame(trt=c("a", "b")), type="absolute")
-  ci <- suppressMessages(confint(tt))
+  ci <- suppressMessages(confint(tt, method="profile"))
   expect_true(all(ci[, 1] < coef(tt) & coef(tt) < ci[, 2]))
   # close to the Wald intervals for this well-identified curve
   expect_equal(unname(ci), unname(confint(tt, method="wald")), tolerance=0.02)
@@ -69,7 +76,7 @@ test_that("profiles with random effects", {
   sdb1 <- gcTMB:::recov(f)[[1]]$sd
   expect_true(ci[2, 1] < sdb1 && sdb1 < ci[2, 2])
   tt <- timeto(f, 90, random=FALSE)
-  ct <- suppressMessages(confint(tt, progress=FALSE))
+  ct <- suppressMessages(confint(tt, progress=FALSE, method="profile"))
   expect_true(ct[1, 1] < coef(tt) && coef(tt) < ct[1, 2])
 })
 

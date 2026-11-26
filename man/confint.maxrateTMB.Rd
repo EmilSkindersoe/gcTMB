@@ -8,7 +8,7 @@
   object,
   parm = NULL,
   level = 0.95,
-  method = c("profile", "wald", "boot"),
+  method = c("wald", "profile", "boot"),
   nsim = 500,
   seed = NULL,
   boot = NULL,
@@ -22,7 +22,7 @@
 
 \item{level}{Numeric between 0 and 1. The confidence level}
 
-\item{method}{Character string. "profile" for profile likelihood intervals (default), "wald" for Wald intervals, or "boot" for parametric bootstrap percentile intervals}
+\item{method}{Character string. "wald" for Wald intervals (default), "profile" for profile likelihood intervals, or "boot" for parametric bootstrap percentile intervals}
 
 \item{nsim}{Integer. Number of bootstrap simulations}
 
@@ -49,6 +49,6 @@ the bootstrap intervals.
 \examples{
 fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 mr <- maxrate(fit)
-confint(mr, method="wald")
-confint(mr, parm=c("tmax", "rate"))
+confint(mr)
+confint(mr, parm=c("tmax", "rate"), method="profile")
 }

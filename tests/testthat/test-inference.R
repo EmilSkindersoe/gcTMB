@@ -161,28 +161,38 @@ test_that("plot with type='curves' draws the curves of the individuals and the p
   p <- plot(f, type="curves", draw=FALSE)$curves
   expect_s3_class(p, "ggplot")
   b <- ggplot2::ggplot_build(p)
-  # points, the curve of each individual and one population curve
+  # points, the curve of each individual, the confidence band and one population curve
   expect_equal(nrow(b$data[[1]]), nrow(d))
   expect_equal(length(unique(b$data[[2]]$group)), length(unique(d$id)))
-  expect_equal(length(unique(b$data[[3]]$group)), 1)
+  expect_equal(length(unique(b$data[[4]]$group)), 1)
   # the curve of an individual at its observed times is its fitted curve
   ig <- p$layers[[2]]$data
   id1 <- ig[ig$id == ig$id[1], ]
   expect_equal(id1$y, predict(f, newdata=id1))
   # population curve with the random effects at zero
-  pg <- p$layers[[3]]$data
+  pg <- p$layers[[4]]$data
   expect_equal(pg$y, predict(f, newdata=pg, random=FALSE))
+  # its 95% confidence band, in the population panel, around the curve
+  expect_s3_class(p$layers[[3]]$geom, "GeomRibbon")
+  ci <- predict(f, newdata=pg, random=FALSE, interval="confidence")
+  expect_equal(p$layers[[3]]$data$lwr, ci$lwr)
+  expect_equal(p$layers[[3]]$data$upr, ci$upr)
+  expect_true(all(pg$lwr < pg$y & pg$y < pg$upr))
+  expect_true(all(p$layers[[3]]$data$panel == "Population"))
   # curves at given times
   pt <- plot(f, type="curves", draw=FALSE, times=seq(0, 5, by=0.5))$curves
-  expect_equal(sort(unique(pt$layers[[3]]$data$time)), seq(0, 5, by=0.5))
+  expect_equal(sort(unique(pt$layers[[4]]$data$time)), seq(0, 5, by=0.5))
   expect_error(plot(f, type="curves", times=1), "at least two times")
 
   # covariates: a population curve for each level, coloured
   d$grp <- factor(rep(c("a", "b"), length.out=length(unique(d$id))))[as.integer(factor(d$id))]
   fg <- gcTMB(y ~ day, fform=b1 ~ grp, truncated=FALSE, rform=b1 ~ 1 | id, data=d)
   pgp <- plot(fg, type="curves", draw=FALSE)$curves
-  expect_equal(length(unique(pgp$layers[[3]]$data$curve)), 2)
+  expect_equal(length(unique(pgp$layers[[4]]$data$curve)), 2)
   expect_equal(pgp$labels$colour, "grp")
+  # a band for each population curve, filled by its covariate, without a legend of its own
+  expect_equal(length(unique(pgp$layers[[3]]$data$curve)), 2)
+  expect_false(pgp$layers[[3]]$show.legend)
 
   # without random effects: only the population curve
   f0 <- gcTMB(y ~ day, truncated=FALSE, data=simgauss("logistic"))
@@ -205,6 +215,8 @@ test_that("plot with type='curves' draws the curves of the individuals and the p
   expect_equal(names(plot(f, type=c("curves", "validation1"), draw=FALSE)), c("fitted", "time", "qq", "curves"))
   # curves alone carry no label
   expect_length(Filter(function(l) inherits(l$geom, "GeomText"), p$layers), 0)
+  # the validation page's curves have no band
+  expect_length(Filter(function(l) inherits(l$geom, "GeomRibbon"), pb$curves$layers), 0)
   # validation: the curves are added last, as a single graph without a legend
   pv <- plot(fg, draw=FALSE)
   expect_equal(names(pv), c("fitted", "time", "qq", "curves"))

@@ -7,10 +7,25 @@
 #'
 #' @param x A gcTMB object, the result of \code{\link{gcTMB}}.
 #' @param curves Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see \code{\link{timeto}}. If curves and newdata are both NULL (default), the identity matrix, for models without covariates in fform.
-#' @param newdata Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves; NULL (default) to use curves.
+#' @param newdata Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves; NULL (default) to use curves. With grouping variables of the random effects, the curves of fitted groups, see Details. The estimates are named by the covariate and group values (or by the row names of newdata, if set).
+#' @param random Logical. If TRUE (default), the curves of rows of newdata with a level of a grouping
+#'   variable in the fitted data include the predicted random effects of that group. If FALSE, all the
+#'   curves are population curves, and the grouping variables in newdata are not used.
 #'
-#' @details The curves are the population curves, with all random effects at zero; the standard
-#' errors include the uncertainty of the fixed effects. For each curve, \code{maxrate} gives
+#' @details The curves are the population curves, with all random effects at zero, and the standard
+#' errors include the uncertainty of the fixed effects, unless \code{newdata} names fitted groups.
+#'
+#' If a row of newdata gives a level of a grouping factor that is in the fitted data, e.g.
+#' \code{newdata=data.frame(Plant_ID="46_5")}, its curve is the curve of that group, with its
+#' predicted random effects (the conditional modes), as in \code{\link{predict.gcTMB}} and
+#' \code{\link{timeto}}. These are shrunken towards the population curve, more so for groups with few
+#' observations. The standard errors then include the uncertainty of the fixed effects and the
+#' prediction error of the random effects, from the joint precision matrix of
+#' \code{\link[TMB]{sdreport}}. A level that is not in the fitted data gives the population curve for
+#' that term, with a warning. Profile intervals are not available for the curves of fitted groups;
+#' \code{confint} returns Wald intervals for them, and bootstrap intervals with \code{method="boot"}.
+#'
+#' For each curve, \code{maxrate} gives
 #' \itemize{
 #'   \item \code{tmax}: the time of the maximum growth rate, the inflection point of the curve;
 #'   \item \code{rate}: the maximum growth rate, the slope of the curve at \code{tmax}, in units of the
@@ -30,6 +45,12 @@
 #' inflection point of the curve without truncation if that is after the threshold, and otherwise
 #' just after the threshold, where the slope jumps from zero: then \code{tmax} is b4 and
 #' \code{fraction} zero.
+#' For the logistic curve, truncated by default, the inflection point is still at b2 (when b2 > b4),
+#' but the maximum growth rate is b1/(4 b3) divided by 1 - f(b4)/b1, larger than that of the curve
+#' without truncation, and the fraction of the asymptote reached then is below one half. The closed
+#' forms of the logistic curve without truncation, \code{rate} = b1/(4 b3) and \code{fraction} = 1/2,
+#' hold only with \code{truncated=FALSE}. The same holds for the curves of fitted groups, with their
+#' own b1-b4.
 #'
 #' The standard errors are by the delta method, with numerical derivatives of the quantities with
 #' respect to the parameters of the curves. Profile intervals are available for \code{tmax} (by b2,
@@ -57,43 +78,73 @@
 #' FabaHeights25$trt <- factor(FabaHeights25$Treatment)
 #' fit2 <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25)
 #' maxrate(fit2, newdata=data.frame(trt=levels(FabaHeights25$trt)))
+#'
+#' # the curves of two fitted plants, with their predicted random effects
+#' fitre <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25)
+#' mrp <- maxrate(fitre, newdata=data.frame(Plant_ID=c(6, 7)))
+#' mrp
+#' confint(mrp)
 #' @export
-maxrate <- function(x, curves=NULL, newdata=NULL){
+maxrate <- function(x, curves=NULL, newdata=NULL, random=TRUE){
   if (!inherits(x, "gcTMB")) stop("x must be a gcTMB object.")
+  nu <- if (length(x$reterms) > 0) length(x$sdrl$par.random) else 0
+  # weights of the fitted random effects on b1-b5 of each curve: zero for population curves
+  W <- NULL
   if (!is.null(newdata)){
     if (!is.null(curves)) stop("give either curves or newdata, not both.")
-    # population curves: not named by the grouping variables of the random effects
-    curves <- newdatacurves(x, newdata, groups=FALSE)
+    # curves named by the covariates, and by the grouping variables of the random effects with random=TRUE
+    curves <- newdatacurves(x, newdata, groups=random)
+    if (random && nu > 0){
+      rl <- relevels(x, newdata, skip=TRUE)
+      W <- lapply(seq_len(nrow(newdata)), function(r) reweights(x, rl, r))
+      # rows that name a level of a grouping variable that is not in the fitted data: population curves
+      for (t in seq_along(x$reterms)){
+        gv <- all.vars(x$reterms[[t]]$formula)
+        unknown <- all(gv %in% names(newdata)) & rl$newgroup[, t]
+        if (any(unknown)){
+          warning("levels of ", paste(gv, collapse=":"), " not in the fitted data in rows ", paste(which(unknown), collapse=", "),
+                  " of newdata: their curves have no random effects of this term.", call.=FALSE)
+        }
+      }
+    }
   }
   if (is.null(curves)) curves <- diag(5)
   if (!is.list(curves)) curves <- list(curves)
   # unnamed curves: no name for a single curve, numbered otherwise
   if (is.null(names(curves))) names(curves) <- if (length(curves) == 1) "" else seq_along(curves)
   curves <- checkcurves(x, curves, is.null(newdata))
+  nc <- length(curves)
+  if (is.null(W)) W <- rep(list(matrix(0, 5, nu)), nc)
+  cond <- vapply(W, function(w) any(w != 0), logical(1))
+  uhat <- if (nu > 0) x$sdrl$par.random else numeric(0)
 
   pv <- x$start
   nb <- sum(!x$fix)
   pv[!x$fix] <- x$sdrl$par.fixed[seq_len(nb)]
   qn <- c("tmax", "rate", "fraction")
   nq <- length(qn)
-  nc <- length(curves)
   est <- numeric(nq*nc)
-  grad <- matrix(0, nq*nc, nb)
+  # gradient w.r.t. the free coefficients and the fitted random effects
+  grad <- matrix(0, nq*nc, nb + nu)
   for (i in seq_len(nc)){
     L <- curves[[i]]
-    lpv <- as.vector(L %*% pv)
+    # linear predictors of b1-b5, with the predicted random effects of a fitted group
+    lpv <- as.vector(L %*% pv) + as.vector(W[[i]] %*% uhat)
     id <- (i - 1)*nq + seq_len(nq)
     est[id] <- maxratevalue(x, lpv)
     # derivatives w.r.t. the linear predictors of b1-b5, by central differences
     g <- sapply(1:5, function(j){
-      if (all(L[j, !x$fix] == 0)) return(rep(0, nq))
+      if (all(L[j, !x$fix] == 0) && all(W[[i]][j, ] == 0)) return(rep(0, nq))
       h <- 1e-5 * max(1, abs(lpv[j]))
       e <- replace(numeric(5), j, h)
       (maxratevalue(x, lpv + e) - maxratevalue(x, lpv - e)) / (2*h)
     })
-    grad[id, ] <- (matrix(g, nrow=nq) %*% L)[, !x$fix, drop=FALSE]
+    g <- matrix(g, nrow=nq)
+    grad[id, ] <- cbind((g %*% L)[, !x$fix, drop=FALSE], g %*% W[[i]])
   }
-  vc <- fixedcov(x)[seq_len(nb), seq_len(nb), drop=FALSE]
+  # covariance of the coefficients, jointly with the prediction errors of the random effects for the
+  # curves of fitted groups
+  vc <- if (any(cond)) jointcov(x) else as.matrix(bdiag(fixedcov(x)[seq_len(nb), seq_len(nb), drop=FALSE], matrix(0, nu, nu)))
   v <- grad %*% vc %*% t(grad)
   nm <- curvelabels(rep(qn, nc), rep(names(curves), each=nq))
   if (anyNA(est) && !islinear(modelindex(x$model))){
@@ -103,8 +154,9 @@ maxrate <- function(x, curves=NULL, newdata=NULL){
   }
   names(est) <- nm
   dimnames(v) <- list(nm, nm)
-  res <- list(estimates=est, variance=v, fit=x, curves=curves,
-              quantity=setNames(rep(qn, nc), nm), curve=setNames(rep(seq_len(nc), each=nq), nm))
+  res <- list(estimates=est, variance=v, fit=x, curves=curves, uweights=W,
+              quantity=setNames(rep(qn, nc), nm), curve=setNames(rep(seq_len(nc), each=nq), nm),
+              conditional=setNames(rep(cond, each=nq), nm))
   class(res) <- "maxrateTMB"
   res
 }
@@ -269,7 +321,7 @@ vcov.maxrateTMB <- function(object, ...) object$variance
 #' @param object A maxrateTMB object, the result of \code{\link{maxrate}}.
 #' @param parm Character or integer vector, or NULL. Estimates, names or positions in \code{coef(object)}; NULL (default) for all of them
 #' @param level Numeric between 0 and 1. The confidence level
-#' @param method Character string. "profile" for profile likelihood intervals (default), "wald" for Wald intervals, or "boot" for parametric bootstrap percentile intervals
+#' @param method Character string. "wald" for Wald intervals (default), "profile" for profile likelihood intervals, or "boot" for parametric bootstrap percentile intervals
 #' @param nsim Integer. Number of bootstrap simulations
 #' @param seed Integer or NULL. Seed for the random number generator of the bootstrap; NULL (default) sets no seed: the draws continue from the current state of the random number generator
 #' @param boot A bootstrap.gcTMB object or NULL. A bootstrap sample of the model from \code{\link{bootstrap}}, used instead of new simulations; implies \code{method="boot"}. With NULL (default), method="boot" simulates nsim new bootstrap samples
@@ -285,10 +337,10 @@ vcov.maxrateTMB <- function(object, ...) object$variance
 #' @examples
 #' fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 #' mr <- maxrate(fit)
-#' confint(mr, method="wald")
-#' confint(mr, parm=c("tmax", "rate"))
+#' confint(mr)
+#' confint(mr, parm=c("tmax", "rate"), method="profile")
 #' @export
-confint.maxrateTMB <- function(object, parm=NULL, level=0.95, method=c("profile", "wald", "boot"), nsim=500, seed=NULL, boot=NULL, ...){
+confint.maxrateTMB <- function(object, parm=NULL, level=0.95, method=c("wald", "profile", "boot"), nsim=500, seed=NULL, boot=NULL, ...){
   method <- if (!is.null(boot)) "boot" else match.arg(method)
   est <- coef(object)
   if (is.null(parm)) parm <- seq_along(est)
@@ -302,15 +354,22 @@ confint.maxrateTMB <- function(object, parm=NULL, level=0.95, method=c("profile"
   wald <- cbind(est[parm] - z*se, est[parm] + z*se)
   if (method == "wald") { ci[] <- wald; return(ci) }
   if (method == "boot"){
-    draws <- bootdraws(fit, getboot(fit, boot, nsim, seed, ...), FALSE)
+    # with the random effects of the fitted groups drawn from their conditional distribution at each
+    # bootstrap fit, for the curves of fitted groups
+    cond <- maxrateflag(object)
+    draws <- bootdraws(fit, getboot(fit, boot, nsim, seed, ...), any(cond[parm]))
+    r <- fit$obj$env$random
     nb <- sum(!fit$fix)
     vals <- sapply(parm, function(i){
-      L <- object$curves[[object$curve[[i]]]]
+      k <- object$curve[[i]]
+      L <- object$curves[[k]]
       q <- match(object$quantity[[i]], c("tmax", "rate", "fraction"))
       apply(draws, 2, function(par){
         pv <- fit$start
         pv[!fit$fix] <- par[seq_len(nb)]
-        maxratevalue(fit, as.vector(L %*% pv))[q]
+        lpv <- as.vector(L %*% pv)
+        if (cond[[i]]) lpv <- lpv + as.vector(object$uweights[[k]] %*% par[r])
+        maxratevalue(fit, lpv)[q]
       })
     })
     vals <- matrix(vals, ncol=length(parm))
@@ -321,7 +380,8 @@ confint.maxrateTMB <- function(object, parm=NULL, level=0.95, method=c("profile"
   prof <- profileable(object, parm)
   if (any(!prof)){
     message("Wald intervals for ", paste(names(est)[parm][!prof], collapse=", "),
-            ": profile intervals are available for tmax and rate only, and not for tmax at the threshold of a truncated curve.")
+            ": profile intervals are available for tmax and rate of population curves only, and not for tmax at the threshold of a truncated curve.",
+            if (any(maxrateflag(object)[parm][!prof])) " Use method=\"boot\" for bootstrap intervals of fitted groups.")
     ci[!prof, ] <- wald[!prof, , drop=FALSE]
   }
   if (any(prof)){
@@ -342,7 +402,14 @@ profileable <- function(object, parm){
   }, numeric(1))
   est <- coef(object)[parm]
   q <- object$quantity[parm]
-  is.finite(est) & (q == "rate" | (q == "tmax" & !(fittrunc(fit) & abs(est - b4) < 1e-10)))
+  is.finite(est) & !maxrateflag(object)[parm] & (q == "rate" | (q == "tmax" & !(fittrunc(fit) & abs(est - b4) < 1e-10)))
+}
+
+# whether the estimates of a maxrateTMB object are for curves of fitted groups, with their predicted
+# random effects (FALSE for all estimates of objects without this flag)
+maxrateflag <- function(object){
+  f <- object$conditional
+  if (is.null(f)) rep(FALSE, length(object$estimates)) else f
 }
 
 #' Profile likelihood of the maximum growth rate and its timing
@@ -371,7 +438,7 @@ profile.maxrateTMB <- function(fitted, parm=NULL, level=0.99, maxit=100, progres
   if (is.character(parm)) parm <- match(parm, names(est))
   if (any(is.na(parm))) stop("unknown estimates in parm.")
   ok <- profileable(fitted, parm)
-  if (any(!ok)) stop("profiles are only available for tmax and rate with finite estimates, and not for tmax at the threshold of a truncated curve: ",
+  if (any(!ok)) stop("profiles are only available for tmax and rate of population curves with finite estimates, and not for tmax at the threshold of a truncated curve: ",
                      paste(names(est)[parm][!ok], collapse=", "), ".")
   mod <- modelindex(fit$model)
   m <- gcmodel(mod)

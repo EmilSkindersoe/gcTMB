@@ -39,9 +39,9 @@ test_that("b1 as the rate: predictions, times, parameters and summary", {
   expect_equal(unname(pr[, "b1"]), unname(coef(maxrate(fa, newdata=nd["trt"]))[paste("rate:trt=", levels(d$trt), sep="")]), tolerance=1e-4)
   expect_output(print(summary(fr)), "b1 is the maximum growth rate")
   # profile of the rate: the profile of the coefficient b1
-  ci <- suppressMessages(confint(maxrate(fr, newdata=nd["trt"]), parm="rate:trt=0.1"))
-  expect_equal(unname(ci[1, ]), unname(confint(fr, parm=1)[1, ]), tolerance=1e-3)
-  expect_error(confint(timeto(fr, level=50, newdata=nd["trt"][1, , drop=FALSE], type="absolute")), "not available with b1type")
+  ci <- suppressMessages(confint(maxrate(fr, newdata=nd["trt"]), parm="rate:trt=0.1", method="profile"))
+  expect_equal(unname(ci[1, ]), unname(confint(fr, parm=1, method="profile")[1, ]), tolerance=1e-3)
+  expect_error(confint(timeto(fr, level=50, newdata=nd["trt"][1, , drop=FALSE], type="absolute"), method="profile"), "not available with b1type")
 })
 
 test_that("b1 as the rate needs b5 = 1 for the gompertz, weibull, normal and gamma models", {

@@ -14,7 +14,8 @@ viewcurves(FabaHeights26, x = "DAS", y = "Height", id = "Plant_ID", covariates =
            output = "html")
 ```
 
-The app below is that call, running in your browser. It can take half a minute to start the first time.
+The app below is that call, running in your browser. It can take half a minute to start the first time,
+and it responds more slowly than the app does when `viewcurves()` is run in R on your own computer.
 
 ```{=html}
 <iframe src="../viewcurves-app/index.html" title="viewcurves() app" width="100%" height="1050"

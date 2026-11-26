@@ -1,10 +1,10 @@
 
-# gcTMB <img src="man/figures/logo.png" align="right" height="139" alt="gcTMB hex sticker" />
+# gcTMB <a href="https://emilskindersoe.github.io/gcTMB/"><img src="man/figures/logo.png" align="right" height="139" alt="gcTMB website" /></a>
 
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/emilskindersoe/gcTMB/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/emilskindersoe/gcTMB/actions/workflows/R-CMD-check.yaml)
-[![pkgdown](https://github.com/emilskindersoe/gcTMB/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/emilskindersoe/gcTMB/actions/workflows/pkgdown.yaml)
+[![pkgdown](https://github.com/emilskindersoe/gcTMB/actions/workflows/pkgdown.yaml/badge.svg)](https://emilskindersoe.github.io/gcTMB/)
 [![Project Status: WIP – Initial development is in progress, but there
 has not yet been a stable, usable release suitable for the
 public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
@@ -260,12 +260,12 @@ fit
 
 `timeto()` gives the times at which the curve reaches a percentage of
 its asymptote, with standard errors from automatic differentiation and
-profile likelihood intervals by `confint()`, and `maxrate()` the maximum
-growth rate and its timing:
+Wald, profile likelihood (here) or bootstrap intervals by `confint()`,
+and `maxrate()` the maximum growth rate and its timing:
 
 ``` r
 tt <- timeto(fit, level = c(10, 50, 90))
-confint(tt)
+confint(tt, method = "profile")
 #>         2.5 %    97.5 %
 #> 10%  4.192012  4.902495
 #> 50%  9.664311 10.137903

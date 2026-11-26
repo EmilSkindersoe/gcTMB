@@ -30,7 +30,7 @@ test_that("times do not depend on the link of b3", {
   fi <- gcTMB(y ~ day, truncated=FALSE, data=d, model="gompertz", link=c(b3="inverse"))
   expect_equal(coef(timeto(fi, c(5, 95))), coef(timeto(f, c(5, 95))), tolerance=1e-6)
   expect_equal(vcov(timeto(fi, c(5, 95))), vcov(timeto(f, c(5, 95))), tolerance=1e-4)
-  expect_equal(suppressMessages(confint(timeto(fi, 95))), suppressMessages(confint(timeto(f, 95))), tolerance=1e-4)
+  expect_equal(suppressMessages(confint(timeto(fi, 95), method="profile")), suppressMessages(confint(timeto(f, 95), method="profile")), tolerance=1e-4)
 })
 
 test_that("absolute times: times at which the curve reaches a response", {
@@ -85,7 +85,7 @@ test_that("times of fitted groups and of the population", {
   expect_equal(unname(coef(tg)), unname(pp[, "b2"]), tolerance=1e-8)
   expect_true(all(tg$conditional))
   # profile intervals are not available for fitted groups
-  expect_message(ci <- confint(tg), "Wald intervals")
+  expect_message(ci <- confint(tg, method="profile"), "Wald intervals")
   expect_equal(dim(ci), c(2, 2))
 })
 

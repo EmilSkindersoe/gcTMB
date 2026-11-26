@@ -68,8 +68,8 @@ test_that("Preece-Baines fits agree with nls, with timeto and maxrate", {
   # maxrate, and profile intervals of the time and the rate of the peak
   mr <- maxrate(f)
   expect_equal(coef(mr), gcTMB:::maxrateR(mpb, b), ignore_attr=TRUE)
-  ci <- suppressMessages(confint(mr, parm=c("tmax", "rate")))
+  ci <- suppressMessages(confint(mr, parm=c("tmax", "rate"), method="profile"))
   expect_true(all(ci[, 1] < coef(mr)[1:2] & coef(mr)[1:2] < ci[, 2]))
-  ci <- suppressMessages(confint(tt))
+  ci <- suppressMessages(confint(tt, method="profile"))
   expect_true(all(ci[, 1] < coef(tt) & coef(tt) < ci[, 2]))
 })

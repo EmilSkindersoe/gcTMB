@@ -257,10 +257,10 @@ test_that("timeto of chapmanrichards, beta and korf: the inverse of the curve, w
     d <- simstart(gcTMB:::modelindex(m), if (m == "korf") c(50, 22, 2, 0) else c(50, 0.06, 3, 0))
     f <- gcTMB(y ~ day, data=d, model=m, start=c(b4=0))
     t50 <- coef(timeto(f, level=50))
-    ci <- confint(timeto(f, level=50))
+    ci <- confint(timeto(f, level=50), method="profile")
     expect_true(ci[1, 1] < t50 && t50 < ci[1, 2], label=m)
     mr <- maxrate(f)
-    cim <- confint(mr, parm="tmax")
+    cim <- confint(mr, parm="tmax", method="profile")
     expect_true(cim[1, 1] < coef(mr)[["tmax"]] && coef(mr)[["tmax"]] < cim[1, 2], label=m)
   }
 })

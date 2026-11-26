@@ -4,14 +4,18 @@
 \alias{maxrate}
 \title{Maximum growth rate and its timing}
 \usage{
-maxrate(x, curves = NULL, newdata = NULL)
+maxrate(x, curves = NULL, newdata = NULL, random = TRUE)
 }
 \arguments{
 \item{x}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
 \item{curves}{Numeric matrix, list of matrices, or NULL. Linear functions to identify the parameters of the growth curves, with 5 rows (b1-b5) and one column for each model coefficient, see \code{\link{timeto}}. If curves and newdata are both NULL (default), the identity matrix, for models without covariates in fform.}
 
-\item{newdata}{Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves; NULL (default) to use curves.}
+\item{newdata}{Data frame or NULL. The values of the covariates in fform, one row for each growth curve, as an alternative to curves; NULL (default) to use curves. With grouping variables of the random effects, the curves of fitted groups, see Details. The estimates are named by the covariate and group values (or by the row names of newdata, if set).}
+
+\item{random}{Logical. If TRUE (default), the curves of rows of newdata with a level of a grouping
+variable in the fitted data include the predicted random effects of that group. If FALSE, all the
+curves are population curves, and the grouping variables in newdata are not used.}
 }
 \value{
 A maxrateTMB object: a list with the estimates (\code{coef}), their covariance matrix
@@ -27,8 +31,20 @@ delta method. Confidence intervals by \code{confint}: Wald, profile likelihood o
 bootstrap intervals.
 }
 \details{
-The curves are the population curves, with all random effects at zero; the standard
-errors include the uncertainty of the fixed effects. For each curve, \code{maxrate} gives
+The curves are the population curves, with all random effects at zero, and the standard
+errors include the uncertainty of the fixed effects, unless \code{newdata} names fitted groups.
+
+If a row of newdata gives a level of a grouping factor that is in the fitted data, e.g.
+\code{newdata=data.frame(Plant_ID="46_5")}, its curve is the curve of that group, with its
+predicted random effects (the conditional modes), as in \code{\link{predict.gcTMB}} and
+\code{\link{timeto}}. These are shrunken towards the population curve, more so for groups with few
+observations. The standard errors then include the uncertainty of the fixed effects and the
+prediction error of the random effects, from the joint precision matrix of
+\code{\link[TMB]{sdreport}}. A level that is not in the fitted data gives the population curve for
+that term, with a warning. Profile intervals are not available for the curves of fitted groups;
+\code{confint} returns Wald intervals for them, and bootstrap intervals with \code{method="boot"}.
+
+For each curve, \code{maxrate} gives
 \itemize{
 \item \code{tmax}: the time of the maximum growth rate, the inflection point of the curve;
 \item \code{rate}: the maximum growth rate, the slope of the curve at \code{tmax}, in units of the
@@ -48,6 +64,12 @@ f(t), shifted down to zero at its threshold b4 and rescaled, b1 (f(t) - f(b4))/(
 inflection point of the curve without truncation if that is after the threshold, and otherwise
 just after the threshold, where the slope jumps from zero: then \code{tmax} is b4 and
 \code{fraction} zero.
+For the logistic curve, truncated by default, the inflection point is still at b2 (when b2 > b4),
+but the maximum growth rate is b1/(4 b3) divided by 1 - f(b4)/b1, larger than that of the curve
+without truncation, and the fraction of the asymptote reached then is below one half. The closed
+forms of the logistic curve without truncation, \code{rate} = b1/(4 b3) and \code{fraction} = 1/2,
+hold only with \code{truncated=FALSE}. The same holds for the curves of fitted groups, with their
+own b1-b4.
 
 The standard errors are by the delta method, with numerical derivatives of the quantities with
 respect to the parameters of the curves. Profile intervals are available for \code{tmax} (by b2,
@@ -69,6 +91,12 @@ maxrate(fitr)
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
 fit2 <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, data=FabaHeights25)
 maxrate(fit2, newdata=data.frame(trt=levels(FabaHeights25$trt)))
+
+# the curves of two fitted plants, with their predicted random effects
+fitre <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25)
+mrp <- maxrate(fitre, newdata=data.frame(Plant_ID=c(6, 7)))
+mrp
+confint(mrp)
 }
 \seealso{
 \code{\link{confint.maxrateTMB}} for confidence intervals, \code{\link{timeto}}

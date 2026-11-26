@@ -357,8 +357,8 @@ test_that("positions with several variables", {
 test_that("the profile interval for rho is the same from corCAR1 and from corExp, with rho = exp(-1/range)", {
   f1 <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, correlation=corCAR1(form=~ DAS | Plant_ID))
   f2 <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, correlation=corExp(form=~ DAS | Plant_ID))
-  ci1 <- confint(f1, parm="cor_par:CAR1", progress=FALSE)
-  ci2 <- confint(f2, parm="cor_par:range", progress=FALSE)
+  ci1 <- confint(f1, parm="cor_par:CAR1", progress=FALSE, method="profile")
+  ci2 <- confint(f2, parm="cor_par:range", progress=FALSE, method="profile")
   # the profile likelihood does not depend on the parameterisation, and exp(-1/range) is increasing
   expect_equal(as.numeric(ci1), exp(-1/as.numeric(ci2)), tolerance=1e-3)
   # (Wald intervals are computed on different scales, logit(rho) and log(range), so they differ slightly)

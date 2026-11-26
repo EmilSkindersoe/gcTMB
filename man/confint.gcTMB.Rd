@@ -9,7 +9,7 @@
   object,
   parm = NULL,
   level = 0.95,
-  method = c("profile", "wald", "boot"),
+  method = c("wald", "profile", "boot"),
   nsim = 500,
   seed = NULL,
   boot = NULL,
@@ -20,7 +20,7 @@
   object,
   parm = NULL,
   level = 0.95,
-  method = c("profile", "wald", "boot"),
+  method = c("wald", "profile", "boot"),
   nsim = 500,
   seed = NULL,
   boot = NULL,
@@ -34,8 +34,8 @@
 
 \item{level}{Numeric between 0 and 1. The confidence level}
 
-\item{method}{Character string. "profile" for profile likelihood intervals, "wald" for Wald intervals, or "boot" for
-percentile intervals of a parametric bootstrap: responses are simulated from the fitted model
+\item{method}{Character string. "wald" (default) for Wald intervals, "profile" for profile likelihood
+intervals, or "boot" for percentile intervals of a parametric bootstrap: responses are simulated from the fitted model
 (with new random effects, see \code{\link{simulate.gcTMB}}) and the model is fitted again to each,
 starting at the estimates. Fits that do not converge are left out, with a message.}
 
@@ -75,14 +75,17 @@ computed with \code{random=TRUE} for random effect terms without a fitted group,
 \code{residual=TRUE}, include further variation in their standard errors; for these, Wald intervals
 are returned with a message.
 Bootstrap intervals need many fits of the model; with random effects this can take several minutes.
+Wald intervals are the default, as they need no further fits; profile likelihood intervals
+(\code{method="profile"}) follow the shape of the likelihood, e.g. for skewed estimates or small
+samples, but each needs a series of fits.
 Computing profiles can take a while for models with random effects; see \code{\link{profile.gcTMB}}
 and \code{\link{profile.timetoTMB}}, whose results can be reused with \code{confint}.
 }
 \examples{
 fit <- gcTMB(Height ~ DAS, data=FabaHeights25)
 confint(fit)
-confint(fit, method="wald")
-confint(timeto(fit, level=c(10, 50, 90)))
+confint(fit, method="profile")
+confint(timeto(fit, level=c(10, 50, 90)), method="profile")
 \donttest{
 # parametric bootstrap, reused for the times
 bt <- bootstrap(fit, nsim=200, seed=1, progress=FALSE)

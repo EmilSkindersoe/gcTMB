@@ -75,21 +75,16 @@ fits <- lapply(c(logistic = "logistic", gompertz = "gompertz", hill = "hill", we
 criteria(fits, which = c("AIC", "BIC"))
 ```
 
-`predict()` gives confidence intervals of the mean by the delta method and prediction intervals of new observations; `confint()` gives profile likelihood (default), Wald or parametric bootstrap intervals of the parameters, and `bootstrap()` a bootstrap sample to reuse. `plot()` draws validation plots of the residuals and the fitted curves.
+`predict()` gives confidence intervals of the mean by the delta method and prediction intervals of new observations; `confint()` gives Wald (default), profile likelihood (`method = "profile"`) or parametric bootstrap intervals of the parameters, and `bootstrap()` a bootstrap sample to reuse. `plot()` draws validation plots of the residuals and the fitted curves.
 
 ```{r, fig.width = 6, fig.height = 4}
 nd <- data.frame(DAS = seq(0, 125, by = 0.5))
-ci <- cbind(nd, predict(fit, newdata = nd, interval = "confidence"))
-pi <- cbind(nd, predict(fit, newdata = nd, interval = "prediction"))
 ggplot(FabaHeights26, aes(x = DAS, y = Height)) +
-  geom_ribbon(data = pi, aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "red", alpha = 0.1) +
   geom_point(colour = "grey60", size = 0.6, position = position_jitter(width = 0.5, height = 0)) +
-  geom_ribbon(data = ci, aes(x = DAS, ymin = lwr, ymax = upr), inherit.aes = FALSE, fill = "red", alpha = 0.35) +
-  geom_line(data = ci, aes(y = fit), colour = "red") +
-  labs(x = "Days after sowing", y = "Height (cm)",
-       title = "Logistic curve with 95% confidence (dark) and prediction (light) intervals") +
+  geom_line(data = cbind(nd, Height = predict(fit, newdata = nd)), colour = "black") +
+  labs(x = "Days after sowing", y = "Height (cm)") +
   theme_minimal()
-confint(fit, method = "wald")
+confint(fit)
 ```
 
 ## Other explanatory variables
@@ -127,7 +122,7 @@ fitre0 <- gcTMB(Height ~ DAS, fform = b1 + b2 ~ Soil + Treatment, rform = b1 + b
 anova(fitre0, fitre)
 ```
 
-`plot(type = "curves")` draws the curves of the plants and the population curves of the treatments:
+`plot(type = "curves")` draws the curves of the plants and, next to them, the population curves of the treatments with their 95% confidence intervals:
 
 ```{r, fig.width = 7, fig.height = 4.5}
 p <- plot(fitre, type = "curves", times = seq(0, 125, by = 0.5), draw = FALSE)
@@ -181,15 +176,28 @@ In space, `corExp()` and `corGaus()` have the correlation $(1 - n) \exp(-d/r)$ a
 
 ## Variance functions
 
-The residual variance of the gaussian and lognormal families can change over the course of growth, with a variance function in the argument `variance`: `varIdent()` gives each stratum its own variance, `varPower()` and `varConstPower()` a power of a covariate, the fitted curve `fitted(.)` (the default), its growth rate `rate(.)`, largest at the inflection point, or a variable of the data. Here each day of measurement has its own residual variance, besides the random effects of the plants:
+The residual variance of the gaussian and lognormal families can change over the course of growth, with a variance function in the argument `variance`: `varIdent()` gives each stratum its own variance, `varPower()` and `varConstPower()` a power of a covariate, the fitted curve `fitted(.)` (the default), its growth rate `rate(.)`, largest at the inflection point, or a variable of the data. Here the residual standard deviation is a constant plus a power of the fitted curve, $\sigma (c + |\hat y|^{\delta})$, besides the random effects of the plants; `restart = TRUE` optimises once more from the estimates, as the first optimisation stops just short of convergence:
 
 ```{r}
-fitrev <- update(fitre, variance = varIdent(form = ~ 1 | DAS))
-round(varpars(fitrev), 2)
+fitrev <- update(fitre, variance = varConstPower(), control = gcTMBcontrol(restart = TRUE))
+varpars(fitrev)
 anova(fitre, fitrev)
 ```
 
-`varpars()` gives the standard deviation of each day relative to the first. The vignette *Variance functions* shows how variance functions change the confidence intervals of a curve, and how they trade off against random effects and autocorrelation.
+`predict()` gives confidence intervals of the population curves by the delta method, here of the treatments:
+
+```{r, fig.width = 7, fig.height = 4}
+nd <- merge(trts, data.frame(DAS = seq(0, 125, by = 0.5)))
+ci <- cbind(nd, predict(fitrev, newdata = nd, random = FALSE, interval = "confidence"))
+ci$trt <- paste(ci$Soil, ci$Treatment, sep = ", ")
+ggplot(ci, aes(x = DAS, y = fit, colour = trt, fill = trt)) +
+  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
+  geom_line() +
+  labs(x = "Days after sowing", y = "Height (cm)", colour = "Soil, irrigation", fill = "Soil, irrigation") +
+  theme_minimal()
+```
+
+The vignette *Variance functions* shows how variance functions change the confidence intervals of a curve, and how they trade off against random effects and autocorrelation.
 
 ## Simulation
 

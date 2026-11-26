@@ -56,21 +56,21 @@ tt
 timeto(fitg, level = 150, type = "absolute")
 ```
 
-`confint()` gives profile likelihood intervals by default, `method = "wald"` Wald intervals and `method = "boot"` parametric bootstrap intervals.
+`confint()` gives Wald intervals by default, `method = "profile"` profile likelihood intervals and `method = "boot"` parametric bootstrap intervals.
 
 ```{r, message = FALSE}
 confint(tt)
-confint(tt, method = "wald")
+confint(tt, method = "profile")
 ```
 
 ## Maximum growth rate
 
-`maxrate()` gives the time of the maximum growth rate (`tmax`), the maximum growth rate there (`rate`), and the proportion of total growth at that time, $f(t_m)/b_1$ (`fraction`). The standard errors are by the delta method. `confint()` gives profile likelihood intervals for `tmax` and `rate` by default, and Wald intervals for `fraction`; `method = "wald"` and `method = "boot"` as for `timeto()`. The growth rate of the Preece-Baines curve is highest in early childhood and falls until the take-off of the pubertal growth spurt; `maxrate()` gives the peak of the spurt, the peak height velocity, and the age at which it is reached. It is close to, but not the same as, the middle of puberty $b_2$.
+`maxrate()` gives the time of the maximum growth rate (`tmax`), the maximum growth rate there (`rate`), and the proportion of total growth at that time, $f(t_m)/b_1$ (`fraction`). The standard errors are by the delta method. `confint()` gives Wald intervals by default; `method = "profile"` gives profile likelihood intervals for `tmax` and `rate`, and Wald intervals for `fraction`, and `method = "boot"` bootstrap intervals as for `timeto()`. The growth rate of the Preece-Baines curve is highest in early childhood and falls until the take-off of the pubertal growth spurt; `maxrate()` gives the peak of the spurt, the peak height velocity, and the age at which it is reached. It is close to, but not the same as, the middle of puberty $b_2$.
 
 ```{r, message = FALSE}
 mr <- maxrate(fitg)
 mr
-confint(mr)
+confint(mr, method = "profile")
 ```
 
 ## Timing and maximum growth rates of boys and girls

@@ -106,6 +106,9 @@ viewcurves <- function(data, x, y, id=NULL, covariates=NULL, colour=NULL, linety
   if (is.null(linetype)) linetype <- "None"
   xr <- range(d$x)
   yr <- range(d$y)
+  # the number of decimals of x and y in the whole data, the same for every individual
+  dx <- decimals(d$x)
+  dy <- decimals(d$y)
   # the range of the growth rates of all individuals, for the fixed axis of the growth rate graph
   rr <- allrates(d)$y
   rr <- if (length(rr) > 0) range(rr) else NULL
@@ -279,7 +282,7 @@ viewcurves <- function(data, x, y, id=NULL, covariates=NULL, colour=NULL, linety
         pt <- near(dd[dd$id != input$ind, , drop=FALSE])
       }
       if (nrow(pt) == 0) return(NULL)
-      tip(h, obstext(pt, idname, x, y))
+      tip(h, obstext(pt, idname, x, y, dx, dy))
     })
     output$growthtip <- shiny::renderUI({
       h <- input$growthhover
@@ -288,7 +291,7 @@ viewcurves <- function(data, x, y, id=NULL, covariates=NULL, colour=NULL, linety
       if (nrow(r) == 0) return(NULL)
       pt <- shiny::nearPoints(r, h, xvar="mid", yvar="rate", threshold=10, maxpoints=1)
       if (nrow(pt) == 0) return(NULL)
-      tip(h, ratetext(pt, x, y))
+      tip(h, ratetext(pt, x, y, dx))
     })
 
     output$info <- shiny::renderTable({
@@ -296,13 +299,13 @@ viewcurves <- function(data, x, y, id=NULL, covariates=NULL, colour=NULL, linety
       shiny::req(nrow(p1) > 0)
       n <- nrow(p1)
       data.frame(` `=c("Observations", "First", "Last", "Largest"),
-                 Value=c(n, paste(format(p1$y[1]), "at", format(p1$x[1])), paste(format(p1$y[n]), "at", format(p1$x[n])),
-                         format(max(p1$y))), check.names=FALSE)
+                 Value=c(n, paste(fmtdec(p1$y[1], dy), "at", fmtdec(p1$x[1], dx)),
+                         paste(fmtdec(p1$y[n], dy), "at", fmtdec(p1$x[n], dx)), fmtdec(max(p1$y), dy)), check.names=FALSE)
     })
 
     output$obs <- shiny::renderTable({
       p1 <- ind()
-      m <- rbind(format(p1$x, trim=TRUE), format(p1$y, trim=TRUE))
+      m <- rbind(fmtdec(p1$x, dx), fmtdec(p1$y, dy))
       rownames(m) <- c(x, y)
       m
     }, rownames=TRUE, colnames=FALSE)
@@ -311,16 +314,30 @@ viewcurves <- function(data, x, y, id=NULL, covariates=NULL, colour=NULL, linety
   shiny::shinyApp(ui, server)
 }
 
-# the lines of the tooltip of an observation (a row of the data of viewcurves): its individual, x and y
-obstext <- function(pt, idname, xname, yname){
+# the lines of the tooltip of an observation (a row of the data of viewcurves): its individual, x and y,
+# with dx and dy decimals (NULL: as format() shows them)
+obstext <- function(pt, idname, xname, yname, dx=NULL, dy=NULL){
   c(paste0("<b>", idname, " ", htmlesc(pt$id[1]), "</b>"),
-    paste0(htmlesc(xname), ": ", format(pt$x[1])), paste0(htmlesc(yname), ": ", format(pt$y[1])))
+    paste0(htmlesc(xname), ": ", fmtdec(pt$x[1], dx)), paste0(htmlesc(yname), ": ", fmtdec(pt$y[1], dy)))
 }
 
-# the lines of the tooltip of a growth rate (a row of growthrate()): its interval and the rate
-ratetext <- function(pt, xname, yname){
-  c(paste0("<b>", htmlesc(xname), " ", format(pt$from[1]), " to ", format(pt$to[1]), "</b>"),
+# the lines of the tooltip of a growth rate (a row of growthrate()): its interval, with dx decimals, and
+# the rate
+ratetext <- function(pt, xname, yname, dx=NULL){
+  c(paste0("<b>", htmlesc(xname), " ", fmtdec(pt$from[1], dx), " to ", fmtdec(pt$to[1], dx), "</b>"),
     paste0("Growth rate of ", htmlesc(yname), ": ", format(pt$rate[1], digits=4)))
+}
+
+# the number of decimals needed to show every finite value of v exactly, up to 6
+decimals <- function(v){
+  v <- v[is.finite(v)]
+  for (k in 0:5) if (all(abs(v*10^k - round(v*10^k)) < 1e-6)) return(k)
+  6L
+}
+
+# v with k decimals, or as format() shows it for k = NULL
+fmtdec <- function(v, k=NULL){
+  if (is.null(k)) format(v, trim=TRUE) else formatC(v, format="f", digits=k)
 }
 
 htmlesc <- function(s) gsub(">", "&gt;", gsub("<", "&lt;", gsub("&", "&amp;", as.character(s), fixed=TRUE), fixed=TRUE), fixed=TRUE)
@@ -423,6 +440,7 @@ staticcurves <- function(d, xname, yname, idname, colour, linetype, numx, outlie
   }
 
   hl <- largestchanges(d, outliers)
+  dx <- decimals(d$x)
   hd <- d[d$id %in% hl$id, , drop=FALSE]
   gc <- ggplot2::ggplot(d, aesl) + lines(if (nrow(hd) > 0) 0.35 else 0.7)
   if (nrow(hd) > 0){
@@ -440,7 +458,7 @@ staticcurves <- function(d, xname, yname, idname, colour, linetype, numx, outlie
 
   for (i in seq_len(nrow(hl))){
     message("Largest ", hl$direction[i], " between successive observations: ", idname, " ", hl$id[i], " (growth rate ",
-            format(hl$rate[i], digits=3), " from ", xname, " ", format(hl$from[i]), " to ", format(hl$to[i]), ")")
+            format(hl$rate[i], digits=3), " from ", xname, " ", fmtdec(hl$from[i], dx), " to ", fmtdec(hl$to[i], dx), ")")
   }
   plots <- list(curves=gc, rate=gr)
   if (!is.null(file)){
