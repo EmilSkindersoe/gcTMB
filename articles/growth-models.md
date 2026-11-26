@@ -653,7 +653,10 @@ when $`b_3`$ has no covariates or random effects.
 
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws
 validation plots: residuals against the fitted values and against time,
-and a normal QQ plot of the randomised quantile residuals (Dunn and
+and a normal QQ plot of the residuals. For the gaussian and lognormal
+families these are the normalized residuals, which are independent
+standard normal under the model, also with a correlation structure; for
+the other families they are the randomised quantile residuals (Dunn and
 Smyth, 1996). The data with the fitted curve are added as the last
 graph; `type = "curves"` draws the curves alone. The repeated
 measurements of the same plants are not independent; the random effects

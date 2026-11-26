@@ -44,16 +44,18 @@ for fitted individuals. Methods for gcTMB fits include summary(),
 predict() with confidence and prediction intervals of the curves or
 their parameters, fitted() and residuals() (Pearson, randomised quantile
 and normalized), plot() of validation plots and fitted curves,
-simulate() at the observed or new times and individuals, update() to
-refit the model or set its parameters as the true model of a simulation
-study, logLik(), coef(), vcov(), converged(), and the extractors
-fixef(), ranef(), VarCorr(), sigma() and corpars(), compatible with
-'nlme' and 'lme4'. The data sets FabaHeights25 (heights of faba bean
-plants under five treatments) and FabaCounts23 (pod counts of six faba
-bean genotypes) illustrate the methods. Four vignettes cover the growth
-models and their parameters, fixed and random effects, the timing and
-maximum growth rates, and autocorrelation and simulation, and an
-overview shows most of the features in one document.
+viewcurves() to step through the observed curves of the individuals of
+any data set in a 'shiny' app, simulate() at the observed or new times
+and individuals, update() to refit the model or set its parameters as
+the true model of a simulation study, logLik(), coef(), vcov(),
+converged(), and the extractors fixef(), ranef(), VarCorr(), sigma() and
+corpars(), compatible with 'nlme' and 'lme4'. The data sets
+FabaHeights25 (heights of faba bean plants under five treatments) and
+FabaCounts23 (pod counts of six faba bean genotypes) illustrate the
+methods. Four vignettes cover the growth models and their parameters,
+fixed and random effects, the timing and maximum growth rates, and
+autocorrelation and simulation, and an overview shows most of the
+features in one document.
 
 ## Growth models and fitting
 
@@ -125,6 +127,9 @@ reached then, with standard errors and `confint` and `profile` methods.
 (Pearson, randomised quantile, normalized),
 [`plot.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/plot.gcTMB.md)
 (validation plots and curves),
+[`viewcurves`](https://emilskindersoe.github.io/gcTMB/reference/viewcurves.md)
+(a shiny app to step through the observed curves of the individuals of
+any data set),
 [`simulate.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-methods.md)
 (at the observed or new times and individuals), and
 [`update.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/update.gcTMB.md)

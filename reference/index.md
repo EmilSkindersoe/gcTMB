@@ -49,6 +49,11 @@
 - [`criteria()`](https://emilskindersoe.github.io/gcTMB/reference/criteria.md)
   : Model selection criteria
 
+## Exploring data
+
+- [`viewcurves()`](https://emilskindersoe.github.io/gcTMB/reference/viewcurves.md)
+  : Viewer of observed growth curves
+
 ## Inference
 
 - [`anova(`*`<gcTMB>`*`)`](https://emilskindersoe.github.io/gcTMB/reference/anova.gcTMB.md)

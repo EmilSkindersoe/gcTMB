@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9021</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9022</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -71,6 +71,8 @@
 <h2 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
 </h2>
 <ul>
+<li>
+<strong>Exploring data</strong>: <code><a href="reference/viewcurves.html">viewcurves()</a></code> steps through the observed curves of the individuals of any data set in a Shiny app, with filters, colour and line type by covariates and their growth rates, or draws all the curves and growth rates, with the steepest increase and decrease between two observations in red, e.g. to find wrong measurements.</li>
 <li>
 <strong>Growth models</strong>: general growth curves (logistic or Richards, Gompertz, Hill, Weibull, normal and gamma), each with an asymmetry parameter and optionally truncated at the start of growth, before which the response is zero (e.g. emergence, or the first pods); the beta growth function of determinate growth, e.g. of crops; for forestry, the Chapman-Richards and Korf curves with an intercept, e.g. height-diameter models of trees from breast height; for human growth, the Preece-Baines model of growth in height through childhood and puberty; and a straight line for comparison. The x-axis need not be time.</li>
 <li>
@@ -251,6 +253,10 @@
 <th>Functions</th>
 </tr></thead>
 <tbody>
+<tr>
+<td>Exploring data</td>
+<td><code><a href="reference/viewcurves.html">viewcurves()</a></code></td>
+</tr>
 <tr>
 <td>Fitting</td>
 <td>

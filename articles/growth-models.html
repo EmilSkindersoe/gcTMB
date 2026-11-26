@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9021</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9022</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -1008,12 +1008,15 @@ has no covariates or random effects.</p>
 <h3 id="diagnostics">Diagnostics<a class="anchor" aria-label="anchor" href="#diagnostics"></a>
 </h3>
 <p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws validation plots: residuals against the
-fitted values and against time, and a normal QQ plot of the randomised
-quantile residuals (Dunn and Smyth, 1996). The data with the fitted
-curve are added as the last graph; <code>type = "curves"</code> draws
-the curves alone. The repeated measurements of the same plants are not
-independent; the random effects of the plants (vignette <em>Fixed and
-random effects</em>) account for that.</p>
+fitted values and against time, and a normal QQ plot of the residuals.
+For the gaussian and lognormal families these are the normalized
+residuals, which are independent standard normal under the model, also
+with a correlation structure; for the other families they are the
+randomised quantile residuals (Dunn and Smyth, 1996). The data with the
+fitted curve are added as the last graph; <code>type = "curves"</code>
+draws the curves alone. The repeated measurements of the same plants are
+not independent; the random effects of the plants (vignette <em>Fixed
+and random effects</em>) account for that.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
 <p><img src="growth-models_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
