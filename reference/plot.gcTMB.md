@@ -121,10 +121,10 @@ one graph with the two panels as facets)
 
 In models with random effects, the `outliers` observations with the
 largest absolute residuals, the ones closest to being outliers, are
-labelled in the graphs of `type="validation1"` by their individual:
-their level of the finest grouping factor of the random effects (the one
-with the most levels, e.g. the plant of plants nested in plots). Models
-without random effects have no labels.
+drawn in red and labelled in the graphs of `type="validation1"` by their
+individual: their level of the finest grouping factor of the random
+effects (the one with the most levels, e.g. the plant of plants nested
+in plots). Models without random effects have no labels.
 
 By default the gaussian and lognormal families show the normalized
 residuals, which are independent standard normal under the model also

@@ -13,3 +13,8 @@
 - [Variance
   functions](https://emilskindersoe.github.io/gcTMB/articles/variance.md):
 - [Simulation](https://emilskindersoe.github.io/gcTMB/articles/simulation.md):
+
+### Exploring data
+
+- [Exploring observed
+  curves](https://emilskindersoe.github.io/gcTMB/articles/viewcurves.md):

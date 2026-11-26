@@ -310,20 +310,20 @@ summary(fitp)
 #> 
 #> Coefficients:
 #>                    Estimate Std. Error  z value Pr(>|z|)    
-#> b1:(Intercept)      14.5996     2.3239    6.282 3.34e-10 ***
-#> b1:GenotypeCapri    -3.4020     2.9743   -1.144  0.25270    
-#> b1:GenotypeILB938   -5.4787     2.9575   -1.852  0.06396 .  
-#> b1:GenotypeLynx      4.9820     3.2331    1.541  0.12334    
-#> b1:GenotypeMelodie  10.6976     3.6762    2.910  0.00361 ** 
-#> b1:GenotypeNavara    3.1797     3.1856    0.998  0.31821    
-#> b2:(Intercept)      70.0533     0.4689  149.394  < 2e-16 ***
-#> b2:GenotypeCapri    -0.8504     0.6405   -1.328  0.18424    
-#> b2:GenotypeILB938   -1.0084     0.7024   -1.436  0.15110    
-#> b2:GenotypeLynx      2.7439     0.5512    4.978 6.42e-07 ***
-#> b2:GenotypeMelodie   3.2443     0.5515    5.882 4.05e-09 ***
-#> b2:GenotypeNavara    2.6005     0.5584    4.657 3.21e-06 ***
-#> b3:(Intercept)       1.3389     0.1494    8.961  < 2e-16 ***
-#> b4:(Intercept)      65.0000     0.0239 2719.707  < 2e-16 ***
+#> b1:(Intercept)     14.59960    2.32393    6.282 3.34e-10 ***
+#> b1:GenotypeCapri   -3.40191    2.97431   -1.144  0.25272    
+#> b1:GenotypeILB938  -5.47866    2.95747   -1.852  0.06396 .  
+#> b1:GenotypeLynx     4.98199    3.23315    1.541  0.12334    
+#> b1:GenotypeMelodie 10.69762    3.67622    2.910  0.00361 ** 
+#> b1:GenotypeNavara   3.17974    3.18561    0.998  0.31820    
+#> b2:(Intercept)     70.05332    0.46892  149.394  < 2e-16 ***
+#> b2:GenotypeCapri   -0.85040    0.64045   -1.328  0.18424    
+#> b2:GenotypeILB938  -1.00839    0.70238   -1.436  0.15110    
+#> b2:GenotypeLynx     2.74385    0.55116    4.978 6.41e-07 ***
+#> b2:GenotypeMelodie  3.24423    0.55154    5.882 4.05e-09 ***
+#> b2:GenotypeNavara   2.60054    0.55842    4.657 3.21e-06 ***
+#> b3:(Intercept)      1.33893    0.14940    8.962  < 2e-16 ***
+#> b4:(Intercept)     65.00000    0.02389 2720.312  < 2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
@@ -332,16 +332,16 @@ summary(fitp)
 #>  Groups  Name Std.Dev.
 #>  Tube_ID b1   3.355   
 #> 
-#> Optimiser: converged, with the threshold b4 at an observation time (a kink of the likelihood), maximum absolute gradient 3.2
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.27
 genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
 cbind(genotypes, predict(fitp, newdata = genotypes, type = "parameters", random = FALSE))
 #>   Genotype        b1       b2       b3 b4
-#> 1   Aurora 14.599634 70.05332 1.338935 65
-#> 2    Capri 11.197618 69.20292 1.338935 65
-#> 3   ILB938  9.120981 69.04494 1.338935 65
-#> 4     Lynx 19.581583 72.79718 1.338935 65
-#> 5  Melodie 25.297268 73.29758 1.338935 65
-#> 6   Navara 17.779358 72.65387 1.338935 65
+#> 1   Aurora 14.599604 70.05332 1.338929 65
+#> 2    Capri 11.197692 69.20293 1.338929 65
+#> 3   ILB938  9.120942 69.04494 1.338929 65
+#> 4     Lynx 19.581598 72.79717 1.338929 65
+#> 5  Melodie 25.297229 73.29756 1.338929 65
+#> 6   Navara 17.779349 72.65386 1.338929 65
 ```
 
 All the counts with the fitted curve of each plant, with its predicted

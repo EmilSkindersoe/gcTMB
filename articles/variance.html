@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9023</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9024</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,7 @@
     <li><a class="dropdown-item" href="../articles/correlation.html">Correlation structures</a></li>
     <li><a class="dropdown-item" href="../articles/variance.html">Variance functions</a></li>
     <li><a class="dropdown-item" href="../articles/simulation.html">Simulation</a></li>
+    <li><a class="dropdown-item" href="../articles/viewcurves.html">Exploring observed curves</a></li>
   </ul>
 </li>
       </ul>
@@ -247,7 +248,7 @@ point (the power of the growth rate is close to 0):</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">fits</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"random + power"</span>, <span class="st">"random + rate"</span><span class="op">)</span><span class="op">]</span>, <span class="va">varpars</span><span class="op">)</span></span>
 <span><span class="co">#&gt; random + power.power  random + rate.power </span></span>
-<span><span class="co">#&gt;           0.38151624           0.08682909</span></span></code></pre></div>
+<span><span class="co">#&gt;            0.3815162            0.0868291</span></span></code></pre></div>
 <p>A variance for each day lowers the AIC the most, with or without the
 autocorrelation of the residuals of a plant. Its ratios show a single
 day, 83, with much larger residuals than the others, which no smooth
