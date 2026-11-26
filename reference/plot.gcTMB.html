@@ -73,7 +73,7 @@ ggplot2 graphs.</p>
 <span>  <span class="va">x</span>,</span>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"validation"</span>, <span class="st">"curves"</span><span class="op">)</span>,</span>
 <span>  which <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>,</span>
-<span>  residuals <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"quantile"</span>, <span class="st">"pearson"</span>, <span class="st">"response"</span>, <span class="st">"normalized"</span><span class="op">)</span>,</span>
+<span>  residuals <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  random <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  times <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -105,8 +105,12 @@ the predicted random effects (models with random effects only)</p></dd>
 
 
 <dt id="arg-residuals">residuals<a class="anchor" aria-label="anchor" href="#arg-residuals"></a></dt>
-<dd><p>Character string. Residual type of the validation plots, see
-<code><a href="gcTMB-methods.html">residuals.gcTMB</a></code>: "quantile" (default), "pearson", "response" or "normalized" (decorrelated by the autocorrelation of the fit, see <code><a href="corStruct.html">corStruct</a></code>)</p></dd>
+<dd><p>Character string or NULL. Residual type of the validation plots, see
+<code><a href="gcTMB-methods.html">residuals.gcTMB</a></code>: "quantile", "pearson", "response" or "normalized" (decorrelated by the
+correlation structure of the fit, see <code><a href="corStruct.html">corStruct</a></code>). NULL (default) for "normalized" with the
+gaussian and lognormal families and "quantile" with the other families. For the lognormal family the
+quantile and pearson residuals are both the standardised residuals of log(y), so the normalized
+residuals differ from them only by the decorrelation and suit the scatter plots and the QQ plot alike</p></dd>
 
 
 <dt id="arg-random">random<a class="anchor" aria-label="anchor" href="#arg-random"></a></dt>
@@ -145,7 +149,9 @@ qq and ranef for the validation plots, and curves for the curves plot (with
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The default randomised quantile residuals are standard normal under the model for all families,
+    <p>By default the gaussian and lognormal families show the normalized residuals, which are independent
+standard normal under the model also with a correlation structure, and the other families show the
+randomised quantile residuals. The randomised quantile residuals are standard normal under the model for all families,
 so the QQ plot is compared with the identity line; for the discrete families they are drawn
 uniformly within the jump of the distribution function at each observation, and <code>seed</code>
 makes the plots reproducible. For <code>residuals="response"</code>, the QQ plot line goes through the

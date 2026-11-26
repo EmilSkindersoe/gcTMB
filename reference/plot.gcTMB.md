@@ -19,7 +19,7 @@ plot(
   x,
   type = c("validation", "curves"),
   which = 1:3,
-  residuals = c("quantile", "pearson", "response", "normalized"),
+  residuals = NULL,
   random = TRUE,
   times = NULL,
   ncol = NULL,
@@ -53,11 +53,16 @@ plot(
 
 - residuals:
 
-  Character string. Residual type of the validation plots, see
+  Character string or NULL. Residual type of the validation plots, see
   [`residuals.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-methods.md):
-  "quantile" (default), "pearson", "response" or "normalized"
-  (decorrelated by the autocorrelation of the fit, see
-  [`corStruct`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md))
+  "quantile", "pearson", "response" or "normalized" (decorrelated by the
+  correlation structure of the fit, see
+  [`corStruct`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)).
+  NULL (default) for "normalized" with the gaussian and lognormal
+  families and "quantile" with the other families. For the lognormal
+  family the quantile and pearson residuals are both the standardised
+  residuals of log(y), so the normalized residuals differ from them only
+  by the decorrelation and suit the scatter plots and the QQ plot alike
 
 - random:
 
@@ -100,16 +105,19 @@ with the two panels as facets)
 
 ## Details
 
-The default randomised quantile residuals are standard normal under the
-model for all families, so the QQ plot is compared with the identity
-line; for the discrete families they are drawn uniformly within the jump
-of the distribution function at each observation, and `seed` makes the
-plots reproducible. For `residuals="response"`, the QQ plot line goes
-through the quartiles. The Pearson and response residuals of the
-families other than gaussian and lognormal are not normally distributed
-under the model, so their QQ plot is drawn with a warning. A lowess
-smoother (red) shows trends of the residuals against the fitted values
-and time.
+By default the gaussian and lognormal families show the normalized
+residuals, which are independent standard normal under the model also
+with a correlation structure, and the other families show the randomised
+quantile residuals. The randomised quantile residuals are standard
+normal under the model for all families, so the QQ plot is compared with
+the identity line; for the discrete families they are drawn uniformly
+within the jump of the distribution function at each observation, and
+`seed` makes the plots reproducible. For `residuals="response"`, the QQ
+plot line goes through the quartiles. The Pearson and response residuals
+of the families other than gaussian and lognormal are not normally
+distributed under the model, so their QQ plot is drawn with a warning. A
+lowess smoother (red) shows trends of the residuals against the fitted
+values and time.
 
 The simulations of
 [`simulate.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-methods.md)

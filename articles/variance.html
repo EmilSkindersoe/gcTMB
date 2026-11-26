@@ -61,7 +61,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Variance functions</h1>
             
-            <h4 data-toc-skip class="date">2026-11-25</h4>
+            <h4 data-toc-skip class="date">2026-11-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/variance.Rmd" class="external-link"><code>vignettes/variance.Rmd</code></a></small>
       <div class="d-none name"><code>variance.Rmd</code></div>
@@ -247,7 +247,7 @@ point (the power of the growth rate is close to 0):</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">fits</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"random + power"</span>, <span class="st">"random + rate"</span><span class="op">)</span><span class="op">]</span>, <span class="va">varpars</span><span class="op">)</span></span>
 <span><span class="co">#&gt; random + power.power  random + rate.power </span></span>
-<span><span class="co">#&gt;            0.3815162            0.0868291</span></span></code></pre></div>
+<span><span class="co">#&gt;           0.38151624           0.08682909</span></span></code></pre></div>
 <p>A variance for each day lowers the AIC the most, with or without the
 autocorrelation of the residuals of a plant. Its ratios show a single
 day, 83, with much larger residuals than the others, which no smooth
