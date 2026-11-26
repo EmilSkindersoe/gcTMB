@@ -15,7 +15,7 @@ of the largest increase and decrease between successive observations in red (out
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9022</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9023</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,7 +68,7 @@ of the largest increase and decrease between successive observations in red (<co
 <span>  colour <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  linetype <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"html"</span>, <span class="st">"jpeg"</span><span class="op">)</span>,</span>
-<span>  highlight <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  outliers <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  file <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -110,10 +110,11 @@ two covariates with <code>output="jpeg"</code>.</p></dd>
 all the individuals.</p></dd>
 
 
-<dt id="arg-highlight">highlight<a class="anchor" aria-label="anchor" href="#arg-highlight"></a></dt>
+<dt id="arg-outliers">outliers<a class="anchor" aria-label="anchor" href="#arg-outliers"></a></dt>
 <dd><p>Non-negative integer. With <code>output="jpeg"</code>, the number of individuals drawn in
 red for each direction, the largest increase and the largest decrease between successive
-observations; 0 for none. Default 1.</p></dd>
+observations, so up to twice as many individuals in all; 0 for none. Default 1. The same
+argument of <code><a href="plot.gcTMB.html">plot.gcTMB</a></code> counts the observations with the largest absolute residuals.</p></dd>
 
 
 <dt id="arg-file">file<a class="anchor" aria-label="anchor" href="#arg-file"></a></dt>
@@ -124,8 +125,8 @@ graphs to (12 by 5 inches at 150 dpi); NULL (default) draws them.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>With <code>output="html"</code>, a <code>shiny.appobj</code>. With <code>output="jpeg"</code>, invisibly, a
-list of the two ggplot graphs, <code>curves</code> and <code>rate</code>, and <code>highlighted</code>, a data frame
-of the highlighted individuals: <code>id</code>, <code>direction</code> ("increase" or "decrease"),
+list of the two ggplot graphs, <code>curves</code> and <code>rate</code>, and <code>outliers</code>, a data frame
+of the individuals drawn in red: <code>id</code>, <code>direction</code> ("increase" or "decrease"),
 <code>rate</code> (the growth rate) and <code>from</code> and <code>to</code> (the interval of <code>x</code>).</p>
     </div>
     <div class="section level2">
@@ -154,9 +155,9 @@ printed, e.g. by calling <code>viewcurves()</code> at the console, or with <code
 <p>With <code>output="jpeg"</code>, the two graphs are drawn side by side, or written to the JPEG file
 <code>file</code>. Without <code>colour</code> and <code>linetype</code>, the first two covariates set them: the one
 with more distinct values the colour, the other the line type (if it has at most 6 values; the
-first of them on a tie). A single covariate sets the colour. The <code>highlight</code> individuals
+first of them on a tie). A single covariate sets the colour. The <code>outliers</code> individuals
 with the largest positive growth rate (the steepest increase between two successive observations)
-and the <code>highlight</code> individuals with the most negative growth rate (the steepest decrease),
+and the <code>outliers</code> individuals with the most negative growth rate (the steepest decrease),
 each individual counted at its own steepest interval, are drawn in red in the graph of the curves
 and labelled at their last observation, the others fainter; they are reported by a message and
 returned. A single wrong measurement shows up as an increase followed by a decrease, or the reverse.</p>
@@ -175,7 +176,7 @@ returned. A single wrong measurement shows up as an increase followed by a decre
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Largest increase between successive observations: Plant_ID 39_4 (growth rate 6.38 from DAS 90 to 98)</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Largest decrease between successive observations: Plant_ID 46_5 (growth rate -7.86 from DAS 83 to 90)</span>
 <span class="r-plt img"><img src="viewcurves-1.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="va">vc</span><span class="op">$</span><span class="va">highlighted</span></span></span>
+<span class="r-in"><span><span class="va">vc</span><span class="op">$</span><span class="va">outliers</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     id direction      rate from to</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1 39_4  increase  6.375000   90 98</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2 46_5  decrease -7.857143   83 90</span>

@@ -162,7 +162,7 @@ the inflection point (the power of the growth rate is close to 0):
 
 sapply(fits[c("random + power", "random + rate")], varpars)
 #> random + power.power  random + rate.power 
-#>            0.3815162            0.0868291
+#>           0.38151624           0.08682909
 ```
 
 A variance for each day lowers the AIC the most, with or without the

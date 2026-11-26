@@ -20,7 +20,7 @@ viewcurves(
   colour = NULL,
   linetype = NULL,
   output = c("html", "jpeg"),
-  highlight = 1,
+  outliers = 1,
   file = NULL
 )
 ```
@@ -61,11 +61,14 @@ viewcurves(
   Character string. "html" (default) for the Shiny app; "jpeg" for the
   two graphs of all the individuals.
 
-- highlight:
+- outliers:
 
   Non-negative integer. With `output="jpeg"`, the number of individuals
   drawn in red for each direction, the largest increase and the largest
-  decrease between successive observations; 0 for none. Default 1.
+  decrease between successive observations, so up to twice as many
+  individuals in all; 0 for none. Default 1. The same argument of
+  [`plot.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/plot.gcTMB.md)
+  counts the observations with the largest absolute residuals.
 
 - file:
 
@@ -76,8 +79,8 @@ viewcurves(
 ## Value
 
 With `output="html"`, a `shiny.appobj`. With `output="jpeg"`, invisibly,
-a list of the two ggplot graphs, `curves` and `rate`, and `highlighted`,
-a data frame of the highlighted individuals: `id`, `direction`
+a list of the two ggplot graphs, `curves` and `rate`, and `outliers`, a
+data frame of the individuals drawn in red: `id`, `direction`
 ("increase" or "decrease"), `rate` (the growth rate) and `from` and `to`
 (the interval of `x`).
 
@@ -119,9 +122,9 @@ With `output="jpeg"`, the two graphs are drawn side by side, or written
 to the JPEG file `file`. Without `colour` and `linetype`, the first two
 covariates set them: the one with more distinct values the colour, the
 other the line type (if it has at most 6 values; the first of them on a
-tie). A single covariate sets the colour. The `highlight` individuals
+tie). A single covariate sets the colour. The `outliers` individuals
 with the largest positive growth rate (the steepest increase between two
-successive observations) and the `highlight` individuals with the most
+successive observations) and the `outliers` individuals with the most
 negative growth rate (the steepest decrease), each individual counted at
 its own steepest interval, are drawn in red in the graph of the curves
 and labelled at their last observation, the others fainter; they are
@@ -142,7 +145,7 @@ vc <- viewcurves(FabaHeights26, x="DAS", y="Height", id="Plant_ID",
 #> Largest increase between successive observations: Plant_ID 39_4 (growth rate 6.38 from DAS 90 to 98)
 #> Largest decrease between successive observations: Plant_ID 46_5 (growth rate -7.86 from DAS 83 to 90)
 
-vc$highlighted
+vc$outliers
 #>     id direction      rate from to
 #> 1 39_4  increase  6.375000   90 98
 #> 2 46_5  decrease -7.857143   83 90

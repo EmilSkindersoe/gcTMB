@@ -60,7 +60,10 @@ plot(
   Non-negative integer. The number of observations with the largest
   absolute residuals labelled by their individual in the graphs of
   `type="validation1"` (models with random effects only); 0 for none.
-  Default 1.
+  Default 1. The same argument of
+  [`viewcurves`](https://emilskindersoe.github.io/gcTMB/reference/viewcurves.md)
+  counts the individuals with the steepest increase and decrease between
+  successive observations.
 
 - residuals:
 
