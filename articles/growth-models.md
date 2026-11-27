@@ -687,11 +687,11 @@ trts <- data.frame(trt = levels(FabaHeights25$trt))
 fittrt <- gcTMB(Height ~ DAS, fform = b1 + b2 ~ trt, data = FabaHeights25)
 coef(fittrt)
 #> b1:(Intercept)      b1:trt0.3      b1:trt0.5      b1:trt0.6      b1:trt0.8 
-#>    115.4809437     -1.7965772     10.1843921     11.1921913      8.7152228 
+#>    115.4809407     -1.7965762     10.1843932     11.1921924      8.7152239 
 #> b2:(Intercept)      b2:trt0.3      b2:trt0.5      b2:trt0.6      b2:trt0.8 
-#>     30.4324020     -1.3524743      0.5712569      1.0744934      1.2993753 
+#>     30.4324014     -1.3524739      0.5712574      1.0744939      1.2993757 
 #> b3:(Intercept)      log_sigma 
-#>     12.9539667      2.0255569
+#>     12.9539661      2.0255569
 ```
 
 [`predict()`](https://rdrr.io/r/stats/predict.html) with

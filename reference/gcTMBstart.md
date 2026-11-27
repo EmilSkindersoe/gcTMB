@@ -52,8 +52,11 @@ gcTMBstart(
 
 - start:
 
-  Numeric vector or NULL. Starting values for each model parameter. Only
-  NA entries are replaced; NULL (default) computes all of them.
+  Numeric vector, list or NULL. Starting values for each model
+  coefficient, as in
+  [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md).
+  Only NA entries are replaced; NULL (default) computes all of them. Of
+  a start list, only the coefficients (`fixef`) are used.
 
 - fix:
 
@@ -150,13 +153,23 @@ this curve, and the asymptote with the smallest residual sum of squares
 is used. Mean responses below 1\\ linearised curve and are left out.
 With covariates in `fform`, the pooled starting value of each parameter
 is projected onto its design matrix, giving the intercept or each group
-the pooled value and contrasts a value of zero. The threshold b4, fixed
-at 0 by default, starts when estimated where the curve without
-truncation reaches 1\\ time with a positive count, and for the lognormal
-and beta families before all times, as positive responses are impossible
-before the threshold. The asymmetry b5 starts at 1, the symmetric curve,
-with which b2 and b3 are linearised unless b5 is given in start; b4
-without truncation starts at 0.
+the pooled value and contrasts a value of zero. Then, for each parameter
+with coefficients of covariates without a starting value in `start`
+(NA), the starting values are computed in the same way within each
+combination of the covariates of fform (each cell), and these
+coefficients are the least squares fit of the cell values, on the scale
+of the link, on the design, weighted by the numbers of observations of
+the cells, with the given coefficients kept: e.g. the contrast of a
+factor is the difference of the starting values of its levels.
+Coefficients given in `start` are kept, so 0 for the contrasts gives the
+pooled starting values. Cells with fewer than 5 distinct times are left
+out, and with more than 50 cells the pooled starting values are kept.
+The threshold b4, fixed at 0 by default, starts when estimated where the
+curve without truncation reaches 1\\ time with a positive count, and for
+the lognormal and beta families before all times, as positive responses
+are impossible before the threshold. The asymmetry b5 starts at 1, the
+symmetric curve, with which b2 and b3 are linearised unless b5 is given
+in start; b4 without truncation starts at 0.
 
 The beta, beta_capped, chapmanrichards and korf curves are not
 linearised: b1-b3 are fitted by least squares to the mean responses

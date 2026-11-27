@@ -78,12 +78,29 @@ gcTMB(
 
 - start:
 
-  Numeric vector or NULL. Starting values for each model coefficient. NA
-  entries are replaced by the starting values of
+  Numeric vector, list or NULL. Starting values for each model
+  coefficient. NA entries are replaced by the starting values of
   [`gcTMBstart`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md),
-  and NULL (default) uses them for all coefficients. Alternatively, a
-  vector named by parameter, e.g. c(b1=10), gives the same starting
-  value to all coefficients of each named parameter.
+  and NULL (default) uses them for all coefficients; with covariates in
+  fform, the coefficients of the covariates without a starting value are
+  computed from starting values within each combination of the
+  covariates (see
+  [`gcTMBstart`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md)),
+  and 0 for them gives the pooled starting values of all the data.
+  Alternatively, a vector named by parameter, e.g. c(b1=10), gives the
+  same starting value to all coefficients of each named parameter. A
+  list gives starting values of the other parameters too, with the
+  components `fixef` (the coefficients, as the numeric vector above),
+  `VarCorr` (covariance matrices of the random effects, named by the
+  terms as returned by
+  [`VarCorr`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md),
+  or a single matrix for one term; NA entries, and the correlations of a
+  matrix with NA entries, start from the data) and `sigma` (the residual
+  standard deviation, or the dispersion of the other families), e.g.
+  `start=list(fixef=c(b1=100), sigma=2)`; the components not given start
+  from the data.
+  [`update.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/update.gcTMB.md)
+  with `startfrom="fit"` gives such a list from a fit.
 
 - fix:
 
@@ -561,10 +578,10 @@ summary(fitre)
 #> Coefficients:
 #>                Estimate Std. Error z value Pr(>|z|)    
 #> b1:(Intercept) 115.7419     4.0576  28.525   <2e-16 ***
-#> b1:trt0.3       -3.1569     5.6806  -0.556   0.5784    
-#> b1:trt0.5        9.8502     5.5933   1.761   0.0782 .  
-#> b1:trt0.6       11.1356     5.6175   1.982   0.0474 *  
-#> b1:trt0.8        8.9832     5.6351   1.594   0.1109    
+#> b1:trt0.3       -3.1567     5.6806  -0.556   0.5784    
+#> b1:trt0.5        9.8496     5.5933   1.761   0.0782 .  
+#> b1:trt0.6       11.1367     5.6175   1.982   0.0474 *  
+#> b1:trt0.8        8.9827     5.6351   1.594   0.1109    
 #> b2:(Intercept)  30.8745     0.5402  57.151   <2e-16 ***
 #> b3:(Intercept)  12.8441     0.2498  51.418   <2e-16 ***
 #> ---
@@ -573,12 +590,12 @@ summary(fitre)
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr 
-#>  Plant_ID b1   8.842         
-#>           b2   2.550    -0.33
+#>  Plant_ID b1   8.84          
+#>           b2   2.55     -0.33
 #> 
 #> Residual standard deviation: 2.075
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 5.2e-05
+#> Optimiser: relative convergence (4), maximum absolute gradient 1.5e-05
 
 # treatment effects on the maximum growth rate, b1 with b1type = "rate", tested by a likelihood
 # ratio test and compared with the first treatment

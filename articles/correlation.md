@@ -62,25 +62,26 @@ itself.
 
 The plots are sampled about every 15 days, at unequal intervals, so
 `corCAR1(form = ~ DOY | plot)` is the structure to use, with $`\rho`$
-the correlation per day. Its starting value is $`\rho = 0.2`$ by
-default, which is a correlation of $`0.2^{15}`$, practically zero,
-between consecutive samplings; there the likelihood hardly changes with
-$`\rho`$, and the optimiser stays near the starting value. A starting
-value close to 1, `value = 0.9`, starts from a correlation of
-$`0.9^{15} \approx 0.2`$ between samplings. For the lognormal family,
-the correlation is that of the residuals of $`\log(y)`$, the relative
-deviations from the curve:
+the correlation per day. By default, its starting value is the $`\rho`$
+that gives a correlation of 0.2 at the median time between consecutive
+observations of a group, $`\rho = 0.2^{1/15} \approx 0.90`$ per day
+here, whatever the unit of time. (A start of 0.2 per day, as in nlme,
+would be a correlation of $`0.2^{15}`$, practically zero, between
+samplings, where the likelihood hardly changes with $`\rho`$ and the
+optimiser stays near the start.) `value` gives another starting value.
+For the lognormal family, the correlation is that of the residuals of
+$`\log(y)`$, the relative deviations from the curve:
 
 ``` r
 
 fitrec <- gcTMB(Biomass ~ DOY, fform = b1 + b2 ~ Crop * Input, rform = b1 ~ 1 | plot, data = sm,
                 model = "beta", start = c(b4 = 141), family = "lognormal",
-                correlation = corCAR1(value = 0.9, form = ~ DOY | plot))
+                correlation = corCAR1(form = ~ DOY | plot))
 summary(fitrec)
 #> Call:
 #> gcTMB(form = Biomass ~ DOY, fform = b1 + b2 ~ Crop * Input, rform = b1 ~ 
-#>     1 | plot, data = sm, start = c(b4 = 141), correlation = corCAR1(value = 0.9, 
-#>     form = ~DOY | plot), family = "lognormal", model = "beta")
+#>     1 | plot, data = sm, start = c(b4 = 141), correlation = corCAR1(form = ~DOY | 
+#>     plot), family = "lognormal", model = "beta")
 #> 
 #> Model:  beta
 #> Family: lognormal, identity link for all parameters
@@ -90,17 +91,17 @@ summary(fitrec)
 #> 
 #> Coefficients:
 #>                                Estimate Std. Error z value Pr(>|z|)    
-#> b1:(Intercept)                  32.6795     2.3532  13.887  < 2e-16 ***
-#> b1:CropMaize                   -13.0754     2.9466  -4.437  9.1e-06 ***
+#> b1:(Intercept)                  32.6796     2.3532  13.887  < 2e-16 ***
+#> b1:CropMaize                   -13.0755     2.9466  -4.438  9.1e-06 ***
 #> b1:CropSweet sorghum            -0.1908     3.3406  -0.057   0.9545    
-#> b1:InputHigh                     7.1624     3.6936   1.939   0.0525 .  
-#> b1:CropMaize:InputHigh           1.2994     4.7927   0.271   0.7863    
+#> b1:InputHigh                     7.1623     3.6936   1.939   0.0525 .  
+#> b1:CropMaize:InputHigh           1.2996     4.7927   0.271   0.7863    
 #> b1:CropSweet sorghum:InputHigh   2.2539     5.3285   0.423   0.6723    
-#> b2:(Intercept)                 237.4210     1.4388 165.012  < 2e-16 ***
+#> b2:(Intercept)                 237.4210     1.4388 165.013  < 2e-16 ***
 #> b2:CropMaize                    -5.3300     2.3608  -2.258   0.0240 *  
-#> b2:CropSweet sorghum             2.3127     1.7981   1.286   0.1984    
+#> b2:CropSweet sorghum             2.3126     1.7981   1.286   0.1984    
 #> b2:InputHigh                    -0.6375     1.8354  -0.347   0.7283    
-#> b2:CropMaize:InputHigh           0.5966     3.2051   0.186   0.8523    
+#> b2:CropMaize:InputHigh           0.5967     3.2051   0.186   0.8523    
 #> b2:CropSweet sorghum:InputHigh   0.5322     2.4436   0.218   0.8276    
 #> b3:(Intercept)                 278.3070     1.0786 258.028  < 2e-16 ***
 #> ---
@@ -109,25 +110,25 @@ summary(fitrec)
 #> Fixed: b4:(Intercept) = 141
 #> 
 #> Random effects:
-#>  Groups Name Std.Dev. 
-#>  plot   b1   0.0002202
+#>  Groups Name Std.Dev.
+#>  plot   b1   0.00026 
 #> Standard deviations close to zero (singular fit): plot b1
 #> 
 #> Residual standard deviation of log(y): 0.2904
 #> 
 #> Correlation structure: continuous-time AR(1) in DOY within plot
-#> rho: 0.04809
+#> rho: 0.06
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 2.2e-05
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.00013
 corpars(fitrec)^15
 #>          rho 
-#> 1.702408e-20
+#> 1.308854e-18
 anova(fitre, fitrec)
 #> Likelihood ratio tests of gcTMB models
 #> 
-#>        npar    AIC    BIC  logLik deviance         LR Df Pr(>LR)
-#> fitre    15 962.53 1012.9 -466.27   932.53                      
-#> fitrec   16 964.53 1018.2 -466.27   932.53 2.8821e-08  1  0.9999
+#>        npar    AIC    BIC  logLik deviance          LR Df Pr(>LR)
+#> fitre    15 962.53 1012.9 -466.27   932.53                       
+#> fitrec   16 964.53 1018.2 -466.27   932.53 -5.3218e-08  1       1
 ```
 
 The estimate of $`\rho`$ moves far down from its starting value, to a
@@ -227,9 +228,9 @@ range and the nugget, avoids this:
 
 ``` r
 
-fitexp <- update(fit0, correlation = corExp(5, form = ~ X + Y | Plot))
-fitexpn <- update(fit0, correlation = corExp(c(5, 0.2), form = ~ X + Y | Plot, nugget = TRUE))
-fitgausn <- update(fit0, correlation = corGaus(c(5, 0.2), form = ~ X + Y | Plot, nugget = TRUE))
+fitexp <- refit(fit0, correlation = corExp(5, form = ~ X + Y | Plot))
+fitexpn <- refit(fit0, correlation = corExp(c(5, 0.2), form = ~ X + Y | Plot, nugget = TRUE))
+fitgausn <- refit(fit0, correlation = corGaus(c(5, 0.2), form = ~ X + Y | Plot, nugget = TRUE))
 fitexpn
 #> Call:
 #> gcTMB(form = Height ~ DBH, data = pines, correlation = corExp(c(5, 
@@ -246,7 +247,7 @@ fitexpn
 #> Residual standard deviation: 2.62
 #> 
 #> Correlation structure: exponential in X + Y within Plot, with nugget
-#> range: 53.6572, nugget:  0.2835
+#> range: 53.66, nugget: 0.28
 rbind(exponential = c(corpars(fitexp), nugget = 0), "exponential, nugget" = corpars(fitexpn),
       "Gaussian, nugget" = corpars(fitgausn))
 #>                         range    nugget
@@ -310,9 +311,9 @@ overview
 ``` r
 
 ctl <- list(restart = TRUE)
-fitre1 <- update(fit0, rform = b1 ~ 1 | Plot, control = ctl)
-fitre2 <- update(fit0, rform = b1 + b2 ~ 1 || Plot, control = ctl)
-fitre1exp <- update(fit0, rform = b1 ~ 1 | Plot, correlation = corExp(5, form = ~ X + Y | Plot), control = ctl)
+fitre1 <- refit(fit0, rform = b1 ~ 1 | Plot, control = ctl)
+fitre2 <- refit(fit0, rform = b1 + b2 ~ 1 || Plot, control = ctl)
+fitre1exp <- refit(fit0, rform = b1 ~ 1 | Plot, correlation = corExp(5, form = ~ X + Y | Plot), control = ctl)
 sapply(list(fitre1 = fitre1, fitre2 = fitre2, fitre1exp = fitre1exp), converged)
 #>    fitre1    fitre2 fitre1exp 
 #>      TRUE      TRUE      TRUE

@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,7 +62,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Growth models and their parameters</h1>
             
-            <h4 data-toc-skip class="date">2026-11-26</h4>
+            <h4 data-toc-skip class="date">2026-11-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/growth-models.Rmd" class="external-link"><code>vignettes/growth-models.Rmd</code></a></small>
       <div class="d-none name"><code>growth-models.Rmd</code></div>
@@ -1042,11 +1042,11 @@ effects</em>, accounts for them.</p>
 <span><span class="va">fittrt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">trt</span>, data <span class="op">=</span> <span class="va">FabaHeights25</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fittrt</span><span class="op">)</span></span>
 <span><span class="co">#&gt; b1:(Intercept)      b1:trt0.3      b1:trt0.5      b1:trt0.6      b1:trt0.8 </span></span>
-<span><span class="co">#&gt;    115.4809437     -1.7965772     10.1843921     11.1921913      8.7152228 </span></span>
+<span><span class="co">#&gt;    115.4809407     -1.7965762     10.1843932     11.1921924      8.7152239 </span></span>
 <span><span class="co">#&gt; b2:(Intercept)      b2:trt0.3      b2:trt0.5      b2:trt0.6      b2:trt0.8 </span></span>
-<span><span class="co">#&gt;     30.4324020     -1.3524743      0.5712569      1.0744934      1.2993753 </span></span>
+<span><span class="co">#&gt;     30.4324014     -1.3524739      0.5712574      1.0744939      1.2993757 </span></span>
 <span><span class="co">#&gt; b3:(Intercept)      log_sigma </span></span>
-<span><span class="co">#&gt;     12.9539667      2.0255569</span></span></code></pre></div>
+<span><span class="co">#&gt;     12.9539661      2.0255569</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> with <code>type = "parameters"</code> gives
 the parameters of the curve of each treatment, and <code>newdata</code>
 with the treatment and the time the curves with their confidence

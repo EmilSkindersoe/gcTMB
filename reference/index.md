@@ -17,8 +17,10 @@
   [`varPower()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
   [`varConstPower()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
   : Variance functions for heteroscedastic residuals
+- [`refit()`](https://emilskindersoe.github.io/gcTMB/reference/refit.md)
+  : Refit a gcTMB model with other components
 - [`update(`*`<gcTMB>`*`)`](https://emilskindersoe.github.io/gcTMB/reference/update.gcTMB.md)
-  : Update a gcTMB fit, or set its parameters
+  : Set the parameters of a gcTMB fit
 - [`converged()`](https://emilskindersoe.github.io/gcTMB/reference/converged.md)
   : Convergence of a gcTMB fit
 

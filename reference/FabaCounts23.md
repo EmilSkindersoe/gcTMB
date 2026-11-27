@@ -82,5 +82,5 @@ summary(fit)
 #> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
 #> 
-#> Optimiser: both X-convergence and relative convergence (5), maximum absolute gradient 1.1e-06
+#> Optimiser: relative convergence (4), maximum absolute gradient 7.5e-12
 ```

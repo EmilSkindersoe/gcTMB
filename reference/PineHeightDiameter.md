@@ -93,7 +93,7 @@ summary(fit)
 #> 
 #> Random effects:
 #>  Groups Name Std.Dev.
-#>  Plot   b1   5.163   
+#>  Plot   b1   5.16    
 #> 
 #> Residual standard deviation: 1.141
 #> 

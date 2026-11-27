@@ -109,9 +109,11 @@ few observations. Their standard errors include the uncertainty of the
 fixed effects and the prediction error of the random effects, from the
 joint precision matrix of
 [`sdreport`](https://rdrr.io/pkg/TMB/man/sdreport.html). Random effect
-terms without a grouping variable in newdata, or with a level that is
-not in the fitted data, are treated as above. Profile intervals are not
-available for the times of fitted groups, see
+terms without a grouping variable in newdata, or with a missing level
+(NA) or a level that is not in the fitted data, are treated as above;
+the last two with a warning, as in
+[`maxrate`](https://emilskindersoe.github.io/gcTMB/reference/maxrate.md).
+Profile intervals are not available for the times of fitted groups, see
 [`confint.timetoTMB`](https://emilskindersoe.github.io/gcTMB/reference/confint.gcTMB.md).
 
 With `residual=TRUE` (gaussian family), the standard errors are those of

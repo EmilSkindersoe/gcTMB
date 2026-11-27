@@ -68,11 +68,11 @@ These are shrunken towards the population curve, more so for groups with
 few observations. The standard errors then include the uncertainty of
 the fixed effects and the prediction error of the random effects, from
 the joint precision matrix of
-[`sdreport`](https://rdrr.io/pkg/TMB/man/sdreport.html). A level that is
-not in the fitted data gives the population curve for that term, with a
-warning. Profile intervals are not available for the curves of fitted
-groups; `confint` returns Wald intervals for them, and bootstrap
-intervals with `method="boot"`.
+[`sdreport`](https://rdrr.io/pkg/TMB/man/sdreport.html). A missing level
+(NA), or a level that is not in the fitted data, gives the population
+curve for that term, with a warning. Profile intervals are not available
+for the curves of fitted groups; `confint` returns Wald intervals for
+them, and bootstrap intervals with `method="boot"`.
 
 For each curve, `maxrate` gives
 

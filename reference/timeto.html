@@ -9,7 +9,7 @@ response, with standard errors by the delta method and automatic differentiation
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -114,7 +114,8 @@ modes), as in <code><a href="gcTMB-methods.html">predict.gcTMB</a></code>. These
 for groups with few observations. Their standard errors include the uncertainty of the fixed
 effects and the prediction error of the random effects, from the joint precision matrix of
 <code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">sdreport</a></code>. Random effect terms without a grouping variable in newdata, or with a
-level that is not in the fitted data, are treated as above. Profile intervals are not available
+missing level (NA) or a level that is not in the fitted data, are treated as above; the last two
+with a warning, as in <code><a href="maxrate.html">maxrate</a></code>. Profile intervals are not available
 for the times of fitted groups, see <code><a href="confint.gcTMB.html">confint.timetoTMB</a></code>.</p>
 <p>With <code>residual=TRUE</code> (gaussian family), the standard errors are those of the time at which a
 single observation, rather than the curve, reaches the level: the residual r of the observation shifts

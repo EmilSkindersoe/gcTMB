@@ -18,7 +18,7 @@ without fitting the models again.
 bootstrap(object, nsim = 500, seed = NULL, progress = interactive())
 
 # S3 method for class 'bootstrap.gcTMB'
-print(x, digits = max(3L, getOption("digits") - 3L), ...)
+print(x, digits = max(3L, getOption("digits") - 3L), n = NULL, ...)
 
 # S3 method for class 'bootstrap.gcTMB'
 confint(object, parm = NULL, level = 0.95, ...)
@@ -52,6 +52,14 @@ confint(object, parm = NULL, level = 0.95, ...)
 - digits:
 
   Integer. Number of significant digits in the printed output
+
+- n:
+
+  Integer or NULL. The maximum number of estimates printed; NULL
+  (default) for the option `gcTMB.print.max`, 100 unless set, e.g.
+  `options(gcTMB.print.max = 200)`; `Inf` for all. When estimates are
+  left out, a note at the end says how many, and how to show or extract
+  all of them
 
 - ...:
 

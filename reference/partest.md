@@ -29,7 +29,7 @@ partest(
 )
 
 # S3 method for class 'partest.gcTMB'
-print(x, digits = 3, ...)
+print(x, digits = 3, n = NULL, ...)
 ```
 
 ## Arguments
@@ -83,6 +83,14 @@ print(x, digits = 3, ...)
 - digits:
 
   Integer. Number of significant digits
+
+- n:
+
+  Integer or NULL. The maximum number of comparisons printed; NULL
+  (default) for the option `gcTMB.print.max`, 100 unless set, e.g.
+  `options(gcTMB.print.max = 200)`; `Inf` for all. When comparisons are
+  left out, a note at the end says how many, and how to show or extract
+  all of them
 
 - ...:
 

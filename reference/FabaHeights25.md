@@ -69,8 +69,8 @@ summary(fit)
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr 
-#>  Plant_ID b1   10.237        
-#>           b2    2.561   -0.12
+#>  Plant_ID b1   10.24         
+#>           b2   2.56     -0.12
 #> 
 #> Residual standard deviation: 2.074
 #> 

@@ -38,9 +38,12 @@ corGaus(
 
   Numeric. The starting value of the parameters, or their values with
   `fixed=TRUE`: rho, between -1 and 1 (default 0) for `corAR1` and
-  between 0 and 1 (default 0.2) for `corCAR1`; for `corExp` and
-  `corGaus` the range, or with a nugget the range and the nugget
-  (default: see Details)
+  between 0 and 1 for `corCAR1`, by default the rho with a correlation
+  of 0.2 at the median time d between successive observations of a
+  group, \\0.2^{1/d}\\, so that the start does not depend on the unit of
+  time (0.2 if `fixed=TRUE`, as in nlme); for `corExp` and `corGaus` the
+  range, or with a nugget the range and the nugget (default: see
+  Details)
 
 - form:
 
@@ -173,7 +176,7 @@ fit <- gcTMB(Height ~ DAS, fform=b1 + b2 ~ trt, rform=b1 + b2 ~ 1 | Plant_ID, da
              correlation=corCAR1(form=~ DAS | Plant_ID))
 corpars(fit)
 #>       rho 
-#> 0.9593852 
+#> 0.9593854 
 # spatial correlation between neighbouring trees of a plot, with a nugget (independent
 # measurement error), on five of the plots
 pines <- droplevels(subset(PineHeightDiameter, Plot %in% 1:5))

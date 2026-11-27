@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,7 +62,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Fixed and random effects</h1>
             
-            <h4 data-toc-skip class="date">2026-11-26</h4>
+            <h4 data-toc-skip class="date">2026-11-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/fixed-random-effects.Rmd" class="external-link"><code>vignettes/fixed-random-effects.Rmd</code></a></small>
       <div class="d-none name"><code>fixed-random-effects.Rmd</code></div>
@@ -168,8 +168,8 @@ which account for the trees of a plot sharing their site and stand.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;  Groups Name Std.Dev. Corr </span></span>
-<span><span class="co">#&gt;  Plot   b1   4.30895       </span></span>
-<span><span class="co">#&gt;         b2   0.04967  -0.90</span></span>
+<span><span class="co">#&gt;  Plot   b1   4.31          </span></span>
+<span><span class="co">#&gt;         b2   0.05     -0.90</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation: 0.9868</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -178,10 +178,12 @@ which account for the trees of a plot sharing their site and stand.</p>
 <h3 id="testing-the-fixed-effects">Testing the fixed effects<a class="anchor" aria-label="anchor" href="#testing-the-fixed-effects"></a>
 </h3>
 <p>Likelihood ratio tests by <code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova()</a></code> compare nested models,
-here with and without the effect of the mean diameter.</p>
+here with and without the effect of the mean diameter.
+<code><a href="../reference/refit.html">refit()</a></code> fits a model again with some of its components
+changed and all its other arguments reused, here without
+<code>fform</code>:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fitre0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DBH</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plot</span>, data <span class="op">=</span> <span class="va">PineHeightDiameter</span>, model <span class="op">=</span> <span class="st">"chapmanrichards"</span>,</span>
-<span>                start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">1.3</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">fitre0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fitre</span>, fform <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in nlminb(start = obj$par, objective = obj$fn, gradient = obj$gr, :</span></span>
 <span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">fitre0</span>, <span class="va">fitre</span><span class="op">)</span></span>
@@ -221,8 +223,7 @@ with a random asymptote, and with random asymptotes and rates. Some of
 these fits need <code>control = list(restart = TRUE)</code> to converge
 (see the overview <code><a href="../articles/gcTMB.html">vignette("gcTMB")</a></code>).</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fitre1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DBH</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="va">Dmean</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plot</span>, data <span class="op">=</span> <span class="va">PineHeightDiameter</span>,</span>
-<span>                model <span class="op">=</span> <span class="st">"chapmanrichards"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">1.3</span><span class="op">)</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">fitre1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fitre</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plot</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">fitdm</span>, <span class="va">fitre1</span>, <span class="va">fitre</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Likelihood ratio tests of gcTMB models</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -246,8 +247,7 @@ both models to each simulation and takes several minutes:</p>
 and those of <code>b1 + b2 ~ 1 || Plot</code> independent; the
 likelihood ratio test of the two tests their correlation:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fitred</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DBH</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="va">Dmean</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">||</span> <span class="va">Plot</span>, data <span class="op">=</span> <span class="va">PineHeightDiameter</span>,</span>
-<span>                model <span class="op">=</span> <span class="st">"chapmanrichards"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">1.3</span><span class="op">)</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">fitred</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fitre</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">||</span> <span class="va">Plot</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in nlminb(start = obj$par, objective = obj$fn, gradient = obj$gr, :</span></span>
 <span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">fitred</span>, <span class="va">fitre</span><span class="op">)</span></span>
@@ -285,12 +285,47 @@ keeps it there; on these data it is pulled towards 1, where the curve
 becomes a power curve without an asymptote. The Chapman-Richards and
 Korf models are not nested, and are compared by their AIC:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fitk</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DBH</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="va">Dmean</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plot</span>, data <span class="op">=</span> <span class="va">PineHeightDiameter</span>,</span>
-<span>              model <span class="op">=</span> <span class="st">"korf"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">1.3</span><span class="op">)</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">fitk</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fitre</span>, model <span class="op">=</span> <span class="st">"korf"</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fitre</span>, <span class="va">fitk</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       df      AIC</span></span>
 <span><span class="co">#&gt; fitre  8 5098.322</span></span>
 <span><span class="co">#&gt; fitk   8 5142.804</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="starting-values">Starting values<a class="anchor" aria-label="anchor" href="#starting-values"></a>
+</h3>
+<p><code><a href="../reference/gcTMB.html">gcTMB()</a></code> computes starting values from the data (see
+<code><a href="../reference/gcTMBstart.html">?gcTMBstart</a></code>): the curve fitted to the mean responses, the
+coefficients of the covariates of <code>fform</code> from the same fit
+within each combination of the covariates, and the variances of the
+random effects from a fit of each group around that curve.
+<code>start</code> gives other values: a vector of the coefficients, or
+a list with also the covariance matrices of the random effects
+(<code>VarCorr</code>) and the residual standard deviation
+(<code>sigma</code>). <code><a href="../reference/refit.html">refit()</a></code> with
+<code>startfrom = "fit"</code> starts from the estimates of the fit it
+refits, where they carry over: here the coefficients, the residual
+standard deviation and the variance of the random asymptote of
+<code>fitre1</code>, while the variance of the random rate and its
+correlation with the asymptote start from the data. The call of the new
+fit shows the starting values used:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fitre2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fitre1</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plot</span>, startfrom <span class="op">=</span> <span class="st">"fit"</span><span class="op">)</span></span>
+<span><span class="va">fitre2</span><span class="op">$</span><span class="va">call</span><span class="op">$</span><span class="va">start</span><span class="op">$</span><span class="va">VarCorr</span></span>
+<span><span class="co">#&gt; $Plot</span></span>
+<span><span class="co">#&gt;          [,1] [,2]</span></span>
+<span><span class="co">#&gt; [1,] 9.535284   NA</span></span>
+<span><span class="co">#&gt; [2,]       NA   NA</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik</a></span><span class="op">(</span><span class="va">fitre2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik</a></span><span class="op">(</span><span class="va">fitre</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] -2549.320 -2541.161</span></span></code></pre></div>
+<p>Both fits converge, but to different maxima: the refit from the
+estimates of <code>fitre1</code> stops at a local maximum of the
+likelihood, below that of <code>fitre</code>, whose starting values come
+from the data. A refit from the estimates is often quicker and usually
+lands at the same maximum, but not always; fits of the same model from
+different starting values, here <code>fitre</code> and
+<code>fitre2</code>, are a simple check that the maximum is the global
+one.</p>
 </div>
 <div class="section level3">
 <h3 id="plotting-the-curves">Plotting the curves<a class="anchor" aria-label="anchor" href="#plotting-the-curves"></a>
@@ -299,13 +334,13 @@ Korf models are not nested, and are compared by their AIC:</p>
 of each plot and the population curves; <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> gives the
 population curves with confidence intervals, here for plots with small,
 medium and large trees:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fitre</span>, type <span class="op">=</span> <span class="st">"curves"</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">52</span>, by <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span>, draw <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">p</span><span class="op">$</span><span class="va">curves</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Diameter at breast height (cm)"</span>, y <span class="op">=</span> <span class="st">"Height (m)"</span>, colour <span class="op">=</span> <span class="st">"Mean diameter\nof the plot (cm)"</span>,</span>
 <span>                title <span class="op">=</span> <span class="st">"Curve of each plot (thin) and population curves (thick)"</span>,</span>
 <span>                subtitle <span class="op">=</span> <span class="st">"Population curves at the 10%, 50% and 90% quantiles of the mean diameter"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fixed-random-effects_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<p><img src="fixed-random-effects_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>DBH <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">52</span>, by <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span>, Dmean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">nd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">nd</span>, <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitre</span>, newdata <span class="op">=</span> <span class="va">nd</span>, random <span class="op">=</span> <span class="cn">FALSE</span>, interval <span class="op">=</span> <span class="st">"confidence"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">PineHeightDiameter</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">DBH</span>, y <span class="op">=</span> <span class="va">Height</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -317,7 +352,7 @@ medium and large trees:</p>
 <span>       fill <span class="op">=</span> <span class="st">"Mean diameter\nof the plot (cm)"</span>, title <span class="op">=</span> <span class="st">"Population curves with 95% confidence intervals"</span>,</span>
 <span>       subtitle <span class="op">=</span> <span class="st">"Trees of the same diameter are taller in plots of larger trees"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fixed-random-effects_files/figure-html/unnamed-chunk-9-2.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="fixed-random-effects_files/figure-html/unnamed-chunk-10-2.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div class="section level2">
@@ -333,9 +368,10 @@ the time of the first pods, is identified by the zero counts and
 estimated. A Poisson model with an asymptote and a time of the maximum
 growth rate for each genotype, and a random asymptote for each
 plant:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Genotype</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Tube_ID</span>, data <span class="op">=</span> <span class="va">FabaCounts23</span>,</span>
 <span>              family <span class="op">=</span> <span class="st">"poisson"</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: the optimiser did not converge: false convergence (8)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fitp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; gcTMB(form = Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ </span></span>
@@ -349,41 +385,42 @@ plant:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;                    Estimate Std. Error  z value Pr(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; b1:(Intercept)      14.5996     2.3239    6.282 3.34e-10 ***</span></span>
-<span><span class="co">#&gt; b1:GenotypeCapri    -3.4020     2.9743   -1.144  0.25270    </span></span>
-<span><span class="co">#&gt; b1:GenotypeILB938   -5.4787     2.9575   -1.852  0.06396 .  </span></span>
-<span><span class="co">#&gt; b1:GenotypeLynx      4.9820     3.2331    1.541  0.12334    </span></span>
-<span><span class="co">#&gt; b1:GenotypeMelodie  10.6976     3.6762    2.910  0.00361 ** </span></span>
-<span><span class="co">#&gt; b1:GenotypeNavara    3.1797     3.1856    0.998  0.31821    </span></span>
-<span><span class="co">#&gt; b2:(Intercept)      70.0533     0.4689  149.394  &lt; 2e-16 ***</span></span>
-<span><span class="co">#&gt; b2:GenotypeCapri    -0.8504     0.6405   -1.328  0.18424    </span></span>
-<span><span class="co">#&gt; b2:GenotypeILB938   -1.0084     0.7024   -1.436  0.15110    </span></span>
-<span><span class="co">#&gt; b2:GenotypeLynx      2.7439     0.5512    4.978 6.42e-07 ***</span></span>
-<span><span class="co">#&gt; b2:GenotypeMelodie   3.2443     0.5515    5.882 4.05e-09 ***</span></span>
-<span><span class="co">#&gt; b2:GenotypeNavara    2.6005     0.5584    4.657 3.21e-06 ***</span></span>
-<span><span class="co">#&gt; b3:(Intercept)       1.3389     0.1494    8.961  &lt; 2e-16 ***</span></span>
-<span><span class="co">#&gt; b4:(Intercept)      65.0000     0.0239 2719.707  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b1:(Intercept)     14.59960    2.32393    6.282 3.34e-10 ***</span></span>
+<span><span class="co">#&gt; b1:GenotypeCapri   -3.40197    2.97431   -1.144  0.25271    </span></span>
+<span><span class="co">#&gt; b1:GenotypeILB938  -5.47869    2.95747   -1.852  0.06396 .  </span></span>
+<span><span class="co">#&gt; b1:GenotypeLynx     4.98202    3.23315    1.541  0.12334    </span></span>
+<span><span class="co">#&gt; b1:GenotypeMelodie 10.69765    3.67623    2.910  0.00361 ** </span></span>
+<span><span class="co">#&gt; b1:GenotypeNavara   3.17985    3.18562    0.998  0.31819    </span></span>
+<span><span class="co">#&gt; b2:(Intercept)     70.05333    0.46892  149.393  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b2:GenotypeCapri   -0.85040    0.64045   -1.328  0.18424    </span></span>
+<span><span class="co">#&gt; b2:GenotypeILB938  -1.00839    0.70238   -1.436  0.15110    </span></span>
+<span><span class="co">#&gt; b2:GenotypeLynx     2.74386    0.55116    4.978 6.41e-07 ***</span></span>
+<span><span class="co">#&gt; b2:GenotypeMelodie  3.24425    0.55154    5.882 4.05e-09 ***</span></span>
+<span><span class="co">#&gt; b2:GenotypeNavara   2.60055    0.55842    4.657 3.21e-06 ***</span></span>
+<span><span class="co">#&gt; b3:(Intercept)      1.33894    0.14940    8.962  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b4:(Intercept)     65.00000    0.02389 2720.329  &lt; 2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;  Groups  Name Std.Dev.</span></span>
-<span><span class="co">#&gt;  Tube_ID b1   3.355   </span></span>
+<span><span class="co">#&gt;  Tube_ID b1   3.36    </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: converged, with the threshold b4 at an observation time (a kink of the likelihood), maximum absolute gradient 3.2</span></span>
+<span><span class="co">#&gt; Optimiser: false convergence (8), maximum absolute gradient 0.27</span></span>
+<span><span class="co">#&gt; Warning: the optimiser did not converge: false convergence (8)</span></span>
 <span><span class="va">genotypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Genotype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">FabaCounts23</span><span class="op">$</span><span class="va">Genotype</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">genotypes</span>, <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitp</span>, newdata <span class="op">=</span> <span class="va">genotypes</span>, type <span class="op">=</span> <span class="st">"parameters"</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Genotype        b1       b2       b3 b4</span></span>
-<span><span class="co">#&gt; 1   Aurora 14.599634 70.05332 1.338935 65</span></span>
-<span><span class="co">#&gt; 2    Capri 11.197618 69.20292 1.338935 65</span></span>
-<span><span class="co">#&gt; 3   ILB938  9.120981 69.04494 1.338935 65</span></span>
-<span><span class="co">#&gt; 4     Lynx 19.581583 72.79718 1.338935 65</span></span>
-<span><span class="co">#&gt; 5  Melodie 25.297268 73.29758 1.338935 65</span></span>
-<span><span class="co">#&gt; 6   Navara 17.779358 72.65387 1.338935 65</span></span></code></pre></div>
+<span><span class="co">#&gt; 1   Aurora 14.599599 70.05333 1.338936 65</span></span>
+<span><span class="co">#&gt; 2    Capri 11.197633 69.20292 1.338936 65</span></span>
+<span><span class="co">#&gt; 3   ILB938  9.120908 69.04494 1.338936 65</span></span>
+<span><span class="co">#&gt; 4     Lynx 19.581618 72.79718 1.338936 65</span></span>
+<span><span class="co">#&gt; 5  Melodie 25.297251 73.29758 1.338936 65</span></span>
+<span><span class="co">#&gt; 6   Navara 17.779444 72.65387 1.338936 65</span></span></code></pre></div>
 <p>All the counts with the fitted curve of each plant, with its
 predicted random asymptote:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">days</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">61</span>, <span class="fl">79</span>, by <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
 <span><span class="va">ndp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">FabaCounts23</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Tube_ID"</span>, <span class="st">"Genotype"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>DAS <span class="op">=</span> <span class="va">days</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">ndp</span><span class="op">$</span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitp</span>, newdata <span class="op">=</span> <span class="va">ndp</span><span class="op">)</span></span>
@@ -392,13 +429,13 @@ predicted random asymptote:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ndp</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">fit</span>, group <span class="op">=</span> <span class="va">Tube_ID</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Days after sowing"</span>, y <span class="op">=</span> <span class="st">"Number of pods"</span>, colour <span class="op">=</span> <span class="st">"Genotype"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fixed-random-effects_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="fixed-random-effects_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>By genotype, the curves of the plants together with the population
 curves of the genotypes (<code>random = FALSE</code>), the fixed
 effects, with 95% confidence intervals. For Poisson models, the
 confidence intervals of the mean are computed on the log scale, so that
 they stay positive.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># the population curve of each genotype</span></span>
 <span><span class="va">ndg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">genotypes</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>DAS <span class="op">=</span> <span class="va">days</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">ndg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">ndg</span>, <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitp</span>, newdata <span class="op">=</span> <span class="va">ndg</span>, random <span class="op">=</span> <span class="cn">FALSE</span>, interval <span class="op">=</span> <span class="st">"confidence"</span><span class="op">)</span><span class="op">)</span></span>
@@ -410,10 +447,10 @@ they stay positive.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">Genotype</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Days after sowing"</span>, y <span class="op">=</span> <span class="st">"Number of pods"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fixed-random-effects_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="fixed-random-effects_files/figure-html/unnamed-chunk-13-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>The estimated threshold improves the fit over the default threshold
 at sowing:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitp0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Genotype</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Tube_ID</span>, data <span class="op">=</span> <span class="va">FabaCounts23</span>,</span>
 <span>               family <span class="op">=</span> <span class="st">"poisson"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fitp0</span>, <span class="va">fitp</span><span class="op">)</span></span>
@@ -439,9 +476,9 @@ and
 Under the model the residuals are standard normal, so the QQ plot is
 compared with the identity line. The draws are random, and
 <code>seed</code> makes the plots reproducible.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fitp</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fixed-random-effects_files/figure-html/unnamed-chunk-14-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="fixed-random-effects_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>The simulations of <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> can also be used for
 simulation-based residuals, for example with the package DHARMa (Hartig,
 2026) and its function <code>createDHARMa()</code>. With

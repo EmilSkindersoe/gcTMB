@@ -9,7 +9,7 @@ which can be inspected, modified, and passed to the start argument of gcTMB."><m
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -87,7 +87,7 @@ which can be inspected, modified, and passed to the <code>start</code> argument 
 
 
 <dt id="arg-start">start<a class="anchor" aria-label="anchor" href="#arg-start"></a></dt>
-<dd><p>Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced; NULL (default) computes all of them.</p></dd>
+<dd><p>Numeric vector, list or NULL. Starting values for each model coefficient, as in <code><a href="gcTMB.html">gcTMB</a></code>. Only NA entries are replaced; NULL (default) computes all of them. Of a start list, only the coefficients (<code>fixef</code>) are used.</p></dd>
 
 
 <dt id="arg-fix">fix<a class="anchor" aria-label="anchor" href="#arg-fix"></a></dt>
@@ -154,7 +154,14 @@ squares for this curve, and the asymptote with the smallest residual sum of squa
 Mean responses below 1\<!-- % or above 99\\% of the asymptote carry little information about the -->
 linearised curve and are left out. With covariates in <code>fform</code>, the pooled starting value of
 each parameter is projected onto its design matrix, giving the intercept or each group the pooled
-value and contrasts a value of zero. The threshold b4, fixed at 0 by default, starts when estimated where the curve
+value and contrasts a value of zero. Then, for each parameter with coefficients of covariates
+without a starting value in <code>start</code> (NA), the starting values are computed in the same way within
+each combination of the covariates of fform (each cell), and these coefficients are the least
+squares fit of the cell values, on the scale of the link, on the design, weighted by the numbers of
+observations of the cells, with the given coefficients kept: e.g. the contrast of a factor is the
+difference of the starting values of its levels. Coefficients given in <code>start</code> are kept, so 0
+for the contrasts gives the pooled starting values. Cells with fewer than 5 distinct times are left
+out, and with more than 50 cells the pooled starting values are kept. The threshold b4, fixed at 0 by default, starts when estimated where the curve
 without truncation reaches 1\<!-- % of its asymptote; for the count families also before the first -->
 time with a positive count, and for the lognormal and beta families before all times, as positive
 responses are impossible before the threshold. The asymmetry b5 starts at 1, the symmetric curve,

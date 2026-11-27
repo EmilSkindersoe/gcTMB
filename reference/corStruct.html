@@ -13,7 +13,7 @@ nlme (whose objects gcTMB also accepts)."><meta property="og:image" content="htt
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -84,8 +84,10 @@ nlme (whose objects <code><a href="gcTMB.html">gcTMB</a></code> also accepts).</
 
 <dl><dt id="arg-value">value<a class="anchor" aria-label="anchor" href="#arg-value"></a></dt>
 <dd><p>Numeric. The starting value of the parameters, or their values with <code>fixed=TRUE</code>:
-rho, between -1 and 1 (default 0) for <code>corAR1</code> and between 0 and 1 (default 0.2) for
-<code>corCAR1</code>; for <code>corExp</code> and <code>corGaus</code> the range, or with a nugget the range and the
+rho, between -1 and 1 (default 0) for <code>corAR1</code> and between 0 and 1 for <code>corCAR1</code>, by
+default the rho with a correlation of 0.2 at the median time d between successive observations of
+a group, \(0.2^{1/d}\), so that the start does not depend on the unit of time (0.2 if
+<code>fixed=TRUE</code>, as in nlme); for <code>corExp</code> and <code>corGaus</code> the range, or with a nugget the range and the
 nugget (default: see Details)</p></dd>
 
 
@@ -182,7 +184,7 @@ and Extensions in Ecology with R. Springer, New York.</p>
 <span class="r-in"><span>             correlation<span class="op">=</span><span class="fu">corCAR1</span><span class="op">(</span>form<span class="op">=</span><span class="op">~</span> <span class="va">DAS</span> <span class="op">|</span> <span class="va">Plant_ID</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       rho </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 0.9593852 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.9593854 </span>
 <span class="r-in"><span><span class="co"># spatial correlation between neighbouring trees of a plot, with a nugget (independent</span></span></span>
 <span class="r-in"><span><span class="co"># measurement error), on five of the plots</span></span></span>
 <span class="r-in"><span><span class="va">pines</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">PineHeightDiameter</span>, <span class="va">Plot</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></span>

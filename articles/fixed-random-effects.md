@@ -102,8 +102,8 @@ summary(fitre)
 #> 
 #> Random effects:
 #>  Groups Name Std.Dev. Corr 
-#>  Plot   b1   4.30895       
-#>         b2   0.04967  -0.90
+#>  Plot   b1   4.31          
+#>         b2   0.05     -0.90
 #> 
 #> Residual standard deviation: 0.9868
 #> 
@@ -115,11 +115,13 @@ summary(fitre)
 Likelihood ratio tests by
 [`anova()`](https://rdrr.io/r/stats/anova.html) compare nested models,
 here with and without the effect of the mean diameter.
+[`refit()`](https://emilskindersoe.github.io/gcTMB/reference/refit.md)
+fits a model again with some of its components changed and all its other
+arguments reused, here without `fform`:
 
 ``` r
 
-fitre0 <- gcTMB(Height ~ DBH, rform = b1 + b2 ~ 1 | Plot, data = PineHeightDiameter, model = "chapmanrichards",
-                start = c(b4 = 1.3))
+fitre0 <- refit(fitre, fform = NULL)
 #> Warning in nlminb(start = obj$par, objective = obj$fn, gradient = obj$gr, :
 #> NA/NaN function evaluation
 anova(fitre0, fitre)
@@ -166,8 +168,7 @@ fits need `control = list(restart = TRUE)` to converge (see the overview
 
 ``` r
 
-fitre1 <- gcTMB(Height ~ DBH, fform = b1 ~ Dmean, rform = b1 ~ 1 | Plot, data = PineHeightDiameter,
-                model = "chapmanrichards", start = c(b4 = 1.3), control = list(restart = TRUE))
+fitre1 <- refit(fitre, rform = b1 ~ 1 | Plot, control = list(restart = TRUE))
 anova(fitdm, fitre1, fitre)
 #> Likelihood ratio tests of gcTMB models
 #> 
@@ -199,8 +200,7 @@ tests their correlation:
 
 ``` r
 
-fitred <- gcTMB(Height ~ DBH, fform = b1 ~ Dmean, rform = b1 + b2 ~ 1 || Plot, data = PineHeightDiameter,
-                model = "chapmanrichards", start = c(b4 = 1.3), control = list(restart = TRUE))
+fitred <- refit(fitre, rform = b1 + b2 ~ 1 || Plot, control = list(restart = TRUE))
 #> Warning in nlminb(start = obj$par, objective = obj$fn, gradient = obj$gr, :
 #> NA/NaN function evaluation
 anova(fitred, fitre)
@@ -239,13 +239,51 @@ their AIC:
 
 ``` r
 
-fitk <- gcTMB(Height ~ DBH, fform = b1 ~ Dmean, rform = b1 + b2 ~ 1 | Plot, data = PineHeightDiameter,
-              model = "korf", start = c(b4 = 1.3), control = list(restart = TRUE))
+fitk <- refit(fitre, model = "korf", control = list(restart = TRUE))
 AIC(fitre, fitk)
 #>       df      AIC
 #> fitre  8 5098.322
 #> fitk   8 5142.804
 ```
+
+### Starting values
+
+[`gcTMB()`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)
+computes starting values from the data (see
+[`?gcTMBstart`](https://emilskindersoe.github.io/gcTMB/reference/gcTMBstart.md)):
+the curve fitted to the mean responses, the coefficients of the
+covariates of `fform` from the same fit within each combination of the
+covariates, and the variances of the random effects from a fit of each
+group around that curve. `start` gives other values: a vector of the
+coefficients, or a list with also the covariance matrices of the random
+effects (`VarCorr`) and the residual standard deviation (`sigma`).
+[`refit()`](https://emilskindersoe.github.io/gcTMB/reference/refit.md)
+with `startfrom = "fit"` starts from the estimates of the fit it refits,
+where they carry over: here the coefficients, the residual standard
+deviation and the variance of the random asymptote of `fitre1`, while
+the variance of the random rate and its correlation with the asymptote
+start from the data. The call of the new fit shows the starting values
+used:
+
+``` r
+
+fitre2 <- refit(fitre1, rform = b1 + b2 ~ 1 | Plot, startfrom = "fit")
+fitre2$call$start$VarCorr
+#> $Plot
+#>          [,1] [,2]
+#> [1,] 9.535284   NA
+#> [2,]       NA   NA
+c(logLik(fitre2), logLik(fitre))
+#> [1] -2549.320 -2541.161
+```
+
+Both fits converge, but to different maxima: the refit from the
+estimates of `fitre1` stops at a local maximum of the likelihood, below
+that of `fitre`, whose starting values come from the data. A refit from
+the estimates is often quicker and usually lands at the same maximum,
+but not always; fits of the same model from different starting values,
+here `fitre` and `fitre2`, are a simple check that the maximum is the
+global one.
 
 ### Plotting the curves
 
@@ -263,7 +301,7 @@ p$curves + labs(x = "Diameter at breast height (cm)", y = "Height (m)", colour =
                 subtitle = "Population curves at the 10%, 50% and 90% quantiles of the mean diameter")
 ```
 
-![](fixed-random-effects_files/figure-html/unnamed-chunk-9-1.png)
+![](fixed-random-effects_files/figure-html/unnamed-chunk-10-1.png)
 
 ``` r
 
@@ -280,7 +318,7 @@ ggplot(PineHeightDiameter, aes(x = DBH, y = Height)) +
   theme_minimal()
 ```
 
-![](fixed-random-effects_files/figure-html/unnamed-chunk-9-2.png)
+![](fixed-random-effects_files/figure-html/unnamed-chunk-10-2.png)
 
 ## Non-normal responses
 
@@ -297,6 +335,7 @@ genotype, and a random asymptote for each plant:
 
 fitp <- gcTMB(Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
               family = "poisson", fix = c(b4 = FALSE))
+#> Warning: the optimiser did not converge: false convergence (8)
 summary(fitp)
 #> Call:
 #> gcTMB(form = Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 
@@ -310,38 +349,39 @@ summary(fitp)
 #> 
 #> Coefficients:
 #>                    Estimate Std. Error  z value Pr(>|z|)    
-#> b1:(Intercept)      14.5996     2.3239    6.282 3.34e-10 ***
-#> b1:GenotypeCapri    -3.4020     2.9743   -1.144  0.25270    
-#> b1:GenotypeILB938   -5.4787     2.9575   -1.852  0.06396 .  
-#> b1:GenotypeLynx      4.9820     3.2331    1.541  0.12334    
-#> b1:GenotypeMelodie  10.6976     3.6762    2.910  0.00361 ** 
-#> b1:GenotypeNavara    3.1797     3.1856    0.998  0.31821    
-#> b2:(Intercept)      70.0533     0.4689  149.394  < 2e-16 ***
-#> b2:GenotypeCapri    -0.8504     0.6405   -1.328  0.18424    
-#> b2:GenotypeILB938   -1.0084     0.7024   -1.436  0.15110    
-#> b2:GenotypeLynx      2.7439     0.5512    4.978 6.42e-07 ***
-#> b2:GenotypeMelodie   3.2443     0.5515    5.882 4.05e-09 ***
-#> b2:GenotypeNavara    2.6005     0.5584    4.657 3.21e-06 ***
-#> b3:(Intercept)       1.3389     0.1494    8.961  < 2e-16 ***
-#> b4:(Intercept)      65.0000     0.0239 2719.707  < 2e-16 ***
+#> b1:(Intercept)     14.59960    2.32393    6.282 3.34e-10 ***
+#> b1:GenotypeCapri   -3.40197    2.97431   -1.144  0.25271    
+#> b1:GenotypeILB938  -5.47869    2.95747   -1.852  0.06396 .  
+#> b1:GenotypeLynx     4.98202    3.23315    1.541  0.12334    
+#> b1:GenotypeMelodie 10.69765    3.67623    2.910  0.00361 ** 
+#> b1:GenotypeNavara   3.17985    3.18562    0.998  0.31819    
+#> b2:(Intercept)     70.05333    0.46892  149.393  < 2e-16 ***
+#> b2:GenotypeCapri   -0.85040    0.64045   -1.328  0.18424    
+#> b2:GenotypeILB938  -1.00839    0.70238   -1.436  0.15110    
+#> b2:GenotypeLynx     2.74386    0.55116    4.978 6.41e-07 ***
+#> b2:GenotypeMelodie  3.24425    0.55154    5.882 4.05e-09 ***
+#> b2:GenotypeNavara   2.60055    0.55842    4.657 3.21e-06 ***
+#> b3:(Intercept)      1.33894    0.14940    8.962  < 2e-16 ***
+#> b4:(Intercept)     65.00000    0.02389 2720.329  < 2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
 #> 
 #> Random effects:
 #>  Groups  Name Std.Dev.
-#>  Tube_ID b1   3.355   
+#>  Tube_ID b1   3.36    
 #> 
-#> Optimiser: converged, with the threshold b4 at an observation time (a kink of the likelihood), maximum absolute gradient 3.2
+#> Optimiser: false convergence (8), maximum absolute gradient 0.27
+#> Warning: the optimiser did not converge: false convergence (8)
 genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
 cbind(genotypes, predict(fitp, newdata = genotypes, type = "parameters", random = FALSE))
 #>   Genotype        b1       b2       b3 b4
-#> 1   Aurora 14.599634 70.05332 1.338935 65
-#> 2    Capri 11.197618 69.20292 1.338935 65
-#> 3   ILB938  9.120981 69.04494 1.338935 65
-#> 4     Lynx 19.581583 72.79718 1.338935 65
-#> 5  Melodie 25.297268 73.29758 1.338935 65
-#> 6   Navara 17.779358 72.65387 1.338935 65
+#> 1   Aurora 14.599599 70.05333 1.338936 65
+#> 2    Capri 11.197633 69.20292 1.338936 65
+#> 3   ILB938  9.120908 69.04494 1.338936 65
+#> 4     Lynx 19.581618 72.79718 1.338936 65
+#> 5  Melodie 25.297251 73.29758 1.338936 65
+#> 6   Navara 17.779444 72.65387 1.338936 65
 ```
 
 All the counts with the fitted curve of each plant, with its predicted
@@ -359,7 +399,7 @@ ggplot(FabaCounts23, aes(x = DAS, y = Pods, colour = Genotype)) +
   theme_minimal()
 ```
 
-![](fixed-random-effects_files/figure-html/unnamed-chunk-11-1.png)
+![](fixed-random-effects_files/figure-html/unnamed-chunk-12-1.png)
 
 By genotype, the curves of the plants together with the population
 curves of the genotypes (`random = FALSE`), the fixed effects, with 95%
@@ -381,7 +421,7 @@ ggplot(FabaCounts23, aes(x = DAS, y = Pods)) +
   theme_minimal()
 ```
 
-![](fixed-random-effects_files/figure-html/unnamed-chunk-12-1.png)
+![](fixed-random-effects_files/figure-html/unnamed-chunk-13-1.png)
 
 The estimated threshold improves the fit over the default threshold at
 sowing:
@@ -413,7 +453,7 @@ draws are random, and `seed` makes the plots reproducible.
 plot(fitp, seed = 1)
 ```
 
-![](fixed-random-effects_files/figure-html/unnamed-chunk-14-1.png)
+![](fixed-random-effects_files/figure-html/unnamed-chunk-15-1.png)
 
 The simulations of [`simulate()`](https://rdrr.io/r/stats/simulate.html)
 can also be used for simulation-based residuals, for example with the

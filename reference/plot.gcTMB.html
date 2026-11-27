@@ -25,7 +25,7 @@ ggplot2 graphs."><meta property="og:image" content="https://emilskindersoe.githu
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -182,7 +182,9 @@ time.</p>
 e.g. with <code>createDHARMa()</code> of the package DHARMa; with <code>random=FALSE</code>, the simulations
 are conditional on the predicted random effects, as the residuals of these plots.</p>
 <p>The QQ plots of the random effects (<code>type="validation2"</code>) show the predicted random effects of each
-parameter and grouping factor. They are shrunk towards zero, so their spread is smaller than the
+parameter and grouping factor, with a row for each grouping factor, in the order of the random effect
+terms (for nested factors, e.g. <code>1 | Plot/Plant</code>, the finest first), and a column for each
+parameter; a parameter without random effects at a grouping factor leaves its panel empty. They are shrunk towards zero, so their spread is smaller than the
 estimated standard deviation, and with few groups they say little about the normality of the
 random effects.</p>
 <p>The curves plot shows the data with the fitted curves at <code>times</code>, by default over the range

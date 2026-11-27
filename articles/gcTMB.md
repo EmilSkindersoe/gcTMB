@@ -195,42 +195,49 @@ ggplot(PineHeightDiameter, aes(x = DBH, y = Height)) +
 ## Fixed and random effects
 
 Covariates on the parameters are formulas in `fform`, and random effects
-in `rform`. Here the soil type and the irrigation, and their
-interaction, act on the asymptote $`b_1`$ and the time of the maximum
-growth rate $`b_2`$, and each plant has correlated random effects on
-both:
+in `rform`. Here the soil type and the genotype, and their interaction,
+act on the asymptote $`b_1`$ and the time of the maximum growth rate
+$`b_2`$, and each plant has correlated random effects on both:
 
 ``` r
 
-fitre <- gcTMB(Height ~ DAS, fform = b1 + b2 ~ Soil * Treatment, rform = b1 + b2 ~ 1 | Plant_ID,
+fitre <- gcTMB(Height ~ DAS, fform = b1 + b2 ~ Soil * Genotype, rform = b1 + b2 ~ 1 | Plant_ID,
                data = FabaHeights26)
 fitre
 #> Call:
-#> gcTMB(form = Height ~ DAS, fform = b1 + b2 ~ Soil * Treatment, 
+#> gcTMB(form = Height ~ DAS, fform = b1 + b2 ~ Soil * Genotype, 
 #>     rform = b1 + b2 ~ 1 | Plant_ID, data = FabaHeights26)
 #> 
 #> Model:  logistic, truncated at b4 = 0
 #> Family: gaussian, identity link for all parameters
 #> 
 #> Coefficients:
-#>                     b1:(Intercept)                        b1:SoilSandy  
-#>                             83.080                             -11.185  
-#>           b1:TreatmentNotIrrigated  b1:SoilSandy:TreatmentNotIrrigated  
-#>                             -9.083                             -13.350  
-#>                     b2:(Intercept)                        b2:SoilSandy  
-#>                             60.917                              -1.153  
-#>           b2:TreatmentNotIrrigated  b2:SoilSandy:TreatmentNotIrrigated  
-#>                             -2.892                              -3.749  
-#>                     b3:(Intercept)  
-#>                              7.955  
+#>               b1:(Intercept)                  b1:SoilSandy  
+#>                      73.0877                      -15.3593  
+#>           b1:GenotypeMelodie            b1:GenotypeNavarra  
+#>                       7.6543                        9.3910  
+#>            b1:GenotypeStella  b1:SoilSandy:GenotypeMelodie  
+#>                       4.7615                       -5.1604  
+#> b1:SoilSandy:GenotypeNavarra   b1:SoilSandy:GenotypeStella  
+#>                      -2.0035                       -2.8333  
+#>               b2:(Intercept)                  b2:SoilSandy  
+#>                      60.6671                       -3.0798  
+#>           b2:GenotypeMelodie            b2:GenotypeNavarra  
+#>                      -2.1506                        0.3390  
+#>            b2:GenotypeStella  b2:SoilSandy:GenotypeMelodie  
+#>                      -3.0492                       -0.6607  
+#> b2:SoilSandy:GenotypeNavarra   b2:SoilSandy:GenotypeStella  
+#>                       0.4351                        0.7143  
+#>               b3:(Intercept)  
+#>                       7.9614  
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr
-#>  Plant_ID b1   9.483        
-#>           b2   2.194    0.35
+#>  Plant_ID b1   12.37        
+#>           b2   2.97     0.75
 #> 
-#> Residual standard deviation: 3.709
-trts <- expand.grid(Soil = c("Loamy", "Sandy"), Treatment = c("Irrigated", "NotIrrigated"))
+#> Residual standard deviation: 3.711
+trts <- expand.grid(Soil = c("Loamy", "Sandy"), Genotype = c("Lynx", "Melodie", "Navarra", "Stella"))
 ```
 
 [`anova()`](https://rdrr.io/r/stats/anova.html) gives likelihood ratio
@@ -240,27 +247,25 @@ F-tests for models without random effects.
 
 ``` r
 
-fitre0 <- gcTMB(Height ~ DAS, fform = b1 + b2 ~ Soil + Treatment, rform = b1 + b2 ~ 1 | Plant_ID,
+fitre0 <- gcTMB(Height ~ DAS, fform = b1 + b2 ~ Soil + Genotype, rform = b1 + b2 ~ 1 | Plant_ID,
                 data = FabaHeights26)
 anova(fitre0, fitre)
 #> Likelihood ratio tests of gcTMB models
 #> 
-#>        npar   AIC   BIC logLik deviance     LR Df   Pr(>LR)    
-#> fitre0   11 25367 25437 -12672    25345                        
-#> fitre    13 25313 25396 -12644    25287 57.771  2 2.852e-13 ***
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#>        npar   AIC   BIC logLik deviance     LR Df Pr(>LR)
+#> fitre0   15 25463 25559 -12716    25433                  
+#> fitre    21 25470 25604 -12714    25428 5.3115  6  0.5045
 ```
 
 `plot(type = "curves")` draws the curves of the plants and, next to
-them, the population curves of the treatments with their 95% confidence
-intervals:
+them, the population curves of each soil type and genotype with their
+95% confidence intervals:
 
 ``` r
 
 p <- plot(fitre, type = "curves", times = seq(0, 125, by = 0.5), draw = FALSE)
-p$curves + labs(x = "Days after sowing", y = "Height (cm)", colour = "Soil, irrigation",
-                title = "Curve of each plant (thin) and of each treatment (thick)")
+p$curves + labs(x = "Days after sowing", y = "Height (cm)", colour = "Soil, genotype",
+                title = "Curve of each plant (thin) and of each soil and genotype (thick)")
 ```
 
 ![](gcTMB_files/figure-html/unnamed-chunk-7-1.png)
@@ -286,15 +291,16 @@ estimated.
 
 fitp <- gcTMB(Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
               family = "poisson", fix = c(b4 = FALSE))
+#> Warning: the optimiser did not converge: false convergence (8)
 genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
 cbind(genotypes, predict(fitp, newdata = genotypes, type = "parameters", random = FALSE))
 #>   Genotype        b1       b2       b3 b4
-#> 1   Aurora 14.599634 70.05332 1.338935 65
-#> 2    Capri 11.197618 69.20292 1.338935 65
-#> 3   ILB938  9.120981 69.04494 1.338935 65
-#> 4     Lynx 19.581583 72.79718 1.338935 65
-#> 5  Melodie 25.297268 73.29758 1.338935 65
-#> 6   Navara 17.779358 72.65387 1.338935 65
+#> 1   Aurora 14.599599 70.05333 1.338936 65
+#> 2    Capri 11.197633 69.20292 1.338936 65
+#> 3   ILB938  9.120908 69.04494 1.338936 65
+#> 4     Lynx 19.581618 72.79718 1.338936 65
+#> 5  Melodie 25.297251 73.29758 1.338936 65
+#> 6   Navara 17.779444 72.65387 1.338936 65
 ```
 
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) checks a count
@@ -320,27 +326,43 @@ delta method, and confidence intervals by
 timeto(fitre, level = 90, newdata = trts, random = FALSE)
 #> Times to reach the percentages of the asymptote:
 #> 
-#>                                       Estimate Std.Error
-#> 90%:Soil=Loamy,Treatment=Irrigated        78.4     0.298
-#> 90%:Soil=Sandy,Treatment=Irrigated        77.2     0.302
-#> 90%:Soil=Loamy,Treatment=NotIrrigated     75.5     0.300
-#> 90%:Soil=Sandy,Treatment=NotIrrigated     70.6     0.321
+#>                                 Estimate Std.Error
+#> 90%:Soil=Loamy,Genotype=Lynx        78.2     0.515
+#> 90%:Soil=Sandy,Genotype=Lynx        75.1     0.534
+#> 90%:Soil=Loamy,Genotype=Melodie     76.0     0.511
+#> 90%:Soil=Sandy,Genotype=Melodie     72.3     0.527
+#> 90%:Soil=Loamy,Genotype=Navarra     78.5     0.510
+#> 90%:Soil=Sandy,Genotype=Navarra     75.9     0.523
+#> 90%:Soil=Loamy,Genotype=Stella      75.1     0.511
+#> 90%:Soil=Sandy,Genotype=Stella      72.8     0.526
 maxrate(fitre, newdata = trts)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
-#>                                            Estimate Std.Error
-#> tmax:Soil=Loamy,Treatment=Irrigated          60.917  2.68e-01
-#> rate:Soil=Loamy,Treatment=Irrigated           2.612  3.75e-02
-#> fraction:Soil=Loamy,Treatment=Irrigated       0.500  1.43e-05
-#> tmax:Soil=Sandy,Treatment=Irrigated          59.764  2.75e-01
-#> rate:Soil=Sandy,Treatment=Irrigated           2.261  3.65e-02
-#> fraction:Soil=Sandy,Treatment=Irrigated       0.500  1.66e-05
-#> tmax:Soil=Loamy,Treatment=NotIrrigated       58.025  2.71e-01
-#> rate:Soil=Loamy,Treatment=NotIrrigated        2.327  3.68e-02
-#> fraction:Soil=Loamy,Treatment=NotIrrigated    0.500  2.00e-05
-#> tmax:Soil=Sandy,Treatment=NotIrrigated       53.123  2.97e-01
-#> rate:Soil=Sandy,Treatment=NotIrrigated        1.556  3.51e-02
-#> fraction:Soil=Sandy,Treatment=NotIrrigated    0.499  3.68e-05
+#>                                      Estimate Std.Error
+#> tmax:Soil=Loamy,Genotype=Lynx          60.667  4.99e-01
+#> rate:Soil=Loamy,Genotype=Lynx           2.296  6.35e-02
+#> fraction:Soil=Loamy,Genotype=Lynx       0.500  1.97e-05
+#> tmax:Soil=Sandy,Genotype=Lynx          57.587  5.20e-01
+#> rate:Soil=Sandy,Genotype=Lynx           1.814  6.28e-02
+#> fraction:Soil=Sandy,Genotype=Lynx       0.500  2.94e-05
+#> tmax:Soil=Loamy,Genotype=Melodie       58.517  4.95e-01
+#> rate:Soil=Loamy,Genotype=Melodie        2.537  6.38e-02
+#> fraction:Soil=Loamy,Genotype=Melodie    0.500  2.53e-05
+#> tmax:Soil=Sandy,Genotype=Melodie       54.776  5.13e-01
+#> rate:Soil=Sandy,Genotype=Melodie        1.893  6.29e-02
+#> fraction:Soil=Sandy,Genotype=Melodie    0.499  4.07e-05
+#> tmax:Soil=Loamy,Genotype=Navarra       61.006  4.93e-01
+#> rate:Soil=Loamy,Genotype=Navarra        2.591  6.40e-02
+#> fraction:Soil=Loamy,Genotype=Navarra    0.500  1.87e-05
+#> tmax:Soil=Sandy,Genotype=Navarra       58.361  5.08e-01
+#> rate:Soil=Sandy,Genotype=Navarra        2.046  6.31e-02
+#> fraction:Soil=Sandy,Genotype=Navarra    0.500  2.63e-05
+#> tmax:Soil=Loamy,Genotype=Stella        57.618  4.95e-01
+#> rate:Soil=Loamy,Genotype=Stella         2.446  6.37e-02
+#> fraction:Soil=Loamy,Genotype=Stella     0.500  2.82e-05
+#> tmax:Soil=Sandy,Genotype=Stella        55.252  5.12e-01
+#> rate:Soil=Sandy,Genotype=Stella         1.875  6.29e-02
+#> fraction:Soil=Sandy,Genotype=Stella     0.500  3.85e-05
 ```
 
 With `b1type = "rate"`, $`b_1`$ is the maximum growth rate, so that
@@ -359,37 +381,37 @@ partest(fitpr, newdata = genotypes, contrasts = "tukey")
 #> Pairwise differences of b1 (maximum growth rate) on the scale of its log link:
 #> 
 #>                                    Estimate Std.Error z value p.value  lower
-#> Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78771 -0.360
-#> Genotype=Aurora - Genotype=ILB938    0.4572     0.231   1.976 0.35585 -0.202
-#> Genotype=Aurora - Genotype=Lynx     -0.2753     0.231  -1.192 0.84196 -0.933
-#> Genotype=Aurora - Genotype=Melodie  -0.5368     0.245  -2.191 0.24139 -1.235
-#> Genotype=Aurora - Genotype=Navara   -0.1767     0.232  -0.762 0.97484 -0.838
-#> Genotype=Capri - Genotype=ILB938     0.1570     0.218   0.722 0.98021 -0.463
-#> Genotype=Capri - Genotype=Lynx      -0.5754     0.217  -2.649 0.08514 -1.194
-#> Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00443 -1.498
-#> Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24385 -1.099
-#> Genotype=ILB938 - Genotype=Lynx     -0.7324     0.217  -3.376 0.00970 -1.351
-#> Genotype=ILB938 - Genotype=Melodie  -0.9940     0.232  -4.288 0.00032 -1.655
-#> Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04186 -1.255
-#> Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87004 -0.921
-#> Genotype=Lynx - Genotype=Navara      0.0985     0.218   0.453 0.99757 -0.521
-#> Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63192 -0.302
+#> Genotype=Aurora - Genotype=Capri     0.3002     0.232   1.296 0.78756 -0.359
+#> Genotype=Aurora - Genotype=ILB938    0.4572     0.231   1.976 0.35592 -0.202
+#> Genotype=Aurora - Genotype=Lynx     -0.2752     0.231  -1.192 0.84179 -0.933
+#> Genotype=Aurora - Genotype=Melodie  -0.5368     0.245  -2.191 0.24029 -1.235
+#> Genotype=Aurora - Genotype=Navara   -0.1767     0.232  -0.762 0.97461 -0.837
+#> Genotype=Capri - Genotype=ILB938     0.1570     0.218   0.722 0.98008 -0.463
+#> Genotype=Capri - Genotype=Lynx      -0.5754     0.217  -2.649 0.08457 -1.194
+#> Genotype=Capri - Genotype=Melodie   -0.8370     0.232  -3.610 0.00433 -1.498
+#> Genotype=Capri - Genotype=Navara    -0.4769     0.218  -2.186 0.24285 -1.098
+#> Genotype=ILB938 - Genotype=Lynx     -0.7324     0.217  -3.376 0.00914 -1.351
+#> Genotype=ILB938 - Genotype=Melodie  -0.9940     0.232  -4.288 0.00030 -1.654
+#> Genotype=ILB938 - Genotype=Navara   -0.6339     0.218  -2.907 0.04169 -1.255
+#> Genotype=Lynx - Genotype=Melodie    -0.2616     0.231  -1.130 0.87036 -0.921
+#> Genotype=Lynx - Genotype=Navara      0.0985     0.218   0.453 0.99747 -0.521
+#> Genotype=Melodie - Genotype=Navara   0.3601     0.232   1.549 0.63276 -0.302
 #>                                      upper ratio ratio.lower ratio.upper
-#> Genotype=Aurora - Genotype=Capri    0.9600 1.350       0.698       2.612
-#> Genotype=Aurora - Genotype=ILB938   1.1165 1.580       0.817       3.054
-#> Genotype=Aurora - Genotype=Lynx     0.3828 0.759       0.393       1.466
-#> Genotype=Aurora - Genotype=Melodie  0.1613 0.585       0.291       1.175
-#> Genotype=Aurora - Genotype=Navara   0.4842 0.838       0.433       1.623
-#> Genotype=Capri - Genotype=ILB938    0.7769 1.170       0.629       2.175
-#> Genotype=Capri - Genotype=Lynx      0.0434 0.562       0.303       1.044
-#> Genotype=Capri - Genotype=Melodie  -0.1763 0.433       0.224       0.838
-#> Genotype=Capri - Genotype=Navara    0.1448 0.621       0.333       1.156
-#> Genotype=ILB938 - Genotype=Lynx    -0.1142 0.481       0.259       0.892
-#> Genotype=ILB938 - Genotype=Melodie -0.3335 0.370       0.191       0.716
-#> Genotype=ILB938 - Genotype=Navara  -0.0127 0.531       0.285       0.987
-#> Genotype=Lynx - Genotype=Melodie    0.3978 0.770       0.398       1.489
-#> Genotype=Lynx - Genotype=Navara     0.7185 1.104       0.594       2.051
-#> Genotype=Melodie - Genotype=Navara  1.0223 1.433       0.739       2.780
+#> Genotype=Aurora - Genotype=Capri    0.9599 1.350       0.698       2.611
+#> Genotype=Aurora - Genotype=ILB938   1.1163 1.580       0.817       3.054
+#> Genotype=Aurora - Genotype=Lynx     0.3827 0.759       0.393       1.466
+#> Genotype=Aurora - Genotype=Melodie  0.1611 0.585       0.291       1.175
+#> Genotype=Aurora - Genotype=Navara   0.4840 0.838       0.433       1.623
+#> Genotype=Capri - Genotype=ILB938    0.7767 1.170       0.630       2.174
+#> Genotype=Capri - Genotype=Lynx      0.0432 0.562       0.303       1.044
+#> Genotype=Capri - Genotype=Melodie  -0.1765 0.433       0.224       0.838
+#> Genotype=Capri - Genotype=Navara    0.1446 0.621       0.333       1.156
+#> Genotype=ILB938 - Genotype=Lynx    -0.1144 0.481       0.259       0.892
+#> Genotype=ILB938 - Genotype=Melodie -0.3337 0.370       0.191       0.716
+#> Genotype=ILB938 - Genotype=Navara  -0.0128 0.531       0.285       0.987
+#> Genotype=Lynx - Genotype=Melodie    0.3976 0.770       0.398       1.488
+#> Genotype=Lynx - Genotype=Navara     0.7184 1.104       0.594       2.051
+#> Genotype=Melodie - Genotype=Navara  1.0221 1.433       0.739       2.779
 #> 
 #> Wald z tests; p-values and confidence limits adjusted by the single-step (Tukey) method, 95% confidence limits, and ratios.
 ```
@@ -403,19 +425,24 @@ for integer times and
 [`corCAR1()`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
 for continuous times have the correlation $`\rho^{|t - s|}`$ of
 residuals at times $`s`$ and $`t`$.
+[`refit()`](https://emilskindersoe.github.io/gcTMB/reference/refit.md)
+fits a model again with a component changed and its other arguments
+reused, here `fitre` with a correlation structure
+([`update()`](https://rdrr.io/r/stats/update.html), in contrast, sets
+parameters without fitting again, see the vignette *Simulation*):
 
 ``` r
 
-fitrec <- update(fitre, correlation = corCAR1(value = 0.9, form = ~ DAS | Plant_ID))
+fitrec <- refit(fitre, correlation = corCAR1(value = 0.9, form = ~ DAS | Plant_ID))
 corpars(fitrec)
 #>       rho 
-#> 0.8516009
+#> 0.8507641
 anova(fitre, fitrec)
 #> Likelihood ratio tests of gcTMB models
 #> 
 #>        npar   AIC   BIC logLik deviance     LR Df   Pr(>LR)    
-#> fitre    13 25313 25396 -12644    25287                        
-#> fitrec   14 25098 25188 -12535    25070 216.78  1 < 2.2e-16 ***
+#> fitre    21 25470 25604 -12714    25428                        
+#> fitrec   22 25252 25392 -12604    25208 219.34  1 < 2.2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -455,33 +482,33 @@ convergence:
 
 ``` r
 
-fitrev <- update(fitre, variance = varConstPower(), control = gcTMBcontrol(restart = TRUE))
+fitrev <- refit(fitre, variance = varConstPower(), control = gcTMBcontrol(restart = TRUE))
 varpars(fitrev)
 #>     const     power 
-#> 20.334380  1.095398
+#> 19.576472  1.094568
 anova(fitre, fitrev)
 #> Likelihood ratio tests of gcTMB models
 #> 
-#>        npar   AIC   BIC logLik deviance   LR Df   Pr(>LR)    
-#> fitre    13 25313 25396 -12644    25287                      
-#> fitrev   15 23471 23567 -11721    23441 1846  2 < 2.2e-16 ***
+#>        npar   AIC   BIC logLik deviance     LR Df   Pr(>LR)    
+#> fitre    21 25470 25604 -12714    25428                        
+#> fitrev   23 23577 23724 -11766    23531 1896.3  2 < 2.2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 [`predict()`](https://rdrr.io/r/stats/predict.html) gives confidence
-intervals of the population curves by the delta method, here of the
-treatments:
+intervals of the population curves by the delta method, here of the soil
+types and genotypes:
 
 ``` r
 
 nd <- merge(trts, data.frame(DAS = seq(0, 125, by = 0.5)))
 ci <- cbind(nd, predict(fitrev, newdata = nd, random = FALSE, interval = "confidence"))
-ci$trt <- paste(ci$Soil, ci$Treatment, sep = ", ")
+ci$trt <- paste(ci$Soil, ci$Genotype, sep = ", ")
 ggplot(ci, aes(x = DAS, y = fit, colour = trt, fill = trt)) +
   geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
   geom_line() +
-  labs(x = "Days after sowing", y = "Height (cm)", colour = "Soil, irrigation", fill = "Soil, irrigation") +
+  labs(x = "Days after sowing", y = "Height (cm)", colour = "Soil, genotype", fill = "Soil, genotype") +
   theme_minimal()
 ```
 
@@ -503,13 +530,13 @@ recovers its parameters, e.g. the autocorrelation:
 ``` r
 
 design <- expand.grid(DAS = seq(28, 122, by = 7), Plant_ID = paste0("p", 1:30), Soil = "Loamy",
-                      Treatment = "Irrigated")
+                      Genotype = "Lynx")
 design$Height <- simulate(fitrec, nsim = 1, seed = 1, newdata = design)[[1]]
 fitsim <- gcTMB(Height ~ DAS, rform = b1 + b2 ~ 1 | Plant_ID, data = design,
                 correlation = corCAR1(value = 0.9, form = ~ DAS | Plant_ID))
 c(true = corpars(fitrec), estimate = corpars(fitsim))
 #>     true.rho estimate.rho 
-#>    0.8516009    0.8150597
+#>    0.8507641    0.8181344
 ```
 
 The vignette *Simulation* repeats this for many data sets.

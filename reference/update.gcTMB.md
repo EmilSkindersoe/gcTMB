@@ -1,12 +1,32 @@
-# Update a gcTMB fit, or set its parameters
+# Set the parameters of a gcTMB fit
 
-With `fixef`, `VarCorr`, `sigma`, `rho` or `varpar`, `update` returns
-the model with some of its parameters set to new values, e.g. as the
-true model of a simulation study (see
-[`simulate.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-methods.md));
-the model is not refitted. Without them, it refits the model with the
-arguments in `...` changed, as
-[`update`](https://rdrr.io/r/stats/update.html).
+`update` returns the model with some of its parameters replaced by new
+values, without fitting it again: the model keeps its structure (fform,
+rform, model, family, correlation and variance), and
+
+- `fixef` sets the coefficients of b1-b5 of `fform` (including
+  coefficients fixed in the fit);
+
+- `VarCorr` the covariance matrices of the random effects of `rform`;
+
+- `sigma` the residual standard deviation, or the dispersion of the
+  other families;
+
+- `corpar` the parameters of the `correlation` structure (rho, or the
+  range and nugget);
+
+- `varpar` the parameters of the `variance` function.
+
+The parameters that are not given keep their estimates, and the random
+effects are the conditional modes at the new parameters. The result is
+not a fit: it is moved away from the maximum of the likelihood, e.g. to
+be the true model of a simulation study (see
+[`simulate.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-methods.md)).
+The new values are not estimates: the standard errors, the covariance
+matrix of `vcov` and the confidence intervals are NA, and
+[`converged`](https://emilskindersoe.github.io/gcTMB/reference/converged.md)
+returns NA. The log-likelihood is that of the data at the new
+parameters.
 
 ## Usage
 
@@ -14,12 +34,12 @@ arguments in `...` changed, as
 # S3 method for class 'gcTMB'
 update(
   object,
-  ...,
   fixef = NULL,
   VarCorr = NULL,
   sigma = NULL,
-  rho = NULL,
-  varpar = NULL
+  corpar = NULL,
+  varpar = NULL,
+  ...
 )
 ```
 
@@ -29,12 +49,6 @@ update(
 
   A gcTMB object, the result of
   [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md).
-
-- ...:
-
-  Without fixef, VarCorr, sigma, rho and varpar: the arguments of
-  [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)
-  to change, as in [`update`](https://rdrr.io/r/stats/update.html).
 
 - fixef:
 
@@ -64,21 +78,22 @@ update(
   [`sigma.gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md).
   NULL (default) keeps it.
 
-- rho:
+- corpar:
 
-  Numeric or NULL. The new autocorrelation rho of the residuals, as
+  Numeric or NULL. New parameters of the correlation structure, as
   returned by
   [`corpars`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md),
-  for a model fitted with a `correlation` structure: between 0 and 1 for
-  [`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md),
-  between -1 and 1 for
-  [`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md).
-  For
+  for a model fitted with a `correlation` structure: the autocorrelation
+  rho, between 0 and 1 for
+  [`corCAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
+  and between -1 and 1 for
+  [`corAR1`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md);
+  for
   [`corExp`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md)
   and
   [`corGaus`](https://emilskindersoe.github.io/gcTMB/reference/corStruct.md),
   a named vector with the new range and/or nugget, e.g.
-  `c(range=10, nugget=0.2)`. NULL (default) keeps it.
+  `c(range=10, nugget=0.2)`. NULL (default) keeps them.
 
 - varpar:
 
@@ -91,38 +106,47 @@ update(
   the ratio of a stratum for `varIdent`; the parameters not given keep
   their values. NULL (default) keeps them.
 
+- ...:
+
+  Not used; other arguments give an error that points to
+  [`refit`](https://emilskindersoe.github.io/gcTMB/reference/refit.md).
+
 ## Value
 
 A gcTMB object.
 
 ## Details
 
-Every parameter of the model can be set: the coefficients of b1-b5
-(`fixef`, including coefficients fixed in the fit), the covariance
-matrices of the random effects (`VarCorr`), the residual standard
-deviation or dispersion (`sigma`), the autocorrelation (`rho`) and the
-parameters of the variance function (`varpar`), i.e. all the entries of
-`coef`. The parameters that are not given keep their values, and the
-random effects are the conditional modes at the new parameters. The new
-values are not estimates: the standard errors, the covariance matrix of
-`vcov` and the confidence intervals are NA, and
-[`converged`](https://emilskindersoe.github.io/gcTMB/reference/converged.md)
-returns NA. The log-likelihood is that of the data at the new
-parameters. To fit the data as well as possible with a chosen value of a
-parameter, refit the model with that parameter fixed instead, e.g.
-`correlation=corCAR1(0.8, form=~ time | ID, fixed=TRUE)` for the
-autocorrelation, or `start=c(b5=2)` for the asymmetry, which is fixed by
-default; the other parameters are then estimated given it, whereas
-`update` keeps their values. For gaussian models without random effects,
-the residual standard deviation is the value given, without the
-small-sample correction of
+To fit the model again with other components, e.g. a new `fform`,
+`rform`, `correlation`, `variance`, `model` or `family`, use
+[`refit`](https://emilskindersoe.github.io/gcTMB/reference/refit.md);
+the other arguments of
+[`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)
+give an error here. To set parameters of a model with a new component,
+refit it first and then set the parameters of the new fit, e.g.
+`update(refit(fit, fform=b1 ~ trt), fixef=...)`, as the coefficients of
+the new fform are not known before the refit.
+
+To fit the data as well as possible with a chosen value of a parameter,
+refit with that parameter fixed instead, e.g.
+`refit(fit, correlation=corCAR1(0.8, form=~ time | ID, fixed=TRUE))` for
+the autocorrelation, or `refit(fit, start=c(b5=2))` for the asymmetry,
+which is fixed by default; the other parameters are then estimated given
+it, whereas setting it keeps their values. For gaussian models without
+random effects, the residual standard deviation set by `sigma` is the
+value given, without the small-sample correction of
 [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md).
+
+## See also
+
+[`refit`](https://emilskindersoe.github.io/gcTMB/reference/refit.md) to
+fit the model again with other components.
 
 ## Examples
 
 ``` r
 fit <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
-# larger asymptote, an asymmetric curve, and a larger variance of b1
+# a larger asymptote, an asymmetric curve, and a larger variance of b1
 vc <- VarCorr(fit)$Plant_ID
 vc[1, 1] <- 2*vc[1, 1]
 fit2 <- update(fit, fixef=c(b1=150, b5=4), VarCorr=list(Plant_ID=vc))
@@ -144,12 +168,10 @@ VarCorr(fit2)
 #> 
 #> attr(,"sc")
 #> [1] 2.074042
-# refit with another growth model
-fitg <- update(fit, model="gompertz")
 # a weaker autocorrelation of the residuals, the other parameters unchanged
 fitc <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25,
               correlation=corCAR1(form=~ DAS | Plant_ID))
-corpars(update(fitc, rho=0.7))
+corpars(update(fitc, corpar=0.7))
 #> rho 
 #> 0.7 
 # a residual standard deviation proportional to the fitted curve

@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -262,7 +262,7 @@
 <tr>
 <td>Fitting</td>
 <td>
-<code><a href="reference/gcTMB.html">gcTMB()</a></code>, <code><a href="reference/gcTMBstart.html">gcTMBstart()</a></code>, <code><a href="reference/gcTMBcontrol.html">gcTMBcontrol()</a></code>, <code><a href="reference/corStruct.html">corAR1()</a></code>, <code><a href="reference/corStruct.html">corCAR1()</a></code>, <code><a href="reference/corStruct.html">corExp()</a></code>, <code><a href="reference/corStruct.html">corGaus()</a></code>, <code><a href="reference/varFunc.html">varIdent()</a></code>, <code><a href="reference/varFunc.html">varPower()</a></code>, <code><a href="reference/varFunc.html">varConstPower()</a></code>, <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code>
+<code><a href="reference/gcTMB.html">gcTMB()</a></code>, <code><a href="reference/gcTMBstart.html">gcTMBstart()</a></code>, <code><a href="reference/gcTMBcontrol.html">gcTMBcontrol()</a></code>, <code><a href="reference/corStruct.html">corAR1()</a></code>, <code><a href="reference/corStruct.html">corCAR1()</a></code>, <code><a href="reference/corStruct.html">corExp()</a></code>, <code><a href="reference/corStruct.html">corGaus()</a></code>, <code><a href="reference/varFunc.html">varIdent()</a></code>, <code><a href="reference/varFunc.html">varPower()</a></code>, <code><a href="reference/varFunc.html">varConstPower()</a></code>, <code><a href="reference/refit.html">refit()</a></code>
 </td>
 </tr>
 <tr>
@@ -395,8 +395,8 @@
 <span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.00024</span></span></code></pre></div>
 <p>Likelihood ratio tests of the treatment effects and of the autocorrelation:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit1</span>, fform <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
-<span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit1</span>, correlation <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">fit0</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fit1</span>, fform <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fit1</span>, correlation <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">fit0</span>, <span class="va">fit1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Likelihood ratio tests of gcTMB models</span></span>
 <span><span class="co">#&gt; </span></span>

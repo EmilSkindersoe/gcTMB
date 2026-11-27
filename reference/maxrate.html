@@ -13,7 +13,7 @@ bootstrap intervals."><meta property="og:image" content="https://emilskindersoe.
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -100,8 +100,8 @@ predicted random effects (the conditional modes), as in <code><a href="gcTMB-met
 <code><a href="timeto.html">timeto</a></code>. These are shrunken towards the population curve, more so for groups with few
 observations. The standard errors then include the uncertainty of the fixed effects and the
 prediction error of the random effects, from the joint precision matrix of
-<code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">sdreport</a></code>. A level that is not in the fitted data gives the population curve for
-that term, with a warning. Profile intervals are not available for the curves of fitted groups;
+<code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">sdreport</a></code>. A missing level (NA), or a level that is not in the fitted data, gives the
+population curve for that term, with a warning. Profile intervals are not available for the curves of fitted groups;
 <code>confint</code> returns Wald intervals for them, and bootstrap intervals with <code>method="boot"</code>.</p>
 <p>For each curve, <code>maxrate</code> gives</p><ul><li><p><code>tmax</code>: the time of the maximum growth rate, the inflection point of the curve;</p></li>
 <li><p><code>rate</code>: the maximum growth rate, the slope of the curve at <code>tmax</code>, in units of the

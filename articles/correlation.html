@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,7 +62,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Correlation structures</h1>
             
-            <h4 data-toc-skip class="date">2026-11-26</h4>
+            <h4 data-toc-skip class="date">2026-11-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/correlation.Rmd" class="external-link"><code>vignettes/correlation.Rmd</code></a></small>
       <div class="d-none name"><code>correlation.Rmd</code></div>
@@ -133,29 +133,31 @@ itself.</p>
 <p>The plots are sampled about every 15 days, at unequal intervals, so
 <code>corCAR1(form = ~ DOY | plot)</code> is the structure to use, with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
-the correlation per day. Its starting value is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>0.2</mn></mrow><annotation encoding="application/x-tex">\rho = 0.2</annotation></semantics></math>
-by default, which is a correlation of
+the correlation per day. By default, its starting value is the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+that gives a correlation of 0.2 at the median time between consecutive
+observations of a group,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><msup><mn>0.2</mn><mrow><mn>1</mn><mi>/</mi><mn>15</mn></mrow></msup><mo>≈</mo><mn>0.90</mn></mrow><annotation encoding="application/x-tex">\rho = 0.2^{1/15} \approx 0.90</annotation></semantics></math>
+per day here, whatever the unit of time. (A start of 0.2 per day, as in
+nlme, would be a correlation of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>0.2</mn><mn>15</mn></msup><annotation encoding="application/x-tex">0.2^{15}</annotation></semantics></math>,
-practically zero, between consecutive samplings; there the likelihood
-hardly changes with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>,
-and the optimiser stays near the starting value. A starting value close
-to 1, <code>value = 0.9</code>, starts from a correlation of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>0.9</mn><mn>15</mn></msup><mo>≈</mo><mn>0.2</mn></mrow><annotation encoding="application/x-tex">0.9^{15} \approx 0.2</annotation></semantics></math>
-between samplings. For the lognormal family, the correlation is that of
-the residuals of
+practically zero, between samplings, where the likelihood hardly changes
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+and the optimiser stays near the start.) <code>value</code> gives
+another starting value. For the lognormal family, the correlation is
+that of the residuals of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(y)</annotation></semantics></math>,
 the relative deviations from the curve:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitrec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Biomass</span> <span class="op">~</span> <span class="va">DOY</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Crop</span> <span class="op">*</span> <span class="va">Input</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plot</span>, data <span class="op">=</span> <span class="va">sm</span>,</span>
 <span>                model <span class="op">=</span> <span class="st">"beta"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">141</span><span class="op">)</span>, family <span class="op">=</span> <span class="st">"lognormal"</span>,</span>
-<span>                correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corCAR1</a></span><span class="op">(</span>value <span class="op">=</span> <span class="fl">0.9</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">DOY</span> <span class="op">|</span> <span class="va">plot</span><span class="op">)</span><span class="op">)</span></span>
+<span>                correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corCAR1</a></span><span class="op">(</span>form <span class="op">=</span> <span class="op">~</span> <span class="va">DOY</span> <span class="op">|</span> <span class="va">plot</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fitrec</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; gcTMB(form = Biomass ~ DOY, fform = b1 + b2 ~ Crop * Input, rform = b1 ~ </span></span>
-<span><span class="co">#&gt;     1 | plot, data = sm, start = c(b4 = 141), correlation = corCAR1(value = 0.9, </span></span>
-<span><span class="co">#&gt;     form = ~DOY | plot), family = "lognormal", model = "beta")</span></span>
+<span><span class="co">#&gt;     1 | plot, data = sm, start = c(b4 = 141), correlation = corCAR1(form = ~DOY | </span></span>
+<span><span class="co">#&gt;     plot), family = "lognormal", model = "beta")</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Model:  beta</span></span>
 <span><span class="co">#&gt; Family: lognormal, identity link for all parameters</span></span>
@@ -165,17 +167,17 @@ the relative deviations from the curve:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;                                Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; b1:(Intercept)                  32.6795     2.3532  13.887  &lt; 2e-16 ***</span></span>
-<span><span class="co">#&gt; b1:CropMaize                   -13.0754     2.9466  -4.437  9.1e-06 ***</span></span>
+<span><span class="co">#&gt; b1:(Intercept)                  32.6796     2.3532  13.887  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b1:CropMaize                   -13.0755     2.9466  -4.438  9.1e-06 ***</span></span>
 <span><span class="co">#&gt; b1:CropSweet sorghum            -0.1908     3.3406  -0.057   0.9545    </span></span>
-<span><span class="co">#&gt; b1:InputHigh                     7.1624     3.6936   1.939   0.0525 .  </span></span>
-<span><span class="co">#&gt; b1:CropMaize:InputHigh           1.2994     4.7927   0.271   0.7863    </span></span>
+<span><span class="co">#&gt; b1:InputHigh                     7.1623     3.6936   1.939   0.0525 .  </span></span>
+<span><span class="co">#&gt; b1:CropMaize:InputHigh           1.2996     4.7927   0.271   0.7863    </span></span>
 <span><span class="co">#&gt; b1:CropSweet sorghum:InputHigh   2.2539     5.3285   0.423   0.6723    </span></span>
-<span><span class="co">#&gt; b2:(Intercept)                 237.4210     1.4388 165.012  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; b2:(Intercept)                 237.4210     1.4388 165.013  &lt; 2e-16 ***</span></span>
 <span><span class="co">#&gt; b2:CropMaize                    -5.3300     2.3608  -2.258   0.0240 *  </span></span>
-<span><span class="co">#&gt; b2:CropSweet sorghum             2.3127     1.7981   1.286   0.1984    </span></span>
+<span><span class="co">#&gt; b2:CropSweet sorghum             2.3126     1.7981   1.286   0.1984    </span></span>
 <span><span class="co">#&gt; b2:InputHigh                    -0.6375     1.8354  -0.347   0.7283    </span></span>
-<span><span class="co">#&gt; b2:CropMaize:InputHigh           0.5966     3.2051   0.186   0.8523    </span></span>
+<span><span class="co">#&gt; b2:CropMaize:InputHigh           0.5967     3.2051   0.186   0.8523    </span></span>
 <span><span class="co">#&gt; b2:CropSweet sorghum:InputHigh   0.5322     2.4436   0.218   0.8276    </span></span>
 <span><span class="co">#&gt; b3:(Intercept)                 278.3070     1.0786 258.028  &lt; 2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
@@ -184,25 +186,25 @@ the relative deviations from the curve:</p>
 <span><span class="co">#&gt; Fixed: b4:(Intercept) = 141</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
-<span><span class="co">#&gt;  Groups Name Std.Dev. </span></span>
-<span><span class="co">#&gt;  plot   b1   0.0002202</span></span>
+<span><span class="co">#&gt;  Groups Name Std.Dev.</span></span>
+<span><span class="co">#&gt;  plot   b1   0.00026 </span></span>
 <span><span class="co">#&gt; Standard deviations close to zero (singular fit): plot b1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation of log(y): 0.2904</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Correlation structure: continuous-time AR(1) in DOY within plot</span></span>
-<span><span class="co">#&gt; rho: 0.04809</span></span>
+<span><span class="co">#&gt; rho: 0.06</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 2.2e-05</span></span>
+<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.00013</span></span>
 <span><span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fitrec</span><span class="op">)</span><span class="op">^</span><span class="fl">15</span></span>
 <span><span class="co">#&gt;          rho </span></span>
-<span><span class="co">#&gt; 1.702408e-20</span></span>
+<span><span class="co">#&gt; 1.308854e-18</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova</a></span><span class="op">(</span><span class="va">fitre</span>, <span class="va">fitrec</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Likelihood ratio tests of gcTMB models</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;        npar    AIC    BIC  logLik deviance         LR Df Pr(&gt;LR)</span></span>
-<span><span class="co">#&gt; fitre    15 962.53 1012.9 -466.27   932.53                      </span></span>
-<span><span class="co">#&gt; fitrec   16 964.53 1018.2 -466.27   932.53 2.8821e-08  1  0.9999</span></span></code></pre></div>
+<span><span class="co">#&gt;        npar    AIC    BIC  logLik deviance          LR Df Pr(&gt;LR)</span></span>
+<span><span class="co">#&gt; fitre    15 962.53 1012.9 -466.27   932.53                       </span></span>
+<span><span class="co">#&gt; fitrec   16 964.53 1018.2 -466.27   932.53 -5.3218e-08  1       1</span></span></code></pre></div>
 <p>The estimate of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 moves far down from its starting value, to a correlation of practically
@@ -299,9 +301,9 @@ there, and the optimiser stays at the starting value, as for
 <code>value = c(5, 0.2)</code> for the range and the nugget, avoids
 this:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fitexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit0</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corExp</a></span><span class="op">(</span><span class="fl">5</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">X</span> <span class="op">+</span> <span class="va">Y</span> <span class="op">|</span> <span class="va">Plot</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">fitexpn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit0</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corExp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">0.2</span><span class="op">)</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">X</span> <span class="op">+</span> <span class="va">Y</span> <span class="op">|</span> <span class="va">Plot</span>, nugget <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">fitgausn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit0</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corGaus</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">0.2</span><span class="op">)</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">X</span> <span class="op">+</span> <span class="va">Y</span> <span class="op">|</span> <span class="va">Plot</span>, nugget <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">fitexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fit0</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corExp</a></span><span class="op">(</span><span class="fl">5</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">X</span> <span class="op">+</span> <span class="va">Y</span> <span class="op">|</span> <span class="va">Plot</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fitexpn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fit0</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corExp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">0.2</span><span class="op">)</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">X</span> <span class="op">+</span> <span class="va">Y</span> <span class="op">|</span> <span class="va">Plot</span>, nugget <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fitgausn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fit0</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corGaus</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">0.2</span><span class="op">)</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">X</span> <span class="op">+</span> <span class="va">Y</span> <span class="op">|</span> <span class="va">Plot</span>, nugget <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fitexpn</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; gcTMB(form = Height ~ DBH, data = pines, correlation = corExp(c(5, </span></span>
@@ -318,7 +320,7 @@ this:</p>
 <span><span class="co">#&gt; Residual standard deviation: 2.62</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Correlation structure: exponential in X + Y within Plot, with nugget</span></span>
-<span><span class="co">#&gt; range: 53.6572, nugget:  0.2835</span></span>
+<span><span class="co">#&gt; range: 53.66, nugget: 0.28</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>exponential <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fitexp</span><span class="op">)</span>, nugget <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>, <span class="st">"exponential, nugget"</span> <span class="op">=</span> <span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fitexpn</span><span class="op">)</span>,</span>
 <span>      <span class="st">"Gaussian, nugget"</span> <span class="op">=</span> <span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fitgausn</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                         range    nugget</span></span>
@@ -388,9 +390,9 @@ optimiser stops with false convergence (on <code>restart = TRUE</code>,
 see the overview <code><a href="../articles/gcTMB.html">vignette("gcTMB")</a></code>):</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ctl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">fitre1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit0</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plot</span>, control <span class="op">=</span> <span class="va">ctl</span><span class="op">)</span></span>
-<span><span class="va">fitre2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit0</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">||</span> <span class="va">Plot</span>, control <span class="op">=</span> <span class="va">ctl</span><span class="op">)</span></span>
-<span><span class="va">fitre1exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fit0</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plot</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corExp</a></span><span class="op">(</span><span class="fl">5</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">X</span> <span class="op">+</span> <span class="va">Y</span> <span class="op">|</span> <span class="va">Plot</span><span class="op">)</span>, control <span class="op">=</span> <span class="va">ctl</span><span class="op">)</span></span>
+<span><span class="va">fitre1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fit0</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plot</span>, control <span class="op">=</span> <span class="va">ctl</span><span class="op">)</span></span>
+<span><span class="va">fitre2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fit0</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">||</span> <span class="va">Plot</span>, control <span class="op">=</span> <span class="va">ctl</span><span class="op">)</span></span>
+<span><span class="va">fitre1exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fit0</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plot</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corExp</a></span><span class="op">(</span><span class="fl">5</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">X</span> <span class="op">+</span> <span class="va">Y</span> <span class="op">|</span> <span class="va">Plot</span><span class="op">)</span>, control <span class="op">=</span> <span class="va">ctl</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>fitre1 <span class="op">=</span> <span class="va">fitre1</span>, fitre2 <span class="op">=</span> <span class="va">fitre2</span>, fitre1exp <span class="op">=</span> <span class="va">fitre1exp</span><span class="op">)</span>, <span class="va">converged</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    fitre1    fitre2 fitre1exp </span></span>
 <span><span class="co">#&gt;      TRUE      TRUE      TRUE</span></span>

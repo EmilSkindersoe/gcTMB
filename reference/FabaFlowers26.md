@@ -89,26 +89,26 @@ summary(fit)
 #> 
 #> Coefficients:
 #>                                     Estimate Std. Error z value Pr(>|z|)    
-#> b1:(Intercept)                      27.12920    1.64583  16.484  < 2e-16 ***
-#> b1:SoilSandy                        -9.85954    2.30309  -4.281 1.86e-05 ***
-#> b1:TreatmentNotIrrigated           -12.04680    2.30204  -5.233 1.67e-07 ***
-#> b1:SoilSandy:TreatmentNotIrrigated   2.15909    3.24524   0.665    0.506    
-#> b2:(Intercept)                      74.86645    0.16510 453.448  < 2e-16 ***
-#> b2:SoilSandy                        -0.66446    0.27051  -2.456    0.014 *  
-#> b2:TreatmentNotIrrigated            -1.29395    0.28956  -4.469 7.87e-06 ***
-#> b2:SoilSandy:TreatmentNotIrrigated  -0.47124    0.60528  -0.779    0.436    
-#> b3:(Intercept)                       2.10069    0.08466  24.813  < 2e-16 ***
+#> b1:(Intercept)                      27.12896    1.64583  16.483  < 2e-16 ***
+#> b1:SoilSandy                        -9.85973    2.30309  -4.281 1.86e-05 ***
+#> b1:TreatmentNotIrrigated           -12.04645    2.30204  -5.233 1.67e-07 ***
+#> b1:SoilSandy:TreatmentNotIrrigated   2.15942    3.24524   0.665    0.506    
+#> b2:(Intercept)                      74.86644    0.16510 453.449  < 2e-16 ***
+#> b2:SoilSandy                        -0.66445    0.27051  -2.456    0.014 *  
+#> b2:TreatmentNotIrrigated            -1.29393    0.28956  -4.469 7.87e-06 ***
+#> b2:SoilSandy:TreatmentNotIrrigated  -0.47125    0.60528  -0.779    0.436    
+#> b3:(Intercept)                       2.10068    0.08466  24.813  < 2e-16 ***
 #> ---
 #> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 #> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev.
-#>  Plant_ID b1   7.754   
+#>  Plant_ID b1   7.75    
 #> 
 #> Residual standard deviation: 2.468
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.00032
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.00024
 timeto(fit, level=50, newdata=expand.grid(Soil=c("Loamy", "Sandy"),
                                           Treatment=c("Irrigated", "NotIrrigated")), random=FALSE)
 #> Times to reach the percentages of the asymptote:

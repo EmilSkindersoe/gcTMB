@@ -6,13 +6,13 @@ gcTMB Methods
 
 ``` r
 # S3 method for class 'gcTMB'
-print(x, digits = max(3L, getOption("digits") - 3L), ...)
+print(x, digits = max(3L, getOption("digits") - 3L), n = NULL, ...)
 
 # S3 method for class 'gcTMB'
 summary(object, ...)
 
 # S3 method for class 'summary.gcTMB'
-print(x, digits = max(3L, getOption("digits") - 3L), ...)
+print(x, digits = max(3L, getOption("digits") - 3L), n = NULL, ...)
 
 # S3 method for class 'gcTMB'
 logLik(object, ...)
@@ -70,6 +70,14 @@ simulate(object, nsim = 1, seed = NULL, random = TRUE, newdata = NULL, ...)
 - digits:
 
   Integer. Number of significant digits in the printed output
+
+- n:
+
+  Integer or NULL. The maximum number of coefficients printed; NULL
+  (default) for the option `gcTMB.print.max`, 100 unless set, e.g.
+  `options(gcTMB.print.max = 200)`; `Inf` for all. When coefficients are
+  left out, a note at the end says how many, and how to show or extract
+  all of them
 
 - ...:
 
@@ -296,8 +304,8 @@ summary(fit)
 #> 
 #> Random effects:
 #>  Groups   Name Std.Dev. Corr 
-#>  Plant_ID b1   10.237        
-#>           b2    2.561   -0.12
+#>  Plant_ID b1   10.24         
+#>           b2   2.56     -0.12
 #> 
 #> Residual standard deviation: 2.074
 #> 

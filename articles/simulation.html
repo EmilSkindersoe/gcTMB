@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9025</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,7 +62,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Simulation</h1>
             
-            <h4 data-toc-skip class="date">2026-11-26</h4>
+            <h4 data-toc-skip class="date">2026-11-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/vignettes/simulation.Rmd" class="external-link"><code>vignettes/simulation.Rmd</code></a></small>
       <div class="d-none name"><code>simulation.Rmd</code></div>
@@ -112,7 +112,7 @@ days apart, <code>corCAR1(form = ~ DOY | plot)</code> (see the vignette
 <span>                correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corCAR1</a></span><span class="op">(</span>value <span class="op">=</span> <span class="fl">0.9</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">DOY</span> <span class="op">|</span> <span class="va">plot</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">fitrec</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        rho </span></span>
-<span><span class="co">#&gt; 0.04809179</span></span></code></pre></div>
+<span><span class="co">#&gt; 0.09005289</span></span></code></pre></div>
 <p>The estimate of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 is a correlation of practically zero between consecutive samplings.
@@ -158,7 +158,7 @@ the beta curve has no asymmetry
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Random effects:</span></span>
 <span><span class="co">#&gt;  Groups Name Std.Dev.</span></span>
-<span><span class="co">#&gt;  plot   b1   3.582   </span></span>
+<span><span class="co">#&gt;  plot   b1   3.58    </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residual standard deviation of log(y): 0.3006</span></span>
 <span><span class="fu"><a href="../reference/converged.html">converged</a></span><span class="op">(</span><span class="va">fitsim</span><span class="op">)</span></span>
@@ -168,31 +168,31 @@ are:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/gcTMB-extract.html">fixef</a></span><span class="op">(</span><span class="va">fitsim</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       b1:(Intercept)         b1:CropMaize b1:CropSweet sorghum </span></span>
-<span><span class="co">#&gt;            36.238579           -12.575316             0.689162 </span></span>
+<span><span class="co">#&gt;           36.2385683          -12.5752974            0.6891833 </span></span>
 <span><span class="co">#&gt;       b2:(Intercept)         b2:CropMaize b2:CropSweet sorghum </span></span>
-<span><span class="co">#&gt;           236.978644            -5.094775             2.544621 </span></span>
+<span><span class="co">#&gt;          236.9786410           -5.0947681            2.5446297 </span></span>
 <span><span class="co">#&gt;       b3:(Intercept)       b4:(Intercept) </span></span>
-<span><span class="co">#&gt;           278.285857           141.000000</span></span>
+<span><span class="co">#&gt;          278.2858609          141.0000000</span></span>
 <span><span class="fu"><a href="../reference/gcTMB-extract.html">VarCorr</a></span><span class="op">(</span><span class="va">fitsim</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $plot</span></span>
-<span><span class="co">#&gt;          b1</span></span>
-<span><span class="co">#&gt; b1 12.82913</span></span>
+<span><span class="co">#&gt;         b1</span></span>
+<span><span class="co">#&gt; b1 12.8291</span></span>
 <span><span class="co">#&gt; attr(,"stddev")</span></span>
 <span><span class="co">#&gt;       b1 </span></span>
-<span><span class="co">#&gt; 3.581777 </span></span>
+<span><span class="co">#&gt; 3.581773 </span></span>
 <span><span class="co">#&gt; attr(,"correlation")</span></span>
 <span><span class="co">#&gt;    b1</span></span>
 <span><span class="co">#&gt; b1  1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; attr(,"sc")</span></span>
-<span><span class="co">#&gt; [1] 0.300555</span></span>
+<span><span class="co">#&gt; [1] 0.3005549</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/sigma.html" class="external-link">sigma</a></span><span class="op">(</span><span class="va">fitsim</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.300555</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.3005549</span></span></code></pre></div>
 <p>Other true models can be made from it with <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code>,
 e.g. <code>update(fitsim, fixef = c("b1:(Intercept)" = 30))</code> for a
 larger asymptote of fiber sorghum,
 <code>update(fitsim, VarCorr = ...)</code> for another variance of the
-random effects, or <code>update(fit, rho = ...)</code> for another
+random effects, or <code>update(fit, corpar = ...)</code> for another
 autocorrelation, as below.</p>
 </div>
 <div class="section level3">
@@ -207,12 +207,12 @@ curve, with its own random effect drawn from the fitted variance.</p>
 <span><span class="va">simdata</span><span class="op">$</span><span class="va">Biomass</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">fitsim</span>, nsim <span class="op">=</span> <span class="fl">1</span>, seed <span class="op">=</span> <span class="fl">1</span>, newdata <span class="op">=</span> <span class="va">simdata</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">simdata</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   DOY  plot          Crop    Biomass</span></span>
-<span><span class="co">#&gt; 1 150 plot1 Fiber sorghum 0.03351686</span></span>
-<span><span class="co">#&gt; 2 160 plot1 Fiber sorghum 0.18146325</span></span>
-<span><span class="co">#&gt; 3 170 plot1 Fiber sorghum 0.86335105</span></span>
-<span><span class="co">#&gt; 4 180 plot1 Fiber sorghum 1.76762973</span></span>
-<span><span class="co">#&gt; 5 190 plot1 Fiber sorghum 2.77908468</span></span>
-<span><span class="co">#&gt; 6 200 plot1 Fiber sorghum 6.29144684</span></span></code></pre></div>
+<span><span class="co">#&gt; 1 150 plot1 Fiber sorghum 0.03351688</span></span>
+<span><span class="co">#&gt; 2 160 plot1 Fiber sorghum 0.18146333</span></span>
+<span><span class="co">#&gt; 3 170 plot1 Fiber sorghum 0.86335123</span></span>
+<span><span class="co">#&gt; 4 180 plot1 Fiber sorghum 1.76762994</span></span>
+<span><span class="co">#&gt; 5 190 plot1 Fiber sorghum 2.77908489</span></span>
+<span><span class="co">#&gt; 6 200 plot1 Fiber sorghum 6.29144647</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="refitting-the-model">Refitting the model<a class="anchor" aria-label="anchor" href="#refitting-the-model"></a>
@@ -222,7 +222,9 @@ curve, with its own random effect drawn from the fitted variance.</p>
 <code class="sourceCode R"><span><span class="va">simfit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Biomass</span> <span class="op">~</span> <span class="va">DOY</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Crop</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plot</span>, data <span class="op">=</span> <span class="va">simdata</span>,</span>
 <span>                model <span class="op">=</span> <span class="st">"beta"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">141</span><span class="op">)</span>, family <span class="op">=</span> <span class="st">"lognormal"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/converged.html">converged</a></span><span class="op">(</span><span class="va">simfit</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] FALSE</span></span>
+<span><span class="co">#&gt; attr(,"reasons")</span></span>
+<span><span class="co">#&gt; [1] "the largest absolute gradient is 0.0021"</span></span></code></pre></div>
 <p>The 95% parametric bootstrap confidence intervals of the coefficients
 and the variance parameters are compared with the true values, the
 estimates of the original fit. <code>confint</code> reports the standard
@@ -245,16 +247,16 @@ way.</p>
 <span><span class="co"># the standard deviations are on their natural scale: drop "log_" from their names</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">tab</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"^log_"</span>, <span class="st">""</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">tab</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">tab</span></span>
-<span><span class="co">#&gt;                            true    estimate       2.5 %     97.5 % covered</span></span>
-<span><span class="co">#&gt; b1:(Intercept)        36.238579  36.6773045  34.4540358  39.383038    TRUE</span></span>
-<span><span class="co">#&gt; b1:CropMaize         -12.575316 -13.7901623 -17.3929057 -10.632215    TRUE</span></span>
-<span><span class="co">#&gt; b1:CropSweet sorghum   0.689162   0.6887544  -1.6154944   3.621184    TRUE</span></span>
-<span><span class="co">#&gt; b2:(Intercept)       236.978644 236.8807942 235.7555052 238.389181    TRUE</span></span>
-<span><span class="co">#&gt; b2:CropMaize          -5.094775  -5.0449933  -5.8784815  -4.022029    TRUE</span></span>
-<span><span class="co">#&gt; b2:CropSweet sorghum   2.544621   2.8495607   2.0070857   3.596094    TRUE</span></span>
-<span><span class="co">#&gt; b3:(Intercept)       278.285857 278.6153925 277.1445230 280.234416    TRUE</span></span>
-<span><span class="co">#&gt; sd:b1|plot             3.581777   2.8538480   1.7905491   3.450739   FALSE</span></span>
-<span><span class="co">#&gt; sigma                  0.300555   0.3154057   0.3011981   0.331147   FALSE</span></span></code></pre></div>
+<span><span class="co">#&gt;                             true    estimate       2.5 %      97.5 % covered</span></span>
+<span><span class="co">#&gt; b1:(Intercept)        36.2385683  36.6772959  34.4540215  39.3830376    TRUE</span></span>
+<span><span class="co">#&gt; b1:CropMaize         -12.5752974 -13.7901245 -17.3928779 -10.6321687    TRUE</span></span>
+<span><span class="co">#&gt; b1:CropSweet sorghum   0.6891833   0.6887689  -1.6154835   3.6212082    TRUE</span></span>
+<span><span class="co">#&gt; b2:(Intercept)       236.9786410 236.8808074 235.7555142 238.3891990    TRUE</span></span>
+<span><span class="co">#&gt; b2:CropMaize          -5.0947681  -5.0449775  -5.8784663  -4.0220119    TRUE</span></span>
+<span><span class="co">#&gt; b2:CropSweet sorghum   2.5446297   2.8495673   2.0070914   3.5961009    TRUE</span></span>
+<span><span class="co">#&gt; b3:(Intercept)       278.2858609 278.6154339 277.1445592 280.2344654    TRUE</span></span>
+<span><span class="co">#&gt; sd:b1|plot             3.5817730   2.8538639   1.7905614   3.4507593   FALSE</span></span>
+<span><span class="co">#&gt; sigma                  0.3005549   0.3154058   0.3011982   0.3311471   FALSE</span></span></code></pre></div>
 <p>The simulated biomass and the estimated curves of the 60 plots:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>DOY <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">141</span>, <span class="fl">300</span>, length.out <span class="op">=</span> <span class="fl">200</span><span class="op">)</span>, plot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">simdata</span><span class="op">$</span><span class="va">plot</span><span class="op">)</span><span class="op">)</span></span>
@@ -304,7 +306,7 @@ above, with crop and input effects, random asymptotes of the plots and
 continuous-time AR(1) residuals of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log(y)</annotation></semantics></math>.
 Its autocorrelation,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>0.05</mn></mrow><annotation encoding="application/x-tex">\rho = 0.05</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>0.09</mn></mrow><annotation encoding="application/x-tex">\rho = 0.09</annotation></semantics></math>
 per day, is set to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>0.8</mn></mrow><annotation encoding="application/x-tex">\rho = 0.8</annotation></semantics></math>
 with <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code>, a correlation of
@@ -313,16 +315,16 @@ between samplings 10 days apart, and all other parameters keep their
 estimates:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rho0</span> <span class="op">&lt;-</span> <span class="fl">0.8</span></span>
-<span><span class="va">fitcar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fitrec</span>, rho <span class="op">=</span> <span class="va">rho0</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">fitcar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">fitrec</span>, corpar <span class="op">=</span> <span class="va">rho0</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> changes
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
 and nothing else, so the other parameters are those estimated together
 with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>0.05</mn></mrow><annotation encoding="application/x-tex">\rho = 0.05</annotation></semantics></math>.
-Alternatively, a new fit with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>0.09</mn></mrow><annotation encoding="application/x-tex">\rho = 0.09</annotation></semantics></math>.
+Alternatively, <code><a href="../reference/refit.html">refit()</a></code> fits the model again with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
-fixed at 0.8, <code>corCAR1(value = 0.8, fixed = TRUE)</code>, estimates
-the other parameters given
+fixed at 0.8, <code>corCAR1(value = 0.8, fixed = TRUE)</code>, and
+estimates the other parameters given
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>0.8</mn></mrow><annotation encoding="application/x-tex">\rho = 0.8</annotation></semantics></math>.
 This is the way to go when the true model should fit the data as well as
 possible with the chosen
@@ -333,20 +335,18 @@ to go when only
 should differ from the fitted model, e.g. to compare simulations with
 different autocorrelations and otherwise the same parameters.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fitfix</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Biomass</span> <span class="op">~</span> <span class="va">DOY</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Crop</span> <span class="op">*</span> <span class="va">Input</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">plot</span>, data <span class="op">=</span> <span class="va">sm</span>,</span>
-<span>                model <span class="op">=</span> <span class="st">"beta"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">141</span><span class="op">)</span>, family <span class="op">=</span> <span class="st">"lognormal"</span>,</span>
-<span>                correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corCAR1</a></span><span class="op">(</span>value <span class="op">=</span> <span class="va">rho0</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">DOY</span> <span class="op">|</span> <span class="va">plot</span>, fixed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">fitfix</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fitrec</span>, correlation <span class="op">=</span> <span class="fu"><a href="../reference/corStruct.html">corCAR1</a></span><span class="op">(</span>value <span class="op">=</span> <span class="va">rho0</span>, form <span class="op">=</span> <span class="op">~</span> <span class="va">DOY</span> <span class="op">|</span> <span class="va">plot</span>, fixed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">pars</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="../reference/gcTMB-extract.html">fixef</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"b1:(Intercept)"</span>, <span class="st">"b2:(Intercept)"</span>, <span class="st">"b3:(Intercept)"</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>                      sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sigma.html" class="external-link">sigma</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span>, <span class="fu"><a href="../reference/gcTMB-extract.html">corpars</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span>, logLik <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>estimated <span class="op">=</span> <span class="fu">pars</span><span class="op">(</span><span class="va">fitrec</span><span class="op">)</span>, updated <span class="op">=</span> <span class="fu">pars</span><span class="op">(</span><span class="va">fitcar</span><span class="op">)</span>, refitted <span class="op">=</span> <span class="fu">pars</span><span class="op">(</span><span class="va">fitfix</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;           b1:(Intercept) b2:(Intercept) b3:(Intercept)     sigma        rho</span></span>
-<span><span class="co">#&gt; estimated       32.67953       237.4210       278.3070 0.2904355 0.04809179</span></span>
-<span><span class="co">#&gt; updated         32.67953       237.4210       278.3070 0.2904355 0.80000000</span></span>
-<span><span class="co">#&gt; refitted        32.60736       237.4475       278.3419 0.2938295 0.80000000</span></span>
+<span><span class="co">#&gt; estimated       32.67956       237.4210       278.3070 0.2904354 0.09005289</span></span>
+<span><span class="co">#&gt; updated         32.67956       237.4210       278.3070 0.2904354 0.80000000</span></span>
+<span><span class="co">#&gt; refitted        32.60727       237.4475       278.3419 0.2938293 0.80000000</span></span>
 <span><span class="co">#&gt;              logLik</span></span>
 <span><span class="co">#&gt; estimated -466.2650</span></span>
 <span><span class="co">#&gt; updated   -468.4116</span></span>
-<span><span class="co">#&gt; refitted  -468.3100</span></span></code></pre></div>
+<span><span class="co">#&gt; refitted  -468.3101</span></span></code></pre></div>
 <p>We simulate from the updated model: 50 data sets of 10 new plots of
 each combination of crop and input level, each sampled every 10 days
 from day 150 to day 300. We fit the model to each data set, now with
@@ -374,8 +374,8 @@ and of the bounds of their 95% Wald intervals, and the coverage of the
 intervals, against the true value 0.8:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">carsim</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rho"</span>, <span class="st">"lower"</span>, <span class="st">"upper"</span>, <span class="st">"covered"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt;       rho     lower     upper   covered </span></span>
-<span><span class="co">#&gt; 0.7869091 0.7205922 0.8409081 0.9800000</span></span></code></pre></div>
+<span><span class="co">#&gt;      rho    lower    upper  covered </span></span>
+<span><span class="co">#&gt; 0.774071      NaN      NaN       NA</span></span></code></pre></div>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">carsim</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">rho</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">10</span>, fill <span class="op">=</span> <span class="st">"grey70"</span>, colour <span class="op">=</span> <span class="st">"grey30"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -403,7 +403,7 @@ fit it to the biomass:</p>
 <span>                model <span class="op">=</span> <span class="st">"beta"</span>, start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">141</span><span class="op">)</span>, family <span class="op">=</span> <span class="st">"lognormal"</span>, variance <span class="op">=</span> <span class="fu"><a href="../reference/varFunc.html">varPower</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/gcTMB-extract.html">varpars</a></span><span class="op">(</span><span class="va">fitvar</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      power </span></span>
-<span><span class="co">#&gt; -0.2255521</span></span>
+<span><span class="co">#&gt; -0.2255527</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fitsim</span>, <span class="va">fitvar</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        df      AIC</span></span>
 <span><span class="co">#&gt; fitsim  9 984.9414</span></span>
@@ -448,7 +448,7 @@ intervals, against the true value
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colMeans</a></span><span class="op">(</span><span class="va">varsim</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"power"</span>, <span class="st">"lower"</span>, <span class="st">"upper"</span>, <span class="st">"covered"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      power      lower      upper    covered </span></span>
-<span><span class="co">#&gt; -0.3004625 -0.3325022 -0.2684227  0.9200000</span></span></code></pre></div>
+<span><span class="co">#&gt; -0.3004623 -0.3325021 -0.2684226  0.9200000</span></span></code></pre></div>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">varsim</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">power</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">10</span>, fill <span class="op">=</span> <span class="st">"grey70"</span>, colour <span class="op">=</span> <span class="st">"grey30"</span><span class="op">)</span> <span class="op">+</span></span>
