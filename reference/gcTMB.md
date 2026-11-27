@@ -139,10 +139,14 @@ gcTMB(
   A variance function or NULL. Heteroscedastic residuals with the
   standard deviation sigma g,
   [`varIdent`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md),
-  [`varPower`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
-  or
-  [`varConstPower`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
-  (or the same functions of the package nlme), e.g.
+  [`varPower`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md),
+  [`varConstPower`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md),
+  [`varExp`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md),
+  the polynomial
+  [`varPoly`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  or the product
+  [`varComb`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  of these (or the same functions of the package nlme), e.g.
   `varIdent(form=~ 1 | Treatment)` for a variance for each treatment, or
   `varConstPower(form=~ rate(.))` for a standard deviation that grows
   with the growth rate of the curve, for the gaussian and lognormal (on
@@ -199,16 +203,20 @@ gcTMB(
   `link=c(b1="log", b3="inverse")`. The default is the identity link for
   all parameters, except the shape b3 of the weibull, gamma and korf
   models, which must be larger than 1 and has the link "logm1", log(b3 -
-  1), by default (`link=c(b3="identity")` gives the shape itself). The
-  links available for each parameter depend on its role in the model:
+  1), by default (`link=c(b3="identity")` gives the shape itself), and
+  the coefficient b2 of korf, which must be positive and has the log
+  link by default, as it grows with t^(b3 - 1) to values the optimiser
+  cannot handle on its own scale (`link=c(b2="identity")` gives b2
+  itself). The links available for each parameter depend on its role in
+  the model:
 
   - the asymptote b1: "identity", "log" or "logit" (for proportions);
     the slope b1 of the linear model: "identity" or "log";
 
   - the time b2 (inflection point, half the asymptote, middle of
-    puberty), the rate b2 of chapmanrichards and the coefficient b2 of
-    korf: "identity" or "log"; the intercept b2 of the linear model:
-    "identity";
+    puberty), the rate b2 of chapmanrichards: "identity" or "log"; the
+    coefficient b2 of korf: "log" or "identity"; the intercept b2 of the
+    linear model: "identity";
 
   - a scale b3 (logistic, gompertz, normal): "identity", "inverse", with
     which its coefficients are the growth rate 1/b3, or "log"; the shape
@@ -387,12 +395,15 @@ and gcTMB:
 
 - the variance functions
   [`varIdent`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md),
-  [`varPower`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  [`varPower`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md),
+  [`varConstPower`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md),
+  [`varExp`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
   and
-  [`varConstPower`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  [`varComb`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
   go in the argument `variance` (the argument `weights` of nlme), with
   the arguments and parameterisation of nlme, plus the growth rate
-  `rate(.)` as a covariate;
+  `rate(.)` as a covariate and the polynomial
+  [`varPoly`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md);
 
 - [`fixef`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md),
   [`ranef`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md)

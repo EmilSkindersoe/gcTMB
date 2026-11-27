@@ -11,7 +11,7 @@ the Laplace approximation."><meta property="og:image" content="https://emilskind
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9027</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -118,8 +118,9 @@ a correlation structure, the weights are precision weights, with residual varian
 
 <dt id="arg-variance">variance<a class="anchor" aria-label="anchor" href="#arg-variance"></a></dt>
 <dd><p>A variance function or NULL. Heteroscedastic residuals with the standard deviation
-sigma g, <code><a href="varFunc.html">varIdent</a></code>, <code><a href="varFunc.html">varPower</a></code> or <code><a href="varFunc.html">varConstPower</a></code> (or the
-same functions of the package nlme), e.g. <code>varIdent(form=~ 1 | Treatment)</code> for a variance
+sigma g, <code><a href="varFunc.html">varIdent</a></code>, <code><a href="varFunc.html">varPower</a></code>, <code><a href="varFunc.html">varConstPower</a></code>,
+<code><a href="varFunc.html">varExp</a></code>, the polynomial <code><a href="varFunc.html">varPoly</a></code> or the product <code><a href="varFunc.html">varComb</a></code> of
+these (or the same functions of the package nlme), e.g. <code>varIdent(form=~ 1 | Treatment)</code> for a variance
 for each treatment, or <code>varConstPower(form=~ rate(.))</code> for a standard deviation that grows
 with the growth rate of the curve, for the gaussian and lognormal (on the log scale) families.
 NULL (default) for a constant variance. See <code><a href="varFunc.html">varFunc</a></code>.</p></dd>
@@ -146,8 +147,8 @@ NULL (default) for a constant variance. See <code><a href="varFunc.html">varFunc
 
 
 <dt id="arg-link">link<a class="anchor" aria-label="anchor" href="#arg-link"></a></dt>
-<dd><p>Named character vector or NULL. Links of the parameters b1-b5: NULL for the defaults, or links named by parameter, e.g. <code>link=c(b1="log", b3="inverse")</code>. The default is the identity link for all parameters, except the shape b3 of the weibull, gamma and korf models, which must be larger than 1 and has the link "logm1", log(b3 - 1), by default (<code>link=c(b3="identity")</code> gives the shape itself). The links available for each parameter depend on its role in the model:</p><ul><li><p>the asymptote b1: "identity", "log" or "logit" (for proportions); the slope b1 of the linear model: "identity" or "log";</p></li>
-<li><p>the time b2 (inflection point, half the asymptote, middle of puberty), the rate b2 of chapmanrichards and the coefficient b2 of korf: "identity" or "log"; the intercept b2 of the linear model: "identity";</p></li>
+<dd><p>Named character vector or NULL. Links of the parameters b1-b5: NULL for the defaults, or links named by parameter, e.g. <code>link=c(b1="log", b3="inverse")</code>. The default is the identity link for all parameters, except the shape b3 of the weibull, gamma and korf models, which must be larger than 1 and has the link "logm1", log(b3 - 1), by default (<code>link=c(b3="identity")</code> gives the shape itself), and the coefficient b2 of korf, which must be positive and has the log link by default, as it grows with t^(b3 - 1) to values the optimiser cannot handle on its own scale (<code>link=c(b2="identity")</code> gives b2 itself). The links available for each parameter depend on its role in the model:</p><ul><li><p>the asymptote b1: "identity", "log" or "logit" (for proportions); the slope b1 of the linear model: "identity" or "log";</p></li>
+<li><p>the time b2 (inflection point, half the asymptote, middle of puberty), the rate b2 of chapmanrichards: "identity" or "log"; the coefficient b2 of korf: "log" or "identity"; the intercept b2 of the linear model: "identity";</p></li>
 <li><p>a scale b3 (logistic, gompertz, normal): "identity", "inverse", with which its coefficients are the growth rate 1/b3, or "log"; the shape b3 of weibull, gamma and korf: "logm1", "identity" or "log"; any other b3 (the slope of hill, the shape of chapmanrichards, the end of growth of beta, the height of preecebaines): "identity" or "log";</p></li>
 <li><p>b4 (the threshold or start of growth, the intercept of chapmanrichards and korf, the rate of preecebaines) and the asymmetry b5: "identity" or "log".</p></li>
 </ul><p>A link that a model does not allow gives an error naming the allowed ones. The coefficients, and start, fix, lower, upper and curves of <code><a href="timeto.html">timeto</a></code>, are on the scale of the links, see Details.</p></dd>
@@ -243,10 +244,10 @@ of lme4;</p></li>
 and <code><a href="corStruct.html">corGaus</a></code> have the
 arguments and the parameterisation of nlme, whose objects are accepted as well, and
 <code>residuals(fit, type="normalized")</code> gives the normalized residuals of nlme;</p></li>
-<li><p>the variance functions <code><a href="varFunc.html">varIdent</a></code>, <code><a href="varFunc.html">varPower</a></code> and
-<code><a href="varFunc.html">varConstPower</a></code> go in the argument <code>variance</code> (the argument <code>weights</code> of
-nlme), with the arguments and parameterisation of nlme, plus the growth rate <code>rate(.)</code> as a
-covariate;</p></li>
+<li><p>the variance functions <code><a href="varFunc.html">varIdent</a></code>, <code><a href="varFunc.html">varPower</a></code>,
+<code><a href="varFunc.html">varConstPower</a></code>, <code><a href="varFunc.html">varExp</a></code> and <code><a href="varFunc.html">varComb</a></code> go in the argument
+<code>variance</code> (the argument <code>weights</code> of nlme), with the arguments and parameterisation of
+nlme, plus the growth rate <code>rate(.)</code> as a covariate and the polynomial <code><a href="varFunc.html">varPoly</a></code>;</p></li>
 <li><p><code><a href="gcTMB-extract.html">fixef</a></code>, <code><a href="gcTMB-extract.html">ranef</a></code> and <code><a href="gcTMB-extract.html">VarCorr</a></code> are generics with the names
 of those of nlme, and work for gcTMB, nlme and lme4 fits whichever package is attached last;</p></li>
 <li><p><code>predict</code> and <code>fitted</code> with <code>random=FALSE</code> correspond to <code>level=0</code> of

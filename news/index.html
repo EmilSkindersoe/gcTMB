@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9027</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,7 +43,26 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9026" id="gctmb-0109026">gcTMB 0.1.0.9026<a class="anchor" aria-label="anchor" href="#gctmb-0109026"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9027" id="gctmb-0109027-2026-11-27">gcTMB 0.1.0.9027 (2026-11-27)<a class="anchor" aria-label="anchor" href="#gctmb-0109027-2026-11-27"></a></h2>
+<ul><li>New variance functions:
+<ul><li>
+<code><a href="../reference/varFunc.html">varExp()</a></code>, g = exp(t v), as in nlme.</li>
+<li>
+<code><a href="../reference/varFunc.html">varPoly()</a></code>, a polynomial standard deviation of a chosen <code>degree</code> (default 2), g = 1 + d1 (v - m) + … + dk (v - m)^k, centred at the mean m of v in the data. The likelihood is zero where the polynomial is 0 or below at an observation, and <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> and <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> give an error where it is 0 or below at new values.</li>
+<li>
+<code><a href="../reference/varFunc.html">varComb()</a></code>, the product of the g of two or more variance functions, as in nlme, e.g. <code>varComb(varPower(), varExp())</code> for a standard deviation largest in the middle of growth. Its parameters are named <code>A.</code>, <code>B.</code>, and so on.</li>
+</ul></li>
+<li>
+<code>korf</code>: the coefficient <code>b2</code> has the log link by default. It grows with t^(b3 - 1), often to 1e8 or more, where the optimiser stopped with “singular convergence”; on the log scale the fits converge. The coefficients of <code>b2</code> are now on the log scale, and random effects of <code>b2</code> act on log <code>b2</code>; <code>link = c(b2 = "identity")</code> gives the old parameterisation.</li>
+<li>
+<code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code>: a warning about non-finite simulated values suggests the log link of <code>b1</code> for count models: a simulated random asymptote below zero on the identity scale gives a negative mean.</li>
+<li>
+<code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code>: the argument <code>random</code> is replaced by <code>re</code>, as <code>random</code> meant the opposite of its meaning in <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code>, <code><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals()</a></code> and <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>. <code>re = "new"</code> (default, the old <code>random = TRUE</code>) draws new random effects, <code>re = "fitted"</code> (the old <code>random = FALSE</code>) keeps the fitted ones, and the new <code>re = "none"</code> simulates around the population curve. Scripts with <code>simulate(random = )</code> must be updated; they now give an error naming the replacement.</li>
+<li>
+<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> without <code>newdata</code> failed for times stored as integers (e.g. <code>DAS</code> of the package datasets).</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.0.9026" id="gctmb-0109026-2026-11-27">gcTMB 0.1.0.9026 (2026-11-27)<a class="anchor" aria-label="anchor" href="#gctmb-0109026-2026-11-27"></a></h2>
 <div class="section level3">
 <h3 id="starting-values-0-1-0-9026">Starting values<a class="anchor" aria-label="anchor" href="#starting-values-0-1-0-9026"></a></h3>
 <ul><li>A coefficient of a covariate in <code>fform</code> without a starting value (<code>NA</code>) is now computed from starting values found separately for each combination of the covariates. Given values are kept, so <code>0</code> for the contrasts gives the previous pooled start.</li>
@@ -72,7 +91,7 @@
 </ul></div>
 </div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9025" id="gctmb-0109025">gcTMB 0.1.0.9025<a class="anchor" aria-label="anchor" href="#gctmb-0109025"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9025" id="gctmb-0109025-2026-11-26">gcTMB 0.1.0.9025 (2026-11-26)<a class="anchor" aria-label="anchor" href="#gctmb-0109025-2026-11-26"></a></h2>
 <ul><li>
 <code><a href="../reference/maxrate.html">maxrate()</a></code>: rows of <code>newdata</code> with a fitted level of a grouping variable give the curve of that group, with its predicted random effects, as in <code><a href="../reference/timeto.html">timeto()</a></code>; new argument <code>random</code>. Levels that are not in the fit give the population curve with a warning (before, the grouping column was silently ignored).</li>
 <li>
@@ -83,31 +102,31 @@
 <code><a href="../reference/viewcurves.html">viewcurves()</a></code> shows numbers with the number of decimals of the data.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9024" id="gctmb-0109024">gcTMB 0.1.0.9024<a class="anchor" aria-label="anchor" href="#gctmb-0109024"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9024" id="gctmb-0109024-2026-11-26">gcTMB 0.1.0.9024 (2026-11-26)<a class="anchor" aria-label="anchor" href="#gctmb-0109024-2026-11-26"></a></h2>
 <ul><li>
 <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>: the <code>outliers</code> observations are drawn in red, with red labels, in the validation graphs.</li>
 <li>New website article “Exploring observed curves”, with the <code><a href="../reference/viewcurves.html">viewcurves()</a></code> app running in the browser.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9023" id="gctmb-0109023">gcTMB 0.1.0.9023<a class="anchor" aria-label="anchor" href="#gctmb-0109023"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9023" id="gctmb-0109023-2026-11-26">gcTMB 0.1.0.9023 (2026-11-26)<a class="anchor" aria-label="anchor" href="#gctmb-0109023-2026-11-26"></a></h2>
 <ul><li>
 <code><a href="../reference/viewcurves.html">viewcurves()</a></code>: the argument <code>highlight</code> is renamed <code>outliers</code>, as in <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>, and the returned <code>$highlighted</code> is now <code>$outliers</code>.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9022" id="gctmb-0109022">gcTMB 0.1.0.9022<a class="anchor" aria-label="anchor" href="#gctmb-0109022"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9022" id="gctmb-0109022-2026-11-26">gcTMB 0.1.0.9022 (2026-11-26)<a class="anchor" aria-label="anchor" href="#gctmb-0109022-2026-11-26"></a></h2>
 <ul><li>New <code><a href="../reference/viewcurves.html">viewcurves()</a></code>: a Shiny app to step through the observed curves of a data set, with filters, colours and line types by covariates, and growth rates; or plots of all individuals with the steepest increases and decreases marked (<code>output = "jpeg"</code>). shiny is in Suggests.</li>
 <li>
 <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>: <code>type</code> is now <code>"validation1"</code> (residuals, QQ plot and curves), <code>"validation2"</code> (QQ plots of the random effects) or <code>"curves"</code>. The observations with the largest absolute residuals (<code>outliers</code>, default 1) are labelled by their individual in models with random effects.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9021" id="gctmb-0109021">gcTMB 0.1.0.9021<a class="anchor" aria-label="anchor" href="#gctmb-0109021"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9021" id="gctmb-0109021-2026-11-25">gcTMB 0.1.0.9021 (2026-11-25)<a class="anchor" aria-label="anchor" href="#gctmb-0109021-2026-11-25"></a></h2>
 <ul><li>New variance functions for the <code>variance</code> argument of <code><a href="../reference/gcTMB.html">gcTMB()</a></code>: <code><a href="../reference/varFunc.html">varIdent()</a></code>, <code><a href="../reference/varFunc.html">varPower()</a></code> and <code><a href="../reference/varFunc.html">varConstPower()</a></code>, with the arguments and parameterisation of nlme, for the gaussian and lognormal families. The covariate can be a variable of the data, <code>fitted(.)</code> or the growth rate <code>rate(.)</code> of the fitted curve.</li>
 <li>New <code><a href="../reference/gcTMB-extract.html">varpars()</a></code>; <code>update(varpar = )</code>; print, summary, <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>, <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code>, residuals, simulation, prediction intervals and <code>timeto(residual = TRUE)</code> use the variance function.</li>
 <li>The default residuals are normalized residuals for the gaussian and lognormal families, and quantile residuals otherwise.</li>
 <li>New vignette “Variance functions”.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9020" id="gctmb-0109020">gcTMB 0.1.0.9020<a class="anchor" aria-label="anchor" href="#gctmb-0109020"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9020" id="gctmb-0109020-2026-11-25">gcTMB 0.1.0.9020 (2026-11-25)<a class="anchor" aria-label="anchor" href="#gctmb-0109020-2026-11-25"></a></h2>
 <ul><li>New spatial correlation structures <code><a href="../reference/corStruct.html">corExp()</a></code> and <code><a href="../reference/corStruct.html">corGaus()</a></code>, with an optional nugget and several position variables (<code>form = ~ x + y | group</code>) and euclidean, maximum or manhattan distance.</li>
 <li>
 <code><a href="../reference/gcTMB-extract.html">corpars()</a></code>, <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>, <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code>, <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code>, <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> and normalized residuals support the new structures.</li>
@@ -116,21 +135,21 @@
 <li>The vignette “Autocorrelation and simulation” is split into “Correlation structures” and “Simulation”.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9019" id="gctmb-0109019">gcTMB 0.1.0.9019<a class="anchor" aria-label="anchor" href="#gctmb-0109019"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9019" id="gctmb-0109019-2026-11-25">gcTMB 0.1.0.9019 (2026-11-25)<a class="anchor" aria-label="anchor" href="#gctmb-0109019-2026-11-25"></a></h2>
 <ul><li>
 <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> shows the unadjusted Wald test of each coefficient again; <code><a href="../reference/partest.html">partest()</a></code> gives tests of the differences between curves, adjusted for their number.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9018" id="gctmb-0109018">gcTMB 0.1.0.9018<a class="anchor" aria-label="anchor" href="#gctmb-0109018"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9018" id="gctmb-0109018-2026-11-24">gcTMB 0.1.0.9018 (2026-11-24)<a class="anchor" aria-label="anchor" href="#gctmb-0109018-2026-11-24"></a></h2>
 <ul><li>
 <code>plot(type = "validation")</code> adds the data with the fitted curves to the page; <code>type = "curves"</code> draws two panels: the individual curves with the data, and the population curves.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9017" id="gctmb-0109017">gcTMB 0.1.0.9017<a class="anchor" aria-label="anchor" href="#gctmb-0109017"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9017" id="gctmb-0109017-2026-11-24">gcTMB 0.1.0.9017 (2026-11-24)<a class="anchor" aria-label="anchor" href="#gctmb-0109017-2026-11-24"></a></h2>
 <ul><li>All column names of the package datasets start with a capital letter (e.g. <code>FabaHeights25$Height</code>, <code>BerkeleyGrowth$Age</code>). The values are unchanged; scripts using the old names must be updated.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9016" id="gctmb-0109016">gcTMB 0.1.0.9016<a class="anchor" aria-label="anchor" href="#gctmb-0109016"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9016" id="gctmb-0109016-2026-11-24">gcTMB 0.1.0.9016 (2026-11-24)<a class="anchor" aria-label="anchor" href="#gctmb-0109016-2026-11-24"></a></h2>
 <ul><li>
 <code>gcTMBcontrol(onerror = "warning")</code> returns a fit that fails with a warning instead of an error, e.g. in a loop over models; the error is kept in <code>fit$fiterror</code> and reported by print, summary and <code><a href="../reference/converged.html">converged()</a></code>.</li>
 <li>
@@ -139,70 +158,70 @@
 <code>correlation</code> is now the 7th argument of <code><a href="../reference/gcTMB.html">gcTMB()</a></code>, after <code>fix</code>, and <code>weights</code> comes after <code>b1type</code>. Calls that pass these arguments by position must be updated.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9015" id="gctmb-0109015">gcTMB 0.1.0.9015<a class="anchor" aria-label="anchor" href="#gctmb-0109015"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9015" id="gctmb-0109015-2026-11-24">gcTMB 0.1.0.9015 (2026-11-24)<a class="anchor" aria-label="anchor" href="#gctmb-0109015-2026-11-24"></a></h2>
 <ul><li>
 <code>pairwise()</code> is renamed <code><a href="../reference/partest.html">partest()</a></code>. New argument <code>contrasts</code>: <code>"dunnett"</code> (default, each row of <code>newdata</code> against a reference) or <code>"tukey"</code> (all pairs), with <code>adjust = "single-step"</code>.</li>
 <li>
 <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> shows estimates and standard errors without tests, and no longer the Pearson dispersion statistic.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9014" id="gctmb-0109014">gcTMB 0.1.0.9014<a class="anchor" aria-label="anchor" href="#gctmb-0109014"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9014" id="gctmb-0109014-2026-11-24">gcTMB 0.1.0.9014 (2026-11-24)<a class="anchor" aria-label="anchor" href="#gctmb-0109014-2026-11-24"></a></h2>
 <ul><li>The shape <code>b3</code> of the Weibull, gamma and Korf models has the new default link <code>"logm1"</code>, <code>log(b3 - 1)</code>, which keeps it above 1. Its coefficients are now on that scale; <code>link = c(b3 = "identity")</code> gives the old parameterisation.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9013" id="gctmb-0109013">gcTMB 0.1.0.9013<a class="anchor" aria-label="anchor" href="#gctmb-0109013"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9013" id="gctmb-0109013-2026-11-22">gcTMB 0.1.0.9013 (2026-11-22)<a class="anchor" aria-label="anchor" href="#gctmb-0109013-2026-11-22"></a></h2>
 <ul><li>
 <code>chapmanrichards</code> is now <code>b4 + b1 (1 - exp(-b2 t))^b3</code> (Richards 1959), with the rate <code>b2</code> and the shape <code>b3</code>.</li>
 <li>The <code>wykoff</code> model is replaced by <code>korf</code>, <code>b4 + b1 exp(b2/((1 - b3) t^(b3 - 1)))</code> (Kuzelka and Marusak 2015). Scripts fitting <code>model = "wykoff"</code> or <code>"chapmanrichards"</code> must be updated.</li>
 <li>The intercept <code>b4</code> of both forestry models is fixed by default at the breast height 1.3.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9012" id="gctmb-0109012">gcTMB 0.1.0.9012<a class="anchor" aria-label="anchor" href="#gctmb-0109012"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9012" id="gctmb-0109012-2026-11-22">gcTMB 0.1.0.9012 (2026-11-22)<a class="anchor" aria-label="anchor" href="#gctmb-0109012-2026-11-22"></a></h2>
 <ul><li>New datasets <code>FabaFlowers26</code> (flowers and pods per plant and date) and <code>FabaNodes26</code> (flowers and pods per node) from the 2026 field trial.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9011" id="gctmb-0109011">gcTMB 0.1.0.9011<a class="anchor" aria-label="anchor" href="#gctmb-0109011"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9011" id="gctmb-0109011-2026-11-21">gcTMB 0.1.0.9011 (2026-11-21)<a class="anchor" aria-label="anchor" href="#gctmb-0109011-2026-11-21"></a></h2>
 <ul><li>The additive parameter <code>b6</code> of 0.1.0.9010 is removed again; the models have the parameters <code>b1</code> to <code>b5</code>.</li>
 <li>New models: Wykoff (replaced by Korf in 0.1.0.9013), the beta growth function of Yin et al. (2003) as <code>"beta"</code> and <code>"beta_capped"</code>, and Preece-Baines model 1 of human growth, whose peak height velocity <code><a href="../reference/maxrate.html">maxrate()</a></code> gives in closed form.</li>
 <li>
 <code>plot(type = "curves")</code> shows a single numeric covariate on a continuous colour scale.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9010" id="gctmb-0109010">gcTMB 0.1.0.9010<a class="anchor" aria-label="anchor" href="#gctmb-0109010"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9010" id="gctmb-0109010-2026-11-20">gcTMB 0.1.0.9010 (2026-11-20)<a class="anchor" aria-label="anchor" href="#gctmb-0109010-2026-11-20"></a></h2>
 <ul><li>New Chapman-Richards and beta growth models.</li>
 <li>New datasets <code>BerkeleyGrowth</code>, <code>PineHeightDiameter</code> and <code>SorghumMaize</code>.</li>
 <li>The x-axis need not be time; the residual plot is labelled with the x variable.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9009" id="gctmb-0109009">gcTMB 0.1.0.9009<a class="anchor" aria-label="anchor" href="#gctmb-0109009"></a></h2>
-<ul><li>No user-visible changes from 0.1.0.9005 to 0.1.0.9009: R CMD check fixes on Linux, macOS, Windows and R 4.2, and checks on earlier versions of R.</li>
+<h2 class="pkg-version" data-toc-text="0.1.0.9009" id="gctmb-0109009-2026-11-20">gcTMB 0.1.0.9009 (2026-11-20)<a class="anchor" aria-label="anchor" href="#gctmb-0109009-2026-11-20"></a></h2>
+<ul><li>No user-visible changes from 0.1.0.9005 (2026-11-19) to 0.1.0.9009: R CMD check fixes on Linux, macOS, Windows and R 4.2, and checks on earlier versions of R.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9004" id="gctmb-0109004">gcTMB 0.1.0.9004<a class="anchor" aria-label="anchor" href="#gctmb-0109004"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9004" id="gctmb-0109004-2026-11-19">gcTMB 0.1.0.9004 (2026-11-19)<a class="anchor" aria-label="anchor" href="#gctmb-0109004-2026-11-19"></a></h2>
 <ul><li>Package website at <a href="https://emilskindersoe.github.io/gcTMB/" class="uri">https://emilskindersoe.github.io/gcTMB/</a>.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9003" id="gctmb-0109003">gcTMB 0.1.0.9003<a class="anchor" aria-label="anchor" href="#gctmb-0109003"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9003" id="gctmb-0109003-2026-11-18">gcTMB 0.1.0.9003 (2026-11-18)<a class="anchor" aria-label="anchor" href="#gctmb-0109003-2026-11-18"></a></h2>
 <ul><li>
 <code>control = list(restart = TRUE)</code> optimises a fit once more from its estimates when it did not converge, and keeps the better optimum.</li>
 <li>
 <code><a href="../reference/converged.html">converged()</a></code> accepts a restarted fit that the restart improved by less than <code>lltol</code>.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9002" id="gctmb-0109002">gcTMB 0.1.0.9002<a class="anchor" aria-label="anchor" href="#gctmb-0109002"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9002" id="gctmb-0109002-2026-11-18">gcTMB 0.1.0.9002 (2026-11-18)<a class="anchor" aria-label="anchor" href="#gctmb-0109002-2026-11-18"></a></h2>
 <ul><li>Autocorrelated residuals with <code><a href="../reference/corStruct.html">corAR1()</a></code> and <code><a href="../reference/corStruct.html">corCAR1()</a></code>, whose parameter is called rho.</li>
 <li>Independent random effects with <code>||</code> in <code>rform</code>.</li>
 <li>Likelihood ratio tests are named <code>LR</code> in <code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">anova()</a></code>.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9001" id="gctmb-0109001">gcTMB 0.1.0.9001<a class="anchor" aria-label="anchor" href="#gctmb-0109001"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9001" id="gctmb-0109001-2026-11-16">gcTMB 0.1.0.9001 (2026-11-16)<a class="anchor" aria-label="anchor" href="#gctmb-0109001-2026-11-16"></a></h2>
 <ul><li>Extractors, <code><a href="../reference/criteria.html">criteria()</a></code>, <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code>, <code><a href="../reference/converged.html">converged()</a></code>, and simulation with new data.</li>
 <li>
 <code>control</code> option to skip the Hessian and the standard errors for faster fits.</li>
 <li>Plot types, <code><a href="../reference/timeto.html">timeto()</a></code> and <code><a href="../reference/maxrate.html">maxrate()</a></code>, <code>b1</code> as the maximum growth rate, and pairwise comparisons of curves.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9000" id="gctmb-0109000">gcTMB 0.1.0.9000<a class="anchor" aria-label="anchor" href="#gctmb-0109000"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9000" id="gctmb-0109000-2026-11-16">gcTMB 0.1.0.9000 (2026-11-16)<a class="anchor" aria-label="anchor" href="#gctmb-0109000-2026-11-16"></a></h2>
 <ul><li>First version of gcTMB, developed from drcTMB to fit growth curves only: sigmoid growth models with asymmetry and default truncation, <code><a href="../reference/maxrate.html">maxrate()</a></code>, the gaussian, lognormal, binomial, beta-binomial, beta, Poisson and negative binomial families, random effects, and bootstrap intervals.</li>
 </ul></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

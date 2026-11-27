@@ -232,10 +232,11 @@ The Korf curve, $`h = 1.3 + b_1 \exp(b_2/((1 - b_3) d^{b_3 - 1}))`$
 (Kuželka and Marušák, 2015), with the same fixed and random effects, is
 an alternative height-diameter model, as flexible as Chapman-Richards
 through its shape $`b_3`$. The shape must be larger than 1, and its
-default link log$`(b_3 - 1)`$ keeps it there; on these data it is pulled
-towards 1, where the curve becomes a power curve without an asymptote.
-The Chapman-Richards and Korf models are not nested, and are compared by
-their AIC:
+default link log$`(b_3 - 1)`$ keeps it there, while the coefficient
+$`b_2`$ has the log link, so that its random effects act on log $`b_2`$;
+on these data it is pulled towards 1, where the curve becomes a power
+curve without an asymptote. The Chapman-Richards and Korf models are not
+nested, and are compared by their AIC:
 
 ``` r
 
@@ -243,7 +244,7 @@ fitk <- refit(fitre, model = "korf", control = list(restart = TRUE))
 AIC(fitre, fitk)
 #>       df      AIC
 #> fitre  8 5098.322
-#> fitk   8 5142.804
+#> fitk   8 5134.859
 ```
 
 ### Starting values
@@ -456,15 +457,13 @@ plot(fitp, seed = 1)
 The simulations of [`simulate()`](https://rdrr.io/r/stats/simulate.html)
 can also be used for simulation-based residuals, for example with the
 package DHARMa (Hartig, 2026) and its function `createDHARMa()`. With
-`random = FALSE`, the simulations are conditional on the predicted
-random effects, like the residuals of
+`re = "fitted"`, the simulations are conditional on the predicted random
+effects, like the residuals of
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html), and the
 simulation-based residuals are then essentially the same as the quantile
-residuals. With `random = TRUE`, new random effects are drawn for each
-simulation. Note that `random` means the opposite in
-[`fitted()`](https://rdrr.io/r/stats/fitted.values.html) and
-[`residuals()`](https://rdrr.io/r/stats/residuals.html), where
-`random = TRUE` includes the predicted random effects.
+residuals. With `re = "new"` (the default), new random effects are drawn
+for each simulation, and `re = "none"` simulates around the population
+curve.
 
 ## References
 

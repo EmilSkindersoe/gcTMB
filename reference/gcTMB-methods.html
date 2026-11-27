@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9027</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -101,7 +101,14 @@
 <span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'gcTMB'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">object</span>, nsim <span class="op">=</span> <span class="fl">1</span>, seed <span class="op">=</span> <span class="cn">NULL</span>, random <span class="op">=</span> <span class="cn">TRUE</span>, newdata <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span></span>
+<span>  <span class="va">object</span>,</span>
+<span>  nsim <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  re <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"new"</span>, <span class="st">"fitted"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
+<span>  newdata <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -125,7 +132,7 @@
 
 
 <dt id="arg-random">random<a class="anchor" aria-label="anchor" href="#arg-random"></a></dt>
-<dd><p>Logical. If TRUE, the random effects are included in the predictions, fitted values and residuals (conditional residuals). TRUE corresponds to the innermost level of <code>predict</code> and <code>fitted</code> of nlme, and FALSE to <code>level=0</code> (<code>re.form=NA</code> of lme4). For simulate, if TRUE, new random effects are drawn for each simulation, otherwise the fitted random effects are kept.
+<dd><p>Logical. If TRUE, the random effects are included in the predictions, fitted values and residuals (conditional residuals). TRUE corresponds to the innermost level of <code>predict</code> and <code>fitted</code> of nlme, and FALSE to <code>level=0</code> (<code>re.form=NA</code> of lme4). Not an argument of simulate, see re.
 For prediction intervals, random=TRUE gives the interval of a new observation in the group of each row of newdata, and random=FALSE the interval of a new observation in a new group, including the variance of the random effects. Rows of newdata with a level that is not in the fitted data are treated as new groups for that random effect term.</p></dd>
 
 
@@ -136,7 +143,7 @@ For predict, the type of prediction: "response" (default), the mean response at 
 
 <dt id="arg-newdata">newdata<a class="anchor" aria-label="anchor" href="#arg-newdata"></a></dt>
 <dd><p>Data frame or NULL. The data for the predictions, with the time and the covariates of the model. If NULL, the original data is used.
-For simulate, the times, covariates and grouping variables of the observations to simulate, e.g. new times or new individuals; each level of a grouping variable is one curve, with random effects shared by its rows. With random=TRUE all levels get new random effects; with random=FALSE the levels in the fitted data keep their fitted random effects and the other levels get new ones. For binomial responses the number of trials is taken from the response in newdata (one for a binary response).</p></dd>
+For simulate, the times, covariates and grouping variables of the observations to simulate, e.g. new times or new individuals; each level of a grouping variable is one curve, with random effects shared by its rows. With re = "new" all levels get new random effects; with re = "fitted" the levels in the fitted data keep their fitted random effects and the other levels get new ones; with re = "none" there are no random effects. For binomial responses the number of trials is taken from the response in newdata (one for a binary response).</p></dd>
 
 
 <dt id="arg-se-fit">se.fit<a class="anchor" aria-label="anchor" href="#arg-se-fit"></a></dt>
@@ -165,6 +172,10 @@ For simulate, the times, covariates and grouping variables of the observations t
 
 <dt id="arg-scale">scale<a class="anchor" aria-label="anchor" href="#arg-scale"></a></dt>
 <dd><p>Character string. For type="parameters", the scale of the parameters: "original" (default) or "link", the scale of the coefficients, see the argument link of <code><a href="gcTMB.html">gcTMB</a></code>.</p></dd>
+
+
+<dt id="arg-re">re<a class="anchor" aria-label="anchor" href="#arg-re"></a></dt>
+<dd><p>Character string. The random effects of simulate: "new" (default) draws new random effects for each simulation, i.e. new individuals; "fitted" keeps the fitted (predicted) random effects, i.e. new observations of the same individuals, as <code>fitted(random=TRUE)</code>; "none" simulates around the population curve without random effects, as <code>fitted(random=FALSE)</code>. With newdata, "fitted" keeps the fitted random effects of the levels in the fit and draws new ones for the other levels.</p></dd>
 
 </dl></div>
     <div class="section level2">

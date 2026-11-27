@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9027</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -201,7 +201,12 @@ autocorrelation, as below.</p>
 </h3>
 <p>We simulate 20 new plots of each crop, each sampled every 10 days
 from day 150 to day 300. Each plot in <code>newdata</code> is a new
-curve, with its own random effect drawn from the fitted variance.</p>
+curve, with its own random effect drawn from the fitted variance:
+<code>re = "new"</code>, the default of <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code>.
+<code>re = "fitted"</code> keeps the predicted random effects of the
+plots in the fitted data, for new observations of the same plots, and
+<code>re = "none"</code> simulates around the population curve without
+random effects.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">simdata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>DOY <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">150</span>, <span class="fl">300</span>, by <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, plot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"plot"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">60</span>, sep <span class="op">=</span> <span class="st">""</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">simdata</span><span class="op">$</span><span class="va">Crop</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">SorghumMaize</span><span class="op">$</span><span class="va">Crop</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">20</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="va">simdata</span><span class="op">$</span><span class="va">plot</span><span class="op">)</span><span class="op">]</span></span>

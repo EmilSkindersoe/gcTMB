@@ -2,12 +2,14 @@
 
 Variance functions for the `variance` argument of
 [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md),
-with the arguments and the parameterisation of `varIdent`, `varPower`
-and `varConstPower` of the package nlme (whose objects
+with the arguments and the parameterisation of `varIdent`, `varPower`,
+`varConstPower`, `varExp` and `varComb` of the package nlme (whose
+objects
 [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md)
-also accepts), for the gaussian and lognormal (on the log scale)
-families. The residual variance of an observation is sigma^2 g^2, with
-the residual standard deviation sigma of the model and the function g:
+also accepts), and the polynomial `varPoly`, for the gaussian and
+lognormal (on the log scale) families. The residual variance of an
+observation is sigma^2 g^2, with the residual standard deviation sigma
+of the model and the function g:
 
 - `varIdent(form=~ 1 | s)`: g = delta_s, a ratio for each stratum s of
   the grouping variables, with delta = 1 for the reference stratum, so
@@ -19,7 +21,37 @@ the residual standard deviation sigma of the model and the function g:
   delta);
 
 - `varConstPower(form=~ v)`: g = c + \|v\|^delta, c \> 0, variance
-  sigma^2 (c + \|v\|^delta)^2.
+  sigma^2 (c + \|v\|^delta)^2;
+
+- `varExp(form=~ v)`: g = exp(t v), variance sigma^2 exp(2 t v);
+
+- `varPoly(form=~ v, degree=k)`: g = 1 + d_1 (v - m) + d_2 (v - m)^2 +
+  ... + d_k (v - m)^k, so that the standard deviation sigma g is a
+  polynomial in v, e.g. one that is largest in the middle of the range
+  of v (d_1 \> 0, d_2 \< 0, with its maximum at v = m - d_1/(2 d_2) for
+  degree 2). The polynomial is centred at the mean m of v in the data
+  (the mean response for `fitted(.)`, m = 0 for `rate(.)`), shown by
+  print, so that sigma is the standard deviation at v = m, and the
+  standard deviation at v = 0 can take any value; an uncentred
+  polynomial, with sigma the standard deviation at v = 0, could not
+  describe a standard deviation that would be 0 or below at v = 0 but is
+  positive on the data, e.g. a straight line in the time from the first
+  day. A polynomial can be 0 or negative, where the standard deviation
+  is not defined: the likelihood is zero (the log-likelihood minus
+  infinity) if the polynomial is 0 or below at any observation, so that
+  the optimiser stays where it is positive on the data. It starts from d
+  = 0, a constant standard deviation. Outside the data, e.g. in
+  `predict` and `simulate` at new times, the polynomial can still be 0
+  or below, which gives an error. A degree above 2 is rarely needed and
+  tends to overfit;
+
+- `varComb(...)`: the product of the multipliers g of two or more of the
+  above, e.g. `varComb(varIdent(form=~ 1 | Treatment), varPower())` for
+  a power of the fitted curve with a different factor for each
+  treatment, or `varComb(varPower(), varExp())`, g = \|v\|^delta exp(t
+  v), which with delta \> 0 and t \< 0 is largest at v = -delta/t, in
+  the middle of growth. The variances are multiplied, not added: the
+  standard deviations are sigma g_A g_B.
 
 The covariate v of `varPower` and `varConstPower` is a numeric variable
 of the data, e.g. `~ Time`, `fitted(.)` (the default), the fitted curve
@@ -43,6 +75,12 @@ varConstPower(
   form = ~fitted(.),
   fixed = NULL
 )
+
+varExp(value = numeric(0), form = ~fitted(.), fixed = NULL)
+
+varPoly(value = numeric(0), degree = 2, form = ~fitted(.), fixed = NULL)
+
+varComb(...)
 ```
 
 ## Arguments
@@ -51,33 +89,48 @@ varConstPower(
 
   Numeric. Starting values (or with `fixed`, see there): for `varIdent`
   the ratios of the standard deviations of the strata to the reference
-  stratum, named by stratum (1 by default); for `varPower` the power (0
-  by default), named by level with a grouping factor
+  stratum, named by stratum (1 by default); for `varPower` the power and
+  for `varExp` the exponent t (0 by default), named by level with a
+  grouping factor; for `varPoly` the coefficients d_1, ..., d_k (0 by
+  default), one for each power of v, or named `poly1`, ..., `polyk`
+  (`poly1:<level>` for a single level of a grouping factor)
 
 - form:
 
   One-sided formula: `~ 1 | s` for `varIdent`, with s one or more
-  grouping variables (`~ 1 | A * B`); `~ v` or `~ v | g` for `varPower`
-  and `varConstPower`, with v a numeric variable, `fitted(.)` or
-  `rate(.)`
+  grouping variables (`~ 1 | A * B`); `~ v` or `~ v | g` for `varPower`,
+  `varConstPower`, `varExp` and `varPoly`, with v a numeric variable,
+  `fitted(.)` or `rate(.)`
 
 - fixed:
 
   Values that are fixed and not estimated: for `varIdent` ratios named
-  by stratum, for `varPower` the power (named by level with a grouping
-  factor), for `varConstPower` a list with `const` and/or `power`, e.g.
-  `fixed=list(power=1)`
+  by stratum, for `varPower` the power and for `varExp` the exponent
+  (named by level with a grouping factor), for `varConstPower` a list
+  with `const` and/or `power`, e.g. `fixed=list(power=1)`, for `varPoly`
+  coefficients named as in `value`, e.g. `fixed=c(poly2=0)`
 
 - const, power:
 
   Numeric. For `varConstPower`, the starting values of the constant c
   (0.1 by default, as nlme) and the power delta (0 by default)
 
+- degree:
+
+  Integer. The degree k of the polynomial of `varPoly`, 2 by default
+
+- ...:
+
+  For `varComb`, two or more variance functions, whose standard
+  deviation multipliers g are multiplied
+
 ## Value
 
 An object of class `c("varIdent", "varFunc")`,
-`c("varPower", "varFunc")` or `c("varConstPower", "varFunc")`, with the
-structure of the nlme objects.
+`c("varPower", "varFunc")`, `c("varConstPower", "varFunc")`,
+`c("varExp", "varFunc")`, `c("varPoly", "varFunc")` or
+`c("varComb", "varFunc")`, with the structure of the nlme objects (a
+list of the components for `varComb`).
 
 ## Details
 
@@ -102,11 +155,12 @@ correlation is then that of the standardised residuals e/(sigma g). With
 time points of the fit.
 
 The estimated parameters are in `coef(fit)` as `var_par:<stratum>` (the
-log ratios of `varIdent`), `var_par:power` and `var_par:const` (the log
-of c), with `:<level>` for a grouping factor, on the unconstrained scale
-of nlme;
+log ratios of `varIdent`), `var_par:power`, `var_par:const` (the log of
+c), `var_par:expon` and `var_par:poly1`, `var_par:poly2`, ..., with
+`:<level>` for a grouping factor, on the unconstrained scale of nlme;
 [`varpars`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB-extract.md)
-gives them on the natural scale.
+gives them on the natural scale. The parameters of the components of
+`varComb` are prefixed with `A.`, `B.`, ..., as in nlme.
 
 ## References
 
@@ -133,4 +187,16 @@ fitr <- gcTMB(Height ~ DAS, data=FabaHeights25, variance=varConstPower(form=~ ra
 varpars(fitr)
 #>     const     power 
 #>  2.834950 -2.224761 
+# \donttest{
+# a standard deviation that is a quadratic polynomial of the fitted curve
+fitp <- gcTMB(Height ~ DAS, data=FabaHeights25, variance=varPoly(degree=2))
+varpars(fitp)
+#>         poly1         poly2 
+#>  8.109823e-03 -7.279771e-05 
+# the product of a power and an exponential of the fitted curve
+fitc <- gcTMB(Height ~ DAS, data=FabaHeights25, variance=varComb(varPower(), varExp()))
+varpars(fitc)
+#>      A.power      B.expon 
+#>  0.833573792 -0.004632256 
+# }
 ```

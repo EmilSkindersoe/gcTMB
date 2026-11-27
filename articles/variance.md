@@ -19,7 +19,14 @@ takes:
   $`s`$, e.g. each treatment or each day of measurement;
 - `varPower(form = ~ v)`: $`g = |v|^\delta`$;
 - `varConstPower(form = ~ v)`: $`g = c + |v|^\delta`$, at least $`c`$
-  where $`v`$ is zero.
+  where $`v`$ is zero;
+- `varExp(form = ~ v)`: $`g = \exp(t v)`$;
+- `varPoly(form = ~ v, degree = k)`:
+  $`g = 1 + d_1 (v - m) + \dots + d_k (v - m)^k`$, a polynomial standard
+  deviation centred at the mean $`m`$ of $`v`$, whose likelihood is zero
+  where the polynomial is 0 or below;
+- `varComb(...)`: the product of the $`g`$ of two or more of these,
+  e.g. `varComb(varIdent(form = ~ 1 | Treatment), varPower())`.
 
 The covariate $`v`$ is a variable of the data, the fitted curve
 `fitted(.)`, or its growth rate `rate(.)`, the slope $`f'(t)`$ of the
@@ -105,6 +112,60 @@ before and after growth in C, and around the inflection point in D. A
 constant variance spreads the uncertainty evenly over the curve, too
 narrow where the observations vary most and too wide where they vary
 least.
+
+## A standard deviation largest in the middle of growth
+
+The power functions of the curve only increase or decrease. When the
+individuals differ mostly in their timing, the spread is largest in the
+middle of growth: all are small at first and all are close to the
+asymptote at the end. A quadratic polynomial of the curve,
+[`varPoly()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md),
+and the product of a power and an exponential,
+`varComb(varPower(), varExp())` with $`g = |f|^\delta \exp(t f)`$, both
+have a maximum, at $`f = m - d_1/(2 d_2)`$ and at $`f = -\delta/t`$. We
+simulate the curve above with the standard deviation
+$`1 + 0.12 f - 0.0012 f^2`$, which is 1 at the start and at the
+asymptote and 4 at $`f = 50`$:
+
+``` r
+
+set.seed(3)
+Time2 <- rep(seq(5, 55, by = 2.5), each = 5)
+f2 <- b[1]/(1 + exp(-(Time2 - b[2])/b[3]))
+hump <- data.frame(Time = Time2, y = f2 + rnorm(length(Time2), 0, 1 + 0.12*f2 - 0.0012*f2^2))
+humpfits <- lapply(list(constant = NULL, power = varPower(), poly = varPoly(),
+                        "power x exp" = varComb(varPower(), varExp())),
+                   function(v) gcTMB(y ~ Time, data = hump, variance = v))
+sapply(humpfits, AIC)
+#>    constant       power        poly power x exp 
+#>    483.4923    476.7587    430.6069    445.5936
+```
+
+Both functions with a maximum lower the AIC well below the power of the
+curve. Their standard deviations, $`\sigma g`$, against the curve, with
+the true one dashed:
+
+``` r
+
+sdcurve <- do.call(rbind, lapply(c("poly", "power x exp"), function(nm){
+  fit <- humpfits[[nm]]
+  data.frame(model = nm, f = fitted(fit), sd = sigma(fit)*gcTMB:::fitvarmult(fit))
+}))
+ggplot(sdcurve, aes(f, sd, colour = model)) +
+  geom_line() +
+  geom_function(fun = function(f) 1 + 0.12*f - 0.0012*f^2, colour = "black", linetype = "dashed") +
+  labs(x = "Fitted curve", y = "Residual standard deviation", colour = NULL) +
+  theme_bw()
+```
+
+![](variance_files/figure-html/hump-sd-1.png)
+
+The polynomial is symmetric around its maximum, while the product of the
+power and the exponential can be skewed, rising quickly from 0 and
+falling slowly. The polynomial can be 0 or below outside the data, where
+[`predict()`](https://rdrr.io/r/stats/predict.html) and
+[`simulate()`](https://rdrr.io/r/stats/simulate.html) give an error; the
+product is positive everywhere.
 
 ## Random effects, autocorrelation and a variance function
 

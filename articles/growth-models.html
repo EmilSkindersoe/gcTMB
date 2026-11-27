@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9027</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -1004,7 +1004,16 @@ and the optimiser cannot step to an invalid one; their coefficients of
 are on that scale. <code>link = c(b3 = "identity")</code> gives the
 shape itself, with the same fit when
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>
-has no covariates or random effects.</p>
+has no covariates or random effects. The coefficient
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mn>2</mn></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b_2 &gt; 0</annotation></semantics></math>
+of the Korf curve has the log link by default: it grows with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>t</mi><mrow><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">t^{b_3 - 1}</annotation></semantics></math>,
+often to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mn>8</mn></msup><annotation encoding="application/x-tex">10^8</annotation></semantics></math>
+or more, where the optimiser fails on its own scale;
+<code>link = c(b2 = "identity")</code> gives
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
+itself.</p>
 </div>
 <div class="section level3">
 <h3 id="diagnostics">Diagnostics<a class="anchor" aria-label="anchor" href="#diagnostics"></a>

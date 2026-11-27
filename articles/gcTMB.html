@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9027</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -102,9 +102,10 @@ residuals within individuals over time, and spatial correlation between
 neighbouring trees, with a nugget for measurement error;</li>
 <li>
 <em>Variance functions</em> (<code><a href="../articles/variance.html">vignette("variance")</a></code>): a
-variance for each stratum, or a power of the fitted curve, its growth
-rate or a covariate, and how variance functions trade off against random
-effects and autocorrelation;</li>
+variance for each stratum, or a power, exponential or polynomial of the
+fitted curve, its growth rate or a covariate, products of these, and how
+variance functions trade off against random effects and
+autocorrelation;</li>
 <li>
 <em>Simulation</em> (<code><a href="../articles/simulation.html">vignette("simulation")</a></code>):
 simulation studies, including the recovery of the autocorrelation
@@ -283,7 +284,6 @@ the criteria of <code><a href="../reference/criteria.html">criteria()</a></code>
 <span>               <span class="co"># the forestry curves from zero at sowing, instead of their default breast height of 1.3</span></span>
 <span>               <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Height</span> <span class="op">~</span> <span class="va">DAS</span>, data <span class="op">=</span> <span class="va">FabaHeights26</span>, model <span class="op">=</span> <span class="va">m</span>,</span>
 <span>                                 start <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="va">m</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"chapmanrichards"</span>, <span class="st">"korf"</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: the optimiser did not converge: singular convergence (7)</span></span>
 <span><span class="fu"><a href="../reference/criteria.html">criteria</a></span><span class="op">(</span><span class="va">fits</span>, which <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AIC"</span>, <span class="st">"BIC"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                      AIC      BIC</span></span>
 <span><span class="co">#&gt; logistic        33492.78 33518.26</span></span>
@@ -295,7 +295,7 @@ the criteria of <code><a href="../reference/criteria.html">criteria()</a></code>
 <span><span class="co">#&gt; normal          33493.81 33519.29</span></span>
 <span><span class="co">#&gt; gamma           33535.44 33560.92</span></span>
 <span><span class="co">#&gt; chapmanrichards 33606.41 33631.89</span></span>
-<span><span class="co">#&gt; korf            33708.72 33734.20</span></span>
+<span><span class="co">#&gt; korf            33708.64 33734.12</span></span>
 <span><span class="co">#&gt; preecebaines    33491.05 33529.27</span></span>
 <span><span class="co">#&gt; linear          35753.14 35772.25</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> gives confidence intervals of the mean by the
@@ -599,11 +599,14 @@ example of spatial correlation.</p>
 change over the course of growth, with a variance function in the
 argument <code>variance</code>: <code><a href="../reference/varFunc.html">varIdent()</a></code> gives each
 stratum its own variance, <code><a href="../reference/varFunc.html">varPower()</a></code> and
-<code><a href="../reference/varFunc.html">varConstPower()</a></code> a power of a covariate, the fitted curve
-<code>fitted(.)</code> (the default), its growth rate
+<code><a href="../reference/varFunc.html">varConstPower()</a></code> a power, <code><a href="../reference/varFunc.html">varExp()</a></code> an
+exponential and <code><a href="../reference/varFunc.html">varPoly()</a></code> a polynomial of a covariate, the
+fitted curve <code>fitted(.)</code> (the default), its growth rate
 <code>rate(.)</code>, largest at the inflection point, or a variable of
-the data. Here the residual standard deviation is a constant plus a
-power of the fitted curve,
+the data; <code><a href="../reference/varFunc.html">varComb()</a></code> multiplies several of them,
+e.g. <code>varComb(varPower(), varExp())</code> for a standard deviation
+largest in the middle of growth. Here the residual standard deviation is
+a constant plus a power of the fitted curve,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo stretchy="false" form="prefix">(</mo><mi>c</mi><mo>+</mo><mo stretchy="false" form="prefix">|</mo><mover><mi>y</mi><mo accent="true">̂</mo></mover><msup><mo stretchy="false" form="prefix">|</mo><mi>δ</mi></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\sigma (c + |\hat y|^{\delta})</annotation></semantics></math>,
 besides the random effects of the plants; <code>restart = TRUE</code>
 optimises once more from the estimates, as the first optimisation stops
@@ -642,10 +645,11 @@ against random effects and autocorrelation.</p>
 </h2>
 <p><code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> draws new responses from a fitted model, at
 the observed times or for new times and individuals in
-<code>newdata</code>, with new random effects and autocorrelated
-residuals; <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> sets the parameters of a true model.
-Refitting the model to simulated data recovers its parameters, e.g. the
-autocorrelation:</p>
+<code>newdata</code>, with new random effects (<code>re = "new"</code>;
+<code>re = "fitted"</code> keeps those of the fitted individuals) and
+autocorrelated residuals; <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> sets the parameters of a
+true model. Refitting the model to simulated data recovers its
+parameters, e.g. the autocorrelation:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>DAS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">28</span>, <span class="fl">122</span>, by <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>, Plant_ID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"p"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span>, Soil <span class="op">=</span> <span class="st">"Loamy"</span>,</span>
 <span>                      Genotype <span class="op">=</span> <span class="st">"Lynx"</span><span class="op">)</span></span>

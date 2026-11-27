@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9027</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -282,15 +282,19 @@ through its shape
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>3</mn></msub><annotation encoding="application/x-tex">b_3</annotation></semantics></math>.
 The shape must be larger than 1, and its default link
 log<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(b_3 - 1)</annotation></semantics></math>
-keeps it there; on these data it is pulled towards 1, where the curve
-becomes a power curve without an asymptote. The Chapman-Richards and
-Korf models are not nested, and are compared by their AIC:</p>
+keeps it there, while the coefficient
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>
+has the log link, so that its random effects act on log
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mn>2</mn></msub><annotation encoding="application/x-tex">b_2</annotation></semantics></math>;
+on these data it is pulled towards 1, where the curve becomes a power
+curve without an asymptote. The Chapman-Richards and Korf models are not
+nested, and are compared by their AIC:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitk</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/refit.html">refit</a></span><span class="op">(</span><span class="va">fitre</span>, model <span class="op">=</span> <span class="st">"korf"</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>restart <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fitre</span>, <span class="va">fitk</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       df      AIC</span></span>
 <span><span class="co">#&gt; fitre  8 5098.322</span></span>
-<span><span class="co">#&gt; fitk   8 5142.804</span></span></code></pre></div>
+<span><span class="co">#&gt; fitk   8 5134.859</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="starting-values">Starting values<a class="anchor" aria-label="anchor" href="#starting-values"></a>
@@ -481,13 +485,12 @@ compared with the identity line. The draws are random, and
 <p>The simulations of <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> can also be used for
 simulation-based residuals, for example with the package DHARMa (Hartig,
 2026) and its function <code>createDHARMa()</code>. With
-<code>random = FALSE</code>, the simulations are conditional on the
+<code>re = "fitted"</code>, the simulations are conditional on the
 predicted random effects, like the residuals of <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>, and
 the simulation-based residuals are then essentially the same as the
-quantile residuals. With <code>random = TRUE</code>, new random effects
-are drawn for each simulation. Note that <code>random</code> means the
-opposite in <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code> and <code><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals()</a></code>, where
-<code>random = TRUE</code> includes the predicted random effects.</p>
+quantile residuals. With <code>re = "new"</code> (the default), new
+random effects are drawn for each simulation, and
+<code>re = "none"</code> simulates around the population curve.</p>
 </div>
 </div>
 <div class="section level2">

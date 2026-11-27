@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gcTMB</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9026</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9027</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,7 +107,23 @@ at least
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>
-is zero.</li>
+is zero;</li>
+<li>
+<code>varExp(form = ~ v)</code>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>=</mo><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mi>v</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g = \exp(t v)</annotation></semantics></math>;</li>
+<li>
+<code>varPoly(form = ~ v, degree = k)</code>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>=</mo><mn>1</mn><mo>+</mo><msub><mi>d</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>v</mi><mo>−</mo><mi>m</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>…</mi><mo>+</mo><msub><mi>d</mi><mi>k</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>v</mi><mo>−</mo><mi>m</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>k</mi></msup></mrow><annotation encoding="application/x-tex">g = 1 + d_1 (v - m) + \dots + d_k (v - m)^k</annotation></semantics></math>,
+a polynomial standard deviation centred at the mean
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>,
+whose likelihood is zero where the polynomial is 0 or below;</li>
+<li>
+<code>varComb(...)</code>: the product of the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+of two or more of these,
+e.g. <code>varComb(varIdent(form = ~ 1 | Treatment), varPower())</code>.</li>
 </ul>
 <p>The covariate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>
@@ -197,6 +213,56 @@ narrow where the observations vary most and too wide where they vary
 least.</p>
 </div>
 <div class="section level2">
+<h2 id="a-standard-deviation-largest-in-the-middle-of-growth">A standard deviation largest in the middle of growth<a class="anchor" aria-label="anchor" href="#a-standard-deviation-largest-in-the-middle-of-growth"></a>
+</h2>
+<p>The power functions of the curve only increase or decrease. When the
+individuals differ mostly in their timing, the spread is largest in the
+middle of growth: all are small at first and all are close to the
+asymptote at the end. A quadratic polynomial of the curve,
+<code><a href="../reference/varFunc.html">varPoly()</a></code>, and the product of a power and an exponential,
+<code>varComb(varPower(), varExp())</code> with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>=</mo><mo stretchy="false" form="prefix">|</mo><mi>f</mi><msup><mo stretchy="false" form="prefix">|</mo><mi>δ</mi></msup><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mi>f</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">g = |f|^\delta \exp(t f)</annotation></semantics></math>,
+both have a maximum, at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>=</mo><mi>m</mi><mo>−</mo><msub><mi>d</mi><mn>1</mn></msub><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>2</mn><msub><mi>d</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f = m - d_1/(2 d_2)</annotation></semantics></math>
+and at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>=</mo><mi>−</mi><mi>δ</mi><mi>/</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">f = -\delta/t</annotation></semantics></math>.
+We simulate the curve above with the standard deviation
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>+</mo><mn>0.12</mn><mi>f</mi><mo>−</mo><mn>0.0012</mn><msup><mi>f</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">1 + 0.12 f - 0.0012 f^2</annotation></semantics></math>,
+which is 1 at the start and at the asymptote and 4 at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>=</mo><mn>50</mn></mrow><annotation encoding="application/x-tex">f = 50</annotation></semantics></math>:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">Time2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">55</span>, by <span class="op">=</span> <span class="fl">2.5</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="va">f2</span> <span class="op">&lt;-</span> <span class="va">b</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">/</span><span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="op">(</span><span class="va">Time2</span> <span class="op">-</span> <span class="va">b</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">/</span><span class="va">b</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">hump</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Time <span class="op">=</span> <span class="va">Time2</span>, y <span class="op">=</span> <span class="va">f2</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">Time2</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">1</span> <span class="op">+</span> <span class="fl">0.12</span><span class="op">*</span><span class="va">f2</span> <span class="op">-</span> <span class="fl">0.0012</span><span class="op">*</span><span class="va">f2</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">humpfits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>constant <span class="op">=</span> <span class="cn">NULL</span>, power <span class="op">=</span> <span class="fu"><a href="../reference/varFunc.html">varPower</a></span><span class="op">(</span><span class="op">)</span>, poly <span class="op">=</span> <span class="fu"><a href="../reference/varFunc.html">varPoly</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>                        <span class="st">"power x exp"</span> <span class="op">=</span> <span class="fu"><a href="../reference/varFunc.html">varComb</a></span><span class="op">(</span><span class="fu"><a href="../reference/varFunc.html">varPower</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="../reference/varFunc.html">varExp</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                   <span class="kw">function</span><span class="op">(</span><span class="va">v</span><span class="op">)</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">Time</span>, data <span class="op">=</span> <span class="va">hump</span>, variance <span class="op">=</span> <span class="va">v</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">humpfits</span>, <span class="va">AIC</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    constant       power        poly power x exp </span></span>
+<span><span class="co">#&gt;    483.4923    476.7587    430.6069    445.5936</span></span></code></pre></div>
+<p>Both functions with a maximum lower the AIC well below the power of
+the curve. Their standard deviations,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mi>g</mi></mrow><annotation encoding="application/x-tex">\sigma g</annotation></semantics></math>,
+against the curve, with the true one dashed:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sdcurve</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"poly"</span>, <span class="st">"power x exp"</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">nm</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="va">fit</span> <span class="op">&lt;-</span> <span class="va">humpfits</span><span class="op">[[</span><span class="va">nm</span><span class="op">]</span><span class="op">]</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>model <span class="op">=</span> <span class="va">nm</span>, f <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sigma.html" class="external-link">sigma</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">*</span><span class="fu">gcTMB</span><span class="fu">:::</span><span class="fu">fitvarmult</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">sdcurve</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">f</span>, <span class="va">sd</span>, colour <span class="op">=</span> <span class="va">model</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_function.html" class="external-link">geom_function</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">0.12</span><span class="op">*</span><span class="va">f</span> <span class="op">-</span> <span class="fl">0.0012</span><span class="op">*</span><span class="va">f</span><span class="op">^</span><span class="fl">2</span>, colour <span class="op">=</span> <span class="st">"black"</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Fitted curve"</span>, y <span class="op">=</span> <span class="st">"Residual standard deviation"</span>, colour <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="variance_files/figure-html/hump-sd-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p>The polynomial is symmetric around its maximum, while the product of
+the power and the exponential can be skewed, rising quickly from 0 and
+falling slowly. The polynomial can be 0 or below outside the data, where
+<code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> and <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> give an error; the
+product is positive everywhere.</p>
+</div>
+<div class="section level2">
 <h2 id="random-effects-autocorrelation-and-a-variance-function">Random effects, autocorrelation and a variance function<a class="anchor" aria-label="anchor" href="#random-effects-autocorrelation-and-a-variance-function"></a>
 </h2>
 <p>With repeated measurements of the same plants, random effects,
@@ -206,7 +272,7 @@ spread around the population curve grow as the plants grow, even when
 the residuals have a constant variance; a variance function changes the
 variance of the residuals themselves. We fit a single curve to the
 heights of 20 plants of <code>FabaHeights26</code>:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fh</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">FabaHeights26</span>, <span class="va">Genotype</span> <span class="op">==</span> <span class="st">"Navarra"</span> <span class="op">&amp;</span> <span class="va">Soil</span> <span class="op">==</span> <span class="st">"Loamy"</span> <span class="op">&amp;</span></span>
 <span>                          <span class="va">Treatment</span> <span class="op">==</span> <span class="st">"Irrigated"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">re</span> <span class="op">&lt;-</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Plant_ID</span></span>
@@ -246,7 +312,7 @@ is about twice as large. The random effects come first; a variance
 function then describes the residuals around the curve of each plant.
 These still grow with the height, and are not largest at the inflection
 point (the power of the growth rate is close to 0):</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">fits</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"random + power"</span>, <span class="st">"random + rate"</span><span class="op">)</span><span class="op">]</span>, <span class="va">varpars</span><span class="op">)</span></span>
 <span><span class="co">#&gt; random + power.power  random + rate.power </span></span>
 <span><span class="co">#&gt;            0.3815162            0.0868291</span></span></code></pre></div>
@@ -254,7 +320,7 @@ point (the power of the growth rate is close to 0):</p>
 autocorrelation of the residuals of a plant. Its ratios show a single
 day, 83, with much larger residuals than the others, which no smooth
 function of the curve can follow:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span>day <span class="op">=</span> <span class="fu"><a href="../reference/gcTMB-extract.html">varpars</a></span><span class="op">(</span><span class="va">fits</span><span class="op">[[</span><span class="st">"random + day"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>            <span class="st">"CAR(1) + day"</span> <span class="op">=</span> <span class="fu"><a href="../reference/gcTMB-extract.html">varpars</a></span><span class="op">(</span><span class="va">fits</span><span class="op">[[</span><span class="st">"random + CAR(1) + day"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="co">#&gt;              28   35   42   49   56   63   69   83   90   98  106  114  122</span></span>

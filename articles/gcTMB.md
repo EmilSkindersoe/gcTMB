@@ -31,9 +31,10 @@ go into each topic in depth:
     for measurement error;
 5.  *Variance functions*
     ([`vignette("variance")`](https://emilskindersoe.github.io/gcTMB/articles/variance.md)):
-    a variance for each stratum, or a power of the fitted curve, its
-    growth rate or a covariate, and how variance functions trade off
-    against random effects and autocorrelation;
+    a variance for each stratum, or a power, exponential or polynomial
+    of the fitted curve, its growth rate or a covariate, products of
+    these, and how variance functions trade off against random effects
+    and autocorrelation;
 6.  *Simulation*
     ([`vignette("simulation")`](https://emilskindersoe.github.io/gcTMB/articles/simulation.md)):
     simulation studies, including the recovery of the autocorrelation
@@ -121,7 +122,6 @@ fits <- lapply(c(logistic = "logistic", gompertz = "gompertz", hill = "hill", we
                # the forestry curves from zero at sowing, instead of their default breast height of 1.3
                function(m) gcTMB(Height ~ DAS, data = FabaHeights26, model = m,
                                  start = if (m %in% c("chapmanrichards", "korf")) c(b4 = 0)))
-#> Warning: the optimiser did not converge: singular convergence (7)
 criteria(fits, which = c("AIC", "BIC"))
 #>                      AIC      BIC
 #> logistic        33492.78 33518.26
@@ -133,7 +133,7 @@ criteria(fits, which = c("AIC", "BIC"))
 #> normal          33493.81 33519.29
 #> gamma           33535.44 33560.92
 #> chapmanrichards 33606.41 33631.89
-#> korf            33708.72 33734.20
+#> korf            33708.64 33734.12
 #> preecebaines    33491.05 33529.27
 #> linear          35753.14 35772.25
 ```
@@ -471,13 +471,20 @@ gives each stratum its own variance,
 [`varPower()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
 and
 [`varConstPower()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
-a power of a covariate, the fitted curve `fitted(.)` (the default), its
-growth rate `rate(.)`, largest at the inflection point, or a variable of
-the data. Here the residual standard deviation is a constant plus a
-power of the fitted curve, $`\sigma (c + |\hat y|^{\delta})`$, besides
-the random effects of the plants; `restart = TRUE` optimises once more
-from the estimates, as the first optimisation stops just short of
-convergence:
+a power,
+[`varExp()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+an exponential and
+[`varPoly()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+a polynomial of a covariate, the fitted curve `fitted(.)` (the default),
+its growth rate `rate(.)`, largest at the inflection point, or a
+variable of the data;
+[`varComb()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+multiplies several of them, e.g. `varComb(varPower(), varExp())` for a
+standard deviation largest in the middle of growth. Here the residual
+standard deviation is a constant plus a power of the fitted curve,
+$`\sigma (c + |\hat y|^{\delta})`$, besides the random effects of the
+plants; `restart = TRUE` optimises once more from the estimates, as the
+first optimisation stops just short of convergence:
 
 ``` r
 
@@ -521,10 +528,12 @@ random effects and autocorrelation.
 
 [`simulate()`](https://rdrr.io/r/stats/simulate.html) draws new
 responses from a fitted model, at the observed times or for new times
-and individuals in `newdata`, with new random effects and autocorrelated
-residuals; [`update()`](https://rdrr.io/r/stats/update.html) sets the
-parameters of a true model. Refitting the model to simulated data
-recovers its parameters, e.g. the autocorrelation:
+and individuals in `newdata`, with new random effects (`re = "new"`;
+`re = "fitted"` keeps those of the fitted individuals) and
+autocorrelated residuals;
+[`update()`](https://rdrr.io/r/stats/update.html) sets the parameters of
+a true model. Refitting the model to simulated data recovers its
+parameters, e.g. the autocorrelation:
 
 ``` r
 

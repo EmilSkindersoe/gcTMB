@@ -57,7 +57,14 @@ coef(object, ...)
 vcov(object, ...)
 
 # S3 method for class 'gcTMB'
-simulate(object, nsim = 1, seed = NULL, random = TRUE, newdata = NULL, ...)
+simulate(
+  object,
+  nsim = 1,
+  seed = NULL,
+  re = c("new", "fitted", "none"),
+  newdata = NULL,
+  ...
+)
 ```
 
 ## Arguments
@@ -88,14 +95,12 @@ simulate(object, nsim = 1, seed = NULL, random = TRUE, newdata = NULL, ...)
   Logical. If TRUE, the random effects are included in the predictions,
   fitted values and residuals (conditional residuals). TRUE corresponds
   to the innermost level of `predict` and `fitted` of nlme, and FALSE to
-  `level=0` (`re.form=NA` of lme4). For simulate, if TRUE, new random
-  effects are drawn for each simulation, otherwise the fitted random
-  effects are kept. For prediction intervals, random=TRUE gives the
-  interval of a new observation in the group of each row of newdata, and
-  random=FALSE the interval of a new observation in a new group,
-  including the variance of the random effects. Rows of newdata with a
-  level that is not in the fitted data are treated as new groups for
-  that random effect term.
+  `level=0` (`re.form=NA` of lme4). Not an argument of simulate, see re.
+  For prediction intervals, random=TRUE gives the interval of a new
+  observation in the group of each row of newdata, and random=FALSE the
+  interval of a new observation in a new group, including the variance
+  of the random effects. Rows of newdata with a level that is not in the
+  fitted data are treated as new groups for that random effect term.
 
 - type:
 
@@ -142,11 +147,11 @@ simulate(object, nsim = 1, seed = NULL, random = TRUE, newdata = NULL, ...)
   simulate, the times, covariates and grouping variables of the
   observations to simulate, e.g. new times or new individuals; each
   level of a grouping variable is one curve, with random effects shared
-  by its rows. With random=TRUE all levels get new random effects; with
-  random=FALSE the levels in the fitted data keep their fitted random
-  effects and the other levels get new ones. For binomial responses the
-  number of trials is taken from the response in newdata (one for a
-  binary response).
+  by its rows. With re = "new" all levels get new random effects; with
+  re = "fitted" the levels in the fitted data keep their fitted random
+  effects and the other levels get new ones; with re = "none" there are
+  no random effects. For binomial responses the number of trials is
+  taken from the response in newdata (one for a binary response).
 
 - se.fit:
 
@@ -209,6 +214,17 @@ simulate(object, nsim = 1, seed = NULL, random = TRUE, newdata = NULL, ...)
   "original" (default) or "link", the scale of the coefficients, see the
   argument link of
   [`gcTMB`](https://emilskindersoe.github.io/gcTMB/reference/gcTMB.md).
+
+- re:
+
+  Character string. The random effects of simulate: "new" (default)
+  draws new random effects for each simulation, i.e. new individuals;
+  "fitted" keeps the fitted (predicted) random effects, i.e. new
+  observations of the same individuals, as `fitted(random=TRUE)`; "none"
+  simulates around the population curve without random effects, as
+  `fitted(random=FALSE)`. With newdata, "fitted" keeps the fitted random
+  effects of the levels in the fit and draws new ones for the other
+  levels.
 
 ## Value
 

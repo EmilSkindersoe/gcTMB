@@ -137,7 +137,11 @@ another autocorrelation, as below.
 
 We simulate 20 new plots of each crop, each sampled every 10 days from
 day 150 to day 300. Each plot in `newdata` is a new curve, with its own
-random effect drawn from the fitted variance.
+random effect drawn from the fitted variance: `re = "new"`, the default
+of [`simulate()`](https://rdrr.io/r/stats/simulate.html).
+`re = "fitted"` keeps the predicted random effects of the plots in the
+fitted data, for new observations of the same plots, and `re = "none"`
+simulates around the population curve without random effects.
 
 ``` r
 

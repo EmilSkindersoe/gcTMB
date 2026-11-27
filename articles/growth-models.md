@@ -647,7 +647,10 @@ value of the coefficients gives a valid shape, also with covariates and
 random effects on $`b_3`$, and the optimiser cannot step to an invalid
 one; their coefficients of $`b_3`$ are on that scale.
 `link = c(b3 = "identity")` gives the shape itself, with the same fit
-when $`b_3`$ has no covariates or random effects.
+when $`b_3`$ has no covariates or random effects. The coefficient
+$`b_2 > 0`$ of the Korf curve has the log link by default: it grows with
+$`t^{b_3 - 1}`$, often to $`10^8`$ or more, where the optimiser fails on
+its own scale; `link = c(b2 = "identity")` gives $`b_2`$ itself.
 
 ### Diagnostics
 

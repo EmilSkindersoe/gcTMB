@@ -16,6 +16,9 @@
 - [`varIdent()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
   [`varPower()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
   [`varConstPower()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  [`varExp()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  [`varPoly()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
+  [`varComb()`](https://emilskindersoe.github.io/gcTMB/reference/varFunc.md)
   : Variance functions for heteroscedastic residuals
 - [`refit()`](https://emilskindersoe.github.io/gcTMB/reference/refit.md)
   : Refit a gcTMB model with other components
