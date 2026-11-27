@@ -8,7 +8,7 @@
 #' @param fform Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1); NULL (default) gives every parameter a single intercept, one curve for all the data. A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.
 #' @param rform Formula, list of formulas, or NULL. Random effects: a formula of the form b1 + b2 ~ 1 | ID for random intercepts, or b1 ~ x | ID for random intercepts and slopes in a covariate x, or a list of such formulas, e.g. list(b1 + b2 ~ 1 | ID, b1 ~ 1 | site). The random effects within a formula are correlated across the listed parameters and their intercepts and slopes; different formulas and the levels of nested factors (1 | site/ID) are independent terms. With a double bar, all the random coefficients of the formula are independent, across the parameters as well as their intercepts and slopes: b1 + b2 ~ 1 || ID is list(b1 ~ 1 | ID, b2 ~ 1 | ID), a diagonal covariance matrix as random=pdDiag(b1 + b2 ~ 1) in nlme. A list of formulas combines the two into a block-diagonal covariance matrix: list(b1 + b2 ~ 1 | ID, b3 ~ 1 | ID) gives correlated random effects of b1 and b2, and a random effect of b3 independent of both, as random=pdBlocked(list(pdSymm(b1 + b2 ~ 1), pdSymm(b3 ~ 1))) in nlme. The random slopes of a parameter usually go with a fixed effect of the covariate in fform. NULL (default) for no random effects.
 #' @param data Data frame. Observations with missing values in the variables of the model or in the weights are left out.
-#' @param start Numeric vector or NULL. Starting values for each model coefficient. NA entries are replaced by the starting values of \code{\link{gcTMBstart}}, and NULL (default) uses them for all coefficients. Alternatively, a vector named by parameter, e.g. c(b1=10), gives the same starting value to all coefficients of each named parameter.
+#' @param start Numeric vector, list or NULL. Starting values for each model coefficient. NA entries are replaced by the starting values of \code{\link{gcTMBstart}}, and NULL (default) uses them for all coefficients; with covariates in fform, the coefficients of the covariates without a starting value are computed from starting values within each combination of the covariates (see \code{\link{gcTMBstart}}), and 0 for them gives the pooled starting values of all the data. Alternatively, a vector named by parameter, e.g. c(b1=10), gives the same starting value to all coefficients of each named parameter. A list gives starting values of the other parameters too, with the components \code{fixef} (the coefficients, as the numeric vector above), \code{VarCorr} (covariance matrices of the random effects, named by the terms as returned by \code{\link{VarCorr}}, or a single matrix for one term; NA entries, and the correlations of a matrix with NA entries, start from the data) and \code{sigma} (the residual standard deviation, or the dispersion of the other families), e.g. \code{start=list(fixef=c(b1=100), sigma=2)}; the components not given start from the data. \code{\link{update.gcTMB}} with \code{startfrom="fit"} gives such a list from a fit.
 #' @param fix Logical vector or NULL. One entry for each model coefficient. If TRUE, a model coefficient is fixed to its value in start. Alternatively, a vector named by parameter, e.g. c(b1=TRUE), fixes all coefficients of the named parameters; their values must then be given in start, e.g. start=c(b1=10). NULL (default) fixes only the parameters that are fixed by default. The threshold (start of growth) b4 and the asymmetry b5 are fixed by default, at b4 = 0 (the curve starts at zero at t = 0) and b5 = 1 (the symmetric curve) unless given in start; so is the intercept b4 of the chapmanrichards and korf models, at the breast height of 1.3, while the rates b4 and b5 of the preecebaines model are estimated; fix=c(b4=FALSE) or fix=c(b5=FALSE), or an unnamed fix vector, estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.
 #' @param correlation A correlation structure or NULL. The autocorrelation of the residuals within
 #'   groups over time, \code{\link{corAR1}}, \code{\link{corCAR1}}, \code{\link{corExp}} or
@@ -225,7 +225,9 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, corr
   dd <- gcTMBdata(form, fform=fform, rform=rform, data=data, weights=weights, family=family, model=model, truncated=truncated, link=link, b1type=b1type,
                   correlation=correlation, variance=variance)
   fixnamed <- !is.null(names(fix))
-  start <- defaultstart(parvector(start, dd$npi, NA, "start"), dd)
+  # a start list: the coefficients (fixef), and the variances of the random effects and sigma
+  startvar <- splitstart(start, dd, rform)
+  start <- defaultstart(parvector(startvar$fixef, dd$npi, NA, "start"), dd)
   fix <- defaultfix(fix, dd$npi, dd$mod)
   if (fixnamed && any(fix & is.na(start) & dd$npi < 4)){
     stop("give the values of the fixed parameters in start, e.g. start=c(b1=10), fix=c(b1=TRUE).")
@@ -237,7 +239,7 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, corr
   method <- if (is.null(gsl) & is.null(gsu) & is.null(gsn)) "lm" else "grid"
   start <- gcTMBstartvals(dd, start, fix, method=method, gsl=gsl, gsu=gsu, gsn=gsn)
 
-  obj <- gcTMBobj(dd, start, fix, rform=rform)
+  obj <- gcTMBobj(dd, start, fix, rform=rform, startvar=startvar)
   # random effects: if the Laplace approximation fails at the starting values, e.g. starting values
   # far from the population curve, start from the fit without random effects
   if (!is.null(rform) && !is.finite(suppressWarnings(obj$fn(obj$par)))){
@@ -247,7 +249,7 @@ gcTMB <- function(form, fform=NULL, rform=NULL, data, start=NULL, fix=NULL, corr
                      error=function(e) NULL)
     if (!is.null(fit0) && is.finite(fit0$opt$objective)){
       start[!fix] <- fit0$estimates[seq_len(sum(!fix))]
-      obj <- gcTMBobj(dd, start, fix, rform=rform)
+      obj <- gcTMBobj(dd, start, fix, rform=rform, startvar=startvar)
     }
   }
 

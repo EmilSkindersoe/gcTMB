@@ -29,7 +29,7 @@ gcTMBstart(
 
 \item{data}{Data frame. Observations with missing values in the variables of the model or in the weights are left out.}
 
-\item{start}{Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced; NULL (default) computes all of them.}
+\item{start}{Numeric vector, list or NULL. Starting values for each model coefficient, as in \code{\link{gcTMB}}. Only NA entries are replaced; NULL (default) computes all of them. Of a start list, only the coefficients (\code{fixef}) are used.}
 
 \item{fix}{Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. NULL (default) fixes only the parameters that are fixed by default. The threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1 unless given in start (the intercept b4 of chapmanrichards and korf at 1.3; the rates b4 and b5 of preecebaines are estimated); fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.}
 
@@ -75,7 +75,14 @@ squares for this curve, and the asymptote with the smallest residual sum of squa
 Mean responses below 1\\% or above 99\\% of the asymptote carry little information about the
 linearised curve and are left out. With covariates in \code{fform}, the pooled starting value of
 each parameter is projected onto its design matrix, giving the intercept or each group the pooled
-value and contrasts a value of zero. The threshold b4, fixed at 0 by default, starts when estimated where the curve
+value and contrasts a value of zero. Then, for each parameter with coefficients of covariates
+without a starting value in \code{start} (NA), the starting values are computed in the same way within
+each combination of the covariates of fform (each cell), and these coefficients are the least
+squares fit of the cell values, on the scale of the link, on the design, weighted by the numbers of
+observations of the cells, with the given coefficients kept: e.g. the contrast of a factor is the
+difference of the starting values of its levels. Coefficients given in \code{start} are kept, so 0
+for the contrasts gives the pooled starting values. Cells with fewer than 5 distinct times are left
+out, and with more than 50 cells the pooled starting values are kept. The threshold b4, fixed at 0 by default, starts when estimated where the curve
 without truncation reaches 1\\% of its asymptote; for the count families also before the first
 time with a positive count, and for the lognormal and beta families before all times, as positive
 responses are impossible before the threshold. The asymmetry b5 starts at 1, the symmetric curve,

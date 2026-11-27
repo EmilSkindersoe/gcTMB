@@ -16,11 +16,11 @@
 \alias{simulate.gcTMB}
 \title{gcTMB Methods}
 \usage{
-\method{print}{gcTMB}(x, digits = max(3L, getOption("digits") - 3L), ...)
+\method{print}{gcTMB}(x, digits = max(3L, getOption("digits") - 3L), n = NULL, ...)
 
 \method{summary}{gcTMB}(object, ...)
 
-\method{print}{summary.gcTMB}(x, digits = max(3L, getOption("digits") - 3L), ...)
+\method{print}{summary.gcTMB}(x, digits = max(3L, getOption("digits") - 3L), n = NULL, ...)
 
 \method{logLik}{gcTMB}(object, ...)
 
@@ -62,6 +62,8 @@
 \item{x, object}{A gcTMB object, the result of \code{\link{gcTMB}}.}
 
 \item{digits}{Integer. Number of significant digits in the printed output}
+
+\item{n}{Integer or NULL. The maximum number of coefficients printed; NULL (default) for the option \code{gcTMB.print.max}, 100 unless set, e.g. \code{options(gcTMB.print.max = 200)}; \code{Inf} for all. When coefficients are left out, a note at the end says how many, and how to show or extract all of them}
 
 \item{...}{Not used.}
 

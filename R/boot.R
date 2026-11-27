@@ -11,6 +11,7 @@
 #' @param progress Logical. Show a progress bar
 #' @param x A bootstrap.gcTMB object, the result of \code{bootstrap}.
 #' @param digits Integer. Number of significant digits in the printed output
+#' @param n Integer or NULL. The maximum number of estimates printed; NULL (default) for the option \code{gcTMB.print.max}, 100 unless set, e.g. \code{options(gcTMB.print.max = 200)}; \code{Inf} for all. When estimates are left out, a note at the end says how many, and how to show or extract all of them
 #' @param parm Character or integer vector, or NULL. Parameters, names or positions in \code{coef}; NULL (default) for all of them
 #' @param level Numeric between 0 and 1. The confidence level
 #' @param ... Not used.
@@ -54,14 +55,16 @@ bootstrap <- function(object, nsim=500, seed=NULL, progress=interactive()){
 #' @rdname bootstrap
 #' @method print bootstrap.gcTMB
 #' @export
-print.bootstrap.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...){
+print.bootstrap.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), n=NULL, ...){
   est <- x$estimates
   ok <- !is.na(est[, 1])
   cat("Parametric bootstrap: ", sum(ok), " of ", x$nsim, " fits converged\n\n", sep="")
   orig <- coef(x$fit)
   tab <- cbind(Estimate=orig, Mean=colMeans(est[ok, , drop=FALSE]),
                Bias=colMeans(est[ok, , drop=FALSE]) - orig, "Std. Error"=apply(est[ok, , drop=FALSE], 2, sd))
-  print(tab, digits=digits)
+  k <- printrows(n, nrow(tab))
+  print(tab[seq_len(k), , drop=FALSE], digits=digits)
+  printomitted(k, nrow(tab), "estimates", get="x$estimates holds all bootstrap estimates, and confint(x) gives their intervals")
   invisible(x)
 }
 

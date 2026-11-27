@@ -18,7 +18,8 @@ sowing <- as.Date("2026-04-14")  # DAS 0; every date in both files is sowing + D
 # a best guess. swap_highlighted = TRUE swaps their heights (plot 33 <-> 49, 34 <-> 50, ...,
 # 40 <-> 56, same Plant_ID). Set it before sourcing to choose without editing this file:
 #   swap_highlighted <- TRUE; source("data-raw/DIGIFABA_field_26.R")
-# The script ends with a comparison of both versions against the neighbouring dates.
+# The height part ends with a comparison of both versions against each plant's logistic growth
+# curve fitted to its other dates.
 if (!exists("swap_highlighted")) swap_highlighted <- FALSE
 stopifnot(isTRUE(swap_highlighted) || isFALSE(swap_highlighted))
 swap_blocks <- function(d) {
@@ -141,12 +142,24 @@ cat("Plants measured per date:\n")
 print(table(FabaHeights26$DAS))
 
 # ---- which order of the highlighted blocks looks more realistic? -------------------------------
-# Compares the DAS 83 heights with each plant's own heights at DAS 69 and DAS 90 (the Loamy plots
-# have no DAS 77), for the recorded order and for the swapped one. A realistic DAS 83 value lies
-# close to the straight line between DAS 69 and DAS 90 (small deviation, high correlation) and is
-# not clearly below DAS 69 (plants do not shrink). The Loamy plots outside the blocks show what to
-# expect from correctly entered data.
+# Compares the DAS 83 heights with the height each plant is expected to have at DAS 83, for the
+# recorded order and for the swapped one. The expected height comes from a logistic growth curve
+# fitted to the Loamy plants on all their other dates (DAS 83 left out, and the Loamy plots have no
+# DAS 77), with random b1, b2 and b3 for each plant, so each plant has its own curve. A realistic
+# DAS 83 value lies close to its plant's curve (small deviation, high correlation) and is not
+# clearly below DAS 69 or above DAS 90 (plants do not shrink). The Loamy plots outside the blocks
+# show what to expect from correctly entered data. Needs gcTMB: library(gcTMB) or, in the source
+# package, pkgload::load_all().
+if (!exists("gcTMB", mode = "function")) library(gcTMB)
 compare_orders <- function() {
+  loamy <- heights_long[heights_long$Soil == "Loamy", ]
+  loamy$plant <- factor(key(loamy))
+  fitdata <- loamy[loamy$DAS != 83, ]
+  fit <- gcTMB(Height_cm ~ DAS, rform = b1 + b2 + b3 ~ 1 | plant, data = fitdata, model = "logistic")
+  stopifnot(converged(fit))
+  pred83 <- data.frame(DAS = 83, plant = levels(loamy$plant))
+  pred83$fit <- predict(fit, newdata = pred83, random = TRUE)
+  cat("\nLogistic fit without DAS 83 (Loamy plants): residual sd", round(sigma(fit), 2), "cm\n")
   other <- heights_long[heights_long$DAS %in% c(69, 90), ]
   h <- function(das, d) other$Height_cm[other$DAS == das][
     match(paste(d$Plot_ID, d$Plant_ID), key(other[other$DAS == das, ]))]
@@ -156,7 +169,8 @@ compare_orders <- function() {
     d <- versions[[v]]
     d <- d[d$Location == "Loamy", ]
     h69 <- h(69, d); h90 <- h(90, d)
-    expected <- h69 + (83 - 69) / (90 - 69) * (h90 - h69)
+    expected <- pred83$fit[match(key(d), pred83$plant)]
+    stopifnot(!anyNA(expected))
     d$group <- ifelse(d$Plot_ID %in% 33:40, "plots 33-40",
                       ifelse(d$Plot_ID %in% 49:56, "plots 49-56", "other Loamy"))
     groups <- if (v == "recorded") unique(d$group) else c("plots 33-40", "plots 49-56")

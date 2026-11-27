@@ -369,5 +369,5 @@ printvar <- function(object, digits){
   if (is.null(txt)) return(invisible())
   cat("\nVariance function: ", txt, "\n", sep="")
   vp <- if (!is.null(object$varpars)) object$varpars else varpars(object)
-  cat(paste(names(vp), format(vp, digits=digits), sep=": ", collapse=", "), "\n", sep="")
+  cat(paste(names(vp), dec2text(vp), sep=": ", collapse=", "), "\n", sep="")
 }

@@ -108,6 +108,12 @@ test_that("maxrate gives the curves of fitted groups, with their predicted rando
   # a level that is not in the fitted data: the population curve, with a warning
   expect_warning(mu <- maxrate(f, newdata=data.frame(Plant_ID=999)), "not in the fitted data")
   expect_equal(unname(coef(mu)), unname(pop))
+  # a missing level as well, in maxrate and in timeto, which names the rows
+  expect_warning(mn <- maxrate(f, newdata=data.frame(Plant_ID=c(6, NA))), "missing or not in the fitted data in rows 2 ")
+  expect_equal(unname(coef(mn))[4:6], unname(pop))
+  expect_warning(tn <- timeto(f, 50, newdata=data.frame(Plant_ID=c(6, NA))), "missing or not in the fitted data in rows 2 ")
+  expect_equal(unname(coef(tn))[1], unname(coef(tt))[1])
+  expect_no_warning(timeto(f, 50, newdata=data.frame(Plant_ID=6)))
 })
 
 test_that("maxrate of a fitted group of a truncated logistic curve is rescaled by the truncation", {

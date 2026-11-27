@@ -101,6 +101,16 @@ test_that("plot gives diagnostic ggplots", {
   }
   expect_equal(Filter(istext, p$time$layers)[[1]]$data$y, r[[imax]])
   expect_length(Filter(istext, p$ranef$layers), 0)
+  # validation2: a row for each grouping factor, in the order of the terms, a column for each parameter
+  d2 <- simre()
+  d2$grp <- factor(as.integer(factor(d2$id)) %% 3)
+  f2 <- gcTMB(y ~ day, truncated=FALSE, rform=list(b1 + b2 ~ 1 | id, b1 ~ 1 | grp), data=d2)
+  pr <- plot(f2, type="validation2", draw=FALSE)$ranef
+  lay <- ggplot2::ggplot_build(pr)$layout$layout
+  expect_equal(as.character(lay$term), c("b1 | id", "b2 | id", "b1 | grp", "b2 | grp"))
+  expect_equal(lay$ROW, c(1, 1, 2, 2))
+  expect_equal(lay$COL, c(1, 2, 1, 2))
+  expect_false(any(pr$data$term == "b2 | grp"))
   # outliers: the three largest absolute residuals labelled, in each graph; none with outliers=0
   i3 <- order(abs(r), decreasing=TRUE)[1:3]
   p3 <- plot(f, outliers=3, draw=FALSE)

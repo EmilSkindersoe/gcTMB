@@ -9,6 +9,7 @@
 #' @param interval Character string. The type of interval of predict: "none", "confidence" for confidence intervals of the mean, computed on the log scale for poisson and lognormal and on the logit scale for binomial and beta responses, or "prediction" for prediction intervals of a new observation with weight 1. Gaussian and lognormal models without random effects use t quantiles with n - p degrees of freedom and the unbiased residual variance, see \code{\link{gcTMB}}. For the gaussian and lognormal (on the log scale) families without boot, the prediction intervals use the normal (or t) distribution, and the variance of the random effects of new groups is added by the delta method. Otherwise they are quantiles of new observations simulated at nsim draws from the normal approximation of the fixed and random effects, with the variance parameters kept at their estimates, or at the bootstrap fits (see boot); with new random effects for new groups; for a binomial response as proportions, with the number of trials from the response in newdata (one for a binary response).
 #' @param level Numeric between 0 and 1. Confidence level of the intervals of predict
 #' @param digits Integer. Number of significant digits in the printed output
+#' @param n Integer or NULL. The maximum number of coefficients printed; NULL (default) for the option \code{gcTMB.print.max}, 100 unless set, e.g. \code{options(gcTMB.print.max = 200)}; \code{Inf} for all. When coefficients are left out, a note at the end says how many, and how to show or extract all of them
 #' @param type Character string. For residuals, the type of residuals: "pearson" (default), the response residuals divided by the standard deviation of the fitted distribution and multiplied by the square root of the weights; "response", the observed minus the fitted values, as proportions for a binomial response; or "quantile", randomised quantile residuals (Dunn and Smyth, 1996), which are standard normal under the model. The types "response", "pearson" and "normalized" are those of \code{residuals} of nlme. "normalized" (gaussian and lognormal) are the standardised residuals decorrelated by the autocorrelation of the fit (see \code{\link{corStruct}}): each standardised residual minus rho^dt times the previous one of its group, divided by sqrt(1 - rho^(2 dt)), independent standard normal under the model, as in nlme; without autocorrelation they are the pearson residuals; for the other families they are the pearson residuals, with a warning. For the gaussian family, the quantile residuals are multiplied by the square root of the weights, as precision weights with standard deviation sigma/sqrt(w); for the other families they do not use the weights, as a weighted log-likelihood is not the density of a distribution of the observation. The quantile residuals are random for the count families; use set.seed for reproducible values. For the lognormal family, the pearson and quantile residuals are the standardised residuals of log(y), (log(y) - log(f))/sigma, multiplied by the square root of the weights.
 #'   For predict, the type of prediction: "response" (default), the mean response at the times of newdata, or "parameters", the parameters b1-b3 of the curve of each row of newdata (with its covariates in fform and, with random=TRUE, the random effects of its groups); newdata then needs no time. The standard errors of the parameters are those of the estimates, by the delta method, and their confidence intervals are computed on the scale of the link and back-transformed; with random=TRUE, they include the uncertainty of the predicted random effects of the fitted groups. Prediction intervals of the parameters add the variance of the random effects of the terms without a fitted level, the parameters of a new group, and are not available with boot.
 #' @param nsim Integer. Number of response vectors to simulate; for predict, the number of parameter draws for simulated prediction intervals
@@ -83,7 +84,7 @@
 #' @rdname gcTMB-methods
 #' @method print gcTMB
 #' @export
-print.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...){
+print.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), n=NULL, ...){
   if (!is.null(x$call)){
     cat("Call:\n")
     print(x$call)
@@ -93,7 +94,10 @@ print.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...){
   cat("Family: ", x$family, ", ", linktext(x$link, x$model, fittrunc(x)), "\n", sep="")
 
   cat("\nCoefficients:\n")
-  print.default(format(coef(x)[seq_len(sum(!x$fix))], digits=digits), print.gap=2L, quote=FALSE)
+  cf <- coef(x)[seq_len(sum(!x$fix))]
+  k <- printrows(n, length(cf))
+  print.default(format(cf[seq_len(k)], digits=digits), print.gap=2L, quote=FALSE)
+  printomitted(k, length(cf), "coefficients", get="coef(x) returns all of them")
   printfixed(userfixed(x), digits)
   printre(recov(x), digits)
   printresid(x$family, residpar(x), digits)
@@ -172,7 +176,7 @@ summary.gcTMB <- function(object, ...){
 #' @rdname gcTMB-methods
 #' @method print summary.gcTMB
 #' @export
-print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...){
+print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), n=NULL, ...){
   if (!is.null(x$call)){
     cat("Call:\n")
     print(x$call)
@@ -189,7 +193,9 @@ print.summary.gcTMB <- function(x, digits=max(3L, getOption("digits") - 3L), ...
       ", AIC: ", format(x$AIC, digits=digits), ", BIC: ", format(x$BIC, digits=digits), "\n", sep="")
 
   cat("\nCoefficients:\n")
-  printCoefmat(x$coefficients, digits=digits)
+  k <- printrows(n, nrow(x$coefficients))
+  printCoefmat(x$coefficients[seq_len(k), , drop=FALSE], digits=digits)
+  printomitted(k, nrow(x$coefficients), "coefficients", get="summary(fit)$coefficients returns the whole table")
   # covariates in fform: the adjusted tests of the differences between the curves are in partest
   if (!all(grepl(":\\(Intercept\\)$", rownames(x$coefficients))))
     cat("Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().\n")
@@ -415,6 +421,21 @@ preddata <- function(object, newdata, random, covs=FALSE){
 }
 
 # design of the random effects of the fitted levels in newdata. For each term: Zl, a design block for
+# warning for the rows of newdata that give the grouping variables of a random effect term, but with a
+# missing level or a level not in the fitted data (rl from relevels with skip=TRUE): their curves have no
+# random effects of the term; what follows for the result is in msg
+newgroupwarning <- function(object, newdata, rl, msg){
+  for (t in seq_along(object$reterms)){
+    gv <- all.vars(object$reterms[[t]]$formula)
+    unknown <- all(gv %in% names(newdata)) & rl$newgroup[, t]
+    if (any(unknown)){
+      warning("levels of ", paste(gv, collapse=":"), " missing or not in the fitted data in rows ", paste(which(unknown), collapse=", "),
+              " of newdata: ", msg, call.=FALSE)
+    }
+  }
+  invisible()
+}
+
 # each column of the term (intercept, slopes), with a row for each row of newdata and a column for
 # each fitted level; X, the columns of the term in each row (1 for the intercept, the covariates of
 # the slopes), for the random effects of a new group; and newgroup, the rows without a fitted level.
@@ -1008,14 +1029,24 @@ printfixed <- function(fixed, digits){
 }
 
 # random effects: one row per parameter of each term, with standard deviation and correlations
+# variance components (standard deviations of the random effects, parameters of the variance function and
+# the correlation structure) for printing: two decimals each, and two significant digits
+# for those that would round to 0.00 without being zero (e.g. on a log link)
+dec2text <- function(s){
+  vapply(s, function(v){
+    if (!is.finite(v)) return(format(v))
+    if (v != 0 && abs(v) < 0.005) formatC(v, digits=2, format="g") else formatC(v, digits=2, format="f")
+  }, character(1))
+}
+
 printre <- function(vcs, digits){
   if (length(vcs) == 0) return(invisible())
   rows <- lapply(vcs, function(vc){
     np <- length(vc$pars)
     cr <- matrix("", np, max(np - 1, 0))
-    for (i in seq_len(np)[-1]) cr[i, seq_len(i - 1)] <- format(vc$corr[i, seq_len(i - 1)], digits=2, nsmall=2)
+    for (i in seq_len(np)[-1]) cr[i, seq_len(i - 1)] <- formatC(vc$corr[i, seq_len(i - 1)], digits=2, format="f")
     cbind(Groups=c(vc$group, rep("", np - 1)), Name=vc$labels,
-          Std.Dev.=format(unname(vc$sd), digits=digits), cr)
+          Std.Dev.=dec2text(unname(vc$sd)), cr)
   })
   ncr <- max(sapply(rows, ncol)) - 3
   rows <- lapply(rows, function(r) cbind(r, matrix("", nrow(r), ncr - (ncol(r) - 3))))

@@ -40,6 +40,7 @@ reference:
   - gcTMBstart
   - corStruct
   - varFunc
+  - refit
   - update.gcTMB
   - converged
 - title: Methods and extractors

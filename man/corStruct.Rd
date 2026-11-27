@@ -30,8 +30,10 @@ corGaus(
 }
 \arguments{
 \item{value}{Numeric. The starting value of the parameters, or their values with \code{fixed=TRUE}:
-rho, between -1 and 1 (default 0) for \code{corAR1} and between 0 and 1 (default 0.2) for
-\code{corCAR1}; for \code{corExp} and \code{corGaus} the range, or with a nugget the range and the
+rho, between -1 and 1 (default 0) for \code{corAR1} and between 0 and 1 for \code{corCAR1}, by
+default the rho with a correlation of 0.2 at the median time d between successive observations of
+a group, \eqn{0.2^{1/d}}{0.2^(1/d)}, so that the start does not depend on the unit of time (0.2 if
+\code{fixed=TRUE}, as in nlme); for \code{corExp} and \code{corGaus} the range, or with a nugget the range and the
 nugget (default: see Details)}
 
 \item{form}{One-sided formula. The time covariate (or the position variables, \code{~ x + y | group}, for

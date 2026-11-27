@@ -16,7 +16,7 @@ partest(
   nsim = 1e+05
 )
 
-\method{print}{partest.gcTMB}(x, digits = 3, ...)
+\method{print}{partest.gcTMB}(x, digits = 3, n = NULL, ...)
 }
 \arguments{
 \item{x}{A gcTMB object, the result of \code{\link{gcTMB}}.}
@@ -44,6 +44,8 @@ Dunnett's method, by \code{contrasts}), a method of
 \code{adjust="single-step"}}
 
 \item{digits}{Integer. Number of significant digits}
+
+\item{n}{Integer or NULL. The maximum number of comparisons printed; NULL (default) for the option \code{gcTMB.print.max}, 100 unless set, e.g. \code{options(gcTMB.print.max = 200)}; \code{Inf} for all. When comparisons are left out, a note at the end says how many, and how to show or extract all of them}
 
 \item{...}{Not used.}
 }

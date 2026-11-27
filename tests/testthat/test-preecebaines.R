@@ -73,3 +73,54 @@ test_that("Preece-Baines fits agree with nls, with timeto and maxrate", {
   ci <- suppressMessages(confint(tt, method="profile"))
   expect_true(all(ci[, 1] < coef(tt) & coef(tt) < ci[, 2]))
 })
+
+test_that("the starting values keep the middle of puberty inside the ages, also for both sexes pooled", {
+  bg <- subset(BerkeleyGrowth, Age >= 2)
+  bg$ID <- factor(bg$ID)
+  # the means of the last ages rest on a few children; the start weights the means by their numbers
+  st <- function(d) gcTMBstart(Height ~ Age, data=d, model="preecebaines")
+  sg <- st(subset(bg, Sex == "female"))
+  sb <- st(subset(bg, Sex == "male"))
+  sp <- st(bg)
+  for (s in list(sg, sb, sp)){
+    expect_true(s[2] > 8 && s[2] < 17)
+    expect_true(s[5] > s[4] && s[5] < 50*s[4])
+  }
+  expect_lt(sg[2], sb[2])
+  # pooled, with no covariate and with the sex on all parameters and random b1 and b2
+  f <- gcTMB(Height ~ Age, data=bg, model="preecebaines")
+  expect_equal(f$opt$convergence, 0)
+  expect_true(coef(f)[["b2:(Intercept)"]] > 8 && coef(f)[["b2:(Intercept)"]] < 17)
+  skip_on_cran()
+  fr <- gcTMB(Height ~ Age, fform=b1 + b2 + b3 + b4 + b5 ~ Sex, rform=b1 + b2 ~ 1 | ID, data=bg, model="preecebaines")
+  expect_equal(fr$opt$convergence, 0)
+  expect_true(isTRUE(summary(fr)$pdHess))
+  b2 <- coef(fr)[c("b2:(Intercept)", "b2:Sexfemale")]
+  expect_true(b2[[1]] > 13 && b2[[1]] < 16 && b2[[2]] < 0)
+})
+
+test_that("the starting values of covariates come from each cell, unless given", {
+  bg <- subset(BerkeleyGrowth, Age >= 2)
+  st <- function(...) gcTMBstart(Height ~ Age, fform=b1 + b2 + b3 + b4 + b5 ~ Sex, data=bg, model="preecebaines", ...)
+  sc <- st()
+  # the starting values of the boys, and the differences of the girls from them
+  sb <- gcTMBstart(Height ~ Age, data=subset(bg, Sex == "male"), model="preecebaines")
+  sg <- gcTMBstart(Height ~ Age, data=subset(bg, Sex == "female"), model="preecebaines")
+  expect_equal(unname(sc[c(1, 3, 5, 7, 9)]), unname(sb), tolerance=1e-6)
+  expect_equal(unname(sc[c(2, 4, 6, 8, 10)]), unname(sg - sb), tolerance=1e-6)
+  # contrasts of 0 in start: the pooled starting values
+  sp <- gcTMBstart(Height ~ Age, data=bg, model="preecebaines")
+  s0 <- st(start=c(NA, 0, NA, 0, NA, 0, NA, 0, NA, 0))
+  expect_equal(unname(s0[c(1, 3, 5, 7, 9)]), unname(sp))
+  expect_true(all(s0[c(2, 4, 6, 8, 10)] == 0))
+  # a given intercept is kept, and its contrast is computed with it
+  s1 <- st(start=c(180, rep(NA, 9)))
+  expect_equal(s1[[1]], 180)
+  expect_equal(s1[[2]], sg[[1]] - 180, tolerance=1e-6)
+  # the pooled data with the sex on all parameters and random b1-b3 reach the better optimum
+  skip_on_cran()
+  bg$ID <- factor(bg$ID)
+  fr <- gcTMB(Height ~ Age, fform=b1 + b2 + b3 + b4 + b5 ~ Sex, rform=b1 + b2 + b3 ~ 1 | ID, data=bg, model="preecebaines")
+  expect_equal(fr$opt$convergence, 0)
+  expect_gt(as.numeric(logLik(fr)), -6410)
+})

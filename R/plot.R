@@ -32,7 +32,9 @@
 #' are conditional on the predicted random effects, as the residuals of these plots.
 #'
 #' The QQ plots of the random effects (\code{type="validation2"}) show the predicted random effects of each
-#' parameter and grouping factor. They are shrunk towards zero, so their spread is smaller than the
+#' parameter and grouping factor, with a row for each grouping factor, in the order of the random effect
+#' terms (for nested factors, e.g. \code{1 | Plot/Plant}, the finest first), and a column for each
+#' parameter; a parameter without random effects at a grouping factor leaves its panel empty. They are shrunk towards zero, so their spread is smaller than the
 #' estimated standard deviation, and with few groups they say little about the normality of the
 #' random effects.
 #'
@@ -156,8 +158,15 @@ plot.gcTMB <- function(x, type=c("validation1", "validation2", "curves"), which=
     }
   }
   if ("validation2" %in% type){
-    plots$ranef <- qqplot(ranefdata(x), identity=FALSE) +
-      ggplot2::facet_wrap(~ term, scales="free_y") +
+    # a row for each grouping factor, in the order of the random effect terms, and a column for each
+    # parameter; each panel has its own y axis, and a parameter without random effects at a level
+    # leaves its panel empty
+    rd <- ranefdata(x)
+    pars <- unique(rd$par)
+    groups <- unique(rd$group)
+    rd$term <- factor(paste(rd$par, "|", rd$group), levels=paste(rep(pars, length(groups)), "|", rep(groups, each=length(pars))))
+    plots$ranef <- qqplot(rd, identity=FALSE) +
+      ggplot2::facet_wrap(~ term, ncol=length(pars), scales="free_y", drop=FALSE) +
       ggplot2::labs(x="Theoretical quantiles", y="Predicted random effects", title="Random effects")
   }
   # the curves last: with the validation plots a single graph without a legend; alone, the individuals
@@ -331,14 +340,14 @@ labeltext <- function(d, xvar, yvar){
                           hjust=ifelse(right, -0.25, 1.25), size=3.5))
 }
 
-# predicted random effects, one panel for each parameter (and covariate of random slopes) and term
+# predicted random effects of each parameter (and covariate of random slopes) and grouping factor
 ranefdata <- function(object){
   u <- object$sdrl$par.random
   uoff <- 0
   do.call(rbind, lapply(object$reterms, function(tm){
     nl <- length(tm$levels)
     out <- do.call(rbind, lapply(seq_along(tm$pars), function(k){
-      data.frame(term=paste(relabels(tm)[k], "|", tm$group), res=u[uoff + (k - 1)*nl + seq_len(nl)])
+      data.frame(par=relabels(tm)[k], group=tm$group, res=u[uoff + (k - 1)*nl + seq_len(nl)])
     }))
     uoff <<- uoff + nl*length(tm$pars)
     out

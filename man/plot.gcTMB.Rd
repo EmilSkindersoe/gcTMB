@@ -97,7 +97,9 @@ e.g. with \code{createDHARMa()} of the package DHARMa; with \code{random=FALSE},
 are conditional on the predicted random effects, as the residuals of these plots.
 
 The QQ plots of the random effects (\code{type="validation2"}) show the predicted random effects of each
-parameter and grouping factor. They are shrunk towards zero, so their spread is smaller than the
+parameter and grouping factor, with a row for each grouping factor, in the order of the random effect
+terms (for nested factors, e.g. \code{1 | Plot/Plant}, the finest first), and a column for each
+parameter; a parameter without random effects at a grouping factor leaves its panel empty. They are shrunk towards zero, so their spread is smaller than the
 estimated standard deviation, and with few groups they say little about the normality of the
 random effects.
 

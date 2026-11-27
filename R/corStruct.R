@@ -42,8 +42,10 @@
 #' range is 90\% of the smallest positive distance between observations of a group, and of the nugget 0.1.
 #'
 #' @param value Numeric. The starting value of the parameters, or their values with \code{fixed=TRUE}:
-#'   rho, between -1 and 1 (default 0) for \code{corAR1} and between 0 and 1 (default 0.2) for
-#'   \code{corCAR1}; for \code{corExp} and \code{corGaus} the range, or with a nugget the range and the
+#'   rho, between -1 and 1 (default 0) for \code{corAR1} and between 0 and 1 for \code{corCAR1}, by
+#'   default the rho with a correlation of 0.2 at the median time d between successive observations of
+#'   a group, \eqn{0.2^{1/d}}{0.2^(1/d)}, so that the start does not depend on the unit of time (0.2 if
+#'   \code{fixed=TRUE}, as in nlme); for \code{corExp} and \code{corGaus} the range, or with a nugget the range and the
 #'   nugget (default: see Details)
 #' @param form One-sided formula. The time covariate (or the position variables, \code{~ x + y | group}, for
 #'   \code{corExp} and \code{corGaus}) and the grouping factor, \code{~ time | group}.
@@ -111,9 +113,13 @@ corAR1 <- function(value=0, form=~ 1, fixed=FALSE){
 #' @export
 corCAR1 <- function(value=0.2, form=~ 1, fixed=FALSE){
   if (!is.numeric(value) || length(value) != 1 || !is.finite(value) || value <= 0 || value >= 1) stop("parameter in CAR(1) structure must be between 0 and 1")
+  # the default start is replaced in the fit by the rho that gives a correlation of 0.2 at the median
+  # spacing of the times (carstart), unless fixed
+  bydefault <- missing(value)
   value <- log(value/(1 - value))
   attr(value, "formula") <- form
   attr(value, "fixed") <- fixed
+  if (bydefault) attr(value, "spacingstart") <- TRUE
   class(value) <- c("corCAR1", "corStruct")
   value
 }
@@ -183,6 +189,19 @@ spatialstart <- function(correlation, mind){
   if (length(val) == 0) val <- 0.9*mind
   if (nug && length(val) == 1) val <- c(val, 0.1)
   c(log(val[1]), if (nug) stats::qlogis(val[2]))
+}
+
+# starting (or fixed) value of CAR(1) on the unconstrained scale, logit(rho): the value given, or, for
+# the default of corCAR1() (not fixed), the rho with the correlation 0.2 at the median time between
+# successive observations of a group, rho = 0.2^(1/d), so that the start does not depend on the unit of
+# time (0.2 per unit of time is practically no correlation between observations many units apart)
+carstart <- function(correlation, cor){
+  val <- as.numeric(correlation)
+  if (!isTRUE(attr(correlation, "spacingstart")) || isTRUE(attr(correlation, "fixed"))) return(val)
+  dt <- cor$cordt[cor$corprev >= 0]
+  dt <- dt[dt > 0]
+  if (length(dt) == 0) return(val)
+  stats::qlogis(min(0.2^(1/stats::median(dt)), 0.999))
 }
 
 # correlation matrix of a spatial structure (type ct) for the distances D and the parameters cp
@@ -340,7 +359,7 @@ printcor <- function(object, digits){
   if (is.null(txt)) return(invisible())
   cat("\nCorrelation structure: ", txt, "\n", sep="")
   cp <- if (!is.null(object$corrho)) object$corrho else corpars(object)
-  cat(paste(names(cp), format(cp, digits=digits), sep=": ", collapse=", "),
+  cat(paste(names(cp), dec2text(cp), sep=": ", collapse=", "),
       if (isTRUE(attr(object$correlation, "fixed"))) " (fixed)", "\n", sep="")
 }
 

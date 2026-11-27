@@ -17,7 +17,14 @@
 #' Mean responses below 1\% or above 99\% of the asymptote carry little information about the
 #' linearised curve and are left out. With covariates in \code{fform}, the pooled starting value of
 #' each parameter is projected onto its design matrix, giving the intercept or each group the pooled
-#' value and contrasts a value of zero. The threshold b4, fixed at 0 by default, starts when estimated where the curve
+#' value and contrasts a value of zero. Then, for each parameter with coefficients of covariates
+#' without a starting value in \code{start} (NA), the starting values are computed in the same way within
+#' each combination of the covariates of fform (each cell), and these coefficients are the least
+#' squares fit of the cell values, on the scale of the link, on the design, weighted by the numbers of
+#' observations of the cells, with the given coefficients kept: e.g. the contrast of a factor is the
+#' difference of the starting values of its levels. Coefficients given in \code{start} are kept, so 0
+#' for the contrasts gives the pooled starting values. Cells with fewer than 5 distinct times are left
+#' out, and with more than 50 cells the pooled starting values are kept. The threshold b4, fixed at 0 by default, starts when estimated where the curve
 #' without truncation reaches 1\% of its asymptote; for the count families also before the first
 #' time with a positive count, and for the lognormal and beta families before all times, as positive
 #' responses are impossible before the threshold. The asymmetry b5 starts at 1, the symmetric curve,
@@ -41,7 +48,7 @@
 #' @param form Formula, with the names of the response and the explanatory variable x (usually time), e.g. \code{weight ~ day}, see \code{\link{gcTMB}}.
 #' @param fform Formula, list of formulas, or NULL. Fixed effects for the model parameters: a formula of the form b1 + b2 ~ Treatment, or a list of such formulas, e.g. list(b1 ~ Treatment, b2 ~ Treatment + Site). Parameters not listed have a single intercept (~ 1); NULL (default) gives every parameter a single intercept. A list of five right-hand side formulas, one for each of b1-b5 (X1 = ~ 1, ..., X5 = ~ 1), is also accepted.
 #' @param data Data frame. Observations with missing values in the variables of the model or in the weights are left out.
-#' @param start Numeric vector or NULL. Starting values for each model parameter. Only NA entries are replaced; NULL (default) computes all of them.
+#' @param start Numeric vector, list or NULL. Starting values for each model coefficient, as in \code{\link{gcTMB}}. Only NA entries are replaced; NULL (default) computes all of them. Of a start list, only the coefficients (\code{fixef}) are used.
 #' @param fix Logical vector or NULL. A vector with the same length as start. If TRUE, a model coefficient is fixed to the starting value. NULL (default) fixes only the parameters that are fixed by default. The threshold b4 and the asymmetry b5 are fixed by default, at 0 and 1 unless given in start (the intercept b4 of chapmanrichards and korf at 1.3; the rates b4 and b5 of preecebaines are estimated); fix=c(b4=FALSE) or fix=c(b5=FALSE) estimates them. Without truncation, b4 is not used and always fixed, at 0 unless given in start.
 #' @param weights Numeric vector or NULL. Weights, one for each row of data; NULL (default) for a weight of 1 for every row.
 #' @param family Character string. The distribution of the response, see \code{\link{gcTMB}}.
@@ -66,6 +73,7 @@
 gcTMBstart <- function(form, fform=NULL, data, start=NULL, fix=NULL, weights=NULL, family="gaussian", model="logistic", truncated=TRUE, link=NULL, b1type=c("asymptote", "rate"), method="lm", gsl=NULL, gsu=NULL, gsn=NULL){
   b1type <- match.arg(b1type)
   dd <- gcTMBdata(form, fform=fform, data=data, weights=weights, family=family, model=model, truncated=truncated, link=link, b1type=b1type)
+  if (is.list(start)) start <- start$fixef
   start <- defaultstart(parvector(start, dd$npi, NA, "start"), dd)
   fix <- defaultfix(fix, dd$npi, dd$mod)
   fix[dd$npi %in% unusedpars(dd$mod, dd$trunc)] <- TRUE
@@ -176,6 +184,7 @@ designmatrix <- function(ft, data){
 gcTMBstartvals <- function(dd, start, fix, method="lm", gsl=NULL, gsu=NULL, gsn=NULL){
   method <- match.arg(method, c("lm", "grid"))
   sv <- lmstart(dd, start, fix)
+  sv <- cellstart(dd, start, fix, sv)
   if (method == "grid") sv <- gridstart(dd, sv, fix, gsl, gsu, gsn)
   sv
 }
@@ -207,9 +216,12 @@ lmstart <- function(dd, start, fix){
   }
   td <- sort(unique(dd$x))
   yd <- as.vector(yd) - icpt
+  # the total weight (number of observations) behind each mean response
+  nd <- as.vector(tapply(dd$w, dd$x, sum))
   ok <- is.finite(yd)
   td <- td[ok]
   yd <- yd[ok]
+  nd <- nd[ok]
   if (length(td) == 0) stop("no finite responses for the starting values.")
   trange <- if (length(td) > 1) diff(range(td)) else 1
 
@@ -357,38 +369,75 @@ lmstart <- function(dd, start, fix){
     cf <- if (length(td) > 1) coefficients(lm(yd ~ td)) else c(yd[1], 0)
     best <- c(if (kn[1]) kv[1] else cf[[2]], if (kn[2]) kv[2] else cf[[1]], 0)
   } else if (!is.null(m$mean)){
-    # preecebaines: least squares of the mean responses, from the adult height just above the largest
-    # mean response, the middle of puberty where the mean response reaches 90% of the way from the
-    # smallest to the largest one, and the rates 2 and 20 over the range of times; given starting
+    # preecebaines: before and after the middle of puberty b2, log(b1 - f(t)) is close to a line in t with
+    # slope -b4 and -b5, so with the adult height b1 just above the largest mean response, a two-segment
+    # regression of log(b1 - mean response) on t, its break point on a grid inside the times, gives b2,
+    # b3 (the mean response at b2) and the rates b4 and b5. Then least squares of the mean responses,
+    # with b2 inside the times, b3 between the smallest mean response and b1, and 1 < b5/b4 < 50, so
+    # that the curve cannot become a step at the last time. The means are weighted by the observations
+    # behind them, and the smallest and largest means are those of times with at least a fifth of the
+    # largest number, as the means of the last ages may rest on a few individuals. Given starting
     # values are kept. b4 and b5 are the rates.
     kn45 <- vapply(4:5, function(i) fix[npi == i][1] | !is.na(start[npi == i][1]), logical(1))
     kv45 <- vapply(4:5, function(i) if (kn45[i - 3]) linkfun(dd$lnk[i], start[npi == i][1], inverse=TRUE) else NA_real_, numeric(1))
-    lo <- min(yd)
-    hi <- max(yd)
-    p1 <- if (kn[1]) kv[1] else hi + 0.02 * (hi - lo)
-    i2 <- which.min(abs(yd - (lo + 0.9 * (hi - lo))))
-    p2 <- if (kn[2]) kv[2] else td[i2]
-    p3 <- if (kn[3]) kv[3] else yd[i2]
-    p4 <- if (kn45[1]) kv45[1] else 2 / trange
-    p5 <- if (kn45[2]) kv45[2] else 20 / trange
-    p0 <- c(p1, p2, p3, log(p4), log(max(p5 - p4, 1e-8)))
-    free <- c(!kn[1:3], !kn45)
-    pars <- function(p){
-      q <- p0
-      q[free] <- p
-      c(q[1:3], exp(q[4]), if (kn45[2]) p5 else exp(q[4]) + exp(q[5]))
+    well <- nd >= 0.2 * max(nd)
+    lo <- min(yd[well])
+    hi <- max(yd[well])
+    rng <- max(hi - lo, 1e-8)
+    t0 <- min(td)
+    p1 <- if (kn[1]) kv[1] else hi + 0.02 * rng
+    # the two-segment regression, on the times not close to the adult height
+    z <- suppressWarnings(log(p1 - yd))
+    use <- well & is.finite(z) & (p1 - yd) > 0.03 * rng
+    seg <- NULL
+    if (sum(use) >= 4){
+      grid <- if (kn[2]) kv[2] else seq(t0 + 0.1 * trange, t0 + 0.9 * trange, length.out=40)
+      fits <- lapply(grid, function(th){
+        u1 <- pmin(td[use] - th, 0)
+        u2 <- pmax(td[use] - th, 0)
+        f <- stats::lm.wfit(cbind(1, u1, u2), z[use], nd[use])
+        list(th=th, rss=sum(nd[use] * f$residuals^2), s0=-f$coefficients[[2]], s1=-f$coefficients[[3]])
+      })
+      rs <- vapply(fits, function(f) if (is.finite(f$rss)) f$rss else Inf, numeric(1))
+      if (any(is.finite(rs))) seg <- fits[[which.min(rs)]]
     }
+    if (is.null(seg)){
+      # too few times: the middle of puberty where the mean response reaches 90% of the way up
+      i2 <- which.min(abs(yd - (lo + 0.9 * rng)))
+      seg <- list(th=td[i2], s0=NA, s1=NA)
+    }
+    p2 <- if (kn[2]) kv[2] else seg$th
+    p3 <- if (kn[3]) kv[3] else stats::approx(td, yd, p2, rule=2)$y
+    p4 <- if (kn45[1]) kv45[1] else if (is.finite(seg$s0) && seg$s0 > 0) seg$s0 else 2 / trange
+    p5 <- if (kn45[2]) kv45[2] else if (is.finite(seg$s1) && seg$s1 > 1.5 * p4) min(seg$s1, 49 * p4) else 10 * p4
+    # the bounded least squares: b1 = lo + exp(q1), b2 in [5%, 95%] of the times, b3 = lo + (b1 - lo)
+    # plogis(q3), b4 = exp(q4), b5 = b4 (1 + 49 plogis(q5))
+    bl <- t0 + 0.05 * trange
+    bu <- t0 + 0.95 * trange
+    cl <- function(p) min(max(p, 0.001), 0.999)
+    pars <- function(q){
+      b1 <- if (kn[1]) p1 else lo + exp(q[1])
+      b4 <- if (kn45[1]) p4 else exp(q[4])
+      c(b1, if (kn[2]) p2 else bl + (bu - bl) * stats::plogis(q[2]), if (kn[3]) p3 else lo + (b1 - lo) * stats::plogis(q[3]),
+        b4, if (kn45[2]) p5 else b4 * (1 + 49 * stats::plogis(q[5])))
+    }
+    q0 <- c(log(max(p1 - lo, 1e-8)), stats::qlogis(cl((p2 - bl) / (bu - bl))), stats::qlogis(cl((p3 - lo) / max(p1 - lo, 1e-8))),
+            log(p4), stats::qlogis(cl((p5 / p4 - 1) / 49)))
+    free <- c(!kn[1:3], !kn45)
     rss <- function(p){
-      b <- pars(p)
-      r <- sum((yd - m$mean(td, b[1], b[2], b[3], b[4], b[5]))^2)
+      q <- q0
+      q[free] <- p
+      b <- pars(q)
+      r <- sum(nd * (yd - m$mean(td, b[1], b[2], b[3], b[4], b[5]))^2)
       if (is.finite(r)) r else 1e300
     }
     if (any(free)){
-      o <- if (sum(free) == 1) optimize(rss, p0[free] + c(-5, 5)) else optim(p0[free], rss, control=list(maxit=5000))
+      o <- if (sum(free) == 1) optimize(rss, q0[free] + c(-5, 5)) else optim(q0[free], rss, control=list(maxit=5000))
       p <- if (sum(free) == 1) o$minimum else o$par
-      if (rss(p) < rss(p0[free])) p0[free] <- p
+      if (rss(p) < rss(q0[free])) q0[free] <- p
     }
-    bp <- pars(p0[free])
+    # the starting values found (pars keeps the given ones)
+    bp <- pars(q0)
     best <- bp[1:3]
     b4s <- bp[4]
     a <- bp[5]
@@ -443,6 +492,66 @@ lmstart <- function(dd, start, fix){
                             " is outside the range of its ", paste(linknames[dd$lnk[bad]], collapse=", "),
                             " link; give a starting value on the scale of the link in start, or use another link.")
   projectstart(dd, start, fix, pooled)
+}
+
+# starting values per cell of the covariates of fform. For each parameter with coefficients besides the
+# intercept that have no starting value (NA in start) and are not fixed, the starting values of the
+# curve are computed within each cell, each combination of the rows of the design matrices of these
+# parameters, with the parameters free within the cell (unless fixed). The coefficients of a parameter
+# without a starting value are then the least squares fit of the cell values (on the scale of the
+# link) on the design, weighted by the number of observations of the cells, with the given and fixed
+# coefficients as an offset; e.g. the contrasts of a factor are the differences of the starting values
+# of its levels, instead of 0. Given starting values are kept, so start with 0 for the contrasts gives
+# the pooled starting values. Cells with fewer than 5 distinct times are left out; with more than 50
+# cells, or a fit that is not of full rank, a parameter keeps the pooled starting values sv.
+cellstart <- function(dd, start, fix, sv){
+  npi <- dd$npi
+  # parameters with a coefficient of a covariate (not the intercept) without a starting value
+  todo <- function(k){
+    cols <- which(npi == k)
+    covcol <- colnames(dd$Xs[[k]]) != "(Intercept)"
+    length(cols) > 1 && any(is.na(start[cols]) & !fix[cols] & covcol)
+  }
+  cov <- which(vapply(1:5, todo, logical(1)))
+  if (length(cov) == 0) return(sv)
+  key <- apply(do.call(cbind, dd$Xs[cov]), 1, paste, collapse="\r")
+  cells <- unique(key)
+  if (length(cells) < 2 || length(cells) > 50) return(sv)
+  # within a cell the parameters with covariates are free, unless fixed
+  cstart <- start
+  for (k in cov){
+    cols <- which(npi == k)
+    cstart[cols] <- ifelse(fix[cols], start[cols], NA)
+  }
+  first <- vapply(cells, function(cc) which(key == cc)[1], integer(1))
+  vals <- matrix(NA_real_, length(cells), 5)
+  nobs <- vapply(cells, function(cc) sum(key == cc), integer(1))
+  for (ci in seq_along(cells)){
+    i <- which(key == cells[ci])
+    if (length(unique(dd$x[i])) < 5) next
+    sub <- dd
+    sub$y <- dd$y[i]
+    sub$x <- dd$x[i]
+    sub$w <- dd$w[i]
+    sub$bn <- dd$bn[i]
+    sub$Xs <- lapply(dd$Xs, function(X) X[i, , drop=FALSE])
+    s <- tryCatch(suppressWarnings(lmstart(sub, cstart, fix)), error=function(e) NULL)
+    if (is.null(s) || any(!is.finite(s))) next
+    # the linear predictor of each parameter in the cell
+    vals[ci, ] <- vapply(1:5, function(k) sum(dd$Xs[[k]][i[1], ] * s[npi == k]), numeric(1))
+  }
+  for (k in cov){
+    cols <- which(npi == k)
+    free <- is.na(start[cols]) & !fix[cols]
+    ok <- is.finite(vals[, k])
+    if (sum(ok) < sum(free)) next
+    Xc <- dd$Xs[[k]][first[ok], , drop=FALSE]
+    off <- if (any(!free)) as.vector(Xc[, !free, drop=FALSE] %*% sv[cols[!free]]) else 0
+    f <- stats::lm.wfit(Xc[, free, drop=FALSE], vals[ok, k] - off, nobs[ok])
+    if (f$rank < sum(free) || any(!is.finite(f$coefficients))) next
+    sv[cols[free]] <- unname(f$coefficients)
+  }
+  sv
 }
 
 # starting values from pooled values of b1-b5: projected onto each design matrix, for the NA
@@ -554,7 +663,7 @@ gridrange <- function(dd, start){
 
 
 # TMB objective function for given starting values
-gcTMBobj <- function(dd, start, fix, rform=NULL){
+gcTMBobj <- function(dd, start, fix, rform=NULL, startvar=NULL){
   npi <- dd$npi
   sb <- lapply(1:5, function(i) start[npi == i])
   re <- if (is.null(rform)) reterms(NULL, length(dd$y)) else dd$re
@@ -564,6 +673,8 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
   # random effects at zero
   vs <- if (length(re$terms) > 0) varstart(dd, start, re) else list(theta=numeric(0))
   stheta <- vs$theta
+  # starting values of the covariance matrices of the random effects given in start
+  if (!is.null(startvar$VarCorr)) stheta <- varcorrstart(stheta, startvar$VarCorr, re$terms)
   up <- rep(0, sum(tnp*tnl))
   dlist <- list(model="gcTMB", y=dd$y, x=dd$x, w=dd$w, bn=dd$bn, fam=dd$fam, mod=dd$mod, trunc=as.integer(isTRUE(dd$trunc)), b1rate=as.integer(isTRUE(dd$b1rate)), lnk=as.integer(dd$lnk),
                 tnp=tnp, tnl=tnl, tpar=as.integer(unlist(lapply(re$terms, function(tm) tm$pars)) - 1),
@@ -588,7 +699,7 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
   if (dd$family %in% c("poisson", "binomial")) slsigma <- 0
   # autocorrelation: its starting value (or fixed value), on the unconstrained scale; log(range) and
   # logit(nugget) for the spatial structures
-  scor <- if (cor$cortype >= 3) spatialstart(dd$correlation, cor$cormind) else if (cor$cortype > 0) as.numeric(dd$correlation) else 0
+  scor <- if (cor$cortype >= 3) spatialstart(dd$correlation, cor$cormind) else if (cor$cortype == 2) carstart(dd$correlation, cor) else if (cor$cortype == 1) as.numeric(dd$correlation) else 0
   parameters <- list(b1=sb[[1]], b2=sb[[2]], b3=sb[[3]], b4=sb[[4]], b5=sb[[5]], u=up, theta=as.numeric(stheta), log_sigma=slsigma,
                      var_par=vsu$var_par, cor_par=scor)
 
@@ -604,7 +715,9 @@ gcTMBobj <- function(dd, start, fix, rform=NULL){
   if (dd$family %in% c("poisson", "binomial")) lmap$log_sigma <- factor(NA)
   if (cor$cortype == 0 || isTRUE(attr(dd$correlation, "fixed"))) lmap$cor_par <- factor(rep(NA, length(scor)))
   if (length(vsu$var_par) > 0) lmap$var_par <- factor(vsu$map)
-  if (!(dd$family %in% c("poisson", "binomial"))) parameters$log_sigma <- sigmastart(datalist, parameters, lmap, rform)
+  if (!(dd$family %in% c("poisson", "binomial"))){
+    parameters$log_sigma <- if (!is.null(startvar$sigma)) log(startvar$sigma) else sigmastart(datalist, parameters, lmap, rform)
+  }
 
   MakeADFun(datalist, parameters, map=lmap, random=if (!is.null(rform)) "u", DLL="gcTMB_TMBExports", silent=TRUE)
 }
@@ -956,4 +1069,52 @@ linkrange <- function(f, family){
   if (family %in% c("binomial", "betabinomial", "beta")) return(min(max(f, 1e-4), 1 - 1e-4))
   if (family %in% c("poisson", "nbinom2", "nbinom1", "lognormal")) return(max(f, 1e-4))
   f
+}
+
+# the components of start: a numeric vector of starting values of the coefficients, or a list with the
+# coefficients (fixef), the covariance matrices of the random effects (VarCorr) and the residual
+# standard deviation or dispersion (sigma), checked against the model data dd and rform
+splitstart <- function(start, dd, rform){
+  if (!is.list(start)) return(list(fixef=start, VarCorr=NULL, sigma=NULL))
+  if (length(start) > 0 && (is.null(names(start)) || any(names(start) == "") || any(!(names(start) %in% c("fixef", "VarCorr", "sigma"))))){
+    stop("a start list can only have the components fixef, VarCorr and sigma, e.g. start=list(fixef=c(b1=100), sigma=2).")
+  }
+  if (!is.null(start$VarCorr) && is.null(rform)) stop("the VarCorr of start needs random effects (rform).")
+  if (!is.null(start$sigma)){
+    if (dd$family %in% c("poisson", "binomial")) stop("the ", dd$family, " family has no residual standard deviation or dispersion parameter for the sigma of start.")
+    if (length(start$sigma) != 1 || !is.finite(start$sigma) || start$sigma <= 0) stop("the sigma of start must be a single positive number.")
+  }
+  list(fixef=start$fixef, VarCorr=start$VarCorr, sigma=start$sigma)
+}
+
+# starting values theta of the random effects from the covariance matrices VC (named by the terms, as
+# VarCorr), replacing those of the data (theta) for the terms given: the standard deviations of the
+# finite variances, and the correlations if the whole matrix is given (NA entries start from the data)
+varcorrstart <- function(theta, VC, terms){
+  tn <- make.unique(vapply(terms, function(tm) tm$group, character(1)))
+  if (is.matrix(VC)){
+    if (length(tn) != 1) stop("the VarCorr of start must be a list of covariance matrices named by the random effect terms: ", paste(tn, collapse=", "), ".")
+    VC <- setNames(list(VC), tn)
+  }
+  if (!is.list(VC) || is.null(names(VC)) || any(!(names(VC) %in% tn))){
+    stop("the VarCorr of start must be a list of covariance matrices named by the random effect terms: ", paste(tn, collapse=", "), ".")
+  }
+  off <- 0
+  for (t in seq_along(terms)){
+    np <- length(terms[[t]]$pars)
+    nt <- np + np*(np - 1)/2
+    S <- VC[[tn[t]]]
+    if (!is.null(S)){
+      S <- as.matrix(S)
+      if (!all(dim(S) == np)) stop("the covariance matrix of ", tn[t], " in the VarCorr of start must be ", np, " x ", np, ".")
+      th <- theta[off + seq_len(nt)]
+      v <- diag(S)
+      ok <- is.finite(v) & v > 0
+      th[seq_len(np)][ok] <- log(sqrt(v[ok]))
+      if (np > 1 && all(is.finite(S))) th[np + seq_len(nt - np)] <- covtheta(S, np, tn[t])[np + seq_len(nt - np)]
+      theta[off + seq_len(nt)] <- th
+    }
+    off <- off + nt
+  }
+  theta
 }

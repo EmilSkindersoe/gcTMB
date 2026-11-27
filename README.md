@@ -220,7 +220,7 @@ and b3, profiled over the asymptote b1, or from a grid search
 | Purpose | Functions |
 |----|----|
 | Exploring data | `viewcurves()` |
-| Fitting | `gcTMB()`, `gcTMBstart()`, `gcTMBcontrol()`, `corAR1()`, `corCAR1()`, `corExp()`, `corGaus()`, `varIdent()`, `varPower()`, `varConstPower()`, `update()` |
+| Fitting | `gcTMB()`, `gcTMBstart()`, `gcTMBcontrol()`, `corAR1()`, `corCAR1()`, `corExp()`, `corGaus()`, `varIdent()`, `varPower()`, `varConstPower()`, `refit()` |
 | Results | `summary()`, `coef()`, `vcov()`, `logLik()`, `converged()`, `fixef()`, `ranef()`, `VarCorr()`, `sigma()`, `corpars()`, `varpars()` |
 | Confidence intervals | `confint()`, `profile()`, `bootstrap()` |
 | Tests and model choice | `anova()`, `criteria()`, `partest()` |
@@ -337,8 +337,8 @@ Likelihood ratio tests of the treatment effects and of the
 autocorrelation:
 
 ``` r
-fit0 <- update(fit1, fform = NULL)
-fit2 <- update(fit1, correlation = NULL)
+fit0 <- refit(fit1, fform = NULL)
+fit2 <- refit(fit1, correlation = NULL)
 anova(fit0, fit1)
 #> Likelihood ratio tests of gcTMB models
 #> 

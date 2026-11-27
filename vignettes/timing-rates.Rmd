@@ -75,30 +75,11 @@ confint(mr, method = "profile")
 
 ## Timing and maximum growth rates of boys and girls
 
-Covariates on all five parameters give a curve for each sex, and random effects of the children on the adult height, the middle of puberty and the rate during puberty a curve for each child. The default starting values pool the boys and the girls, and are far from the curve of either sex when all five parameters differ between the sexes; the fits of each sex give better starting values, the coefficients of the boys and the differences of the girls from them:
-
-```{r}
-fitb <- gcTMB(Height ~ Age, data = subset(berkeley, Sex == "male"), model = "preecebaines")
-cb <- coef(fitb)[1:5]
-cg <- coef(fitg)[1:5]
-```
-
-A starting vector has one entry for each coefficient, in the order of the coefficients of the model, which `gcTMBstart()` gives with their names: for each parameter the intercept, here the boys, and the contrast of the girls. The default starting values are those of the pooled data, with the contrasts zero; the custom ones are the coefficients of the boys and the differences of the girls from them:
-
-```{r}
-default <- gcTMBstart(Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, data = berkeley, model = "preecebaines")
-custom <- setNames(as.vector(rbind(cb, cg - cb)), names(default))
-round(cbind(default, custom), 3)
-```
-
-Here the default values do not even describe the pooled data: with the boys and the girls together, the least squares fit of the starting values runs off to a step at the oldest age, $b_2 = 20$, with a huge rate $b_5$.
-
-The custom vector is given to `start` without its names (an unnamed vector in the order of the coefficients; a vector named by parameter, e.g. `c(b4 = 0.1)`, gives the value to all the coefficients of that parameter):
+Covariates on all five parameters give a curve for each sex, and random effects of the children on the adult height, the middle of puberty and the rate during puberty a curve for each child. The default starting values are those of the pooled data, with the contrasts of the girls zero; `gcTMBstart()` shows them, and `start` takes other values, one for each coefficient in this order:
 
 ```{r}
 fitre <- gcTMB(Height ~ Age, fform = b1 + b2 + b3 + b4 + b5 ~ Sex, rform = b1 + b2 + b5 ~ 1 | ID,
-               data = berkeley, model = "preecebaines", start = unname(custom),
-               control = list(restart = TRUE))
+               data = berkeley, model = "preecebaines", control = list(restart = TRUE))
 summary(fitre)
 converged(fitre)
 ```

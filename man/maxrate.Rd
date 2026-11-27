@@ -40,8 +40,8 @@ predicted random effects (the conditional modes), as in \code{\link{predict.gcTM
 \code{\link{timeto}}. These are shrunken towards the population curve, more so for groups with few
 observations. The standard errors then include the uncertainty of the fixed effects and the
 prediction error of the random effects, from the joint precision matrix of
-\code{\link[TMB]{sdreport}}. A level that is not in the fitted data gives the population curve for
-that term, with a warning. Profile intervals are not available for the curves of fitted groups;
+\code{\link[TMB]{sdreport}}. A missing level (NA), or a level that is not in the fitted data, gives the
+population curve for that term, with a warning. Profile intervals are not available for the curves of fitted groups;
 \code{confint} returns Wald intervals for them, and bootstrap intervals with \code{method="boot"}.
 
 For each curve, \code{maxrate} gives

@@ -8,7 +8,7 @@
 \usage{
 bootstrap(object, nsim = 500, seed = NULL, progress = interactive())
 
-\method{print}{bootstrap.gcTMB}(x, digits = max(3L, getOption("digits") - 3L), ...)
+\method{print}{bootstrap.gcTMB}(x, digits = max(3L, getOption("digits") - 3L), n = NULL, ...)
 
 \method{confint}{bootstrap.gcTMB}(object, parm = NULL, level = 0.95, ...)
 }
@@ -24,6 +24,8 @@ bootstrap(object, nsim = 500, seed = NULL, progress = interactive())
 \item{x}{A bootstrap.gcTMB object, the result of \code{bootstrap}.}
 
 \item{digits}{Integer. Number of significant digits in the printed output}
+
+\item{n}{Integer or NULL. The maximum number of estimates printed; NULL (default) for the option \code{gcTMB.print.max}, 100 unless set, e.g. \code{options(gcTMB.print.max = 200)}; \code{Inf} for all. When estimates are left out, a note at the end says how many, and how to show or extract all of them}
 
 \item{...}{Not used.}
 

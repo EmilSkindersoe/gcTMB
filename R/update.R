@@ -1,24 +1,34 @@
-#' Update a gcTMB fit, or set its parameters
+#' Set the parameters of a gcTMB fit
 #'
-#' With \code{fixef}, \code{VarCorr}, \code{sigma}, \code{rho} or \code{varpar}, \code{update} returns the model with some of
-#' its parameters set to new values, e.g. as the true model of a simulation study (see
-#' \code{\link{simulate.gcTMB}}); the model is not refitted. Without them, it refits the model with
-#' the arguments in \code{...} changed, as \code{\link[stats]{update}}.
+#' \code{update} returns the model with some of its parameters replaced by new values, without fitting
+#' it again: the model keeps its structure (fform, rform, model, family, correlation and variance), and
+#' \itemize{
+#'   \item \code{fixef} sets the coefficients of b1-b5 of \code{fform} (including coefficients fixed in the fit);
+#'   \item \code{VarCorr} the covariance matrices of the random effects of \code{rform};
+#'   \item \code{sigma} the residual standard deviation, or the dispersion of the other families;
+#'   \item \code{corpar} the parameters of the \code{correlation} structure (rho, or the range and nugget);
+#'   \item \code{varpar} the parameters of the \code{variance} function.
+#' }
+#' The parameters that are not given keep their estimates, and the random effects are the conditional
+#' modes at the new parameters. The result is not a fit: it is moved away from the maximum of the
+#' likelihood, e.g. to be the true model of a simulation study (see \code{\link{simulate.gcTMB}}). The new
+#' values are not estimates: the standard errors, the covariance matrix of \code{vcov} and the
+#' confidence intervals are NA, and \code{\link{converged}} returns NA. The log-likelihood is that of the
+#' data at the new parameters.
 #'
-#' Every parameter of the model can be set: the coefficients of b1-b5 (\code{fixef}, including
-#' coefficients fixed in the fit), the covariance matrices of the random effects (\code{VarCorr}), the
-#' residual standard deviation or dispersion (\code{sigma}), the autocorrelation (\code{rho}) and the
-#' parameters of the variance function (\code{varpar}),
-#' i.e. all the entries of \code{coef}. The parameters that are not given keep their values, and the random effects are the conditional
-#' modes at the new parameters. The new values are not estimates: the standard errors, the covariance
-#' matrix of \code{vcov} and the confidence intervals are NA, and \code{\link{converged}} returns NA.
-#' The log-likelihood is that of the data at the new parameters. To fit the data as well as possible
-#' with a chosen value of a parameter, refit the model with that parameter fixed instead, e.g.
-#' \code{correlation=corCAR1(0.8, form=~ time | ID, fixed=TRUE)} for the autocorrelation, or
-#' \code{start=c(b5=2)} for the asymmetry, which is fixed by default; the other parameters are then estimated given it, whereas
-#' \code{update} keeps their values. For gaussian models without random
-#' effects, the residual standard deviation is the value given, without the small-sample correction
-#' of \code{\link{gcTMB}}.
+#' To fit the model again with other components, e.g. a new \code{fform}, \code{rform},
+#' \code{correlation}, \code{variance}, \code{model} or \code{family}, use \code{\link{refit}}; the other
+#' arguments of \code{\link{gcTMB}} give an error here. To set parameters of a model with a new
+#' component, refit it first and then set the parameters of the new fit, e.g.
+#' \code{update(refit(fit, fform=b1 ~ trt), fixef=...)}, as the coefficients of the new fform are not
+#' known before the refit.
+#'
+#' To fit the data as well as possible with a chosen value of a parameter, refit with that parameter
+#' fixed instead, e.g. \code{refit(fit, correlation=corCAR1(0.8, form=~ time | ID, fixed=TRUE))} for
+#' the autocorrelation, or \code{refit(fit, start=c(b5=2))} for the asymmetry, which is fixed by
+#' default; the other parameters are then estimated given it, whereas setting it keeps their values.
+#' For gaussian models without random effects, the residual standard deviation set by \code{sigma} is
+#' the value given, without the small-sample correction of \code{\link{gcTMB}}.
 #'
 #' @param object A gcTMB object, the result of \code{\link{gcTMB}}.
 #' @param fixef Named numeric vector or NULL. New values of coefficients of b1-b5, named as in
@@ -31,43 +41,48 @@
 #' @param sigma Numeric or NULL. The new residual standard deviation (gaussian, of log(y) for
 #'   lognormal), or the dispersion parameter of the other families, as returned by
 #'   \code{\link{sigma.gcTMB}}. NULL (default) keeps it.
-#' @param rho Numeric or NULL. The new autocorrelation rho of the residuals, as returned by
-#'   \code{\link{corpars}}, for a model fitted with a \code{correlation} structure: between 0 and 1 for
-#'   \code{\link{corCAR1}}, between -1 and 1 for \code{\link{corAR1}}. For \code{\link{corExp}} and
-#'   \code{\link{corGaus}}, a named vector with the new range and/or nugget, e.g.
-#'   \code{c(range=10, nugget=0.2)}. NULL (default) keeps it.
+#' @param corpar Numeric or NULL. New parameters of the correlation structure, as returned by
+#'   \code{\link{corpars}}, for a model fitted with a \code{correlation} structure: the autocorrelation
+#'   rho, between 0 and 1 for \code{\link{corCAR1}} and between -1 and 1 for \code{\link{corAR1}}; for
+#'   \code{\link{corExp}} and \code{\link{corGaus}}, a named vector with the new range and/or nugget,
+#'   e.g. \code{c(range=10, nugget=0.2)}. NULL (default) keeps them.
 #' @param varpar Named numeric vector or NULL. New parameters of the variance function (see
 #'   \code{\link{varFunc}}) on their natural scale, named as returned by \code{\link{varpars}}, e.g.
 #'   \code{c(power=1)} or \code{c(const=2, power=0.5)} for \code{varConstPower}, or the ratio of a
 #'   stratum for \code{varIdent}; the parameters not given keep their values. NULL (default) keeps them.
-#' @param ... Without fixef, VarCorr, sigma, rho and varpar: the arguments of \code{\link{gcTMB}} to change, as in
-#'   \code{\link[stats]{update}}.
+#' @param ... Not used; other arguments give an error that points to \code{\link{refit}}.
 #'
 #' @return A gcTMB object.
+#' @seealso \code{\link{refit}} to fit the model again with other components.
 #'
 #' @examples
 #' fit <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25)
-#' # larger asymptote, an asymmetric curve, and a larger variance of b1
+#' # a larger asymptote, an asymmetric curve, and a larger variance of b1
 #' vc <- VarCorr(fit)$Plant_ID
 #' vc[1, 1] <- 2*vc[1, 1]
 #' fit2 <- update(fit, fixef=c(b1=150, b5=4), VarCorr=list(Plant_ID=vc))
 #' fixef(fit2)
 #' VarCorr(fit2)
-#' # refit with another growth model
-#' fitg <- update(fit, model="gompertz")
 #' # a weaker autocorrelation of the residuals, the other parameters unchanged
 #' fitc <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25,
 #'               correlation=corCAR1(form=~ DAS | Plant_ID))
-#' corpars(update(fitc, rho=0.7))
+#' corpars(update(fitc, corpar=0.7))
 #' # a residual standard deviation proportional to the fitted curve
 #' fitv <- gcTMB(Height ~ DAS, data=FabaHeights25, variance=varPower())
 #' varpars(update(fitv, varpar=c(power=1)))
 #'
 #' @importFrom stats update
 #' @export
-update.gcTMB <- function(object, ..., fixef=NULL, VarCorr=NULL, sigma=NULL, rho=NULL, varpar=NULL){
-  if (is.null(fixef) && is.null(VarCorr) && is.null(sigma) && is.null(rho) && is.null(varpar)) return(NextMethod())
-  if (length(list(...)) > 0) stop("give either new parameter values (fixef, VarCorr, sigma, rho, varpar) or arguments to refit the model, not both.")
+update.gcTMB <- function(object, fixef=NULL, VarCorr=NULL, sigma=NULL, corpar=NULL, varpar=NULL, ...){
+  other <- names(match.call(expand.dots=FALSE)$...)
+  if (length(match.call(expand.dots=FALSE)$...) > 0){
+    stop("update() sets parameters of a fit (fixef, VarCorr, sigma, corpar, varpar)",
+         if (length(other) > 0 && any(other != "")) paste(" and has no argument ", paste(other[other != ""], collapse=", "), sep=""),
+         "; to fit the model again with other components, use refit(), e.g. refit(fit, fform=b1 ~ trt).", call.=FALSE)
+  }
+  if (is.null(fixef) && is.null(VarCorr) && is.null(sigma) && is.null(corpar) && is.null(varpar)){
+    stop("give new parameter values in fixef, VarCorr, sigma, corpar or varpar; to fit the model again, use refit().", call.=FALSE)
+  }
   env <- object$obj$env
   pl <- env$parList(object$opt$par)
   start <- object$start
@@ -107,14 +122,15 @@ update.gcTMB <- function(object, ..., fixef=NULL, VarCorr=NULL, sigma=NULL, rho=
     pl$log_sigma <- log(sigma)
   }
 
-  if (!is.null(rho)){
+  if (!is.null(corpar)){
+    rho <- corpar
     ct <- cortypeindex(object$correlation)
     if (ct == 0) stop("the model has no autocorrelation; fit it with a correlation structure, e.g. correlation=corCAR1(form=~ time | group).")
     if (ct >= 3){
       # spatial structures: the range and nugget, as named by corpars
       pn <- names(corpars(object))
       if (!is.numeric(rho) || is.null(names(rho)) || any(!(names(rho) %in% pn)) || any(!is.finite(rho))){
-        stop("for ", class(object$correlation)[1], ", rho must be a named vector with ", paste(pn, collapse=" and/or "), ", as returned by corpars().")
+        stop("for ", class(object$correlation)[1], ", corpar must be a named vector with ", paste(pn, collapse=" and/or "), ", as returned by corpars().")
       }
       if ("range" %in% names(rho)){
         if (rho[["range"]] <= 0) stop("the range must be positive.")
@@ -126,7 +142,7 @@ update.gcTMB <- function(object, ..., fixef=NULL, VarCorr=NULL, sigma=NULL, rho=
       }
     } else {
       lo <- if (ct == 1) -1 else 0
-      if (length(rho) != 1 || !is.finite(rho) || rho <= lo || rho >= 1) stop("rho must be a single number between ", lo, " and 1 for ", class(object$correlation)[1], ".")
+      if (length(rho) != 1 || !is.finite(rho) || rho <= lo || rho >= 1) stop("corpar must be a single number between ", lo, " and 1 for ", class(object$correlation)[1], ".")
       # on the unconstrained scale of nlme
       pl$cor_par <- if (ct == 1) log((1 + rho)/(1 - rho)) else stats::qlogis(rho)
     }

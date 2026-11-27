@@ -58,11 +58,10 @@ summary(fitre)
 
 ### Testing the fixed effects
 
-Likelihood ratio tests by `anova()` compare nested models, here with and without the effect of the mean diameter.
+Likelihood ratio tests by `anova()` compare nested models, here with and without the effect of the mean diameter. `refit()` fits a model again with some of its components changed and all its other arguments reused, here without `fform`:
 
 ```{r}
-fitre0 <- gcTMB(Height ~ DBH, rform = b1 + b2 ~ 1 | Plot, data = PineHeightDiameter, model = "chapmanrichards",
-                start = c(b4 = 1.3))
+fitre0 <- refit(fitre, fform = NULL)
 anova(fitre0, fitre)
 ```
 
@@ -79,8 +78,7 @@ The model without random effects treats the 1678 trees as independent, while the
 The random effects are tested in the same way, by likelihood ratio tests of the models with and without them: here without random effects, with a random asymptote, and with random asymptotes and rates. Some of these fits need `control = list(restart = TRUE)` to converge (see the overview `vignette("gcTMB")`).
 
 ```{r}
-fitre1 <- gcTMB(Height ~ DBH, fform = b1 ~ Dmean, rform = b1 ~ 1 | Plot, data = PineHeightDiameter,
-                model = "chapmanrichards", start = c(b4 = 1.3), control = list(restart = TRUE))
+fitre1 <- refit(fitre, rform = b1 ~ 1 | Plot, control = list(restart = TRUE))
 anova(fitdm, fitre1, fitre)
 ```
 
@@ -93,8 +91,7 @@ anova(fitre1, fitre, test = "boot", nsim = 100, seed = 1)
 The random effects of `b1 + b2 ~ 1 | Plot` are correlated, and those of `b1 + b2 ~ 1 || Plot` independent; the likelihood ratio test of the two tests their correlation:
 
 ```{r}
-fitred <- gcTMB(Height ~ DBH, fform = b1 ~ Dmean, rform = b1 + b2 ~ 1 || Plot, data = PineHeightDiameter,
-                model = "chapmanrichards", start = c(b4 = 1.3), control = list(restart = TRUE))
+fitred <- refit(fitre, rform = b1 + b2 ~ 1 || Plot, control = list(restart = TRUE))
 anova(fitred, fitre)
 VarCorr(fitre)
 ```
@@ -102,10 +99,21 @@ VarCorr(fitre)
 The Korf curve, $h = 1.3 + b_1 \exp(b_2/((1 - b_3) d^{b_3 - 1}))$ (Kuželka and Marušák, 2015), with the same fixed and random effects, is an alternative height-diameter model, as flexible as Chapman-Richards through its shape $b_3$. The shape must be larger than 1, and its default link log$(b_3 - 1)$ keeps it there; on these data it is pulled towards 1, where the curve becomes a power curve without an asymptote. The Chapman-Richards and Korf models are not nested, and are compared by their AIC:
 
 ```{r}
-fitk <- gcTMB(Height ~ DBH, fform = b1 ~ Dmean, rform = b1 + b2 ~ 1 | Plot, data = PineHeightDiameter,
-              model = "korf", start = c(b4 = 1.3), control = list(restart = TRUE))
+fitk <- refit(fitre, model = "korf", control = list(restart = TRUE))
 AIC(fitre, fitk)
 ```
+
+### Starting values
+
+`gcTMB()` computes starting values from the data (see `?gcTMBstart`): the curve fitted to the mean responses, the coefficients of the covariates of `fform` from the same fit within each combination of the covariates, and the variances of the random effects from a fit of each group around that curve. `start` gives other values: a vector of the coefficients, or a list with also the covariance matrices of the random effects (`VarCorr`) and the residual standard deviation (`sigma`). `refit()` with `startfrom = "fit"` starts from the estimates of the fit it refits, where they carry over: here the coefficients, the residual standard deviation and the variance of the random asymptote of `fitre1`, while the variance of the random rate and its correlation with the asymptote start from the data. The call of the new fit shows the starting values used:
+
+```{r}
+fitre2 <- refit(fitre1, rform = b1 + b2 ~ 1 | Plot, startfrom = "fit")
+fitre2$call$start$VarCorr
+c(logLik(fitre2), logLik(fitre))
+```
+
+Both fits converge, but to different maxima: the refit from the estimates of `fitre1` stops at a local maximum of the likelihood, below that of `fitre`, whose starting values come from the data. A refit from the estimates is often quicker and usually lands at the same maximum, but not always; fits of the same model from different starting values, here `fitre` and `fitre2`, are a simple check that the maximum is the global one.
 
 ### Plotting the curves
 

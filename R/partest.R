@@ -166,9 +166,10 @@ parmmeaning <- function(x, k){
 
 #' @rdname partest
 #' @param digits Integer. Number of significant digits
+#' @param n Integer or NULL. The maximum number of comparisons printed; NULL (default) for the option \code{gcTMB.print.max}, 100 unless set, e.g. \code{options(gcTMB.print.max = 200)}; \code{Inf} for all. When comparisons are left out, a note at the end says how many, and how to show or extract all of them
 #' @param ... Not used.
 #' @export
-print.partest.gcTMB <- function(x, digits=3, ...){
+print.partest.gcTMB <- function(x, digits=3, n=NULL, ...){
   parm <- attr(x, "parm")
   lnk <- attr(x, "link")
   dun <- identical(attr(x, "contrasts"), "dunnett")
@@ -176,8 +177,13 @@ print.partest.gcTMB <- function(x, digits=3, ...){
       if (!identical(lnk, "identity")) paste(" on the scale of its ", lnk, " link", sep=""), ":\n\n", sep="")
   d <- x
   class(d) <- "data.frame"
+  k <- printrows(n, nrow(d))
+  # the comparisons left out that are significant at the level of the confidence limits
+  nsig <- sum(d$p.value[-seq_len(k)] < 1 - attr(x, "level"), na.rm=TRUE)
   d$p.value <- format.pval(d$p.value, digits=3)
-  print(d, digits=digits)
+  print(d[seq_len(k), , drop=FALSE], digits=digits)
+  printomitted(k, nrow(d), "comparisons", get="as.data.frame(x) returns all of them, e.g. subset(as.data.frame(x), p.value < 0.05)",
+               extra=paste(", ", nsig, " of them with p < ", format(1 - attr(x, "level")), sep=""))
   cat("\n", if (is.null(attr(x, "rdf"))) "Wald z tests" else paste("Wald t tests on", attr(x, "rdf"), "degrees of freedom"),
       "; ", switch(attr(x, "adjust"), none="unadjusted p-values and ",
                    "single-step"=paste("p-values and confidence limits adjusted by the single-step (", if (dun) "Dunnett" else "Tukey", ") method, ", sep=""),

@@ -22,7 +22,8 @@
 #' for groups with few observations. Their standard errors include the uncertainty of the fixed
 #' effects and the prediction error of the random effects, from the joint precision matrix of
 #' \code{\link[TMB]{sdreport}}. Random effect terms without a grouping variable in newdata, or with a
-#' level that is not in the fitted data, are treated as above. Profile intervals are not available
+#' missing level (NA) or a level that is not in the fitted data, are treated as above; the last two
+#' with a warning, as in \code{\link{maxrate}}. Profile intervals are not available
 #' for the times of fitted groups, see \code{\link{confint.timetoTMB}}.
 #'
 #' With \code{residual=TRUE} (gaussian family), the standard errors are those of the time at which a
@@ -127,6 +128,8 @@ timeto <- function(x, level=50, curves=NULL, newdata=NULL, random=TRUE, residual
   if (!is.null(newdata) && random && length(terms) > 0){
     rl <- relevels(x, newdata, skip=TRUE)
     W <- lapply(rows, function(r) reweights(x, rl, r))
+    newgroupwarning(x, newdata, rl, paste("their curves have no random effects of this term, whose variance is included in",
+                                          "the standard errors of their times."))
     newterm <- rl$newgroup[rows, , drop=FALSE]
     loads <- lapply(seq_along(terms), function(t) reloads(terms[[t]], rl$X[[t]][rows, , drop=FALSE]))
     if (any(is.na(unlist(loads)))) stop("newdata has missing values in the covariates of the random slopes.")

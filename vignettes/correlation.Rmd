@@ -52,12 +52,12 @@ $$\mathrm{cor}(\varepsilon_s, \varepsilon_t) = \rho^{|t - s|},$$
 
 with $\rho$ the correlation of residuals one unit of time apart: `corAR1()` for integer times, with $-1 < \rho < 1$, and `corCAR1()` for continuous, unequally spaced times, with $0 < \rho < 1$. Residuals of different groups are independent. `coef()` reports $\rho$ on an unconstrained scale, e.g. `cor_par:CAR1`, the logit of $\rho$, and `corpars()`, `summary()` and `confint()` report $\rho$ itself.
 
-The plots are sampled about every 15 days, at unequal intervals, so `corCAR1(form = ~ DOY | plot)` is the structure to use, with $\rho$ the correlation per day. Its starting value is $\rho = 0.2$ by default, which is a correlation of $0.2^{15}$, practically zero, between consecutive samplings; there the likelihood hardly changes with $\rho$, and the optimiser stays near the starting value. A starting value close to 1, `value = 0.9`, starts from a correlation of $0.9^{15} \approx 0.2$ between samplings. For the lognormal family, the correlation is that of the residuals of $\log(y)$, the relative deviations from the curve:
+The plots are sampled about every 15 days, at unequal intervals, so `corCAR1(form = ~ DOY | plot)` is the structure to use, with $\rho$ the correlation per day. By default, its starting value is the $\rho$ that gives a correlation of 0.2 at the median time between consecutive observations of a group, $\rho = 0.2^{1/15} \approx 0.90$ per day here, whatever the unit of time. (A start of 0.2 per day, as in nlme, would be a correlation of $0.2^{15}$, practically zero, between samplings, where the likelihood hardly changes with $\rho$ and the optimiser stays near the start.) `value` gives another starting value. For the lognormal family, the correlation is that of the residuals of $\log(y)$, the relative deviations from the curve:
 
 ```{r}
 fitrec <- gcTMB(Biomass ~ DOY, fform = b1 + b2 ~ Crop * Input, rform = b1 ~ 1 | plot, data = sm,
                 model = "beta", start = c(b4 = 141), family = "lognormal",
-                correlation = corCAR1(value = 0.9, form = ~ DOY | plot))
+                correlation = corCAR1(form = ~ DOY | plot))
 summary(fitrec)
 corpars(fitrec)^15
 anova(fitre, fitrec)
@@ -105,9 +105,9 @@ The nugget $0 < n < 1$, with `nugget = TRUE`, is the share of the residual varia
 The range starts by default at 90% of the smallest distance between two trees of a plot, and the nugget at 0.1. The smallest distance here is `r round(min(unlist(lapply(split(pines, pines$Plot), function(p) dist(p[, c("X", "Y")])))), 2)` m, at which start the Gaussian correlation between trees a metre apart is practically zero: the likelihood hardly changes with the range there, and the optimiser stays at the starting value, as for `corCAR1()` above. A starting range of a few metres, `value = c(5, 0.2)` for the range and the nugget, avoids this:
 
 ```{r pine-fits}
-fitexp <- update(fit0, correlation = corExp(5, form = ~ X + Y | Plot))
-fitexpn <- update(fit0, correlation = corExp(c(5, 0.2), form = ~ X + Y | Plot, nugget = TRUE))
-fitgausn <- update(fit0, correlation = corGaus(c(5, 0.2), form = ~ X + Y | Plot, nugget = TRUE))
+fitexp <- refit(fit0, correlation = corExp(5, form = ~ X + Y | Plot))
+fitexpn <- refit(fit0, correlation = corExp(c(5, 0.2), form = ~ X + Y | Plot, nugget = TRUE))
+fitgausn <- refit(fit0, correlation = corGaus(c(5, 0.2), form = ~ X + Y | Plot, nugget = TRUE))
 fitexpn
 rbind(exponential = c(corpars(fitexp), nugget = 0), "exponential, nugget" = corpars(fitexpn),
       "Gaussian, nugget" = corpars(fitgausn))
@@ -127,9 +127,9 @@ A range longer than the plots means that the correlation stays large across a wh
 
 ```{r pine-re}
 ctl <- list(restart = TRUE)
-fitre1 <- update(fit0, rform = b1 ~ 1 | Plot, control = ctl)
-fitre2 <- update(fit0, rform = b1 + b2 ~ 1 || Plot, control = ctl)
-fitre1exp <- update(fit0, rform = b1 ~ 1 | Plot, correlation = corExp(5, form = ~ X + Y | Plot), control = ctl)
+fitre1 <- refit(fit0, rform = b1 ~ 1 | Plot, control = ctl)
+fitre2 <- refit(fit0, rform = b1 + b2 ~ 1 || Plot, control = ctl)
+fitre1exp <- refit(fit0, rform = b1 ~ 1 | Plot, correlation = corExp(5, form = ~ X + Y | Plot), control = ctl)
 sapply(list(fitre1 = fitre1, fitre2 = fitre2, fitre1exp = fitre1exp), converged)
 corpars(fitre1exp)
 AIC(fit0, fitexpn, fitre1, fitre2, fitre1exp)

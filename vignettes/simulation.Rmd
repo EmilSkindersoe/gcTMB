@@ -84,7 +84,7 @@ VarCorr(fitsim)
 sigma(fitsim)
 ```
 
-Other true models can be made from it with `update()`, e.g. `update(fitsim, fixef = c("b1:(Intercept)" = 30))` for a larger asymptote of fiber sorghum, `update(fitsim, VarCorr = ...)` for another variance of the random effects, or `update(fit, rho = ...)` for another autocorrelation, as below.
+Other true models can be made from it with `update()`, e.g. `update(fitsim, fixef = c("b1:(Intercept)" = 30))` for a larger asymptote of fiber sorghum, `update(fitsim, VarCorr = ...)` for another variance of the random effects, or `update(fit, corpar = ...)` for another autocorrelation, as below.
 
 ### Simulating new plots
 
@@ -150,15 +150,13 @@ Here the true model is the lognormal fit `fitrec` from above, with crop and inpu
 
 ```{r sim-cartrue}
 rho0 <- 0.8
-fitcar <- update(fitrec, rho = rho0)
+fitcar <- update(fitrec, corpar = rho0)
 ```
 
-`update()` changes $\rho$ and nothing else, so the other parameters are those estimated together with $\rho = `r round(corpars(fitrec), 2)`$. Alternatively, a new fit with $\rho$ fixed at 0.8, `corCAR1(value = 0.8, fixed = TRUE)`, estimates the other parameters given $\rho = 0.8$. This is the way to go when the true model should fit the data as well as possible with the chosen $\rho$, and it has the higher log-likelihood; `update()` is the way to go when only $\rho$ should differ from the fitted model, e.g. to compare simulations with different autocorrelations and otherwise the same parameters.
+`update()` changes $\rho$ and nothing else, so the other parameters are those estimated together with $\rho = `r round(corpars(fitrec), 2)`$. Alternatively, `refit()` fits the model again with $\rho$ fixed at 0.8, `corCAR1(value = 0.8, fixed = TRUE)`, and estimates the other parameters given $\rho = 0.8$. This is the way to go when the true model should fit the data as well as possible with the chosen $\rho$, and it has the higher log-likelihood; `update()` is the way to go when only $\rho$ should differ from the fitted model, e.g. to compare simulations with different autocorrelations and otherwise the same parameters.
 
 ```{r sim-carfixed}
-fitfix <- gcTMB(Biomass ~ DOY, fform = b1 + b2 ~ Crop * Input, rform = b1 ~ 1 | plot, data = sm,
-                model = "beta", start = c(b4 = 141), family = "lognormal",
-                correlation = corCAR1(value = rho0, form = ~ DOY | plot, fixed = TRUE))
+fitfix <- refit(fitrec, correlation = corCAR1(value = rho0, form = ~ DOY | plot, fixed = TRUE))
 pars <- function(f) c(fixef(f)[c("b1:(Intercept)", "b2:(Intercept)", "b3:(Intercept)")],
                       sigma = sigma(f), corpars(f), logLik = as.numeric(logLik(f)))
 rbind(estimated = pars(fitrec), updated = pars(fitcar), refitted = pars(fitfix))

@@ -7,7 +7,7 @@
 \alias{vcov.timetoTMB}
 \title{timetoTMB Methods}
 \usage{
-\method{print}{timetoTMB}(x, ...)
+\method{print}{timetoTMB}(x, n = NULL, ...)
 
 \method{coef}{timetoTMB}(object, ...)
 
@@ -15,6 +15,8 @@
 }
 \arguments{
 \item{x, object}{A timetoTMB object, the result of \code{\link{timeto}}.}
+
+\item{n}{Integer or NULL. The maximum number of times printed; NULL (default) for the option \code{gcTMB.print.max}, 100 unless set, e.g. \code{options(gcTMB.print.max = 200)}; \code{Inf} for all. When times are left out, a note at the end says how many, and how to show or extract all of them}
 
 \item{...}{Not used.}
 }

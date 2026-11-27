@@ -23,8 +23,10 @@ test_that("update sets coefficients, covariance matrices and sigma", {
   expect_equal(unname(fixef(fu)["b2:(Intercept)"]), unname(fixef(fit)["b2:(Intercept)"]))
   expect_error(update(fit, fixef=c(b9=1)), "unknown coefficient")
   expect_output(print(fu), "set by update")
-  # refit when no parameters are given
-  fg <- update(fit, model="gompertz")
+  # update only sets parameters: other arguments, or none, point to refit
+  expect_error(update(fit, model="gompertz"), "has no argument model.*use refit")
+  expect_error(update(fit), "use refit")
+  fg <- refit(fit, model="gompertz")
   expect_equal(fg$model, "gompertz")
 })
 
@@ -147,7 +149,7 @@ test_that("update can set every parameter of the model", {
   fe <- fixef(f)
   vc <- VarCorr(f)$Plant_ID
   newfe <- c(fe + 1, b4=2, b5=1.5)
-  fu <- update(f, fixef=newfe, VarCorr=list(Plant_ID=2*vc), sigma=2*sigma(f), rho=0.5)
+  fu <- update(f, fixef=newfe, VarCorr=list(Plant_ID=2*vc), sigma=2*sigma(f), corpar=0.5)
   expect_equal(fixef(fu)[names(fe)], fe + 1)
   expect_equal(unname(fu$obj$env$parList(fu$opt$par)$b4), 2)
   expect_equal(unname(fu$obj$env$parList(fu$opt$par)$b5), 1.5)
@@ -165,8 +167,87 @@ test_that("update can set every parameter of the model", {
   ex["cor_par:CAR1"] <- 0
   expect_equal(coef(fu), ex, tolerance=1e-8)
   # a fixed autocorrelation and the dispersion of another family can be set too
-  ff <- update(f, correlation=corCAR1(0.8, form=~ DAS | Plant_ID, fixed=TRUE))
-  expect_equal(corpars(update(ff, rho=0.3)), c(rho=0.3))
+  ff <- refit(f, correlation=corCAR1(0.8, form=~ DAS | Plant_ID, fixed=TRUE))
+  expect_equal(corpars(update(ff, corpar=0.3)), c(rho=0.3))
   fn <- gcTMB(Pods ~ DAS, data=FabaCounts23, family="nbinom2", fix=c(b4=FALSE))
   expect_equal(sigma(update(fn, sigma=3)), 3)
+})
+
+test_that("refit starts from the data or from the estimates of the fit", {
+  d <- FabaHeights25
+  d$trt <- factor(d$Treatment)
+  f <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, correlation=corCAR1(form=~ DAS | Plant_ID))
+  # from the data: the call as stats::update, without starting values
+  fd <- refit(f, fform=b1 + b2 ~ trt)
+  expect_null(fd$call$start)
+  # from the fit: the intercepts of b1 and b2 and b3 carry over, the new coefficients start from the data
+  ff <- refit(f, fform=b1 + b2 ~ trt, startfrom="fit")
+  sl <- eval(ff$call$start)
+  st <- sl$fixef
+  expect_length(st, length(ff$start))
+  cn <- ff$coefnames
+  keep <- cn %in% f$coefnames
+  # the estimates, and the values of the fixed coefficients (b4 = 0, b5 = 1)
+  pv <- setNames(f$start, f$coefnames)
+  pv[!f$fix] <- coef(f)[seq_len(sum(!f$fix))]
+  expect_equal(st[keep], unname(pv[cn[keep]]))
+  expect_true(all(is.na(st[!keep])))
+  # the variance of the random effects and sigma carry over
+  expect_equal(sl$VarCorr$Plant_ID, unname(VarCorr(f)$Plant_ID), ignore_attr=TRUE)
+  expect_equal(sl$sigma, sigma(f))
+  # the correlation structure starts at the estimate of rho
+  expect_equal(eval(ff$call$correlation[["value"]]), unname(corpars(f)))
+  # both reach the same optimum
+  expect_equal(as.numeric(logLik(ff)), as.numeric(logLik(fd)), tolerance=1e-4)
+  # a new correlation structure, or a start given, is used as given
+  fg <- refit(f, correlation=corExp(form=~ DAS | Plant_ID), startfrom="fit")
+  expect_s3_class(eval(fg$call$correlation), "corExp")
+  expect_null(fg$call$correlation$value)
+  # a new growth model: no coefficients from the fit
+  fm <- refit(f, model="gompertz", startfrom="fit")
+  expect_null(eval(fm$call$start)$fixef)
+  # a variance function starts at its estimates
+  fv <- gcTMB(Height ~ DAS, data=d, variance=varPower())
+  fv2 <- refit(fv, fform=b1 ~ trt, startfrom="fit")
+  expect_equal(eval(fv2$call$variance[["value"]]), unname(varpars(fv)))
+  # a new random effect: the variance of b1 carries over, b2 and the correlation start from the data
+  fb <- refit(f, rform=b1 + b2 ~ 1 | Plant_ID, startfrom="fit")
+  S <- eval(fb$call$start)$VarCorr$Plant_ID
+  expect_equal(S[1, 1], VarCorr(f)$Plant_ID[1, 1])
+  expect_true(all(is.na(S[-1])))
+  # setting parameters and refitting are separate functions
+  expect_error(update(f, fform=b1 ~ trt, fixef=c(b1=150)), "use refit")
+  expect_error(update(f, fixef=c(b1=150), startfrom="fit"), "has no argument startfrom")
+  expect_error(refit(f, fixef=c(b1=150)), "use update")
+  # an unnamed formula updates the formula; NULL removes a component
+  fn <- refit(f, . ~ ., correlation=NULL)
+  expect_null(fn$correlation)
+  expect_equal(as.numeric(logLik(fn)), as.numeric(logLik(gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d))))
+})
+
+test_that("start can be a list with the coefficients, the covariance matrices of the random effects and sigma", {
+  d <- FabaHeights25
+  dd <- gcTMBdata(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=d)
+  fix <- defaultfix(NULL, dd$npi, dd$mod)
+  st <- gcTMBstartvals(dd, defaultstart(parvector(NULL, dd$npi, NA, "start"), dd), fix)
+  S <- matrix(c(100, 6, 6, 4), 2)
+  sv <- splitstart(list(fixef=NULL, VarCorr=list(Plant_ID=S), sigma=2), dd, b1 + b2 ~ 1 | Plant_ID)
+  obj <- gcTMBobj(dd, st, fix, rform=b1 + b2 ~ 1 | Plant_ID, startvar=sv)
+  pl <- obj$env$parList()
+  expect_equal(pl$log_sigma, log(2))
+  expect_equal(pl$theta, covtheta(S, 2, "Plant_ID"))
+  # NA entries start from the data: here the variance of b2 and the correlation
+  obj0 <- gcTMBobj(dd, st, fix, rform=b1 + b2 ~ 1 | Plant_ID)
+  S2 <- matrix(c(100, NA, NA, NA), 2)
+  obj2 <- gcTMBobj(dd, st, fix, rform=b1 + b2 ~ 1 | Plant_ID, startvar=list(VarCorr=S2))
+  expect_equal(obj2$env$parList()$theta, c(log(10), obj0$env$parList()$theta[2:3]))
+  # a fit from a start list reaches the fit from the data
+  f0 <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=d)
+  f1 <- gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=d, start=list(fixef=c(b1=120), VarCorr=S, sigma=2))
+  expect_equal(as.numeric(logLik(f1)), as.numeric(logLik(f0)), tolerance=1e-5)
+  # errors
+  expect_error(gcTMB(Height ~ DAS, data=d, start=list(coef=1)), "only have the components")
+  expect_error(gcTMB(Height ~ DAS, data=d, start=list(VarCorr=S)), "needs random effects")
+  expect_error(gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", start=list(sigma=1)), "no residual standard deviation")
+  expect_error(gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, start=list(VarCorr=S)), "must be 1 x 1")
 })

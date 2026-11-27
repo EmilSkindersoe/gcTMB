@@ -52,7 +52,8 @@ modes), as in \code{\link{predict.gcTMB}}. These are shrunken towards the popula
 for groups with few observations. Their standard errors include the uncertainty of the fixed
 effects and the prediction error of the random effects, from the joint precision matrix of
 \code{\link[TMB]{sdreport}}. Random effect terms without a grouping variable in newdata, or with a
-level that is not in the fitted data, are treated as above. Profile intervals are not available
+missing level (NA) or a level that is not in the fitted data, are treated as above; the last two
+with a warning, as in \code{\link{maxrate}}. Profile intervals are not available
 for the times of fitted groups, see \code{\link{confint.timetoTMB}}.
 
 With \code{residual=TRUE} (gaussian family), the standard errors are those of the time at which a

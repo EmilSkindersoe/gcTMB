@@ -18,6 +18,28 @@ test_that("the constructors match those of nlme", {
   expect_equal(unclass(corCAR1(0.6, form=~ DAS | Plant_ID)), unclass(nlme::corCAR1(0.6, form=~ DAS | Plant_ID)), ignore_attr="formula")
 })
 
+test_that("the default start of corCAR1 gives a correlation of 0.2 at the median spacing of the times", {
+  cs <- corCAR1(form=~ DAS | Plant_ID)
+  cor <- gcTMB:::corsetup(cs, d)
+  dt <- cor$cordt[cor$corprev >= 0]
+  md <- median(dt[dt > 0])
+  expect_gt(md, 1)
+  expect_equal(plogis(gcTMB:::carstart(cs, cor)), 0.2^(1/md))
+  # the same start whatever the unit of time
+  dw <- d
+  dw$weeks <- dw$DAS/7
+  csw <- corCAR1(form=~ weeks | Plant_ID)
+  corw <- gcTMB:::corsetup(csw, dw)
+  expect_equal(plogis(gcTMB:::carstart(csw, corw))^(md/7), 0.2)
+  # a value given, or fixed, is kept
+  expect_equal(gcTMB:::carstart(corCAR1(0.2, form=~ DAS | Plant_ID), cor), qlogis(0.2))
+  expect_equal(gcTMB:::carstart(corCAR1(form=~ DAS | Plant_ID, fixed=TRUE), cor), qlogis(0.2))
+  # the estimate moves away from the start
+  fit <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, correlation=cs)
+  expect_equal(fit$opt$convergence, 0)
+  expect_gt(abs(corpars(fit)[["rho"]] - 0.2^(1/md)), 1e-3)
+})
+
 test_that("the likelihood is the multivariate normal density of the residuals of each group", {
   # unequally spaced times with a gap, unsorted, and a group with a single observation
   set.seed(3)
@@ -125,7 +147,7 @@ test_that("a fixed rho, and the parameter in coef, confint and summary", {
   ff <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, correlation=corCAR1(0.5, form=~ DAS | Plant_ID, fixed=TRUE))
   expect_equal(corpars(ff), c(rho=0.5))
   expect_false(any(grepl("cor_par", names(coef(ff)))))
-  expect_output(print(ff), "rho: 0.5 \\(fixed\\)")
+  expect_output(print(ff), "rho: 0.50 \\(fixed\\)")
   fe <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, correlation=corAR1(form=~ 1 | Plant_ID))
   expect_equal(tail(names(coef(fe)), 1), "cor_par:AR1")
   expect_equal(corpars(fe)[["rho"]], tanh(coef(fe)[["cor_par:AR1"]]/2))
@@ -219,7 +241,7 @@ test_that("the methods work with autocorrelation", {
 
 test_that("update sets rho, keeping the other parameters", {
   fit <- gcTMB(Height ~ DAS, data=d, correlation=corCAR1(form=~ DAS | Plant_ID))
-  fu <- update(fit, rho=0.7)
+  fu <- update(fit, corpar=0.7)
   expect_equal(corpars(fu), c(rho=0.7))
   expect_equal(fixef(fu), fixef(fit))
   expect_equal(sigma(fu), sigma(fit))
@@ -239,11 +261,11 @@ test_that("update sets rho, keeping the other parameters", {
   expect_equal(length(sims[[1]]), nrow(d))
   # AR(1) allows negative values; errors
   fa <- gcTMB(Height ~ DAS, data=d, correlation=corAR1(form=~ 1 | Plant_ID))
-  expect_equal(corpars(update(fa, rho=-0.3)), c(rho=-0.3))
-  expect_error(update(fit, rho=-0.3), "between 0 and 1")
-  expect_error(update(fa, rho=1), "between -1 and 1")
-  expect_error(update(gcTMB(Height ~ DAS, data=d), rho=0.5), "no autocorrelation")
-  expect_error(update(fit, rho=0.5, model="gompertz"), "not both")
+  expect_equal(corpars(update(fa, corpar=-0.3)), c(rho=-0.3))
+  expect_error(update(fit, corpar=-0.3), "between 0 and 1")
+  expect_error(update(fa, corpar=1), "between -1 and 1")
+  expect_error(update(gcTMB(Height ~ DAS, data=d), corpar=0.5), "no autocorrelation")
+  expect_error(update(fit, corpar=0.5, model="gompertz"), "use refit")
 })
 
 # spatial structures: corExp and corGaus, with and without nugget
@@ -323,9 +345,9 @@ test_that("the spatial parameters in coef, confint, print, update and simulate",
   expect_equal(rownames(ci), c("range", "nugget"))
   expect_true(ci["range", 1] < corpars(fit)[["range"]] && corpars(fit)[["range"]] < ci["range", 2])
   expect_output(print(fit), "Gaussian in DAS within Plant_ID, with nugget")
-  fu <- update(fit, rho=c(range=8, nugget=0.3))
+  fu <- update(fit, corpar=c(range=8, nugget=0.3))
   expect_equal(unname(corpars(fu)), c(8, 0.3))
-  expect_error(update(fit, rho=0.5), "named vector")
+  expect_error(update(fit, corpar=0.5), "named vector")
   # simulated residuals: variance sigma^2, correlation (1 - nugget) exp(-(7/8)^2) at 7 days
   dat <- fu$obj$env$data
   sims <- simulate(fu, nsim=300, seed=2, random=FALSE)

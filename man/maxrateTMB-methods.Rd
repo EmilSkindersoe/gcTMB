@@ -7,7 +7,7 @@
 \alias{vcov.maxrateTMB}
 \title{maxrateTMB Methods}
 \usage{
-\method{print}{maxrateTMB}(x, ...)
+\method{print}{maxrateTMB}(x, n = NULL, ...)
 
 \method{coef}{maxrateTMB}(object, ...)
 
@@ -15,6 +15,8 @@
 }
 \arguments{
 \item{x, object}{A maxrateTMB object, the result of \code{\link{maxrate}}.}
+
+\item{n}{Integer or NULL. The maximum number of estimates printed; NULL (default) for the option \code{gcTMB.print.max}, 100 unless set, e.g. \code{options(gcTMB.print.max = 200)}; \code{Inf} for all. When estimates are left out, a note at the end says how many, and how to show or extract all of them}
 
 \item{...}{Not used.}
 }

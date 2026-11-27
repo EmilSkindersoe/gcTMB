@@ -21,8 +21,8 @@
 #' \code{\link{timeto}}. These are shrunken towards the population curve, more so for groups with few
 #' observations. The standard errors then include the uncertainty of the fixed effects and the
 #' prediction error of the random effects, from the joint precision matrix of
-#' \code{\link[TMB]{sdreport}}. A level that is not in the fitted data gives the population curve for
-#' that term, with a warning. Profile intervals are not available for the curves of fitted groups;
+#' \code{\link[TMB]{sdreport}}. A missing level (NA), or a level that is not in the fitted data, gives the
+#' population curve for that term, with a warning. Profile intervals are not available for the curves of fitted groups;
 #' \code{confint} returns Wald intervals for them, and bootstrap intervals with \code{method="boot"}.
 #'
 #' For each curve, \code{maxrate} gives
@@ -97,15 +97,7 @@ maxrate <- function(x, curves=NULL, newdata=NULL, random=TRUE){
     if (random && nu > 0){
       rl <- relevels(x, newdata, skip=TRUE)
       W <- lapply(seq_len(nrow(newdata)), function(r) reweights(x, rl, r))
-      # rows that name a level of a grouping variable that is not in the fitted data: population curves
-      for (t in seq_along(x$reterms)){
-        gv <- all.vars(x$reterms[[t]]$formula)
-        unknown <- all(gv %in% names(newdata)) & rl$newgroup[, t]
-        if (any(unknown)){
-          warning("levels of ", paste(gv, collapse=":"), " not in the fitted data in rows ", paste(which(unknown), collapse=", "),
-                  " of newdata: their curves have no random effects of this term.", call.=FALSE)
-        }
-      }
+      newgroupwarning(x, newdata, rl, "their curves have no random effects of this term.")
     }
   }
   if (is.null(curves)) curves <- diag(5)
@@ -286,6 +278,7 @@ maxrateR <- function(mod, b, trunc=FALSE){
 #' maxrateTMB Methods
 #'
 #' @param x,object A maxrateTMB object, the result of \code{\link{maxrate}}.
+#' @param n Integer or NULL. The maximum number of estimates printed; NULL (default) for the option \code{gcTMB.print.max}, 100 unless set, e.g. \code{options(gcTMB.print.max = 200)}; \code{Inf} for all. When estimates are left out, a note at the end says how many, and how to show or extract all of them
 #' @param ... Not used.
 #'
 #' @return The estimates of the timing and value of the maximum growth rate, and their covariance
@@ -298,9 +291,12 @@ NULL
 #' @rdname maxrateTMB-methods
 #' @method print maxrateTMB
 #' @export
-print.maxrateTMB <- function(x, ...){
+print.maxrateTMB <- function(x, n=NULL, ...){
   cat("Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):\n\n")
-  print(data.frame(Estimate=x$estimates, Std.Error=sqrt(diag(x$variance))), digits=3)
+  tab <- data.frame(Estimate=x$estimates, Std.Error=sqrt(diag(x$variance)))
+  k <- printrows(n, nrow(tab))
+  print(tab[seq_len(k), , drop=FALSE], digits=3)
+  printomitted(k, nrow(tab), "estimates", get="coef(x) and vcov(x) return all of them, and confint(x) their intervals")
   invisible(x)
 }
 
