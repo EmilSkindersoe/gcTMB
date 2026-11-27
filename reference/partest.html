@@ -45,6 +45,7 @@ the maximum growth rates."><meta property="og:image" content="https://emilskinde
     <li><a class="dropdown-item" href="../articles/simulation.html">Simulation</a></li>
     <li><a class="dropdown-item" href="../articles/viewcurves.html">Exploring observed curves</a></li>
   </ul></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/EmilSkindersoe/gcTMB/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -198,10 +199,10 @@ models. Biometrical Journal 50, 346-363.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Differences to the reference of b1 (maximum growth rate) on the scale of its log link:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                   Estimate Std.Error t value p.value    lower  upper ratio</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.1 -0.00614    0.0319  -0.193  0.9990 -0.08472 0.0724 0.994</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.5 - trt=0.1  0.08075    0.0323   2.502  0.0456  0.00116 0.1603 1.084</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.6 - trt=0.1  0.08555    0.0327   2.617  0.0337  0.00492 0.1662 1.089</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.8 - trt=0.1  0.06441    0.0332   1.940  0.1640 -0.01749 0.1463 1.067</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.1 -0.00614    0.0319  -0.193  0.9990 -0.08467 0.0724 0.994</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.5 - trt=0.1  0.08075    0.0323   2.502  0.0454  0.00122 0.1603 1.084</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.6 - trt=0.1  0.08555    0.0327   2.617  0.0336  0.00498 0.1661 1.089</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.8 - trt=0.1  0.06441    0.0332   1.940  0.1655 -0.01744 0.1463 1.067</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                   ratio.lower ratio.upper</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.1       0.919        1.08</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.5 - trt=0.1       1.001        1.17</span>
@@ -213,21 +214,21 @@ models. Biometrical Journal 50, 346-363.</p>
 <span class="r-in"><span><span class="fu">partest</span><span class="op">(</span><span class="va">fit</span>, newdata<span class="op">=</span><span class="va">nd</span>, parm<span class="op">=</span><span class="st">"b1"</span>, contrasts<span class="op">=</span><span class="st">"tukey"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Pairwise differences of b1 (maximum growth rate) on the scale of its log link:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                   Estimate Std.Error t value p.value   lower     upper ratio</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.3  0.00614    0.0319   0.193  0.9997 -0.0816  0.093918 1.006</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.5 -0.08075    0.0323  -2.502  0.0944 -0.1697  0.008151 0.922</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.6 -0.08555    0.0327  -2.617  0.0721 -0.1756  0.004512 0.918</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.8 -0.06441    0.0332  -1.940  0.3006 -0.1559  0.027074 0.938</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.5 -0.08689    0.0312  -2.787  0.0457 -0.1728 -0.000983 0.917</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.6 -0.09168    0.0316  -2.900  0.0339 -0.1788 -0.004571 0.912</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.8 -0.07054    0.0322  -2.194  0.1867 -0.1591  0.018039 0.932</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.5 - trt=0.6 -0.00479    0.0320  -0.150  0.9998 -0.0930  0.083371 0.995</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.5 - trt=0.8  0.01634    0.0325   0.502  0.9871 -0.0733  0.105964 1.016</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.6 - trt=0.8  0.02114    0.0329   0.642  0.9681 -0.0696  0.111874 1.021</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   Estimate Std.Error t value p.value   lower    upper ratio</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.3  0.00614    0.0319   0.193  0.9997 -0.0816  0.09383 1.006</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.5 -0.08075    0.0323  -2.502  0.0940 -0.1696  0.00806 0.922</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.6 -0.08555    0.0327  -2.617  0.0708 -0.1755  0.00442 0.918</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.8 -0.06441    0.0332  -1.940  0.2998 -0.1558  0.02698 0.938</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.5 -0.08689    0.0312  -2.787  0.0456 -0.1727 -0.00107 0.917</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.6 -0.09168    0.0316  -2.900  0.0332 -0.1787 -0.00466 0.912</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.8 -0.07054    0.0322  -2.194  0.1849 -0.1590  0.01795 0.932</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.5 - trt=0.6 -0.00479    0.0320  -0.150  0.9998 -0.0929  0.08328 0.995</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.5 - trt=0.8  0.01634    0.0325   0.502  0.9873 -0.0732  0.10587 1.016</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.6 - trt=0.8  0.02114    0.0329   0.642  0.9690 -0.0695  0.11178 1.021</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                   ratio.lower ratio.upper</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.3       0.922       1.098</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.5       0.844       1.008</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.6       0.839       1.005</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.6       0.839       1.004</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.1 - trt=0.8       0.856       1.027</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.5       0.841       0.999</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> trt=0.3 - trt=0.6       0.836       0.995</span>

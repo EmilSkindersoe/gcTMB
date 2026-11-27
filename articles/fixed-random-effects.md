@@ -335,7 +335,6 @@ genotype, and a random asymptote for each plant:
 
 fitp <- gcTMB(Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 1 | Tube_ID, data = FabaCounts23,
               family = "poisson", fix = c(b4 = FALSE))
-#> Warning: the optimiser did not converge: false convergence (8)
 summary(fitp)
 #> Call:
 #> gcTMB(form = Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ 
@@ -371,8 +370,7 @@ summary(fitp)
 #>  Groups  Name Std.Dev.
 #>  Tube_ID b1   3.36    
 #> 
-#> Optimiser: false convergence (8), maximum absolute gradient 0.27
-#> Warning: the optimiser did not converge: false convergence (8)
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.27
 genotypes <- data.frame(Genotype = sort(unique(FabaCounts23$Genotype)))
 cbind(genotypes, predict(fitp, newdata = genotypes, type = "parameters", random = FALSE))
 #>   Genotype        b1       b2       b3 b4

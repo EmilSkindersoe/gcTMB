@@ -78,6 +78,14 @@ compiler is needed (Rtools on Windows).
 pak::pak("EmilSkindersoe/gcTMB")
 ```
 
+The same command updates an installed gcTMB to the newest version on
+GitHub. Run it in a new R session (in RStudio, Session \> Restart R)
+without gcTMB loaded, as a loaded package cannot be replaced, and
+restart R afterwards: until then, the session keeps using the old
+version. `packageVersion("gcTMB")` shows the installed version, and
+[NEWS.md](https://github.com/EmilSkindersoe/gcTMB/blob/main/NEWS.md)
+lists the changes of each version.
+
 ## Documentation
 
 The website <https://emilskindersoe.github.io/gcTMB/> has all the help

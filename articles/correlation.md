@@ -128,7 +128,7 @@ anova(fitre, fitrec)
 #> 
 #>        npar    AIC    BIC  logLik deviance          LR Df Pr(>LR)
 #> fitre    15 962.53 1012.9 -466.27   932.53                       
-#> fitrec   16 964.53 1018.2 -466.27   932.53 -5.3218e-08  1       1
+#> fitrec   16 964.53 1018.2 -466.27   932.53 -5.3225e-08  1       1
 ```
 
 The estimate of $`\rho`$ moves far down from its starting value, to a

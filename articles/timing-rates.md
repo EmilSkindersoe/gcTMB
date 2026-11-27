@@ -197,7 +197,7 @@ summary(fitre)
 #> 
 #> Residual standard deviation: 2.087
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.033
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.028
 converged(fitre)
 #> [1] TRUE
 ```
@@ -311,13 +311,13 @@ summary(fitrr)
 #> 
 #> Coefficients:
 #>                  Estimate Std. Error z value Pr(>|z|)    
-#> b1:(Intercept)   2.007186   0.014296 140.403   <2e-16 ***
-#> b1:Sexfemale    -0.002926   0.020022  -0.146    0.884    
+#> b1:(Intercept)   2.007186   0.014296 140.404   <2e-16 ***
+#> b1:Sexfemale    -0.002927   0.020022  -0.146    0.884    
 #> b2:(Intercept)   0.381010   0.005656  67.360   <2e-16 ***
 #> b2:Sexfemale     0.072460   0.005456  13.281   <2e-16 ***
-#> b3:(Intercept)   4.477680   0.052745  84.893   <2e-16 ***
-#> b4:(Intercept) 131.815357   0.598136 220.377   <2e-16 ***
-#> b4:Sexfemale    -7.368594   0.835739  -8.817   <2e-16 ***
+#> b3:(Intercept)   4.477681   0.052745  84.893   <2e-16 ***
+#> b4:(Intercept) 131.815348   0.598138 220.376   <2e-16 ***
+#> b4:Sexfemale    -7.368550   0.835741  -8.817   <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> Unadjusted Wald tests; tests of the differences between curves adjusted for their number: partest().
@@ -331,12 +331,12 @@ summary(fitrr)
 #> 
 #> Residual standard deviation: 1.57
 #> 
-#> Optimiser: relative convergence (4), maximum absolute gradient 0.0019
+#> Optimiser: relative convergence (4), maximum absolute gradient 0.0025
 maxrate(fitrr, newdata = sexes)
 #> Time of the maximum growth rate (tmax), maximum growth rate (rate) and proportion of total growth at inflection (fraction):
 #> 
 #>                     Estimate Std.Error
-#> tmax:Sex=male         11.752  0.119577
+#> tmax:Sex=male         11.752  0.119576
 #> rate:Sex=male          7.442  0.106395
 #> fraction:Sex=male      0.366  0.000111
 #> tmax:Sex=female        9.874  0.088034
@@ -353,6 +353,8 @@ $`b_1`$, keeping those on $`b_2`$ and $`b_4`$:
 fitrr0 <- gcTMB(Height ~ Age, fform = b2 + b4 ~ Sex, rform = b1 + b2 + b4 ~ 1 | ID, data = spurt,
                 model = "chapmanrichards", start = c(b4 = 120), fix = c(b4 = FALSE), b1type = "rate",
                 link = c(b1 = "log", b3 = "log"), control = list(restart = TRUE))
+#> Warning in nlminb(start = obj$par, objective = obj$fn, gradient = obj$gr, :
+#> NA/NaN function evaluation
 anova(fitrr0, fitrr)
 #> Likelihood ratio tests of gcTMB models
 #> 
@@ -396,8 +398,8 @@ pars <- predict(fitrr, newdata = sexes, type = "parameters", random = FALSE)
 data.frame(Sex = sexes$Sex, peak_rate = pars[, "b1"], height_before_spurt = pars[, "b4"],
            growth_in_spurt = pars[, "asymptote"], adult_height = pars[, "b4"] + pars[, "asymptote"])
 #>      Sex peak_rate height_before_spurt growth_in_spurt adult_height
-#> 1   male  7.442348            131.8154        52.79488     184.6102
-#> 2 female  7.420600            124.4468        44.22912     168.6759
+#> 1   male  7.442348            131.8153        52.79488     184.6102
+#> 2 female  7.420599            124.4468        44.22911     168.6759
 ```
 
 The adult heights agree with the asymptotes $`b_1`$ of the Preece-Baines

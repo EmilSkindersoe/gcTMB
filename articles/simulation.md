@@ -192,7 +192,7 @@ tab <- data.frame(true = truth, estimate = natural(coef(simfit)), ci,
 rownames(tab) <- sub("^log_", "", rownames(tab))
 tab
 #>                             true    estimate       2.5 %      97.5 % covered
-#> b1:(Intercept)        36.2385683  36.6772959  34.4540215  39.3830376    TRUE
+#> b1:(Intercept)        36.2385683  36.6772959  34.4540215  39.3830377    TRUE
 #> b1:CropMaize         -12.5752974 -13.7901245 -17.3928779 -10.6321687    TRUE
 #> b1:CropSweet sorghum   0.6891833   0.6887689  -1.6154835   3.6212082    TRUE
 #> b2:(Intercept)       236.9786410 236.8808074 235.7555142 238.3891990    TRUE
@@ -325,8 +325,8 @@ value 0.8:
 ``` r
 
 colMeans(carsim[, c("rho", "lower", "upper", "covered")])
-#>      rho    lower    upper  covered 
-#> 0.774071      NaN      NaN       NA
+#>       rho     lower     upper   covered 
+#> 0.7740709       NaN       NaN        NA
 ```
 
 ``` r

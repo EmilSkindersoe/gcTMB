@@ -85,5 +85,5 @@ summary(fit)
 #> 
 #> Residual standard deviation: 3.878 on 228 degrees of freedom
 #> 
-#> Optimiser: both X-convergence and relative convergence (5), maximum absolute gradient 1.4e-13
+#> Optimiser: both X-convergence and relative convergence (5), maximum absolute gradient 3.6e-07
 ```

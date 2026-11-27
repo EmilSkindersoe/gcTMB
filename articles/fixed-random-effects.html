@@ -42,6 +42,7 @@
     <li><a class="dropdown-item" href="../articles/viewcurves.html">Exploring observed curves</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -371,7 +372,6 @@ plant:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gcTMB.html">gcTMB</a></span><span class="op">(</span><span class="va">Pods</span> <span class="op">~</span> <span class="va">DAS</span>, fform <span class="op">=</span> <span class="va">b1</span> <span class="op">+</span> <span class="va">b2</span> <span class="op">~</span> <span class="va">Genotype</span>, rform <span class="op">=</span> <span class="va">b1</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">|</span> <span class="va">Tube_ID</span>, data <span class="op">=</span> <span class="va">FabaCounts23</span>,</span>
 <span>              family <span class="op">=</span> <span class="st">"poisson"</span>, fix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>b4 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: the optimiser did not converge: false convergence (8)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fitp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; gcTMB(form = Pods ~ DAS, fform = b1 + b2 ~ Genotype, rform = b1 ~ </span></span>
@@ -407,8 +407,7 @@ plant:</p>
 <span><span class="co">#&gt;  Groups  Name Std.Dev.</span></span>
 <span><span class="co">#&gt;  Tube_ID b1   3.36    </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Optimiser: false convergence (8), maximum absolute gradient 0.27</span></span>
-<span><span class="co">#&gt; Warning: the optimiser did not converge: false convergence (8)</span></span>
+<span><span class="co">#&gt; Optimiser: relative convergence (4), maximum absolute gradient 0.27</span></span>
 <span><span class="va">genotypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Genotype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">FabaCounts23</span><span class="op">$</span><span class="va">Genotype</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">genotypes</span>, <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fitp</span>, newdata <span class="op">=</span> <span class="va">genotypes</span>, type <span class="op">=</span> <span class="st">"parameters"</span>, random <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Genotype        b1       b2       b3 b4</span></span>

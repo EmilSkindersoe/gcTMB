@@ -47,6 +47,7 @@
     <li><a class="dropdown-item" href="articles/viewcurves.html">Exploring observed curves</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -99,6 +100,7 @@
 <p>gcTMB is installed from GitHub; it compiles its TMB model, so a C++ compiler is needed (Rtools on Windows).</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"EmilSkindersoe/gcTMB"</span><span class="op">)</span></span></code></pre></div>
+<p>The same command updates an installed gcTMB to the newest version on GitHub. Run it in a new R session (in RStudio, Session &gt; Restart R) without gcTMB loaded, as a loaded package cannot be replaced, and restart R afterwards: until then, the session keeps using the old version. <code>packageVersion("gcTMB")</code> shows the installed version, and <a href="https://github.com/EmilSkindersoe/gcTMB/blob/main/NEWS.md" class="external-link">NEWS.md</a> lists the changes of each version.</p>
 </div>
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
