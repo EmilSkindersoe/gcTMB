@@ -38,7 +38,7 @@ test_that("simulate at new times and for new groups", {
   # fitted groups with random=FALSE and almost no residual noise: the fitted curves
   fu <- update(fit, sigma=1e-6)
   nd <- data.frame(DAS=c(20, 40, 60), Plant_ID=FabaHeights25$Plant_ID[1])
-  s <- simulate(fu, nsim=1, newdata=nd, random=FALSE)
+  s <- simulate(fu, nsim=1, newdata=nd, re="fitted")
   expect_equal(s[[1]], unname(predict(fu, newdata=nd)), tolerance=1e-4)
   # new groups: the variance of the asymptote between curves at a late time
   nd <- data.frame(DAS=1000, Plant_ID=as.character(1:4000))
@@ -60,7 +60,7 @@ test_that("simulate returns the simulated random effects and true means", {
   mu <- attr(s, "mean")$sim_2[FabaHeights25$Plant_ID == FabaHeights25$Plant_ID[1]]
   expect_equal(mu, unname(predict(fp, newdata=nd, random=FALSE)), tolerance=1e-8)
   # random=FALSE: the fitted random effects
-  s0 <- simulate(fit, nsim=1, seed=3, random=FALSE)
+  s0 <- simulate(fit, nsim=1, seed=3, re="fitted")
   expect_equal(attr(s0, "ranef")$sim_1, ranef(fit), ignore_attr=TRUE, tolerance=1e-8)
   expect_equal(attr(s0, "mean")$sim_1, unname(fitted(fit)), tolerance=1e-6)
   # newdata: the means are the observations without residual noise
@@ -250,4 +250,23 @@ test_that("start can be a list with the coefficients, the covariance matrices of
   expect_error(gcTMB(Height ~ DAS, data=d, start=list(VarCorr=S)), "needs random effects")
   expect_error(gcTMB(Pods ~ DAS, data=FabaCounts23, family="poisson", start=list(sigma=1)), "no residual standard deviation")
   expect_error(gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=d, start=list(VarCorr=S)), "must be 1 x 1")
+})
+
+test_that("simulate: re = new, fitted or none", {
+  fit <- gcTMB(Height ~ DAS, rform=b1 ~ 1 | Plant_ID, data=FabaHeights25)
+  # fitted: the means are the conditional fitted values; none: the population curve
+  expect_equal(unname(attr(simulate(fit, seed=1, re="fitted"), "mean")[[1]]), unname(fitted(fit)), tolerance=1e-8)
+  expect_equal(unname(attr(simulate(fit, seed=1, re="none"), "mean")[[1]]), unname(fitted(fit, random=FALSE)), tolerance=1e-8)
+  sn <- simulate(fit, seed=1, re="new")
+  expect_false(isTRUE(all.equal(unname(attr(sn, "mean")[[1]]), unname(fitted(fit)))))
+  expect_true(all(attr(simulate(fit, seed=1, re="none"), "ranef")$sim_1$Plant_ID == 0))
+  # with newdata: a fitted and a new plant
+  nd <- data.frame(DAS=c(30, 30), Plant_ID=c(unique(FabaHeights25$Plant_ID)[1], "new"))
+  mf <- attr(simulate(fit, seed=1, newdata=nd, re="fitted"), "mean")[[1]]
+  expect_equal(mf[1], unname(predict(fit, newdata=nd[1, ])), tolerance=1e-8)
+  mn <- attr(simulate(fit, seed=1, newdata=nd, re="none"), "mean")[[1]]
+  expect_equal(mn, unname(predict(fit, newdata=nd, random=FALSE)), tolerance=1e-8)
+  # the old argument gives a clear error
+  expect_error(simulate(fit, random=FALSE), "replaced by re")
+  expect_error(simulate(fit, re="old"), "should be one of")
 })

@@ -52,12 +52,18 @@ Type gcTMB(objective_function<Type>* obj) {
   DATA_IVECTOR(corgsize);  // spatial structures (3 = exponential, 4 = Gaussian): number of observations per
                            // group, in the order of corord; length zero otherwise
   DATA_VECTOR(cordist);    // spatial structures: distance matrix of each group, by column, concatenated
-  DATA_INTEGER(vartype);   // variance function (gaussian, lognormal): 0 = none, 1 = varIdent, 2 = varPower,
-                           // 3 = varConstPower; the sd of an observation is sigma g / sqrt(w)
-  DATA_INTEGER(varcovt);   // covariate of varPower and varConstPower: 0 = varcov, 1 = fitted curve, 2 = growth rate
-  DATA_VECTOR(varcov);     // covariate of the data; length n
-  DATA_IVECTOR(varstr);    // stratum (varIdent, 0 the reference) or level of the grouping factor; length n
-  DATA_INTEGER(varng);     // number of strata or levels
+  // variance function (gaussian, lognormal): the sd of an observation is sigma g / sqrt(w), with g the
+  // product of the components c = 0, ..., K - 1 (one, or several for varComb); K = 0 without
+  DATA_IVECTOR(vartype);   // type of each component: 1 = varIdent, 2 = varPower, 3 = varConstPower,
+                           // 4 = varExp, 5 = varPoly
+  DATA_IVECTOR(varcovt);   // covariate of each component: 0 = varcov, 1 = fitted curve, 2 = growth rate
+  DATA_MATRIX(varcov);     // covariate of the data; n x K
+  DATA_IMATRIX(varstr);    // stratum (varIdent, 0 the reference) or level of the grouping factor; n x K
+  DATA_IVECTOR(varng);     // number of strata or levels of each component
+  DATA_IVECTOR(vardeg);    // degree of the polynomial of varPoly, 0 for the other components
+  DATA_IVECTOR(varoff);    // offset of the parameters of each component in var_par
+  DATA_VECTOR(varscale);   // scale s of the covariate of varPoly, a polynomial in (v - m)/s; 1 for the others
+  DATA_VECTOR(varcenter);  // centre m of the covariate of varPoly; 0 for the others
   PARAMETER_VECTOR(b1);
   PARAMETER_VECTOR(b2);
   PARAMETER_VECTOR(b3);
@@ -67,9 +73,11 @@ Type gcTMB(objective_function<Type>* obj) {
   PARAMETER_VECTOR(theta); // length zero without random effects
   PARAMETER(log_sigma);    // log sd (gaussian; of log(y) for lognormal), precision (beta, betabinomial), size (nbinom2) or dispersion (nbinom1);
                            // mapped (fixed) for poisson and binomial
-  PARAMETER_VECTOR(var_par); // variance function, unconstrained as in nlme: varIdent log ratios of the strata
-                           // 1, ..., varng - 1; varPower the power of each level; varConstPower the log
-                           // constant of each level, then the power of each level; length zero without
+  PARAMETER_VECTOR(var_par); // variance function, unconstrained as in nlme, the components one after the
+                           // other: varIdent log ratios of the strata 1, ..., varng - 1; varPower the power
+                           // of each level; varConstPower the log constant of each level, then the power of
+                           // each level; varExp the exponent of each level; varPoly the coefficient of v of
+                           // each level, then of v^2, ..., up to v^degree, for (v - m)/s (see varscale); length zero without
   PARAMETER_VECTOR(cor_par); // autocorrelation on the unconstrained scale of nlme: log((1 + rho)/(1 - rho)) for AR(1),
                            // log(rho/(1 - rho)) for CAR(1), log(range) and logit(nugget) for the spatial
                            // structures (without nugget: length 1); mapped (fixed) without autocorrelation
@@ -171,9 +179,11 @@ Type gcTMB(objective_function<Type>* obj) {
   vector<Type> Xb4 = X4 * b4;
   vector<Type> Xb5 = X5 * b5;
 
-  // variance function: g = ratio of the stratum (varIdent), |v|^power (varPower) or const + |v|^power
-  // (varConstPower), v a covariate, the fitted curve or its growth rate (central difference)
-  bool hasvar = (vartype > 0) && (fam == 1 || fam == 8);
+  // variance function: g = the product of the components, each the ratio of the stratum (varIdent),
+  // |v|^power (varPower), const + |v|^power (varConstPower), exp(expon v) (varExp) or the polynomial
+  // 1 + d1 v + ... + dk v^k (varPoly), v a covariate, the fitted curve or its growth rate (central
+  // difference). The likelihood of varPoly is zero (nll infinite) where its polynomial is 0 or below.
+  bool hasvar = (vartype.size() > 0) && (fam == 1 || fam == 8);
   vector<Type> gv(n);
   gv.fill(Type(1));
 
@@ -188,18 +198,38 @@ Type gcTMB(objective_function<Type>* obj) {
     f = gcmean(mod, trunc, x(i), f1, f2, f3, f4, f5);
     fv(i) = f;
     if (hasvar){
-      int k = varstr(i);
-      if (vartype == 1){
-        if (k > 0) gv(i) = exp(var_par(k - 1));
-      } else {
-        Type v = varcov(i);
-        if (varcovt == 1) v = f;
-        if (varcovt == 2){
-          Type h = Type(1e-5) * (Type(1) + fabs(x(i)));
-          v = (gcmean(mod, trunc, Type(x(i) + h), f1, f2, f3, f4, f5) - gcmean(mod, trunc, Type(x(i) - h), f1, f2, f3, f4, f5)) / (Type(2) * h);
+      for (int c = 0; c < vartype.size(); c++){
+        int k = varstr(i, c);
+        int o = varoff(c);
+        int G = varng(c);
+        int vt = vartype(c);
+        Type gc = Type(1);
+        if (vt == 1){
+          if (k > 0) gc = exp(var_par(o + k - 1));
+        } else {
+          Type v = varcov(i, c);
+          if (varcovt(c) == 1) v = f;
+          if (varcovt(c) == 2){
+            Type h = Type(1e-5) * (Type(1) + fabs(x(i)));
+            v = (gcmean(mod, trunc, Type(x(i) + h), f1, f2, f3, f4, f5) - gcmean(mod, trunc, Type(x(i) - h), f1, f2, f3, f4, f5)) / (Type(2) * h);
+          }
+          if (vt == 2) gc = exp(var_par(o + k) * log(fabs(v)));
+          if (vt == 3) gc = exp(var_par(o + k)) + exp(var_par(o + G + k) * log(fabs(v)));
+          if (vt == 4) gc = exp(var_par(o + k) * v);
+          if (vt == 5){
+            Type pv = Type(1);
+            Type vj = Type(1);
+            Type vs = (v - varcenter(c)) / varscale(c);
+            for (int j = 0; j < vardeg(c); j++){
+              vj *= vs;
+              pv += var_par(o + j * G + k) * vj;
+            }
+            // the barrier: an infinite negative log-likelihood where the polynomial is 0 or below
+            nll += CppAD::CondExpLe(pv, Type(0), Type(INFINITY), Type(0));
+            gc = CppAD::CondExpGt(pv, Type(0), pv, Type(1));
+          }
         }
-        Type pw = exp(var_par((vartype == 3) ? (varng + k) : k) * log(fabs(v)));
-        gv(i) = (vartype == 3) ? Type(exp(var_par(k)) + pw) : pw;
+        gv(i) *= gc;
       }
     }
     if (!correlated){

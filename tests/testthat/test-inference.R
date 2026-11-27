@@ -69,7 +69,7 @@ test_that("simulate has the mean and variance of the fitted model", {
   expect_equal(rowMeans(s), predict(f, random=FALSE), tolerance=0.02)
   expect_equal(apply(s, 1, var), v, tolerance=0.15)
   # with the fitted random effects
-  s2 <- simulate(f, nsim=2000, seed=1, random=FALSE)
+  s2 <- simulate(f, nsim=2000, seed=1, re="fitted")
   expect_equal(rowMeans(s2), predict(f), tolerance=0.02)
 })
 

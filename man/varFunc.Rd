@@ -5,6 +5,9 @@
 \alias{varIdent}
 \alias{varPower}
 \alias{varConstPower}
+\alias{varExp}
+\alias{varPoly}
+\alias{varComb}
 \title{Variance functions for heteroscedastic residuals}
 \usage{
 varIdent(value = numeric(0), form = ~1, fixed = NULL)
@@ -17,40 +20,79 @@ varConstPower(
   form = ~fitted(.),
   fixed = NULL
 )
+
+varExp(value = numeric(0), form = ~fitted(.), fixed = NULL)
+
+varPoly(value = numeric(0), degree = 2, form = ~fitted(.), fixed = NULL)
+
+varComb(...)
 }
 \arguments{
 \item{value}{Numeric. Starting values (or with \code{fixed}, see there): for \code{varIdent} the
 ratios of the standard deviations of the strata to the reference stratum, named by stratum (1 by
-default); for \code{varPower} the power (0 by default), named by level with a grouping factor}
+default); for \code{varPower} the power and for \code{varExp} the exponent t (0 by default), named by
+level with a grouping factor; for \code{varPoly} the coefficients d_1, ..., d_k (0 by default), one for
+each power of v, or named \code{poly1}, ..., \code{polyk} (\code{poly1:<level>} for a single level
+of a grouping factor)}
 
 \item{form}{One-sided formula: \code{~ 1 | s} for \code{varIdent}, with s one or more grouping
-variables (\code{~ 1 | A * B}); \code{~ v} or \code{~ v | g} for \code{varPower} and
-\code{varConstPower}, with v a numeric variable, \code{fitted(.)} or \code{rate(.)}}
+variables (\code{~ 1 | A * B}); \code{~ v} or \code{~ v | g} for \code{varPower},
+\code{varConstPower}, \code{varExp} and \code{varPoly}, with v a numeric variable, \code{fitted(.)}
+or \code{rate(.)}}
 
 \item{fixed}{Values that are fixed and not estimated: for \code{varIdent} ratios named by stratum,
-for \code{varPower} the power (named by level with a grouping factor), for \code{varConstPower}
-a list with \code{const} and/or \code{power}, e.g. \code{fixed=list(power=1)}}
+for \code{varPower} the power and for \code{varExp} the exponent (named by level with a grouping
+factor), for \code{varConstPower} a list with \code{const} and/or \code{power}, e.g.
+\code{fixed=list(power=1)}, for \code{varPoly} coefficients named as in \code{value}, e.g.
+\code{fixed=c(poly2=0)}}
 
 \item{const, power}{Numeric. For \code{varConstPower}, the starting values of the constant c (0.1 by
 default, as nlme) and the power delta (0 by default)}
+
+\item{degree}{Integer. The degree k of the polynomial of \code{varPoly}, 2 by default}
+
+\item{...}{For \code{varComb}, two or more variance functions, whose standard deviation multipliers
+g are multiplied}
 }
 \value{
-An object of class \code{c("varIdent", "varFunc")}, \code{c("varPower", "varFunc")} or
-\code{c("varConstPower", "varFunc")}, with the structure of the nlme objects.
+An object of class \code{c("varIdent", "varFunc")}, \code{c("varPower", "varFunc")},
+\code{c("varConstPower", "varFunc")}, \code{c("varExp", "varFunc")}, \code{c("varPoly", "varFunc")}
+or \code{c("varComb", "varFunc")}, with the structure of the nlme objects (a list of the components
+for \code{varComb}).
 }
 \description{
 Variance functions for the \code{variance} argument of \code{\link{gcTMB}}, with the arguments and
-the parameterisation of \code{varIdent}, \code{varPower} and \code{varConstPower} of the package
-nlme (whose objects \code{\link{gcTMB}} also accepts), for the gaussian and lognormal (on the log
-scale) families. The residual variance of an observation is sigma^2 g^2, with the residual standard
-deviation sigma of the model and the function g:
+the parameterisation of \code{varIdent}, \code{varPower}, \code{varConstPower}, \code{varExp} and
+\code{varComb} of the package nlme (whose objects \code{\link{gcTMB}} also accepts), and the
+polynomial \code{varPoly}, for the gaussian and lognormal (on the log scale) families. The residual
+variance of an observation is sigma^2 g^2, with the residual standard deviation sigma of the model and
+the function g:
 \itemize{
 \item \code{varIdent(form=~ 1 | s)}: g = delta_s, a ratio for each stratum s of the grouping
 variables, with delta = 1 for the reference stratum, so that each stratum has its own variance,
 e.g. a variance for each treatment (\code{~ 1 | Treatment}) or for each time point
 (\code{~ 1 | Time}); a numeric grouping variable is treated as a factor;
 \item \code{varPower(form=~ v)}: g = |v|^delta, variance sigma^2 |v|^(2 delta);
-\item \code{varConstPower(form=~ v)}: g = c + |v|^delta, c > 0, variance sigma^2 (c + |v|^delta)^2.
+\item \code{varConstPower(form=~ v)}: g = c + |v|^delta, c > 0, variance sigma^2 (c + |v|^delta)^2;
+\item \code{varExp(form=~ v)}: g = exp(t v), variance sigma^2 exp(2 t v);
+\item \code{varPoly(form=~ v, degree=k)}: g = 1 + d_1 (v - m) + d_2 (v - m)^2 + ... + d_k (v - m)^k,
+so that the standard deviation sigma g is a polynomial in v, e.g. one that is largest in the
+middle of the range of v (d_1 > 0, d_2 < 0, with its maximum at v = m - d_1/(2 d_2) for degree 2).
+The polynomial is centred at the mean m of v in the data (the mean response for \code{fitted(.)},
+m = 0 for \code{rate(.)}), shown by print, so that sigma is the standard deviation at v = m, and
+the standard deviation at v = 0 can take any value; an uncentred polynomial, with sigma the
+standard deviation at v = 0, could not describe a standard deviation that would be 0 or below
+at v = 0 but is positive on the data, e.g. a straight line in the time from the first day. A
+polynomial can be 0 or negative, where the standard deviation is not defined: the likelihood is zero
+(the log-likelihood minus infinity) if the polynomial is 0 or below at any observation, so that the
+optimiser stays where it is positive on the data. It starts from d = 0, a constant standard
+deviation. Outside the data, e.g. in \code{predict} and \code{simulate} at new times, the polynomial
+can still be 0 or below, which gives an error. A degree above 2 is rarely needed and tends to overfit;
+\item \code{varComb(...)}: the product of the multipliers g of two or more of the above, e.g.
+\code{varComb(varIdent(form=~ 1 | Treatment), varPower())} for a power of the fitted curve with a
+different factor for each treatment, or \code{varComb(varPower(), varExp())}, g = |v|^delta exp(t v),
+which with delta > 0 and t < 0 is largest at v = -delta/t, in the middle of growth. The variances are
+multiplied, not added: the standard deviations are sigma g_A g_B.
 }
 The covariate v of \code{varPower} and \code{varConstPower} is a numeric variable of the data,
 e.g. \code{~ Time}, \code{fitted(.)} (the default), the fitted curve f(t) of each observation
@@ -77,9 +119,11 @@ of the standardised residuals e/(sigma g). With \code{varIdent(~ 1 | Time)}, \co
 prediction intervals need the time points of the fit.
 
 The estimated parameters are in \code{coef(fit)} as \code{var_par:<stratum>} (the log
-ratios of \code{varIdent}), \code{var_par:power} and \code{var_par:const} (the log of c), with
-\code{:<level>} for a grouping factor, on the unconstrained scale of nlme; \code{\link{varpars}}
-gives them on the natural scale.
+ratios of \code{varIdent}), \code{var_par:power}, \code{var_par:const} (the log of c),
+\code{var_par:expon} and \code{var_par:poly1}, \code{var_par:poly2}, ..., with \code{:<level>} for a
+grouping factor, on the unconstrained scale of nlme; \code{\link{varpars}} gives them on the natural
+scale. The parameters of the components of \code{varComb} are prefixed with \code{A.}, \code{B.}, ...,
+as in nlme.
 }
 \examples{
 FabaHeights25$trt <- factor(FabaHeights25$Treatment)
@@ -89,6 +133,14 @@ varpars(fiti)
 # residual standard deviation c + f'(t)^delta, largest where the curve grows fastest
 fitr <- gcTMB(Height ~ DAS, data=FabaHeights25, variance=varConstPower(form=~ rate(.)))
 varpars(fitr)
+\donttest{
+# a standard deviation that is a quadratic polynomial of the fitted curve
+fitp <- gcTMB(Height ~ DAS, data=FabaHeights25, variance=varPoly(degree=2))
+varpars(fitp)
+# the product of a power and an exponential of the fitted curve
+fitc <- gcTMB(Height ~ DAS, data=FabaHeights25, variance=varComb(varPower(), varExp()))
+varpars(fitc)
+}
 }
 \references{
 Pinheiro, J.C. and Bates, D.M. (2000). Mixed-Effects Models in S and S-PLUS.

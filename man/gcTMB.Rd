@@ -48,8 +48,9 @@ log scale) families. NULL (default) for independent residuals. See \code{\link{c
 a correlation structure, the weights are precision weights, with residual variance sigma^2/w.}
 
 \item{variance}{A variance function or NULL. Heteroscedastic residuals with the standard deviation
-sigma g, \code{\link{varIdent}}, \code{\link{varPower}} or \code{\link{varConstPower}} (or the
-same functions of the package nlme), e.g. \code{varIdent(form=~ 1 | Treatment)} for a variance
+sigma g, \code{\link{varIdent}}, \code{\link{varPower}}, \code{\link{varConstPower}},
+\code{\link{varExp}}, the polynomial \code{\link{varPoly}} or the product \code{\link{varComb}} of
+these (or the same functions of the package nlme), e.g. \code{varIdent(form=~ 1 | Treatment)} for a variance
 for each treatment, or \code{varConstPower(form=~ rate(.))} for a standard deviation that grows
 with the growth rate of the curve, for the gaussian and lognormal (on the log scale) families.
 NULL (default) for a constant variance. See \code{\link{varFunc}}.}
@@ -64,10 +65,10 @@ NULL (default) for a constant variance. See \code{\link{varFunc}}.}
 
 \item{truncated}{Logical. If TRUE (default), the curve is truncated at a threshold time b4, by default fixed at 0: the response is zero up to b4 and then grows, see Details. FALSE for the curves without truncation. The beta, beta_capped, chapmanrichards, korf and preecebaines curves are never truncated.}
 
-\item{link}{Named character vector or NULL. Links of the parameters b1-b5: NULL for the defaults, or links named by parameter, e.g. \code{link=c(b1="log", b3="inverse")}. The default is the identity link for all parameters, except the shape b3 of the weibull, gamma and korf models, which must be larger than 1 and has the link "logm1", log(b3 - 1), by default (\code{link=c(b3="identity")} gives the shape itself). The links available for each parameter depend on its role in the model:
+\item{link}{Named character vector or NULL. Links of the parameters b1-b5: NULL for the defaults, or links named by parameter, e.g. \code{link=c(b1="log", b3="inverse")}. The default is the identity link for all parameters, except the shape b3 of the weibull, gamma and korf models, which must be larger than 1 and has the link "logm1", log(b3 - 1), by default (\code{link=c(b3="identity")} gives the shape itself), and the coefficient b2 of korf, which must be positive and has the log link by default, as it grows with t^(b3 - 1) to values the optimiser cannot handle on its own scale (\code{link=c(b2="identity")} gives b2 itself). The links available for each parameter depend on its role in the model:
 \itemize{
 \item the asymptote b1: "identity", "log" or "logit" (for proportions); the slope b1 of the linear model: "identity" or "log";
-\item the time b2 (inflection point, half the asymptote, middle of puberty), the rate b2 of chapmanrichards and the coefficient b2 of korf: "identity" or "log"; the intercept b2 of the linear model: "identity";
+\item the time b2 (inflection point, half the asymptote, middle of puberty), the rate b2 of chapmanrichards: "identity" or "log"; the coefficient b2 of korf: "log" or "identity"; the intercept b2 of the linear model: "identity";
 \item a scale b3 (logistic, gompertz, normal): "identity", "inverse", with which its coefficients are the growth rate 1/b3, or "log"; the shape b3 of weibull, gamma and korf: "logm1", "identity" or "log"; any other b3 (the slope of hill, the shape of chapmanrichards, the end of growth of beta, the height of preecebaines): "identity" or "log";
 \item b4 (the threshold or start of growth, the intercept of chapmanrichards and korf, the rate of preecebaines) and the asymmetry b5: "identity" or "log".
 }
@@ -162,10 +163,10 @@ of lme4;
 and \code{\link{corGaus}} have the
 arguments and the parameterisation of nlme, whose objects are accepted as well, and
 \code{residuals(fit, type="normalized")} gives the normalized residuals of nlme;
-\item the variance functions \code{\link{varIdent}}, \code{\link{varPower}} and
-\code{\link{varConstPower}} go in the argument \code{variance} (the argument \code{weights} of
-nlme), with the arguments and parameterisation of nlme, plus the growth rate \code{rate(.)} as a
-covariate;
+\item the variance functions \code{\link{varIdent}}, \code{\link{varPower}},
+\code{\link{varConstPower}}, \code{\link{varExp}} and \code{\link{varComb}} go in the argument
+\code{variance} (the argument \code{weights} of nlme), with the arguments and parameterisation of
+nlme, plus the growth rate \code{rate(.)} as a covariate and the polynomial \code{\link{varPoly}};
 \item \code{\link{fixef}}, \code{\link{ranef}} and \code{\link{VarCorr}} are generics with the names
 of those of nlme, and work for gcTMB, nlme and lme4 fits whichever package is attached last;
 \item \code{predict} and \code{fitted} with \code{random=FALSE} correspond to \code{level=0} of

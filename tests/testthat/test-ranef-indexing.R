@@ -47,8 +47,8 @@ test_that("random effects of several terms, nested and crossed factors and slope
     expect_equal(unname(predict(f, newdata=nd)), unname(predict(m, newdata=nd)), tolerance=1e-5, label=paste("predict, case", k))
     expect_equal(unname(predict(f, newdata=nd, random=FALSE)), unname(predict(m, newdata=nd, re.form=NA)), tolerance=1e-5)
     # simulations with the fitted random effects have the fitted means
-    expect_equal(unname(attr(simulate(f, seed=1, random=FALSE), "mean")[[1]]), unname(fitted(m)), tolerance=1e-5)
-    expect_equal(unname(attr(simulate(f, seed=1, random=FALSE, newdata=nd), "mean")[[1]]), unname(predict(m, newdata=nd)), tolerance=1e-5)
+    expect_equal(unname(attr(simulate(f, seed=1, re="fitted"), "mean")[[1]]), unname(fitted(m)), tolerance=1e-5)
+    expect_equal(unname(attr(simulate(f, seed=1, re="fitted", newdata=nd), "mean")[[1]]), unname(predict(m, newdata=nd)), tolerance=1e-5)
   }
   # times of fitted groups, with their predicted random effects
   f <- gcTMB(y ~ t, rform=b1 + b2 ~ 1 | g, data=d, model="linear")
@@ -61,9 +61,9 @@ test_that("simulate uses the fitted model, not the last parameters evaluated by 
   # a fit stopped short of the optimum; a later optimisation of its objective finds better parameters,
   # which TMB keeps as last.par.best
   fit <- suppressWarnings(gcTMB(Height ~ DAS, rform=b1 + b2 ~ 1 | Plant_ID, data=FabaHeights25, control=list(iter.max=3)))
-  m1 <- attr(simulate(fit, seed=1, random=FALSE), "mean")[[1]]
+  m1 <- attr(simulate(fit, seed=1, re="fitted"), "mean")[[1]]
   invisible(nlminb(fit$opt$par, fit$obj$fn, fit$obj$gr))
-  m2 <- attr(simulate(fit, seed=1, random=FALSE), "mean")[[1]]
+  m2 <- attr(simulate(fit, seed=1, re="fitted"), "mean")[[1]]
   expect_equal(m2, m1)
   expect_equal(m2, unname(predict(fit)), tolerance=1e-8)
   expect_equal(simulate(fit, seed=2)[[1]], {

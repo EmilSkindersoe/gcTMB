@@ -228,7 +228,7 @@ and b3, profiled over the asymptote b1, or from a grid search
 | Purpose | Functions |
 |----|----|
 | Exploring data | `viewcurves()` |
-| Fitting | `gcTMB()`, `gcTMBstart()`, `gcTMBcontrol()`, `corAR1()`, `corCAR1()`, `corExp()`, `corGaus()`, `varIdent()`, `varPower()`, `varConstPower()`, `refit()` |
+| Fitting | `gcTMB()`, `gcTMBstart()`, `gcTMBcontrol()`, `corAR1()`, `corCAR1()`, `corExp()`, `corGaus()`, `varIdent()`, `varPower()`, `varConstPower()`, `varExp()`, `varPoly()`, `varComb()`, `refit()` |
 | Results | `summary()`, `coef()`, `vcov()`, `logLik()`, `converged()`, `fixef()`, `ranef()`, `VarCorr()`, `sigma()`, `corpars()`, `varpars()` |
 | Confidence intervals | `confint()`, `profile()`, `bootstrap()` |
 | Tests and model choice | `anova()`, `criteria()`, `partest()` |

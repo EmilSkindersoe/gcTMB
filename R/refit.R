@@ -178,16 +178,30 @@ corstartcall <- function(object){
 # values; NULL without a variance function or with fixed parameters
 varstartcall <- function(object){
   vf <- object$variance
-  vt <- vartypeindex(vf)
-  if (vt == 0) return(NULL)
-  fx <- if (vt == 3) c(attr(vf$const, "fixed"), attr(vf$power, "fixed")) else attr(vf, "fixed")
-  if (length(fx) > 0) return(NULL)
-  vp <- varpars(object)
-  form <- attr(vf, "formula")
-  lev <- object$varlevels
-  if (vt == 1) return(as.call(list(as.name("varIdent"), value=vp[-1], form=form)))
-  G <- length(lev)
-  named <- function(v) if (G == 1) unname(v) else setNames(unname(v), lev)
-  if (vt == 2) return(as.call(list(as.name("varPower"), value=named(vp), form=form)))
-  as.call(list(as.name("varConstPower"), const=named(vp[seq_len(G)]), power=named(vp[G + seq_len(G)]), form=form))
+  if (vartypeindex(vf) == 0) return(NULL)
+  comps <- varcomps(vf)
+  v <- object$obj$env$parList(object$opt$par)$var_par
+  off <- 0
+  calls <- list()
+  for (k in seq_along(comps)){
+    cp <- comps[[k]]
+    vt <- vartypeone(cp)
+    lev <- object$varlevels[[k]]
+    G <- length(lev)
+    deg <- vardegree(cp)
+    np <- varnpar(vt, G, deg)
+    vp <- varnaturalone(vt, v[off + seq_len(np)], lev, deg)
+    off <- off + np
+    fx <- if (vt == 3) c(attr(cp$const, "fixed"), attr(cp$power, "fixed")) else attr(cp, "fixed")
+    if (length(fx) > 0) return(NULL)
+    form <- attr(cp, "formula")
+    named <- function(x) if (G == 1) unname(x) else setNames(unname(x), lev)
+    calls[[k]] <- switch(vt,
+                         as.call(list(as.name("varIdent"), value=vp[-1], form=form)),
+                         as.call(list(as.name("varPower"), value=named(vp), form=form)),
+                         as.call(list(as.name("varConstPower"), const=named(vp[seq_len(G)]), power=named(vp[G + seq_len(G)]), form=form)),
+                         as.call(list(as.name("varExp"), value=named(vp), form=form)),
+                         as.call(list(as.name("varPoly"), value=vp, degree=deg, form=form)))
+  }
+  if (length(calls) == 1) calls[[1]] else as.call(c(list(as.name("varComb")), calls))
 }

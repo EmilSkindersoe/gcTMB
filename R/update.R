@@ -151,23 +151,20 @@ update.gcTMB <- function(object, fixef=NULL, VarCorr=NULL, sigma=NULL, corpar=NU
   if (!is.null(varpar)){
     vt <- vartypeindex(object$variance)
     if (vt == 0) stop("the model has no variance function; fit it with one, e.g. variance=varPower().")
-    vn <- names(varpars(object))
+    info <- varparinfo(object$variance, object$varlevels)
+    vn <- info$name
     if (!is.numeric(varpar) || is.null(names(varpar)) || any(!(names(varpar) %in% vn)) || any(!is.finite(varpar))){
       stop("varpar must be a named vector with some of ", paste(vn, collapse=", "), ", as returned by varpars().")
     }
-    G <- env$data$varng
     for (nm in names(varpar)){
       k <- match(nm, vn)
       v <- varpar[[nm]]
-      if (vt == 1){
-        if (k == 1) stop("the reference stratum ", nm, " of varIdent has the ratio 1.")
-        if (v <= 0) stop("the ratios of varIdent must be positive.")
-        pl$var_par[k - 1] <- log(v)
-      } else if (vt == 3 && k <= G){
-        if (v <= 0) stop("the constant of varConstPower must be positive.")
-        pl$var_par[k] <- log(v)
+      if (is.na(info$index[k])) stop("the reference stratum ", nm, " of varIdent has the ratio 1.")
+      if (info$log[k]){
+        if (v <= 0) stop("the ", info$what[k], " must be positive.")
+        pl$var_par[info$index[k]] <- log(v)
       } else {
-        pl$var_par[k] <- v
+        pl$var_par[info$index[k]] <- v * info$factor[k]
       }
     }
   }

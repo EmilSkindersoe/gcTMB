@@ -76,6 +76,7 @@ profile.gcTMB <- function(fitted, parm=NULL, level=0.99, trace=FALSE, progress=i
   names(prof) <- pn[parm]
   attr(prof, "estimates") <- est[parm]
   attr(prof, "corr2") <- corr2names(fitted)
+  attr(prof, "varinfo") <- fitvarinfo(fitted)
   attr(prof, "cutoff") <- cutoffattr(fitted, parm <= nb)
   class(prof) <- "profile.gcTMB"
   prof
@@ -122,12 +123,12 @@ confint.profile.gcTMB <- function(object, parm=NULL, level=0.95, ...){
             " do not reach the confidence level; compute them with a higher level in profile.", call.=FALSE)
   }
 
-  natscale(ci, rn, attr(object, "corr2"), level)
+  natscale(ci, rn, attr(object, "corr2"), level, attr(object, "varinfo"))
 }
 
 # confidence intervals on the natural scale: standard deviations and precision from their logs,
 # correlations of terms with two random effects from their parameter; rows named accordingly
-natscale <- function(ci, rn, corr2, level){
+natscale <- function(ci, rn, corr2, level, varinfo=NULL){
   ci <- matrix(ci, ncol=2)
   tolog <- grepl("^log_sd:", rn) | rn %in% c("log_sigma", "log_phi", "log_theta")
   ci[tolog, ] <- exp(ci[tolog, ])
@@ -145,12 +146,15 @@ natscale <- function(ci, rn, corr2, level){
   ci[ng, ] <- stats::plogis(ci[ng, ])
   rn[rg | ng] <- sub("^cor_par:", "", rn[rg | ng])
   # the variance function: the ratios of varIdent and the constants of varConstPower from their logs
-  vpw <- grepl("^var_par:power(:|$)", rn)
-  vc <- grepl("^var_par:const(:|$)", rn)
-  vid <- grepl("^var_par:", rn) & !vpw & !vc
-  ci[vc | vid, ] <- exp(ci[vc | vid, ])
-  rn[vpw | vc] <- sub("^var_par:", "", rn[vpw | vc])
-  rn[vid] <- sub("^var_par:", "ratio:", rn[vid])
+  if (!is.null(varinfo)){
+    info <- varinfo
+    m <- match(rn, info$coefname)
+    vrow <- !is.na(m)
+    lg <- vrow & info$log[ifelse(vrow, m, 1)]
+    ci[lg, ] <- exp(ci[lg, ])
+    ci[vrow, ] <- ci[vrow, ] / info$factor[m[vrow]]
+    rn[vrow] <- info$profname[m[vrow]]
+  }
   two <- rn %in% corr2
   ci[two, ] <- ci[two, ] / sqrt(1 + ci[two, ]^2)
   rn[two] <- sub("^corr_par:", "corr:", rn[two])
@@ -481,7 +485,7 @@ confint.gcTMB <- function(object, parm=NULL, level=0.95, method=c("wald", "profi
   se <- sqrt(diag(vcov(object)))[parm]
   # t quantiles for the coefficients b1-b5 with small-sample inference
   z <- ifelse(parm <= sum(!object$fix), zquant(object, level), qnorm((1 + level)/2))
-  natscale(cbind(est[parm] - z*se, est[parm] + z*se), names(est)[parm], corr2names(object), level)
+  natscale(cbind(est[parm] - z*se, est[parm] + z*se), names(est)[parm], corr2names(object), level, fitvarinfo(object))
 }
 
 #' @rdname confint.gcTMB

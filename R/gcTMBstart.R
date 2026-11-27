@@ -150,7 +150,7 @@ gcTMBdata <- function(form, fform=NULL, rform=NULL, data, weights=NULL, family="
   cor <- corsetup(correlation, data, weights, re$terms, function(t, data) termgroups(re$terms[[t]], data))
   # variance function of the residuals: gaussian and lognormal
   if (vartypeindex(variance) > 0 && !(family %in% c("gaussian", "lognormal"))) stop("variance functions are only available for the gaussian and lognormal families.")
-  vs <- varsetup(variance, data)
+  vs <- varsetup(variance, data, y=y, x=mf[,2])
 
   list(y=y, x=mf[,2], w=weights, bn=bn, fam=fam, mod=mod, trunc=truncated, lnk=lnk, re=re,
        Xs=Xs, fform=fform, fterms=fterms, npars=npars, npi=rep(1:5, npars),
@@ -686,7 +686,7 @@ gcTMBobj <- function(dd, start, fix, rform=NULL, startvar=NULL){
   vsu <- if (is.null(dd$var)) varsetup(NULL, data.frame(seq_along(dd$y))) else dd$var
   datalist <- c(dlist, dd$Xs, list(xp=numeric(0)), Xp, list(Zp=re$Z[0, , drop=FALSE]),
                 cor[c("cortype", "corprev", "cordt", "corlag", "corord", "corgsize", "cordist")],
-                vsu[c("vartype", "varcovt", "varcov", "varstr", "varng")])
+                vsu[c("vartype", "varcovt", "varcov", "varstr", "varng", "vardeg", "varoff", "varscale", "varcenter")])
 
   # log_sigma: residual sd (gaussian, of log(y) for lognormal), precision (beta, betabinomial), size theta (nbinom2) or dispersion phi
   # (nbinom1); fixed for poisson and binomial

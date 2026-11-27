@@ -160,7 +160,7 @@ varpars <- function(object){
   vt <- vartypeindex(object$variance)
   if (vt == 0) return(setNames(numeric(0), character(0)))
   v <- object$obj$env$parList(object$opt$par)$var_par
-  varnatural(vt, v, object$varlevels, object$obj$env$data$varng)
+  varnatural(object$variance, v, object$varlevels)
 }
 
 # names of the random effect terms: the grouping factors, made unique for several terms of a factor

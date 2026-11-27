@@ -171,3 +171,10 @@ test_that("a non-finite objective at the estimates gives a warning", {
   expect_warning(gcTMB(y ~ day, truncated=FALSE, data=d, family="poisson", start=c(b2=10, b3=0.1), fix=c(b2=TRUE, b3=TRUE)),
                  "not finite")
 })
+
+test_that("non-finite simulations of a count model suggest the log link of b1", {
+  f <- gcTMB(Pods ~ DAS, rform=b1 ~ 1 | Tube_ID, data=FabaCounts23, family="poisson")
+  expect_warning(s <- simulate(f, nsim=1000, seed=1), 'link=c(b1="log")', fixed=TRUE)
+  fl <- gcTMB(Pods ~ DAS, rform=b1 ~ 1 | Tube_ID, data=FabaCounts23, family="poisson", link=c(b1="log"))
+  expect_no_warning(simulate(fl, nsim=1000, seed=1))
+})

@@ -119,3 +119,96 @@ test_that("timeto with residual=TRUE uses the variance function at the estimated
   ft <- gcTMB(Height ~ DAS, data=d, variance=varIdent(form=~ 1 | DAS))
   expect_error(timeto(ft, residual=TRUE), "cannot be evaluated")
 })
+
+test_that("varExp and varComb have the structure of those of nlme", {
+  skip_if_not_installed("nlme")
+  for (pair in list(list(varExp(form=~ x), nlme::varExp(form=~ x)),
+                    list(varExp(0.1, form=~ x | g, fixed=c(a=0)), nlme::varExp(0.1, form=~ x | g, fixed=c(a=0))))){
+    expect_equal(unclass(pair[[1]]), unclass(pair[[2]]), ignore_attr="formula")
+    expect_equal(class(pair[[1]]), class(pair[[2]]))
+  }
+  vc <- varComb(varIdent(form=~ 1 | trt), varPower())
+  expect_equal(class(vc), class(nlme::varComb(nlme::varIdent(form=~ 1 | trt), nlme::varPower())))
+  expect_equal(names(vc), c("A", "B"))
+  # nested combinations are flattened
+  expect_equal(length(varComb(vc, varExp())), 3)
+  expect_error(varComb(varPower()), "at least two")
+  expect_error(varPoly(degree=0), "positive whole number")
+  expect_error(varPoly(c(1, 2, 3)), "one value for each power")
+})
+
+test_that("varExp, varPoly and varComb have the likelihood of sigma g, with g the product of the components", {
+  vs <- list(varExp(), varExp(form=~ DAS), varExp(form=~ DAS | trt), varPoly(), varPoly(degree=1, form=~ DAS),
+             varPoly(form=~ DAS | trt), varPoly(form=~ rate(.)), varComb(varPower(), varExp()),
+             varComb(varIdent(form=~ 1 | trt), varPoly(form=~ DAS)))
+  for (v in vs){
+    fit <- gcTMB(Height ~ DAS, data=d, truncated=FALSE, variance=v)
+    expect_equal(fit$opt$convergence, 0, label=deparse1(v))
+    expect_equal(as.numeric(logLik(fit)), llind(fit), tolerance=1e-8)
+    gv <- fit$obj$report(gcTMB:::fitpar(fit))$gv
+    expect_equal(as.vector(gv), gcTMB:::fitvarmult(fit), tolerance=1e-6)
+  }
+  # the product: g of varComb(varPower(), varExp()) is |f|^delta exp(t f)
+  fc <- gcTMB(Height ~ DAS, data=d, variance=varComb(varPower(), varExp()))
+  vp <- varpars(fc)
+  expect_equal(names(vp), c("A.power", "B.expon"))
+  f <- fitted(fc)
+  expect_equal(gcTMB:::fitvarmult(fc), abs(f)^vp[["A.power"]]*exp(vp[["B.expon"]]*f), tolerance=1e-8)
+  expect_match(paste(capture.output(print(fc)), collapse=" "), "product of A. power of fitted")
+})
+
+test_that("varExp and varComb agree with nlme::gnls", {
+  skip_if_not_installed("nlme")
+  vg <- list(varExp(form=~ DAS), varComb(varIdent(form=~ 1 | trt), varExp(form=~ DAS)), varComb(varPower(form=~ DAS), varExp(form=~ DAS)))
+  vn <- list(nlme::varExp(form=~ DAS), nlme::varComb(nlme::varIdent(form=~ 1 | trt), nlme::varExp(form=~ DAS)),
+             nlme::varComb(nlme::varPower(form=~ DAS), nlme::varExp(form=~ DAS)))
+  for (k in seq_along(vg)){
+    fit <- gcTMB(Height ~ DAS, data=d, truncated=FALSE, variance=vg[[k]])
+    cf <- coef(fit)
+    g <- nlme::gnls(Height ~ b1/(1 + exp(-(DAS - b2)/b3)), data=d, start=c(b1=cf[[1]], b2=cf[[2]], b3=cf[[3]]), weights=vn[[k]])
+    expect_equal(as.numeric(logLik(fit)), as.numeric(logLik(g)), tolerance=1e-6)
+  }
+  # nlme's varComb is accepted
+  f1 <- gcTMB(Height ~ DAS, data=d, truncated=FALSE, variance=vn[[2]])
+  f2 <- gcTMB(Height ~ DAS, data=d, truncated=FALSE, variance=vg[[2]])
+  expect_equal(logLik(f1), logLik(f2))
+})
+
+test_that("varPoly: a polynomial standard deviation centred at the mean, with a barrier where it is 0 or below", {
+  fit <- gcTMB(Height ~ DAS, data=d, variance=varPoly(form=~ DAS))
+  vp <- varpars(fit)
+  expect_equal(names(vp), c("poly1", "poly2"))
+  m <- mean(d$DAS)
+  expect_equal(gcTMB:::fitvarmult(fit), 1 + vp[["poly1"]]*(d$DAS - m) + vp[["poly2"]]*(d$DAS - m)^2, tolerance=1e-8)
+  expect_match(paste(capture.output(print(fit)), collapse=" "), "polynomial of degree 2 in DAS - ")
+  # the same fit from other starting values; fixed coefficients stay fixed
+  f2 <- gcTMB(Height ~ DAS, data=d, variance=varPoly(c(0.01, 0), form=~ DAS))
+  expect_equal(as.numeric(logLik(f2)), as.numeric(logLik(fit)), tolerance=1e-6)
+  f1 <- gcTMB(Height ~ DAS, data=d, variance=varPoly(form=~ DAS, fixed=c(poly2=0)))
+  expect_equal(varpars(f1)[["poly2"]], 0)
+  expect_equal(attr(logLik(f1), "df"), attr(logLik(fit), "df") - 1)
+  # Wald intervals on the scale of the coefficients
+  ci <- confint(fit)
+  expect_true(all(c("poly1", "poly2") %in% rownames(ci)))
+  expect_true(ci["poly1", 1] < vp[["poly1"]] && vp[["poly1"]] < ci["poly1", 2])
+  # the barrier: a polynomial 0 or below at an observation gives a log-likelihood of minus infinity
+  fb <- update(fit, varpar=c(poly2=-1))
+  expect_equal(as.numeric(logLik(fb)), -Inf)
+  expect_error(predict(fb, interval="prediction"), "0 or below")
+  # update and refit with the estimates
+  expect_equal(varpars(update(fit, varpar=c(poly1=0.02)))[["poly1"]], 0.02)
+  fr <- refit(fit, startfrom="fit")
+  expect_equal(as.numeric(logLik(fr)), as.numeric(logLik(fit)), tolerance=1e-8)
+  expect_equal(eval(fr$call$variance)[["poly1"]], vp[["poly1"]], ignore_attr=TRUE)
+  # by a grouping factor
+  fg <- gcTMB(Height ~ DAS, data=d, variance=varPoly(degree=1, form=~ DAS | trt))
+  expect_equal(names(varpars(fg)), paste("poly1:", levels(d$trt), sep=""))
+})
+
+test_that("predict without newdata works with integer times", {
+  fit <- gcTMB(Height ~ DAS, data=d, variance=varPower(form=~ DAS))
+  expect_true(is.integer(d$DAS))
+  p <- predict(fit, interval="prediction")
+  expect_equal(nrow(p), nrow(d))
+  expect_equal(p$fit, predict(fit, newdata=transform(d, DAS=as.numeric(DAS)), interval="prediction")$fit)
+})

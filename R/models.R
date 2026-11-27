@@ -262,10 +262,11 @@ pblse <- function(x, y){
 # first one is the default. The scale b3 may have the inverse link, so that its linear predictor is
 # the rate 1/b3. The log link keeps a parameter positive: the asymptote b1, the times b2 and b4 (the
 # threshold of a truncated curve), b3, and the rate b2 of chapmanrichards; the logit link keeps the
-# asymptote b1 in (0, 1), for proportions.
+# asymptote b1 in (0, 1), for proportions. The coefficient b2 of korf has the log link by default: it
+# grows with t^(b3 - 1), often to 1e8 or more, where the optimiser stops with singular convergence.
 modellinks <- function(m){
   list(b1=if (m$b1 %in% "asymptote") c("identity", "log", "logit") else if (m$b1 %in% "slope") c("identity", "log") else "identity",
-       b2=if (m$b2 %in% c("inflection", "halfway", "rate", "coefficient")) c("identity", "log") else "identity",
+       b2=if (m$b2 %in% "coefficient") c("log", "identity") else if (m$b2 %in% c("inflection", "halfway", "rate")) c("identity", "log") else "identity",
        b3=if (isTRUE(m$shape1)) c("logm1", "identity", "log") else if (m$b3 %in% "scale") c("identity", "inverse", "log") else if (m$b3 %in% c("slope", "shape", "end", "level")) c("identity", "log") else "identity",
        b4=c("identity", "log"),
        b5=c("identity", "log"))

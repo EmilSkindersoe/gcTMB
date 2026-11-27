@@ -167,7 +167,7 @@ test_that("simulated residuals have the correlation of the fit, and normalized r
   phi <- corpars(fit)[["rho"]]
   s <- sigma(fit)
   dat <- fit$obj$env$data
-  sims <- simulate(fit, nsim=400, seed=1, random=FALSE)
+  sims <- simulate(fit, nsim=400, seed=1, re="fitted")
   # residuals of the simulations around the curves of the fitted plants, standardised
   R <- (as.matrix(sims) - predict(fit))/s
   expect_equal(mean(R^2), 1, tolerance=0.03)
@@ -350,7 +350,7 @@ test_that("the spatial parameters in coef, confint, print, update and simulate",
   expect_error(update(fit, corpar=0.5), "named vector")
   # simulated residuals: variance sigma^2, correlation (1 - nugget) exp(-(7/8)^2) at 7 days
   dat <- fu$obj$env$data
-  sims <- simulate(fu, nsim=300, seed=2, random=FALSE)
+  sims <- simulate(fu, nsim=300, seed=2, re="fitted")
   R <- (as.matrix(sims) - predict(fu))/sigma(fu)
   expect_equal(mean(R^2), 1, tolerance=0.05)
   ds <- d[order(d$Plant_ID, d$DAS), ]

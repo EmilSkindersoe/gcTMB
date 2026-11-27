@@ -96,7 +96,7 @@ anova(fitred, fitre)
 VarCorr(fitre)
 ```
 
-The Korf curve, $h = 1.3 + b_1 \exp(b_2/((1 - b_3) d^{b_3 - 1}))$ (Kuželka and Marušák, 2015), with the same fixed and random effects, is an alternative height-diameter model, as flexible as Chapman-Richards through its shape $b_3$. The shape must be larger than 1, and its default link log$(b_3 - 1)$ keeps it there; on these data it is pulled towards 1, where the curve becomes a power curve without an asymptote. The Chapman-Richards and Korf models are not nested, and are compared by their AIC:
+The Korf curve, $h = 1.3 + b_1 \exp(b_2/((1 - b_3) d^{b_3 - 1}))$ (Kuželka and Marušák, 2015), with the same fixed and random effects, is an alternative height-diameter model, as flexible as Chapman-Richards through its shape $b_3$. The shape must be larger than 1, and its default link log$(b_3 - 1)$ keeps it there, while the coefficient $b_2$ has the log link, so that its random effects act on log $b_2$; on these data it is pulled towards 1, where the curve becomes a power curve without an asymptote. The Chapman-Richards and Korf models are not nested, and are compared by their AIC:
 
 ```{r}
 fitk <- refit(fitre, model = "korf", control = list(restart = TRUE))
@@ -194,7 +194,7 @@ For count data the Pearson residuals are not normal, even for a correct model. `
 plot(fitp, seed = 1)
 ```
 
-The simulations of `simulate()` can also be used for simulation-based residuals, for example with the package DHARMa (Hartig, 2026) and its function `createDHARMa()`. With `random = FALSE`, the simulations are conditional on the predicted random effects, like the residuals of `plot()`, and the simulation-based residuals are then essentially the same as the quantile residuals. With `random = TRUE`, new random effects are drawn for each simulation. Note that `random` means the opposite in `fitted()` and `residuals()`, where `random = TRUE` includes the predicted random effects.
+The simulations of `simulate()` can also be used for simulation-based residuals, for example with the package DHARMa (Hartig, 2026) and its function `createDHARMa()`. With `re = "fitted"`, the simulations are conditional on the predicted random effects, like the residuals of `plot()`, and the simulation-based residuals are then essentially the same as the quantile residuals. With `re = "new"` (the default), new random effects are drawn for each simulation, and `re = "none"` simulates around the population curve.
 
 ## References
 

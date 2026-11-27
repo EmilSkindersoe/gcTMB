@@ -56,7 +56,14 @@
 
 \method{vcov}{gcTMB}(object, ...)
 
-\method{simulate}{gcTMB}(object, nsim = 1, seed = NULL, random = TRUE, newdata = NULL, ...)
+\method{simulate}{gcTMB}(
+  object,
+  nsim = 1,
+  seed = NULL,
+  re = c("new", "fitted", "none"),
+  newdata = NULL,
+  ...
+)
 }
 \arguments{
 \item{x, object}{A gcTMB object, the result of \code{\link{gcTMB}}.}
@@ -67,14 +74,14 @@
 
 \item{...}{Not used.}
 
-\item{random}{Logical. If TRUE, the random effects are included in the predictions, fitted values and residuals (conditional residuals). TRUE corresponds to the innermost level of \code{predict} and \code{fitted} of nlme, and FALSE to \code{level=0} (\code{re.form=NA} of lme4). For simulate, if TRUE, new random effects are drawn for each simulation, otherwise the fitted random effects are kept.
+\item{random}{Logical. If TRUE, the random effects are included in the predictions, fitted values and residuals (conditional residuals). TRUE corresponds to the innermost level of \code{predict} and \code{fitted} of nlme, and FALSE to \code{level=0} (\code{re.form=NA} of lme4). Not an argument of simulate, see re.
 For prediction intervals, random=TRUE gives the interval of a new observation in the group of each row of newdata, and random=FALSE the interval of a new observation in a new group, including the variance of the random effects. Rows of newdata with a level that is not in the fitted data are treated as new groups for that random effect term.}
 
 \item{type}{Character string. For residuals, the type of residuals: "pearson" (default), the response residuals divided by the standard deviation of the fitted distribution and multiplied by the square root of the weights; "response", the observed minus the fitted values, as proportions for a binomial response; or "quantile", randomised quantile residuals (Dunn and Smyth, 1996), which are standard normal under the model. The types "response", "pearson" and "normalized" are those of \code{residuals} of nlme. "normalized" (gaussian and lognormal) are the standardised residuals decorrelated by the autocorrelation of the fit (see \code{\link{corStruct}}): each standardised residual minus rho^dt times the previous one of its group, divided by sqrt(1 - rho^(2 dt)), independent standard normal under the model, as in nlme; without autocorrelation they are the pearson residuals; for the other families they are the pearson residuals, with a warning. For the gaussian family, the quantile residuals are multiplied by the square root of the weights, as precision weights with standard deviation sigma/sqrt(w); for the other families they do not use the weights, as a weighted log-likelihood is not the density of a distribution of the observation. The quantile residuals are random for the count families; use set.seed for reproducible values. For the lognormal family, the pearson and quantile residuals are the standardised residuals of log(y), (log(y) - log(f))/sigma, multiplied by the square root of the weights.
 For predict, the type of prediction: "response" (default), the mean response at the times of newdata, or "parameters", the parameters b1-b3 of the curve of each row of newdata (with its covariates in fform and, with random=TRUE, the random effects of its groups); newdata then needs no time. The standard errors of the parameters are those of the estimates, by the delta method, and their confidence intervals are computed on the scale of the link and back-transformed; with random=TRUE, they include the uncertainty of the predicted random effects of the fitted groups. Prediction intervals of the parameters add the variance of the random effects of the terms without a fitted level, the parameters of a new group, and are not available with boot.}
 
 \item{newdata}{Data frame or NULL. The data for the predictions, with the time and the covariates of the model. If NULL, the original data is used.
-For simulate, the times, covariates and grouping variables of the observations to simulate, e.g. new times or new individuals; each level of a grouping variable is one curve, with random effects shared by its rows. With random=TRUE all levels get new random effects; with random=FALSE the levels in the fitted data keep their fitted random effects and the other levels get new ones. For binomial responses the number of trials is taken from the response in newdata (one for a binary response).}
+For simulate, the times, covariates and grouping variables of the observations to simulate, e.g. new times or new individuals; each level of a grouping variable is one curve, with random effects shared by its rows. With re = "new" all levels get new random effects; with re = "fitted" the levels in the fitted data keep their fitted random effects and the other levels get new ones; with re = "none" there are no random effects. For binomial responses the number of trials is taken from the response in newdata (one for a binary response).}
 
 \item{se.fit}{Logical. If TRUE, predict returns the standard errors of the predicted means, by the delta method; with random=TRUE they include the uncertainty of the predicted random effects.}
 
@@ -89,6 +96,8 @@ For simulate, the times, covariates and grouping variables of the observations t
 \item{seed}{Integer or NULL. Seed for the random number generator; NULL (default) sets no seed: the draws continue from the current state of the random number generator}
 
 \item{scale}{Character string. For type="parameters", the scale of the parameters: "original" (default) or "link", the scale of the coefficients, see the argument link of \code{\link{gcTMB}}.}
+
+\item{re}{Character string. The random effects of simulate: "new" (default) draws new random effects for each simulation, i.e. new individuals; "fitted" keeps the fitted (predicted) random effects, i.e. new observations of the same individuals, as \code{fitted(random=TRUE)}; "none" simulates around the population curve without random effects, as \code{fitted(random=FALSE)}. With newdata, "fitted" keeps the fitted random effects of the levels in the fit and draws new ones for the other levels.}
 }
 \value{
 Estimated model coefficients, variance-covariance matrix, or predictions.

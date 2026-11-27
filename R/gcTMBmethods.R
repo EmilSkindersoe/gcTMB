@@ -2,9 +2,10 @@
 #'
 #' @param x,object A gcTMB object, the result of \code{\link{gcTMB}}.
 #' @param newdata Data frame or NULL. The data for the predictions, with the time and the covariates of the model. If NULL, the original data is used.
-#'   For simulate, the times, covariates and grouping variables of the observations to simulate, e.g. new times or new individuals; each level of a grouping variable is one curve, with random effects shared by its rows. With random=TRUE all levels get new random effects; with random=FALSE the levels in the fitted data keep their fitted random effects and the other levels get new ones. For binomial responses the number of trials is taken from the response in newdata (one for a binary response).
-#' @param random Logical. If TRUE, the random effects are included in the predictions, fitted values and residuals (conditional residuals). TRUE corresponds to the innermost level of \code{predict} and \code{fitted} of nlme, and FALSE to \code{level=0} (\code{re.form=NA} of lme4). For simulate, if TRUE, new random effects are drawn for each simulation, otherwise the fitted random effects are kept.
+#'   For simulate, the times, covariates and grouping variables of the observations to simulate, e.g. new times or new individuals; each level of a grouping variable is one curve, with random effects shared by its rows. With re = "new" all levels get new random effects; with re = "fitted" the levels in the fitted data keep their fitted random effects and the other levels get new ones; with re = "none" there are no random effects. For binomial responses the number of trials is taken from the response in newdata (one for a binary response).
+#' @param random Logical. If TRUE, the random effects are included in the predictions, fitted values and residuals (conditional residuals). TRUE corresponds to the innermost level of \code{predict} and \code{fitted} of nlme, and FALSE to \code{level=0} (\code{re.form=NA} of lme4). Not an argument of simulate, see re.
 #'   For prediction intervals, random=TRUE gives the interval of a new observation in the group of each row of newdata, and random=FALSE the interval of a new observation in a new group, including the variance of the random effects. Rows of newdata with a level that is not in the fitted data are treated as new groups for that random effect term.
+#' @param re Character string. The random effects of simulate: "new" (default) draws new random effects for each simulation, i.e. new individuals; "fitted" keeps the fitted (predicted) random effects, i.e. new observations of the same individuals, as \code{fitted(random=TRUE)}; "none" simulates around the population curve without random effects, as \code{fitted(random=FALSE)}. With newdata, "fitted" keeps the fitted random effects of the levels in the fit and draws new ones for the other levels.
 #' @param se.fit Logical. If TRUE, predict returns the standard errors of the predicted means, by the delta method; with random=TRUE they include the uncertainty of the predicted random effects.
 #' @param interval Character string. The type of interval of predict: "none", "confidence" for confidence intervals of the mean, computed on the log scale for poisson and lognormal and on the logit scale for binomial and beta responses, or "prediction" for prediction intervals of a new observation with weight 1. Gaussian and lognormal models without random effects use t quantiles with n - p degrees of freedom and the unbiased residual variance, see \code{\link{gcTMB}}. For the gaussian and lognormal (on the log scale) families without boot, the prediction intervals use the normal (or t) distribution, and the variance of the random effects of new groups is added by the delta method. Otherwise they are quantiles of new observations simulated at nsim draws from the normal approximation of the fixed and random effects, with the variance parameters kept at their estimates, or at the bootstrap fits (see boot); with new random effects for new groups; for a binomial response as proportions, with the number of trials from the response in newdata (one for a binary response).
 #' @param level Numeric between 0 and 1. Confidence level of the intervals of predict
@@ -509,7 +510,7 @@ predmean <- function(pd, eta){
 predictse <- function(object, pd){
   env <- object$obj$env
   dat <- env$data
-  dat$xp <- pd$x
+  dat$xp <- as.numeric(pd$x)
   for (i in 1:5) dat[[paste("Xp", i, sep="")]] <- pd$Xs[[i]]
   # TMB reads sparse matrices in triplet form
   dat$Zp <- as(as(pd$Zp, "TsparseMatrix"), "generalMatrix")
@@ -829,15 +830,21 @@ vcov.gcTMB <- function(object, ...){
 
 #' @rdname gcTMB-methods
 #' @export
-simulate.gcTMB <- function(object, nsim=1, seed=NULL, random=TRUE, newdata=NULL, ...){
+simulate.gcTMB <- function(object, nsim=1, seed=NULL, re=c("new", "fitted", "none"), newdata=NULL, ...){
+  if ("random" %in% names(list(...))){
+    stop("the argument random of simulate() is replaced by re: re = \"new\" (random = TRUE) draws new random effects, ",
+         "re = \"fitted\" (random = FALSE) keeps the fitted ones, and re = \"none\" simulates around the population curve.", call.=FALSE)
+  }
+  re <- match.arg(re)
   if (!is.null(seed)) set.seed(seed)
   if (!is.null(newdata)){
-    return(simnew(object, newdata, nsim, random, seed))
+    return(simnew(object, newdata, nsim, re, seed))
   }
   obj <- object$obj
   par <- fitpar(object)
-  if (!is.null(object$rform) && !random){
-    # keep the fitted random effects: rebuild the objective with simre = 0
+  if (!is.null(object$rform) && re != "new"){
+    # keep the fitted random effects (or zero for re = "none"): rebuild the objective with simre = 0
+    if (re == "none") par[obj$env$random] <- 0
     dat <- obj$env$data
     dat$simre <- 0
     obj <- MakeADFun(dat, obj$env$parList(par=par), map=obj$env$map, random="u", DLL="gcTMB_TMBExports", silent=TRUE)
@@ -845,9 +852,19 @@ simulate.gcTMB <- function(object, nsim=1, seed=NULL, random=TRUE, newdata=NULL,
   out <- lapply(seq_len(nsim), function(i) obj$simulate(par))
   sims <- lapply(out, function(o) o$y)
   nbad <- sum(sapply(sims, function(y) any(!is.finite(y))))
-  if (nbad > 0) warning(nbad, " of ", nsim, " simulations contain non-finite values; simulated random effects may fall outside the valid parameter range.")
+  if (nbad > 0) simbadwarning(object, nbad, nsim)
   simout(sims, lapply(out, function(o) o$fsim),
          lapply(out, function(o) ulist(object, o$usim, lapply(object$reterms, function(tm) tm$levels))), seed)
+}
+
+# warning for nbad of nsim simulations with non-finite values: simulated random effects outside the
+# valid range of a parameter; for a count model with the identity link of b1, a random asymptote below
+# zero gives a negative mean, which the log link of b1 avoids
+simbadwarning <- function(object, nbad, nsim){
+  hint <- if (object$family %in% c("poisson", "nbinom2", "nbinom1") && !is.null(object$rform) &&
+              object$link[["b1"]] == "identity" && !islinear(modelindex(object$model)))
+    " With the identity link of b1, a simulated random asymptote below zero gives a negative mean of the counts; link=c(b1=\"log\") keeps it positive, as the random effects then multiply the curve."
+  warning(nbad, " of ", nsim, " simulations contain non-finite values; simulated random effects may fall outside the valid parameter range.", hint, call.=FALSE)
 }
 
 # the full parameter vector of the fit (as obj$env$par): the estimates, and the random effects at their
@@ -894,16 +911,18 @@ ulist <- function(object, u, lev){
 
 # responses simulated at the rows of newdata, nsim columns: the curves of the fixed effects plus random
 # effects for each level of the grouping factors in newdata, one draw per level shared by its rows.
-# random=TRUE draws new random effects for all levels; random=FALSE keeps the fitted random effects of
-# the levels in the fit and draws new ones for the other levels. Observations with weight 1;
+# re = "new" draws new random effects for all levels; re = "fitted" keeps the fitted random effects of
+# the levels in the fit and draws new ones for the other levels; re = "none" has no random effects (the
+# population curve). Observations with weight 1;
 # binomial responses as numbers of successes, with the trials from the response in newdata.
-simnew <- function(object, newdata, nsim, random, seed=NULL){
+simnew <- function(object, newdata, nsim, re="new", seed=NULL){
+  keep <- re == "fitted"
   newdata <- as.data.frame(newdata)
   pd <- preddata(object, newdata, random=FALSE)
   n <- length(pd$x)
   if (anyNA(pd$x)) stop("newdata needs the time of every row.")
   vcs <- recov(object)
-  re <- if (!random) ranef.gcTMB(object)
+  rfit <- if (keep) ranef.gcTMB(object)
   terms <- lapply(seq_along(object$reterms), function(t){
     tm <- object$reterms[[t]]
     g <- obsgroups(object, t, newdata)
@@ -914,8 +933,8 @@ simnew <- function(object, newdata, nsim, random, seed=NULL){
     # square root of the covariance matrix, also for zero variances
     e <- eigen(vcs[[t]]$cov, symmetric=TRUE)
     R <- e$vectors %*% diag(sqrt(pmax(e$values, 0)), nrow=length(e$values))
-    fitted <- if (!random) match(lv, rownames(re[[t]]))
-    list(tm=tm, id=match(g, lv), lv=lv, nl=length(lv), load=load, R=R, fitted=fitted, U=if (!random) as.matrix(re[[t]]))
+    fitted <- if (keep) match(lv, rownames(rfit[[t]]))
+    list(tm=tm, id=match(g, lv), lv=lv, nl=length(lv), load=load, R=R, fitted=fitted, U=if (keep) as.matrix(rfit[[t]]))
   })
   trials <- predtrials(object, newdata)
   phi <- residpar(object)
@@ -925,8 +944,8 @@ simnew <- function(object, newdata, nsim, random, seed=NULL){
     us <- numeric(0)
     for (tt in terms){
       np <- length(tt$tm$pars)
-      U <- matrix(rnorm(tt$nl*np), ncol=np) %*% t(tt$R)
-      if (!random){
+      U <- if (re == "none") matrix(0, tt$nl, np) else matrix(rnorm(tt$nl*np), ncol=np) %*% t(tt$R)
+      if (keep){
         ok <- which(!is.na(tt$fitted))
         U[ok, ] <- tt$U[tt$fitted[ok], , drop=FALSE]
       }
@@ -948,7 +967,7 @@ simnew <- function(object, newdata, nsim, random, seed=NULL){
   })
   sims <- lapply(out, function(o) o$y)
   nbad <- sum(sapply(sims, function(y) any(!is.finite(y))))
-  if (nbad > 0) warning(nbad, " of ", nsim, " simulations contain non-finite values; simulated random effects may fall outside the valid parameter range.")
+  if (nbad > 0) simbadwarning(object, nbad, nsim)
   lev <- lapply(terms, function(tt) tt$lv)
   simout(sims, lapply(out, function(o) o$mu), lapply(out, function(o) ulist(object, o$u, lev)), seed)
 }

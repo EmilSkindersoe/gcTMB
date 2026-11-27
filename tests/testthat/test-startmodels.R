@@ -130,9 +130,12 @@ test_that("chapmanrichards, beta and korf fits agree with nls", {
   # by default the shape b3 > 1 has the link log(b3 - 1): the same fit
   fl <- gcTMB(y ~ day, data=d, model="korf", start=c(b4=0))
   expect_equal(fl$link[["b3"]], "logm1")
-  f <- gcTMB(y ~ day, data=d, model="korf", start=c(b4=0), link=c(b3="identity"))
+  # and the coefficient b2 > 0 the log link
+  expect_equal(fl$link[["b2"]], "log")
+  f <- gcTMB(y ~ day, data=d, model="korf", start=c(b4=0), link=c(b2="identity", b3="identity"))
   expect_equal(logLik(fl), logLik(f), tolerance=1e-8)
   expect_equal(1 + exp(coef(fl)[[3]]), coef(f)[[3]], tolerance=1e-5)
+  expect_equal(exp(coef(fl)[[2]]), coef(f)[[2]], tolerance=1e-5)
   expect_true(any(grepl("log\\(b3 - 1\\)", capture.output(summary(fl)))))
   expect_equal(f$opt$convergence, 0)
   expect_false(f$truncated)
@@ -142,7 +145,7 @@ test_that("chapmanrichards, beta and korf fits agree with nls", {
   expect_equal(unname(bcoef(f)), unname(coef(n)), tolerance=1e-4)
   # the shape fixed at 2
   d1 <- simstart(mko, c(50, 22, 2, 0))
-  f1 <- gcTMB(y ~ day, data=d1, model="korf", start=c(b3=2, b4=0), fix=c(b3=TRUE), link=c(b3="identity"))
+  f1 <- gcTMB(y ~ day, data=d1, model="korf", start=c(b3=2, b4=0), fix=c(b3=TRUE), link=c(b2="identity", b3="identity"))
   expect_equal(f1$fix, c(FALSE, FALSE, TRUE, TRUE, TRUE))
   n1 <- nls(y ~ b1*exp(-b2/day), data=d1, start=list(b1=50, b2=22))
   expect_equal(unname(bcoef(f1)), unname(coef(n1)), tolerance=1e-5)
@@ -170,7 +173,7 @@ test_that("the intercept b4 of chapmanrichards and korf, fixed and estimated", {
   expect_equal(unname(bcoef(fe)), unname(coef(ne)), tolerance=1e-4)
   # korf from the breast height
   d$h <- gcTMB:::gcmeanR(mko, d$DBH, 30, 14, 2, 1.3) + rnorm(150, 0, 1)
-  fw <- gcTMB(h ~ DBH, data=d, model="korf", start=c(b4=1.3), link=c(b3="identity"))
+  fw <- gcTMB(h ~ DBH, data=d, model="korf", start=c(b4=1.3), link=c(b2="identity", b3="identity"))
   nw <- nls(h ~ 1.3 + a*exp(b/((1 - c)*DBH^(c - 1))), data=d, start=list(a=30, b=14, c=2))
   expect_equal(unname(bcoef(fw)), unname(coef(nw)), tolerance=1e-4)
   # timeto and maxrate do not depend on the intercept; absolute times include it
@@ -228,7 +231,7 @@ test_that("timeto of chapmanrichards, beta and korf: the inverse of the curve, w
                  list("korf", c(50, 22, 2, 0), NULL), list("korf", c(50, 3.6, 1.6, 0), NULL))){
     mod <- gcTMB:::modelindex(p[[1]])
     d <- simstart(mod, p[[2]])
-    f <- gcTMB(y ~ day, data=d, model=p[[1]], start=c(b4=0), fix=p[[3]], link=if (p[[1]] == "korf") c(b3="identity"))
+    f <- gcTMB(y ~ day, data=d, model=p[[1]], start=c(b4=0), fix=p[[3]], link=if (p[[1]] == "korf") c(b2="identity", b3="identity"))
     tt <- timeto(f, level=c(10, 50, 90))
     pv <- f$start
     pv[!f$fix] <- f$estimates[seq_len(sum(!f$fix))]

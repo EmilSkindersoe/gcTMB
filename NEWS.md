@@ -1,4 +1,36 @@
-# gcTMB 0.1.0.9026
+# gcTMB 0.1.0.9027 (2026-11-27)
+
+* New variance functions:
+  * `varExp()`, g = exp(t v), as in nlme.
+  * `varPoly()`, a polynomial standard deviation of a chosen `degree`
+    (default 2), g = 1 + d1 (v - m) + ... + dk (v - m)^k, centred at the
+    mean m of v in the data. The likelihood is zero where the polynomial is
+    0 or below at an observation, and `predict()` and `simulate()` give an
+    error where it is 0 or below at new values.
+  * `varComb()`, the product of the g of two or more variance functions, as
+    in nlme, e.g. `varComb(varPower(), varExp())` for a standard deviation
+    largest in the middle of growth. Its parameters are named `A.`, `B.`,
+    and so on.
+* `korf`: the coefficient `b2` has the log link by default. It grows with
+  t^(b3 - 1), often to 1e8 or more, where the optimiser stopped with
+  "singular convergence"; on the log scale the fits converge. The
+  coefficients of `b2` are now on the log scale, and random effects of `b2`
+  act on log `b2`; `link = c(b2 = "identity")` gives the old
+  parameterisation.
+* `simulate()`: a warning about non-finite simulated values suggests the log
+  link of `b1` for count models: a simulated random asymptote below zero on
+  the identity scale gives a negative mean.
+* `simulate()`: the argument `random` is replaced by `re`, as `random` meant
+  the opposite of its meaning in `fitted()`, `residuals()` and `predict()`.
+  `re = "new"` (default, the old `random = TRUE`) draws new random effects,
+  `re = "fitted"` (the old `random = FALSE`) keeps the fitted ones, and the
+  new `re = "none"` simulates around the population curve. Scripts with
+  `simulate(random = )` must be updated; they now give an error naming the
+  replacement.
+* `predict()` without `newdata` failed for times stored as integers (e.g. `DAS`
+  of the package datasets).
+
+# gcTMB 0.1.0.9026 (2026-11-27)
 
 ## Starting values
 
@@ -35,7 +67,7 @@
 * `timeto()` warns about missing or unfitted levels of the grouping
   variables in `newdata`, as `maxrate()` does.
 
-# gcTMB 0.1.0.9025
+# gcTMB 0.1.0.9025 (2026-11-26)
 
 * `maxrate()`: rows of `newdata` with a fitted level of a grouping variable
   give the curve of that group, with its predicted random effects, as in
@@ -48,19 +80,19 @@
   curves.
 * `viewcurves()` shows numbers with the number of decimals of the data.
 
-# gcTMB 0.1.0.9024
+# gcTMB 0.1.0.9024 (2026-11-26)
 
 * `plot()`: the `outliers` observations are drawn in red, with red labels, in
   the validation graphs.
 * New website article "Exploring observed curves", with the `viewcurves()`
   app running in the browser.
 
-# gcTMB 0.1.0.9023
+# gcTMB 0.1.0.9023 (2026-11-26)
 
 * `viewcurves()`: the argument `highlight` is renamed `outliers`, as in
   `plot()`, and the returned `$highlighted` is now `$outliers`.
 
-# gcTMB 0.1.0.9022
+# gcTMB 0.1.0.9022 (2026-11-26)
 
 * New `viewcurves()`: a Shiny app to step through the observed curves of a
   data set, with filters, colours and line types by covariates, and growth
@@ -71,7 +103,7 @@
   observations with the largest absolute residuals (`outliers`, default 1)
   are labelled by their individual in models with random effects.
 
-# gcTMB 0.1.0.9021
+# gcTMB 0.1.0.9021 (2026-11-25)
 
 * New variance functions for the `variance` argument of `gcTMB()`:
   `varIdent()`, `varPower()` and `varConstPower()`, with the arguments and
@@ -85,7 +117,7 @@
   lognormal families, and quantile residuals otherwise.
 * New vignette "Variance functions".
 
-# gcTMB 0.1.0.9020
+# gcTMB 0.1.0.9020 (2026-11-25)
 
 * New spatial correlation structures `corExp()` and `corGaus()`, with an
   optional nugget and several position variables (`form = ~ x + y | group`)
@@ -96,25 +128,25 @@
 * The vignette "Autocorrelation and simulation" is split into "Correlation
   structures" and "Simulation".
 
-# gcTMB 0.1.0.9019
+# gcTMB 0.1.0.9019 (2026-11-25)
 
 * `summary()` shows the unadjusted Wald test of each coefficient again;
   `partest()` gives tests of the differences between curves, adjusted for
   their number.
 
-# gcTMB 0.1.0.9018
+# gcTMB 0.1.0.9018 (2026-11-24)
 
 * `plot(type = "validation")` adds the data with the fitted curves to the
   page; `type = "curves"` draws two panels: the individual curves with the
   data, and the population curves.
 
-# gcTMB 0.1.0.9017
+# gcTMB 0.1.0.9017 (2026-11-24)
 
 * All column names of the package datasets start with a capital letter
   (e.g. `FabaHeights25$Height`, `BerkeleyGrowth$Age`). The values are
   unchanged; scripts using the old names must be updated.
 
-# gcTMB 0.1.0.9016
+# gcTMB 0.1.0.9016 (2026-11-24)
 
 * `gcTMBcontrol(onerror = "warning")` returns a fit that fails with a warning
   instead of an error, e.g. in a loop over models; the error is kept in
@@ -124,7 +156,7 @@
   `weights` comes after `b1type`. Calls that pass these arguments by position
   must be updated.
 
-# gcTMB 0.1.0.9015
+# gcTMB 0.1.0.9015 (2026-11-24)
 
 * `pairwise()` is renamed `partest()`. New argument `contrasts`: `"dunnett"`
   (default, each row of `newdata` against a reference) or `"tukey"` (all
@@ -132,14 +164,14 @@
 * `summary()` shows estimates and standard errors without tests, and no
   longer the Pearson dispersion statistic.
 
-# gcTMB 0.1.0.9014
+# gcTMB 0.1.0.9014 (2026-11-24)
 
 * The shape `b3` of the Weibull, gamma and Korf models has the new default
   link `"logm1"`, `log(b3 - 1)`, which keeps it above 1. Its coefficients are
   now on that scale; `link = c(b3 = "identity")` gives the old
   parameterisation.
 
-# gcTMB 0.1.0.9013
+# gcTMB 0.1.0.9013 (2026-11-22)
 
 * `chapmanrichards` is now `b4 + b1 (1 - exp(-b2 t))^b3` (Richards 1959),
   with the rate `b2` and the shape `b3`.
@@ -149,12 +181,12 @@
 * The intercept `b4` of both forestry models is fixed by default at the
   breast height 1.3.
 
-# gcTMB 0.1.0.9012
+# gcTMB 0.1.0.9012 (2026-11-22)
 
 * New datasets `FabaFlowers26` (flowers and pods per plant and date) and
   `FabaNodes26` (flowers and pods per node) from the 2026 field trial.
 
-# gcTMB 0.1.0.9011
+# gcTMB 0.1.0.9011 (2026-11-21)
 
 * The additive parameter `b6` of 0.1.0.9010 is removed again; the models
   have the parameters `b1` to `b5`.
@@ -165,37 +197,37 @@
 * `plot(type = "curves")` shows a single numeric covariate on a continuous
   colour scale.
 
-# gcTMB 0.1.0.9010
+# gcTMB 0.1.0.9010 (2026-11-20)
 
 * New Chapman-Richards and beta growth models.
 * New datasets `BerkeleyGrowth`, `PineHeightDiameter` and `SorghumMaize`.
 * The x-axis need not be time; the residual plot is labelled with the x
   variable.
 
-# gcTMB 0.1.0.9009
+# gcTMB 0.1.0.9009 (2026-11-20)
 
-* No user-visible changes from 0.1.0.9005 to 0.1.0.9009: R CMD check fixes on Linux, macOS, Windows and
+* No user-visible changes from 0.1.0.9005 (2026-11-19) to 0.1.0.9009: R CMD check fixes on Linux, macOS, Windows and
   R 4.2, and checks on earlier versions of R.
 
-# gcTMB 0.1.0.9004
+# gcTMB 0.1.0.9004 (2026-11-19)
 
 * Package website at <https://emilskindersoe.github.io/gcTMB/>.
 
-# gcTMB 0.1.0.9003
+# gcTMB 0.1.0.9003 (2026-11-18)
 
 * `control = list(restart = TRUE)` optimises a fit once more from its
   estimates when it did not converge, and keeps the better optimum.
 * `converged()` accepts a restarted fit that the restart improved by less
   than `lltol`.
 
-# gcTMB 0.1.0.9002
+# gcTMB 0.1.0.9002 (2026-11-18)
 
 * Autocorrelated residuals with `corAR1()` and `corCAR1()`, whose parameter
   is called rho.
 * Independent random effects with `||` in `rform`.
 * Likelihood ratio tests are named `LR` in `anova()`.
 
-# gcTMB 0.1.0.9001
+# gcTMB 0.1.0.9001 (2026-11-16)
 
 * Extractors, `criteria()`, `update()`, `converged()`, and simulation with
   new data.
@@ -204,7 +236,7 @@
 * Plot types, `timeto()` and `maxrate()`, `b1` as the maximum growth rate,
   and pairwise comparisons of curves.
 
-# gcTMB 0.1.0.9000
+# gcTMB 0.1.0.9000 (2026-11-16)
 
 * First version of gcTMB, developed from drcTMB to fit growth curves only:
   sigmoid growth models with asymmetry and default truncation, `maxrate()`,

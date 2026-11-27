@@ -27,7 +27,7 @@ The package gcTMB fits growth curves over time by maximum likelihood with the Te
 2. *Fixed and random effects* (`vignette("fixed-random-effects")`): covariates and random effects of the parameters, likelihood ratio and F-tests of their inclusion, and count data;
 3. *Timing and maximum growth rates* (`vignette("timing-rates")`): `timeto()` and `maxrate()` with treatment and genotype effects, the maximum growth rate as a parameter, and pairwise comparisons;
 4. *Correlation structures* (`vignette("correlation")`): temporal correlation of the residuals within individuals over time, and spatial correlation between neighbouring trees, with a nugget for measurement error;
-5. *Variance functions* (`vignette("variance")`): a variance for each stratum, or a power of the fitted curve, its growth rate or a covariate, and how variance functions trade off against random effects and autocorrelation;
+5. *Variance functions* (`vignette("variance")`): a variance for each stratum, or a power, exponential or polynomial of the fitted curve, its growth rate or a covariate, products of these, and how variance functions trade off against random effects and autocorrelation;
 6. *Simulation* (`vignette("simulation")`): simulation studies, including the recovery of the autocorrelation parameter and of a variance function.
 
 ## Growth models
@@ -176,7 +176,7 @@ In space, `corExp()` and `corGaus()` have the correlation $(1 - n) \exp(-d/r)$ a
 
 ## Variance functions
 
-The residual variance of the gaussian and lognormal families can change over the course of growth, with a variance function in the argument `variance`: `varIdent()` gives each stratum its own variance, `varPower()` and `varConstPower()` a power of a covariate, the fitted curve `fitted(.)` (the default), its growth rate `rate(.)`, largest at the inflection point, or a variable of the data. Here the residual standard deviation is a constant plus a power of the fitted curve, $\sigma (c + |\hat y|^{\delta})$, besides the random effects of the plants; `restart = TRUE` optimises once more from the estimates, as the first optimisation stops just short of convergence:
+The residual variance of the gaussian and lognormal families can change over the course of growth, with a variance function in the argument `variance`: `varIdent()` gives each stratum its own variance, `varPower()` and `varConstPower()` a power, `varExp()` an exponential and `varPoly()` a polynomial of a covariate, the fitted curve `fitted(.)` (the default), its growth rate `rate(.)`, largest at the inflection point, or a variable of the data; `varComb()` multiplies several of them, e.g. `varComb(varPower(), varExp())` for a standard deviation largest in the middle of growth. Here the residual standard deviation is a constant plus a power of the fitted curve, $\sigma (c + |\hat y|^{\delta})$, besides the random effects of the plants; `restart = TRUE` optimises once more from the estimates, as the first optimisation stops just short of convergence:
 
 ```{r}
 fitrev <- refit(fitre, variance = varConstPower(), control = gcTMBcontrol(restart = TRUE))
@@ -201,7 +201,7 @@ The vignette *Variance functions* shows how variance functions change the confid
 
 ## Simulation
 
-`simulate()` draws new responses from a fitted model, at the observed times or for new times and individuals in `newdata`, with new random effects and autocorrelated residuals; `update()` sets the parameters of a true model. Refitting the model to simulated data recovers its parameters, e.g. the autocorrelation:
+`simulate()` draws new responses from a fitted model, at the observed times or for new times and individuals in `newdata`, with new random effects (`re = "new"`; `re = "fitted"` keeps those of the fitted individuals) and autocorrelated residuals; `update()` sets the parameters of a true model. Refitting the model to simulated data recovers its parameters, e.g. the autocorrelation:
 
 ```{r}
 design <- expand.grid(DAS = seq(28, 122, by = 7), Plant_ID = paste0("p", 1:30), Soil = "Loamy",
